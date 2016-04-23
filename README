@@ -7,6 +7,8 @@
 #
 # See /etc/MailScanner/MailScanner.conf for config details.
 #
+# Manual: https://s3.amazonaws.com/msv5/docs/ms-admin-guide.pdf
+#
 # Support: http://lists.mailscanner.info/listinfo/mailscanner
 #			
 # Jerry Benton - 26 April 2016
