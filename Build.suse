@@ -107,7 +107,7 @@ cp $DEVBASEDIR/RPM.files/common/ms-msg-alert.cron $WORK/
 
 # doc dir
 cp $DEVBASEDIR/man/*[12345678] $WORK/doc/
-cp $DEVBASEDIR/COPYING $WORK/doc/
+cp $DEVBASEDIR/LICENSE $WORK/doc/
 cp /tmp/MailScanner.conf.index.html $WORK/doc/
 
 # lib dir
@@ -185,7 +185,7 @@ find $WORK -name '*.txt' -exec chmod 644 {} \;
 find $WORK -name '*.rules' -exec chmod 644 {} \;
 find $WORK -name 'README' -exec chmod 644 {} \;
 find $WORK -name 'EXAMPLES' -exec chmod 644 {} \;
-find $WORK -name 'COPYING' -exec chmod 644 {} \;
+find $WORK -name 'LICENSE' -exec chmod 644 {} \;
 
 # Build the src tarball for RPM construction
 cd $WORK

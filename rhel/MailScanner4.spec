@@ -1046,7 +1046,7 @@ exit 0
 /usr/share/MailScanner/perl/MailScanner/ZMDiskStore.pm
 
 
-%doc %attr(755,root,root) doc/COPYING
+%doc %attr(755,root,root) doc/LICENSE
 %doc %attr(755,root,root) doc/MailScanner.conf.index.html
 %doc %attr(755,root,root) doc
 
