@@ -1,0 +1,33 @@
+From: "$postmastername" <$localpostmaster>
+To: $to
+Subject: Spam-Mail nicht ausgeliefert
+X-%org-name%-MailScanner: generated
+
+Unsere Spam-Detektoren wurden durch eine an Sie gesandte Nachricht ausgelöst:
+  Absender: $from
+  Betreff: $subject
+  Datum: $date
+Diese Nachricht wurde nicht ausgeliefert. Die ausgelösten Detektoren sind
+$spamreport.
+
+Die an Sie adressierte Nachricht wurde entweder auf Grund ihrer Inhalte
+oder wegen des sendenden Mail-Servers (oder beiden) als Spam erkannt.
+
+Wir akzeptieren keine Werbemails (Spam) und arbeiten aktiv daran, sie
+zu stoppen.
+
+Wenn Sie Fragen haben oder glauben, diese Nachricht zu Unrecht erhalten zu
+haben, kontaktieren Sie bitte die Systemadministratoren.
+
+Ihre Administratoren werden die folgenden Informationen benötigen:
+  Servername: $hostname
+  Nachrichten-ID: $id
+  Datum: $datenumber
+
+--
+MailScanner
+E-Mail-Virus-Scanner
+%org-long-name%
+%web-site%
+
+

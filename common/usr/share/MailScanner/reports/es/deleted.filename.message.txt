@@ -1,0 +1,19 @@
+Este es un mensaje del Servicio de Protección de Virus para Correo
+Electrónico MailScanner
+----------------------------------------------------------------------
+El archivo anexado original "$filename"
+está en la lista de anexos inaceptables para este sitio y el mismo
+ha sido reemplazado por este mensaje de aviso.
+
+Debido a las limitaciones que nos afectan por el Acta de Regulación
+de Poderes de Investigación de 2000 en algunos países, no podemos
+mantener una copia del anexo original.
+
+El $date el analizador de virus dijo:
+$report
+-- 
+Postmaster
+%org-long-name%
+%web-site%
+
+

@@ -1,0 +1,15 @@
+Esta é uma mensagem do serviço de proteção contra vírus
+----------------------------------------------------------------------
+O arquivo anexo desta mensagem, "$filename", pode estar infectado com
+vírus de computador e foi substituído por esta mensagem. 
+
+Nossos sistemas previnem que uma cópia do arquivo em questão fique
+armazenada. Por favor, peça por gentileza ao remetente desta
+mensagem que lhe reenvie o arquivo somente após remover o vírus.
+
+Hoje, $date, o anti-virus relatou o seguinte:
+$report
+-- 
+Postmaster
+%org-long-name%
+%web-site%

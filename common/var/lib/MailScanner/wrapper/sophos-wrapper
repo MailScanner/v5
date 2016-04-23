@@ -1,0 +1,65 @@
+#!/bin/sh
+
+#   MailScanner - SMTP Email Processor
+#   Copyright (C) 2006  Julian Field
+#
+#   This program is free software; you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation; either version 2 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program; if not, write to the Free Software
+#   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+
+#      Jules@mailscanner.info
+
+#
+
+#set -x
+
+PackageDir=$1
+shift
+
+# Handle Sophos V5 and V4
+if [ "x$1" = "x-IsItInstalled" ]; then
+  [ -x ${PackageDir}/bin/savscan ] && exit 0
+  [ -x ${PackageDir}/bin/sweep ] && exit 0
+  exit 1
+fi
+
+# Handle Sophos V5
+if [ -x ${PackageDir}/bin/savscan ]; then
+  #SAV_IDE=${PackageDir}/lib/sav # This may not be needed
+  #export SAV_IDE
+  LANG=C
+  export LANG
+  exec ${PackageDir}/bin/savscan "$@"
+  exit 1
+fi
+
+#
+# All the rest of this is for Sophos V4 and below
+#
+
+# Check to see if Sophos is using the Sophos install directory,
+# rather than the MailScanner Sophos update directory.
+SAV_IDE=$PackageDir/ide
+if [ \! -x ${PackageDir}/ide -a -x ${PackageDir}/sav ]; then
+  SAV_IDE=$PackageDir/sav
+fi
+
+LD_LIBRARY_PATH=$PackageDir/lib
+LANG=C
+export SAV_IDE
+export LD_LIBRARY_PATH
+export LANG
+
+exec ${PackageDir}/bin/sweep "$@"
+

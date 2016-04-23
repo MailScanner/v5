@@ -1,0 +1,11 @@
+-- 
+English Version:
+
+This message has been scanned for viruses and
+dangerous content by MailScanner, and is
+believed to be clean.
+
+Versiunea Romana:
+
+Mesajul a fost scanat de MailScanner si este 
+considerat a fi neinfectat.

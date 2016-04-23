@@ -1,0 +1,31 @@
+From: "$postmastername" <$localpostmaster>
+To: $from
+Subject: Error detectado en el e-mail
+X-%org-name%-MailScanner: generated
+MIME-Version: 1.0
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: Quoted-Printable
+
+
+Nuestro detector de virus no ha podido analizar
+completamente un mensaje enviado por Usted:
+  A: $to
+  Asunto: $subject
+  Fecha: $date
+Las partes del mensaje que no hayan podido ser
+analizadas, no han sido entregadas.
+
+Si usted utiliza Microsoft Outlook, le recomendamo
+que cambie el formato de los mensajes salientes de 
+"Texto enriquecido" a "HTML" o "Texto sin formato".
+
+El detector de virus dijo lo siguiente acerca del mensaje:
+Informe: $report
+
+-- 
+MailScanner
+Protección contra Virus de E-mail
+%org-long-name%
+%web-site%
+
+

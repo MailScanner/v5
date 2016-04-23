@@ -1,0 +1,25 @@
+De: "$postmastername" <$localpostmaster>
+A: $from
+Assumpte: Avís: s'ha detectat un virus de correu electrònic
+X-%org-name%-MailScanner: generat
+
+El nostre detector de contingut de correu electrònic ha estat activat per un missatge que heu enviat:
+  A: $to
+  Assumpte: $subject
+  Data: $date
+
+Un o més dels fitxers adjunts ($filename) són a la llista
+de fitxers adjunts inacceptables per a aquest lloc i no
+s'han lliurat.
+
+Penseu en la possibilitat de canviar el nom d'els arxius per evitar aquesta limitació.
+
+El detector de virus ha dit el següent sobre el missatge:
+Informe: $report
+
+-- 
+MailScanner
+L'Escànner de Virus de Correu Electrònic
+%org-long-name%
+%web-site%
+

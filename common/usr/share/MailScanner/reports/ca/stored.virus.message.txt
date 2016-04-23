@@ -1,0 +1,19 @@
+Missatge del Servei de Protecció de Virus de Correu Electrònic de MailScanner
+-----------------------------------------------------------------------------
+El fitxer adjunt original "$filename"
+s'ha considerat que era infectat per un virus i ha estat substituït per aquest
+missatge d'avís.
+
+Si desitgeu rebre una còpia de l'adjunt *infectat*, si us plau
+contacteu amb el Centre de Suport i incluïu tot aquest missatge
+en la sol·licitud. Per altra banda, podeu trucar-los amb
+el contingut d'aquest missatge a mà.
+
+A $date l'escànner de virus va dir:
+$report
+Note pel Centre de Suport: Verifiqueu a $hostname a $quarantinedir/$datenumber (missatge $id).
+-- 
+Postmaster
+%org-long-name%
+%web-site%
+

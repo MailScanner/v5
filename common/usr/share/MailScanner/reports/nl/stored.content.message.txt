@@ -1,0 +1,22 @@
+Dit is een bericht van het MailScanner virus beschermingssysteem
+----------------------------------------------------------------
+Het oorspronkelijke e-mail bericht bevatte potentieel gevaarlijke
+inhoud, die voor uw veiligheid is verwijderd.
+
+De inhoud was gevaarlijk omdat ze meestal gebruikt wordt om virussen
+te verspreiden of om persoonlijke cq. vertrouwelijke informatie te verkrijgen
+zoals wachtwoorden of credit card nummers.
+
+Indien u een kopie van de oorspronkelijke bijlage wenst te ontvangen,
+verzoeken we u via e-mail contact op te nemen met de helpdesk. Voor
+een goede afhandeling van uw verzoek hebben we dit complete bericht
+(inclusief alle headers) nodig.
+
+Op $date heeft onze e-mail inhoud scanner het volgende gevonden:
+$report
+Bericht voor de helpdesk::
+Kijk op $hostname in $quarantinedir/$datenumber (message $id).
+-- 
+Postmaster
+%org-long-name%
+%web-site%

@@ -1,0 +1,36 @@
+From: "$postmastername" <$localpostmaster>
+To: $to
+Subject: {Spam no entregado} $subject
+X-%org-name%-MailScanner: generated
+
+Nuestros detectores de correo electrónico no solicitado (UCE/spam)
+fueron activados debido a un mensaje que Usted recibió:
+   De: $from
+   Asunto: $subject
+   Fecha: $date
+Este mensaje no ha sido entregado. Los detectores que fueron activados 
+son:
+$spamreport.
+
+El mensaje envíado a usted fue identificado como spam basándose en su 
+contenido, el servidor de correo que nos lo entregó o ambos.
+
+No aceptamos correo electrónico comercial no solicitado (spam) y 
+trabajamos activamente para detenerlo.
+
+Si tiene dudas acerca de ésto, o cree que ha recibido este mensaje
+erróneamente, por favor, contácte con los administradores de correo
+del sitio.
+
+Los administradores del sitio necesitarán la siguiente información:
+   Nombre del servidor: $hostname
+   Identificador del mensaje: $id
+   Código de fecha: $datenumber
+
+-- 
+MailScanner
+Email Virus Scanner
+%org-long-name%
+%web-site%
+
+

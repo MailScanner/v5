@@ -1,0 +1,24 @@
+De: "$postmastername" <$localpostmaster>
+A: $from
+Assumpte: {Rebot} rebutjat correu electrònic comercial no sol·licitat
+X-%org-name%-MailScanner: generat
+
+Els nostres detectors d'UCE (spam) han estat activats per un missatge que heu enviat:-
+  A: $to
+  Assumpte: $subject
+  Data: $date
+Aquest missatge ha estat destruït. Els detectors que han estat activats són
+$spamreport.
+
+El servidor que ens està enviant el missatge és en una llista negra pública
+per mala configuració o per mala utilització dels sistemes de correu.
+
+Si teniu cap pregunta sobre això o creieu que heu rebut aquest missatge
+per error, si us plau, contacteu amb els vostres administradors de sistema.
+
+-- 
+MailScanner
+L'Escànner de Virus de Correu Electrònic
+%org-long-name%
+%web-site%
+

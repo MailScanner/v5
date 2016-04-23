@@ -1,0 +1,27 @@
+This is a message from the MailScanner E-Mail Virus Protection Service
+----------------------------------------------------------------------
+English Version:
+
+The original e-mail attachment "$filename"
+was believed to be infected by a virus and has been replaced by this warning
+message.
+
+If you wish to receive a copy of the *infected* attachment, please
+e-mail helpdesk and include the whole of this message
+in your request. Alternatively, you can call them, with
+the contents of this message to hand when you call.
+
+Versiunea Romana:
+Atasamentul original a fost infectat cu un virus si a fost inlocuit cu acest
+avertisment.
+
+Daca doriti sa primiti o copie a atasamentului infectat, trimiteti acest
+mail la administratorul serverului $hostname.
+
+At $date the virus scanner said:
+$report
+Note to Help Desk: Look on $hostname in $quarantinedir/$datenumber (message $id).
+-- 
+Postmaster
+%org-long-name%
+%web-site%

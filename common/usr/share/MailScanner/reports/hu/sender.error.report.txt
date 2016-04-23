@@ -1,0 +1,25 @@
+From: "$postmastername" <$localpostmaster>
+To: $from
+Subject: E-mail formatum hiba
+X-%org-name%-MailScanner: generated
+
+A viruskereso program nem tudta analizalni az On altal kuldott levelet.
+  Cimzett:  $to
+  Targy  :  $subject
+  Datum  :  $date
+Az uzenet ellenorizhetetlen reszeinek kezbesitese nem tortent meg.
+
+Ha Microsoft Outlook levelezoprogramot hasznal, ajanljuk, hogy a kimeno
+levelek formatumat allitsa at "Rich Text"-rol "HTML" vagy "Plain Text"
+(egyszeru szoveg) fomatumra.
+
+A viruskereses eredmenye, $date idopontban:
+$report
+
+-- 
+$localpostmaster
+MailScanner - Email Virus Scanner - http://www.mailscanner.info
+%org-long-name%
+%web-site%
+
+

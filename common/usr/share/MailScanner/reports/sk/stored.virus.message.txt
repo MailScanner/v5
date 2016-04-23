@@ -1,0 +1,15 @@
+Toto je sprava od antivirovej ochrany elektronickej posty 'MailScanner'
+-----------------------------------------------------------------------
+Povodna priloha "$filename" oznacena ako infikovana virusom, bola nahradena
+tymto upozornenim.
+
+Pokial pozadujete dorucenie kopie *infikovanej* povodnej prilohy, prosim poslite
+e-mail podpore a prilozte k tomu tento oznam. 
+
+Dna $date antivirova ochrana oznamuje :
+$report
+Poznamka pre podporu: pozri $hostname v $quarantinedir/$datenumber (message $id).
+-- 
+Postmaster
+%org-long-name%
+%web-site%

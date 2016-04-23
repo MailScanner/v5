@@ -1,0 +1,18 @@
+Dette er en meddelelse fra MailScanner e-post virus beskyttelses tjenesten
+--------------------------------------------------------------------------
+Det originale e-brevs bilag "$filename"
+forventes at indeholde vira og er blevet erstattet af en advarsel.
+
+Hvis du ønsker at modtage en kopi af det originale bilag, send da venligst
+et e-brev til informationstjeneste (support/helpdesk) og medsend hele
+denne medelelse.
+
+Virusskanneren skrev følgende ($date):
+$report
+
+Note til informationstjenesten: Kig på $Config::Hostname i $Config::QuarantineDir (besked id $id).
+
+-- 
+Postmester
+%org-long-name%
+%web-site%

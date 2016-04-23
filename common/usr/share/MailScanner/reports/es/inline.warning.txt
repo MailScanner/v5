@@ -1,0 +1,3 @@
+Atención: Este mensaje contenía uno o más anexos que han sido eliminados
+Atención: ($filename).
+Atención: Por favor, lea el(los) anexo(s) "$viruswarningname" para más información.

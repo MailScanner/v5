@@ -1,0 +1,18 @@
+Toto je zprava od systemu antivirove ochrany elektronicke posty 'MailScanner'
+-----------------------------------------------------------------------------  
+Originalni zprava obsahovala potencialne nebezpecny obsah,
+ktery byl z duvodu vasi bezpecnosti vymazan.
+
+Tento druh nebezpecneho obsahu je casto vyuzivan k sireni viru nebo 
+pro ziskavani vasich osobnich nebo utajovanych informaci jako jsou 
+hesla nebo cisla kreditnich karet.
+
+V dusledku limitovaneho prostoru, kterym nas postovni system disponuje,
+neni mozne zachovat kopii puvodni zpravy. 
+
+System kontroly obsahu elektronicke posty nasel nasledujici:
+$report
+-- 
+Postmaster
+%org-long-name%
+%web-site%

@@ -1,0 +1,4 @@
+Varning: En eller flera bilagor har tagits bort
+Varning: ($filename).
+Varning: Vänligen läs "$virusvarningname" bilagorna för mer information.
+-- 

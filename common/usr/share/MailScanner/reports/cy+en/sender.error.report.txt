@@ -1,0 +1,34 @@
+From: "$postmastername" <$localpostmaster>
+To: $from
+Subject: Rhybudd: Gwall e-bost wedi'i ganfod./Warning: E-mail error detected
+X-%org-name%-MailScanner: generated
+
+Methodd ein canfyddwr firysau â llwyr | Our virus detector failed to analyse
+ ddadansoddi neges a anfonasoch:-     | completely a message you sent:-
+
+  To: $to
+  Subject: $subject
+  Date: $date
+
+Ni ddosberthir unrhyw rannau o'r      | Any parts of the message that could
+neges na ellid eu dadansoddi.         | not be analysed will not have been
+                                      | delivered.
+
+Os ydych yn defnyddio Microsoft       | If you are using Microsoft Outlook, we
+Outlook, byddai'n beth doeth ichi     | strongly recommend you change your
+newid fformat y negeseuon a anfonwch o| outgoing message format from "Rich
+"Rich Text" i "HTML" neu "Plain Text".| Text" to "HTML" or "Plain Text".
+
+Dyma a ddywedodd y canfyddwr firysau  | The virus detector said this about
+am y neges:                           | the message:
+Adroddiad:                            | Report:
+        $report
+
+-- 
+MailScanner
+Email Virus Scanner
+%org-long-name%
+%web-site%
+
+
+

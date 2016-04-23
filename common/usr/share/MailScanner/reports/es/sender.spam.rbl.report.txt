@@ -1,0 +1,30 @@
+From: "$postmastername" <$localpostmaster>
+To: $from
+Subject: {Bounce} e-mail comercial no solicitado rechazado
+X-%org-name%-MailScanner: generated
+MIME-Version: 1.0
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: Quoted-Printable
+
+Nuestros detectores de correo electrónico no solicitado (UCE/spam)
+fueron activados debido a un mensaje enviado por Usted:
+  A: $to
+  Fecha: $date
+Este mensaje ha sido destruido. Los detectores que lo activaron son:
+$spamreport.
+
+El servidor que envió el mensaje a nuestro sitio está en una lista 
+negra pública (RBL), por estar mal configurado o utilizar 
+incorrectamente los sistemas de correo electrónico.
+
+Si tiene dudas acerca de ésto, o cree que ha recibido este mensaje
+erróneamente, por favor, contácte con los administradores de correo
+del sitio.
+
+-- 
+MailScanner
+Protección contra Virus de E-mail
+%org-long-name%
+%web-site%
+
+

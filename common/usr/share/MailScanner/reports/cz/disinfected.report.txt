@@ -1,0 +1,11 @@
+Zprava, kterou jste prave obdrzeli od "$from" 
+s predmetem "$subject",
+obsahovala jeden nebo vicero viru, ktere by mely byt odstraneny.
+
+Viry byly odstraneny a ocisteny soubor je pripojen k teto zprave.
+
+-- 
+MailScanner
+Email Virus Scanner
+%org-long-name%
+%web-site%

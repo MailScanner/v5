@@ -1,0 +1,22 @@
+Toto je zprava od systemu antivirove ochrany elektronicke posty 'MailScanner'
+-----------------------------------------------------------------------------  
+Originalni zprava obsahovala potencialne nebezpecny obsah,
+ktery byl z duvodu vasi bezpecnosti vymazan.
+
+Tento druh nebezpecneho obsahu je casto vyuzivan k sireni viru nebo
+pro ziskavani vasich osobnich nebo utajovanych informaci jako jsou
+hesla nebo cisla kreditnich karet.
+
+Pokud pozadujete doruceni kopie puvodni zpravy, prosim 
+poslete e-mail podpore a prilozte k tomu tuto zpravu. 
+Pripadne muzete helpesk kontaktovat telefonicky a sdelit mu obsah 
+teto zpravy.
+
+Dne $date system kontroly obsahu elektronicke posty ohlasil: 
+$report
+Poznamka pro podporu: Podivej se na $hostname do 
+$quarantinedir/$datenumber (message $id). 
+-- 
+Postmaster
+%org-long-name%
+%web-site%

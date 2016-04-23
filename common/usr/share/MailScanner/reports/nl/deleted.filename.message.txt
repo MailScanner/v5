@@ -1,0 +1,18 @@
+Dit is een bericht van het MailScanner virus beschermingssysteem
+----------------------------------------------------------------
+De oorspronkelijke e-mail bijlage "$filename"
+staat op de lijst met onaanvaardbare bijlagen voor deze site en de
+bijlage is vervangen door deze waarschuwing.
+
+Op basis van de Wet bescherming persoonsgegevens kunnen we geen
+kopie bewaren van de oorspronkelijke bijlage.
+
+Op $date genereerde de virus scanner het volgende:
+$report
+
+-- 
+Postmaster
+%org-long-name%
+%web-site%
+
+

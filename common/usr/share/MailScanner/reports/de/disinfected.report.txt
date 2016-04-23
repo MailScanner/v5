@@ -1,0 +1,14 @@
+Eine kürzlich an Sie adressierte Nachricht von "$from"
+mit dem Betreff "$subject"
+enthielt einen oder mehrere Viren, die entfernt werden konnten.
+
+Die Viren wurden entfernt und die virenfreien Dateien wurden an diese E-Mail
+angehängt.
+
+--
+MailScanner
+E-Mail-Virus-Scanner
+%org-long-name%
+%web-site%
+
+

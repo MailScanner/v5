@@ -1,0 +1,35 @@
+From: "$postmastername" <$localpostmaster>
+To: $from
+Subject: Rhybudd: Canfuwyd firws e-bost/Warning: E-mail viruses detected
+X-%org-name%-MailScanner: generated
+
+Mae neges a anfonasoch newydd roi ein | Our virus detector has just been
+canfyddwr firysau ar waith:-          | triggered by a message you sent:-
+
+  To: $to
+  Subject: $subject
+  Date: $date
+
+Mae un neu fwy o'r atodiadau          | One or more of the attachments
+                      ($filename) 
+ar y rhestr atodiadau annerbyniol ar  | are on the list of unacceptable
+gyfer y safle hwn, ac ni fyddant      | attachments for this site and will
+wedi'u dosbarthu.                     | not have been delivered.
+
+Ystyriwch ailenwi'r ffeiliau neu eu   | Consider renaming the files or
+rhoi i mewn i ffeil "zip" er mwyn     | putting them into a "zip" file to
+osgoi'r cyfyngiad hwn.                | avoid this constraint.
+
+Dyma a ddywedodd y canfyddwr firysau  | The virus detector said this about
+am y neges:                           | the message:
+Adroddiad:                            | Report:
+        $report
+
+-- 
+MailScanner
+Email Virus Scanner
+%org-long-name%
+%web-site%
+
+
+

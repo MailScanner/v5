@@ -1,0 +1,20 @@
+Dit is een bericht van het MailScanner virus beschermingssysteem
+----------------------------------------------------------------
+De oorspronkelijke e-mail bijlage "$filename"
+staat op de lijst met onaanvaardbare bijlagen voor deze site en de
+bijlage is vervangen door deze waarschuwing.
+
+Indien u een kopie van de oorspronkelijke bijlage wenst te ontvangen,
+verzoeken we u via e-mail contact op te nemen met de helpdesk. Voor
+een goede afhandeling van uw verzoek hebben we dit complete bericht
+(inclusief alle headers) nodig.
+
+Op $date de virusscanner meldde:
+$report
+Bericht voor de helpdesk:
+Kijk op $hostname in $quarantinedir/$datenumber (bericht $id).
+
+-- 
+Postmaster
+%org-long-name%
+%web-site%

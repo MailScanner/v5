@@ -1,0 +1,3 @@
+-- 
+Denne meddelelse er blevet skannet for virus og farligt indhold
+af MailScanner, og er fundet ufarlig.

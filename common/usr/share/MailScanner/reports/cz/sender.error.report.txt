@@ -1,0 +1,23 @@
+From: "$postmastername" <$localpostmaster>
+To: $from
+Subject: Upozorneni: Zjistena chyba pri analyze zpravy
+X-%org-name%-MailScanner: vytvoren
+
+
+Detektor viru selhal pri kompletni analyze zpravy, kterou jste posilali:-
+  Komu: $to
+  Predmet: $subject
+  Datum: $date
+Zadna cast zpravy, ktera nemohla byt analyzovana, nebude ani dorucena. 
+
+Pokud pouzivate Microsoft Outlook, velmi doporucujeme, aby jste zmenili
+format odchozi zpravy z "Rich Text (.rtf)" na "HTML" nebo "Prosty Text".
+
+Detektor viru ohhlasil o teto zprave nasledujici:
+Hlaseni: $report
+
+-- 
+MailScanner
+Email Virus Scanner
+%org-long-name%
+%web-site%

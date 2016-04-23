@@ -1,0 +1,25 @@
+From: "$postmastername"<$localpostmaster>
+To: $from
+Subject: Email com conteúdo perigoso rejeitado
+X-%org-name%-MailScanner: generated
+
+Nossos filtros de conteúdo foram disparados por uma mensagem enviada para você de:-
+  To: $to
+  Subject: $subject
+  Date: $date
+Esta mensagem foi rejeitada. Os filtros acusaram:
+$report.
+
+Esta mensagem continha conteúdo pontencialmente perigoso que foi removido.
+
+Se você deseja enviar uma página web, por favor tente salva-la em um arquivo 
+e depois anexe-a em sua mensagem.
+
+Se voce tiver alguma dúvida a respeito, ou acredita que voce recebeu esta
+mensagem por erro, por favor contate o administrador do sistema.
+
+
+-- 
+Postmaster
+%org-long-name%
+%web-site%

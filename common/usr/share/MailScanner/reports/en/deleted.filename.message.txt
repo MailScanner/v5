@@ -1,0 +1,17 @@
+This is a message from the MailScanner E-Mail Virus Protection Service
+----------------------------------------------------------------------
+The original e-mail attachment "$filename"
+is on the list of unacceptable attachments for this site and has been
+replaced by this warning message.
+
+Due to limitations placed on us by the Regulation of Investigatory Powers
+Act 2000, we were unable to keep a copy of the original attachment.
+
+At $date the virus scanner said:
+$report
+-- 
+Postmaster
+%org-long-name%
+%web-site%
+
+

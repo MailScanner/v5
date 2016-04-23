@@ -1,0 +1,123 @@
+#!/bin/sh
+#
+#  ms-check
+#
+#  $Id: ms-check 5042 2010-07-12 08:02:12Z sysjkf $
+#
+#  Script to check whether mailscanner process is running, and
+#  start it up if not.
+#
+#  Copyright (C) 2002  Julian Field, Nick Phillips
+#
+#   This program is free software; you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation; either version 2 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program; if not, write to the Free Software
+#   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+#      https://www.mailscanner.info
+#
+
+# Check that the virus scanner is still running.
+# Re-start it if necessary.
+# This can also be used from the init script to
+# start it in the first place.
+# This can be called with a "-q" command-line option so that it is quiet
+# unless MailScanner actually had to be started.
+
+process=MailScanner
+msbindir=/usr/sbin
+config=/etc/MailScanner/MailScanner.conf
+
+# These seem to get put all over the shop...
+PATH=/usr/bin:/bin
+export PATH
+PERL=perl
+AWK=awk
+GREP=grep
+FGREP=fgrep
+EGREP=egrep
+PGREP=pgrep
+PS=ps
+UNAME='uname -a'
+
+#TAINTWARN='-Tw'
+TAINTWARN=
+
+RETVALUE=" Done."
+# If this does not work on your system, please don't
+# just send us a version that does, please please please
+# send example output that demonstrates *why* it doesn't
+# work, what version of what system you are running etc.
+# If you do this then I *will* make this work right for
+# everybody.
+# -- Nick Phillips <nwp@lemon-computing.com>
+
+if $UNAME | $FGREP "SunOS" >/dev/null ; then
+    # Version for Solaris/SysV systems:
+    pid=`$PGREP $process`
+elif $UNAME | $FGREP "HP" >/dev/null ; then
+    # Version for HP-UX
+    pid=`ps -efx |
+         fgrep $msbindir/$process |
+         fgrep -v fgrep |
+         awk '{print $2}'`
+elif $UNAME | $FGREP "SCO" >/dev/null ; then
+    pid=`ps -e -o pid -o args |
+         fgrep $msbindir/$process |
+         grep -v grep |
+         sed -e 's/^  *//' -e 's/ .*//'`
+elif $UNAME | $FGREP "Linux" >/dev/null ; then
+    pid=`$PS axww |
+         $EGREP $process'[:]|\['$process'\]|[ ]'$msbindir/$process |
+         awk '{ print $1 }'`
+elif $UNAME | $FGREP "BSD" >/dev/null ; then
+    pid=`$PS -axww |
+         $EGREP '[ ]('$msbindir/$process')|'$process'[:]' |
+         $AWK '{print $1}'`
+elif $UNAME | $FGREP "OSF" >/dev/null ; then
+    pid=`ps -e -o pid -o args |
+	$GREP '[ ]'$process |
+	grep -v grep |
+	awk '{ print $1 }'`
+elif $UNAME | $FGREP "Darwin" >/dev/null ; then # ie Mac OSX
+    pid=`$PS axww |
+	$EGREP '[ ]('$msbindir/$process')|'$process'[:]' |
+	$AWK '{print $1}'`
+else
+    # not BSD; everything else seems to do POSIX
+    pid=`COLUMNS=500 $PS -ef |
+         $EGREP '([ ]'$msbindir/$process')|'$process'[:]' |
+         $AWK '{print $2}'`
+fi
+
+# Not needed after 4.61.6.
+## Make it run SpamAssassin out of tmpfs
+#if [ -d /dev/shm ]; then
+#  TMPDIR=/dev/shm
+#  export TMPDIR
+#fi
+
+if [ "x$pid" = "x" ]; then
+  # Quietly try to raise the open_files limit
+  ulimit -n 2000 >/dev/null 2>&1
+  # Restart it
+  PATH=${msbindir}:$PATH
+  echo -n 'Starting MailScanner ...'
+  cd $msbindir
+  $process $config 2>/dev/null || RETVALUE=" Failed."
+  echo "$RETVALUE"
+else
+  if [ "x$1" != "x-q" ]; then
+    echo MailScanner running with pid $pid
+  fi
+fi
+

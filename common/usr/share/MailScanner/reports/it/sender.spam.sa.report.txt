@@ -1,0 +1,25 @@
+From: "$postmastername" <$localpostmaster>
+To: $from
+Subject: {Bounce} respinta email commerciale non richiesta
+X-%org-name%-MailScanner: generated
+
+Il sistema di controllo sulle email commerciali e' stato sollecitato dalla seguente email:-
+  To: $to
+  Subject: $subject
+  Date: $date
+Il messaggio e' stato distrutto. Le motivazioni relative sono le seguenti:
+#spamreport.
+
+Il messaggio e' stato classificato come spam in base ai contenuti presenti nella email.
+
+Questo dominio non accetta email commerciali non richieste e attivamente lavora per bloccarle. Se questo comportamento irregolare non subira' un arresto, contattteremo il vostro Internet Service Provider per richiedere la rimozione del vostro account.
+
+Per ogni richiesta, o se pensate di aver ricevuto erroneamente questo messaggio,
+contattate il vostro amministratore di sistema.
+
+-- 
+MailScanner
+Email Virus Scanner
+%org-long-name%
+%web-site%
+

@@ -1,0 +1,28 @@
+From: "Passerelle antivirus $postmastername" <$localpostmaster>
+To: $from
+Subject: ALERTE: =?ISO-8859-1?Q?pi=E8ces?= jointes suspectes
+X-%org-name%-MailScanner: generated
+
+Noter passerelle antivirus refuse d'envoyer certaines pièces jointes 
+du courriel que vous venez d'envoyer:
+  À:     $to
+  Sujet: $subject
+  Date:  $date
+
+La transmission d'au moins une pièce jointe est interdite par les règles
+de notre entreprise et a été remplacée par cet avertissement.
+
+Essayez de renommer la pièce jointe ou de la mettre dans un fichier
+compressé.
+
+Résultats de l'antivirus:
+$report
+
+Contactez $localpostmaster pour plus d'informations.
+
+-- 
+MailScanner
+%org-long-name%
+%web-site%
+
+

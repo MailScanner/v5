@@ -1,0 +1,24 @@
+De: "$postmastername" <$localpostmaster>
+A: $from
+Assumpte: Avís: s'ha detectat un virus de correu electrònic
+X-%org-name%-MailScanner: generat
+
+El nostre detector de virus ha estat activat per un missatge que heu enviat:-
+  A: $to
+  Assumpte: $subject
+  Data: $date
+Cap part infectada del missatge ($fitxer)
+no ha estat estat lliurada.
+
+Aquest missatge és simplement per avisar-vos que el vostre sistema informàtic
+pot tenir un virus actiu i s'ha de verificar.
+
+El detector de virus ha dit el següent sobre el missatge:
+Informe: $report
+
+-- 
+MailScanner
+L'Escànner de Virus de Correu Electrònic
+%org-long-name%
+%web-site%
+

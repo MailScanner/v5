@@ -1,0 +1,22 @@
+From: "$postmastername" <$localpostmaster>
+To: $from
+Subject: Upozornenie: E-mail virus zisteny
+X-%org-name%-MailScanner: vytvoreny
+
+Nas detektor virusov prave zistil, ze sprava ktoru posielate:-
+  Komu: $to
+  Predmet: $subject
+  Datum: $date
+
+Ziadna infikovana cast spravy nebude dorucena.
+
+Tato sprava je upozornenim, ze vas system obsahuje virus a mal by byt skontrolovany.
+
+Detektor virusov oznamuje o tejto sprave:
+Hlasenie: $report
+
+-- 
+MailScanner
+Email Virus Scanner
+%org-long-name%
+%web-site%

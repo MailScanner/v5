@@ -1,0 +1,27 @@
+De: "$postmastername" <$localpostmaster>
+A: $from
+Assumpte: {Rebot} rebutjat correu electrònic comercial no sol·licitat
+X-%org-name%-MailScanner: generat
+
+Els nostres detectors d'UCE (spam) han estat activats per un missatge que heu enviat:-
+  A: $to
+  Assumpte: $subject
+  Data: $date
+Aquest missatge ha estat rebutjat. El detector que l'ha activat és
+SpamAssassin.
+
+El contingut del vostre missatge indica que probablement és correu spam,
+i per tant, és per això que s'ha rebutjat.
+
+No s'accepten correus electrònics comercials no sol·licitats (spam) i treballem
+activament per aturar-los.
+
+Si teniu cap pregunta sobre això o creieu que heu rebutaquest missatge
+per error, si us plau, contacteu amb els vostres administradors de sistema.
+
+-- 
+MailScanner
+L'Escànner de Virus de Correu Electrònic
+%org-long-name%
+%web-site%
+

@@ -1,0 +1,22 @@
+Este es un mensaje del Servicio de Protección de Virus para Correo
+Electrónico MailScanner
+----------------------------------------------------------------------
+El mensaje de correo electrónico original tenía contenido 
+potencialmente peligroso que ha sido removido para su seguridad.
+
+El contenido es peligroso ya que suele ser utilizado para distribuir
+virus o conseguir acceso a información personal y/o confidencial, 
+como son, claves de acceso o números de tarjetas de crédito.
+
+Debido a las limitaciones que nos afectan por el Acta de Regulación
+de Poderes de Investigación de 2000 en algunos países, no podemos
+mantener una copia del anexo original.
+
+Los filtros de contenido encontraron lo siguiente:
+$report
+-- 
+Postmaster
+%org-long-name%
+%web-site%
+
+

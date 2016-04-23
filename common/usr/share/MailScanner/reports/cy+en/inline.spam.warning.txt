@@ -1,0 +1,23 @@
+Mae ein MailScanner yn credu bod yr   | Our MailScanner believes that the
+atodiad i'r neges hon a anfonwyd atoch| attachment to this message sent to you
+
+
+                Oddi wrth/From:         $from
+                Pwnc/Subject:           $subject
+
+
+yn E-bost Masnachol na ofynnwyd amdano| is Unsolicited Commerial Email (spam).
+(sbam). Os nad ydych yn sicr fod      | Unless you are sure that this message
+camdybiaeth fod y neges hon yn sbam,  | is incorrectly thought to be spam,
+dilëwch y neges hon heb ei hagor. Os  | please delete this message without
+agorwch negeseuon sbam, mae'n bosibl  | opening it. Opening spam messages
+y bydd y Sbamiwr yn gallu gwirio eich | might allow the spammer to verify your
+cyfeiriad e-bost.                     | email address.
+
+
+Os ydych yn credu bod y neges hon     | If you believe that this message
+wedi'i labelu'n sbam yn anghywir,     | has been incorrectly marked a spam,
+anfonwch yr e-bost hwn ymlaen at      | please forward this email to
+                           $localpostmaster.
+
+$longspamreport

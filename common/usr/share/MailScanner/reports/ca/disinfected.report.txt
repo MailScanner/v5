@@ -1,0 +1,14 @@
+Un missatge que heu rebut recentment de part de "$from" amb
+l'assumpte "$subject"
+contenia un o més virus informàtics que han pogut ser desinfectats.
+
+Els virus han estat eliminats i els arxius desinfectats s'han annexat
+a aquest missatge.
+
+-- 
+MailScanner
+Protecció contra Virus d'E-mail
+%org-long-name%
+%web-site%
+
+

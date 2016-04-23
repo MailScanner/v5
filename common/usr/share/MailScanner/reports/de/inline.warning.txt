@@ -1,0 +1,3 @@
+Warnung: Diese Nachricht enthielt einen oder mehrere Dateianhänge, die entfernt wurden
+Warnung: ($filename)
+Warnung: Bitte lesen Sie den oder die "$viruswarningname" Dateianhänge für genauere Informationen.

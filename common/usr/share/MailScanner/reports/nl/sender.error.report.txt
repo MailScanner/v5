@@ -1,0 +1,27 @@
+From: "$postmastername" <$localpostmaster>
+To: $from
+Subject: Waarschuwing: E-mail error gedetecteerd
+X-%org-name%-MailScanner: generated
+
+Onze virusscanner kon geen complete analyse uitvoeren op een bericht
+dat u stuurde:
+  To: $to
+  Subject: $subject
+  Date: $date
+De delen van het bericht die niet geanalyseerd konden worden zijn niet
+doorgestuurd naar de ontvanger.
+
+Indien u Microsoft Outlook gebruikt, raden we u ten zeerste aan om
+het formaat van uw uitgaande berichten te wijzigen van "Rich Text"
+naar "Plain Text".
+
+De virusscanner gaf onderstaande melding over uw bericht:
+Report: $report
+
+-- 
+MailScanner
+Email Virus Scanner
+%org-long-name%
+%web-site%
+
+

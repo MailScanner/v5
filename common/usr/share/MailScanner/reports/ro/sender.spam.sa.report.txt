@@ -1,0 +1,48 @@
+From: "$postmastername" <$localpostmaster>
+To: $from
+Subject: {Bounce} Unsolicited commercial email rejected
+X-%org-name%-MailScanner: generated
+
+English Version:
+
+Our UCE (spam) detectors have been triggered by a message you sent:-
+  To: $to
+  Subject: $subject
+  Date: $date
+This message has been destroyed. The detector that triggered is
+SpamAssassin.
+
+The content of your message indicates that it is probably spam e-mail,
+which is why it has been rejected.
+
+We do not accept unsolicited commercial (spam) e-mail and actively
+work to stop it. If you persist with this behaviour, we will contact
+your Internet Service Provider and request that your account be removed.
+
+If you have any questions about this, or you believe you have received
+this message in error, please contact the site system administrators.
+
+Versiunea Romana:
+
+Unul dintre mesajele trimise de dumneavoastra la
+
+adresa: 		$to
+data: 			$date
+avand subiectul:        $subject
+
+a fost considerat spam si a fost sters. Mesajul nu va ajunge la destinatar.
+
+Detectorul folosit pentru a analiza continutul mailului: SpamAssassin.
+
+Nu acceptam mail comercial nesolicitat. Daca persistati cu trimiterea de
+astfel de mail-uri, vom contacta furnizorul dumneavoastra de servicii
+internet si vom cere dezactivarea contului dumneavoastra.
+
+Pentru orice detalii spulimentare, va rugam sa luati legatura cu
+furnizorul dumneavoastra de servicii internet.
+
+-- 
+MailScanner
+Email Virus Scanner
+%org-long-name%
+%web-site%

@@ -1,0 +1,26 @@
+# This is an example ruleset to show how rules can have resulting values
+# other than yes and no. This ruleset demonstrates having a numerical result.
+# The From: and To: rules show how simple domains can be used to select
+# different values for the result of the ruleset.
+# Note that the fields of each rule line can be separated by any whitespace,
+# any combination of tabs and spaces.
+#
+# The 2 lines involving domain3.com show that for email to user@domain3.com
+# has a limit of 5Mbytes per message, while email to any other user
+# @domain3.com has a limit of 500Kbytes per message.
+#
+
+#To:       *@domain1.com     10M
+#To:       *@domain2.com     20M
+#From:     user@domain3.com   5M
+#From:     *@domain3.com     500K
+
+#
+# The following line specifies the default result used when none of the
+# other rules match. In this example,
+# Maximum Message Size = 0
+# means that there is no limit to the size of the message.
+#
+
+FromOrTo: default           0
+

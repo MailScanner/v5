@@ -1,0 +1,20 @@
+Roedd neges a gawsoch yn ddiweddar oddi | A message you recently received
+wrth                                    | from
+                                   "$from" 
+ar y pwnc                               | with the subject 
+                                   "$subject"
+yn cynnwys un firws neu fwy y gellid eu | contained one or more viruses
+diheintio.                              | that could be disinfected.
+
+Mae'r firysau wedi'u dileu, ac mae'r    | The viruses have been removed, and
+ffeiliau diheintiedig ynghlwm wrth      | the disinfected files are attached
+y neges hon.                            | to this message.
+
+-- 
+MailScanner
+Email Virus Scanner
+%org-long-name%
+%web-site%
+
+
+

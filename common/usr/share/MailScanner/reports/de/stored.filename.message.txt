@@ -1,0 +1,22 @@
+Dies ist eine Nachricht vom MailScanner E-Mail-Virus-Schutzdienst
+-------------------------------------------------------------------------
+Der ursprüngliche Dateianhang "$filename"
+ist in der Liste unerwünschter Dateianhänge und wurde durch diese
+Warnmeldung ersetzt.
+
+Wenn Sie eine Kopie der Original-Nachricht wünschen, wenden Sie sich bitte
+per Mail oder Telefon an Ihren Systemadministrator. Bitte halten Sie diese
+Meldung bereit.
+
+Am $date meldete der Virenscanner folgendes:
+$report
+
+Hinweis an den Administrator:
+Datei: $hostname in $quarantinedir/$datenumber (Nachricht $id).
+
+--
+Postmaster
+%org-long-name%
+%web-site%
+
+

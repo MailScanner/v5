@@ -1,0 +1,22 @@
+From: "$postmastername" <$localpostmaster>
+To: $from
+Subject: Varning, e-post virus detekterat
+
+Virusscannern aktiverades på följande meddelande.
+  Till: $to
+  Ämne: $subject
+  Datum: $date
+
+Infekterade delar har inte levererats till mottagaren.
+
+Detta meddelande är endast en varning att er dator kan
+vara infekterad med virus och bör kontrolleras.
+
+Följande meddelade har genererats:
+Rapport: $report
+
+-- 
+MailScanner
+Email Virus Scanner
+%org-long-name%
+%web-site%

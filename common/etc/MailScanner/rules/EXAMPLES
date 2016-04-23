@@ -1,0 +1,91 @@
+Examples
+========
+
+Here are a few ideas of how to implement features using this ruleset system.
+
+1. Spam WhiteList
+
+   Set "Is Definitely Not Spam = /etc/MailScanner/rules/whitelist.rules".
+   Set addresses to be whitelisted using rules such as
+   From:	user@good.domain.com	yes
+   From:	*@friendly.domain.com	yes
+   # A lot of mailing lists use a magic number on the end of the sender address
+   From:	bounce-opa-intelligence*@mailing.list.com yes
+   # Don't mark any internal message as spam
+   From:	123.234.		yes
+   From:	/^192\.168\.13[4567]\./	yes
+   # Don't mark any Mail from the mail server itself as spam
+   From:	host:localhost.localdomain yes
+   # Mark all mail from spoofed IP addresses as spam
+   From:	_SPOOFED_		yes
+   FromOrTo:	default			no
+
+2. Spam BlackList
+
+   Set "Is Definitely Spam = /etc/MailScanner/rules/blacklist.rules".
+   Set addresses to be blacklisted using rules such as
+   From:	user@nasty.domain.com	yes
+   From:	*@spammers.com		yes
+   # Mark an entire network used by spammers
+   From:	123.231.3.		yes
+   FromOrTo:	default			no
+
+3. Only sign outgoing messages
+
+   Set "Sign Clean Messages = /etc/MailScanner/rules/signing.rules".
+   If your messages come from "yourdomain.com", then try this:
+   From:	192.168.		yes
+   From:	host:yourdomain.com	yes
+   FromOrTo:	default			no
+   where your network is the whole of 192.168.xxx.xxx.
+
+4. Use different signatures for different domains
+
+   Set "Inline Text Signature = /etc/MailScanner/rules/sig.text.rules" &
+   set "Inline HTML Signature = /etc/MailScanner/rules/sig.html.rules".
+   Use rules for each file that look like this:
+   From:	*@domain1.com	/usr/share/MailScanner/reports/domain1.sig.txt
+   From:	*@domain2.com	/usr/share/MailScanner/reports/domain2.sig.txt
+   with equivalent rules in the "sig.html.rules" file.
+
+5. Only virus scan some domains
+
+   Set "Virus Scanning = /etc/MailScanner/rules/virus.scanning.rules".
+   FromOrTo:	*@scanme.com		yes
+   FromOrTo:	*@scanme-too.com	yes
+   FromOrTo:	default			no
+
+6. Send system administrator notices to several people
+
+   Set "Notices To = /etc/MailScanner/rules/notices.to.rules".
+   To:		@abc.com		postmaster@me.com george@abc.com
+   To:		@def.com		postmaster@me.com bill@def.com
+   FromOrTo:	default			postmaster@me.com
+
+7. Only quarantine some viruses
+
+   Set "Quarantine Infections = /etc/MailScanner/rules/quarantine.rules".
+   Virus:	sobig			no
+   Virus:	default			yes
+
+8. Use 2 conditions in the rule
+
+   Set "Spam Actions = /etc/MailScanner/rules/spam.actions.rules".
+   From: trapme.com and To: abuse@*	deliver
+   FromOrTo: domain.com and FromOrTo: domain2.com	deliver
+   FromOrTo:	default			store notify
+
+9. Use perl's pattern matching to make more advanced rules:
+
+   # Match user@domain.com as well as user@sub.domain.com, but not
+   # foo-domain.com@spammer.com:
+   From:   /[\@\.]domain\.com$/		yes
+
+   # Match all US .gov traffic:
+   From:   /\.gov$/			yes
+
+   # Match any traffic from German or Danish domains:
+   From:   host:/(de|dk)$/		yes
+
+I will add more ideas as I think of them.
+All suggestions for clever tricks are most welcome!

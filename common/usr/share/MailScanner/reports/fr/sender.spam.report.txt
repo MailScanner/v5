@@ -1,0 +1,53 @@
+From: "$postmastername" <$localpostmaster>
+To: $from
+Subject: {Bounce} Courriel non =?ISO-8859-1?Q?sollicit=E9?= =?ISO-8859-1?Q?_rejet=E9?=
+X-%org-name%-MailScanner: generated
+
+(English follows)
+
+Notre détecteur de polluriel n'a pas aimé votre courriel:
+  À: $to
+  Sujet: $subject
+  Date: $date
+Celui-ci a été détruit. Les détecteurs qui ont pris cette décision sont:
+$spamreport.
+
+Le contenu de votre courriel ainsi que le serveur duquel il nous est 
+parvenu ont conduit à cette décision.
+
+Nous n'acception pas les courriels commerciaux non sollicités (les
+polluriels ou spam) et prenons les mesures requises pour nous en
+débarrasser. Si vous continuez à nous envoyer des polluriels nous
+allons contacter votre fournisseur de services Internet pour lui
+demander de bloquer votre compte.
+
+Si vous avez des questions à ce sujet ou si vous croyez avoir reçu ce
+courriel par erreur, SVP contactez les administrateurs du système.
+
+-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-
+
+Our UCE (spam) detectors have been triggered by a message you sent:-
+  To: $to
+  Subject: $subject
+  Date: $date
+This message has been destroyed. The detectors that were triggered are
+$spamreport.
+
+Your message has been detected as spam based on both its contents and
+the mail server which has sent the message to us.
+
+We do not accept unsolicited commercial (spam) e-mail and actively
+work to stop it. If you are sending spam and continue to do so, your
+Internet Service Provider may be contacted and requested to close your
+account.
+
+If you have any questions about this, or you believe you have received
+this message in error, please contact the site system administrators.
+
+-- 
+$localpostmaster
+MailScanner
+%org-long-name%
+%web-site%
+
+

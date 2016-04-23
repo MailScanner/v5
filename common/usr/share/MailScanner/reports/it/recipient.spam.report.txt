@@ -1,0 +1,35 @@
+From: "$postmastername" <$localpostmaster>
+To: $to
+Subject: Unsolicited commercial email not delivered
+X-%org-name%-MailScanner: generato
+
+I nostri sistemi di rilevazione di UCE (spam) sono stati attivati da un 
+tuo messaggio:-
+   Da: $from
+   Oggetto: $subject
+   Data: $date
+Il messaggio non e' stato inviato. I rilevatori che sono stati attivati sono:
+$spamreport.
+
+Il tuo messaggio e' stato catalogato come spam dal mail server che ce l'ha
+recapitato, oppure in base ai suoi contenuti, oppure per entrambi i motivi.
+
+Questo sito non accetta e-mail commerciali indesiderati (spam) e lavora
+attivamente per bloccarli.
+
+Per qualsiasi domanda, o se pensi di aver ricevuto questo messaggio per
+errore, contatta gli amministratori del sistema.
+
+Le seguenti informazioni identificano il tuo messaggio e vanno
+comunicate agli amministratori di sistema:
+   Nome server: $hostname
+   ID messaggio: $id
+   Codice data: $datenumber
+
+-- 
+MailScanner
+Email Virus Scanner
+%org-long-name%
+%web-site%
+
+

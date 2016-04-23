@@ -1,0 +1,23 @@
+From: "$postmastername" <$localpostmaster>
+To: $from
+Subject: Attenzione: rilevata E-mail infetta
+X-%org-name%-MailScanner: generated
+
+Il sistema antivirus ha rilevato una infezione nel messaggio:-
+  To: $to
+  Subject: $subject
+  Date: $date
+
+Uno o piu' allegati risultano non accettabili da questo sito e non sono stati consegnati al destinatario.
+
+Come possibile soluzione, rinominate i file o archiviateli all'interno di un archivio "zip".
+
+Il sistema antivirus riporta:
+Rapporto: $report
+
+-- 
+MailScanner
+Email Virus Scanner
+%org-long-name%
+%web-site%
+

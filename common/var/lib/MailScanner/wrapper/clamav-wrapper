@@ -1,0 +1,180 @@
+#!/bin/sh
+
+# clamav-wrapper --	invoke ClamAV for use with mailscanner
+#
+# Written by: Jerry Benton <mailscanner@mailborder.com>
+#
+#   MailScanner - SMTP Email Processor
+#   Copyright (C) 2001  Julian Field
+#
+#   $Id: clamav-wrapper 5102 2011-08-20 12:31:59Z sysjkf $
+#
+#   This program is free software; you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation; either version 2 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program; if not, write to the Free Software
+#   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+
+# this passed from the CLI
+# ./scanner-wrapper /path/to/av/bin /thing/to/scan
+ClamScan=$1/bin/clamscan
+shift
+
+# defaults
+QUICKPEEK=/usr/sbin/ms-peek
+
+# the place where Incoming Work User, Group, Directory, and Permissions
+# would be assigned by default
+ms_conf=/etc/MailScanner/MailScanner.conf
+
+# Read configuration variable file if it is present to get a different
+# ms_conf
+[ -r /etc/default/mailscanner ] && . /etc/default/mailscanner
+[ -r /etc/sysconfig/mailscanner ] && . /etc/sysconfig/mailscanner
+
+# get incoming work directory
+IWD=`${QUICKPEEK} IncomingWorkDir ${ms_conf}`
+ClamUser=`${QUICKPEEK} IncomingWorkUser ${ms_conf}`
+ClamGroup=`${QUICKPEEK} IncomingWorkGroup ${ms_conf}`
+
+if [ -z ${ClamUser} ]; then
+	ClamUser="clamav"
+fi
+
+if [ -z ${ClamGroup} ]; then
+	ClamGroup="mtagroup"
+fi
+
+# see below for options
+ExtraScanOptions=""
+
+# Extra options we try to pass to clam but we handle it failing
+# For each option there are two alternatives...
+# --option   # if the required program is in the PATH
+# --option=/path/to/program  # If its in a non standard location
+# If you use the second option make sure you set the correct path in each case
+
+# Note that clam internally supports Zip, Gzip and Rar (v2.0) files,
+# so for these the extra options are just a fallback should the internal 
+# unpacker fail (the internal unzipper should also support .jar files).
+
+# Common external unpackers you probably have installed (hence 
+# enabled by default)
+# Uncomment ONE of the following lines if you have unzip installed
+#ExtraScanOptions="$ExtraScanOptions --unzip"  
+#ExtraScanOptions="$ExtraScanOptions --unzip=/path/to/unzip" 
+
+# Uncomment ONE of the following lines if you have unzip installed
+# And want to be able to use it to scan jar files should the internal
+# unzipper fail
+#ExtraScanOptions="$ExtraScanOptions --jar"  
+#ExtraScanOptions="$ExtraScanOptions --jar=/path/to/unzip" 
+
+# Uncomment ONE of the following lines if you have tar installed 
+#ExtraScanOptions="$ExtraScanOptions --tar"  
+#ExtraScanOptions="$ExtraScanOptions --tar=/path/to/tar" 
+
+# Uncomment ONE of the following lines if you have tar installed 
+# AND it is GNU tar with gzip support
+#ExtraScanOptions="$ExtraScanOptions --tgz"  
+#ExtraScanOptions="$ExtraScanOptions --tgz=/path/to/tar" 
+
+# Uncomment ONE of the following lines if you have tar installed and
+# want to scan debian .deb packages
+# Must be GNU tar with gzip support
+#ExtraScanOptions="$ExtraScanOptions --deb"  
+#ExtraScanOptions="$ExtraScanOptions --deb=/path/to/tar" 
+
+# LESS COMMON unpackers, which probably aren't installed by default
+# (hence disabled)
+# Uncomment ONE of the following lines if you have unrar installed
+#ExtraScanOptions="$ExtraScanOptions --unrar"  
+#ExtraScanOptions="$ExtraScanOptions --unrar=/path/to/unrar" 
+
+# Uncomment ONE of the following lines if you have unarj installed
+#ExtraScanOptions="$ExtraScanOptions --unarj"  
+#ExtraScanOptions="$ExtraScanOptions --unarj=/path/to/unarj" 
+
+# Uncomment ONE of the following lines if you have unace installed
+#ExtraScanOptions="$ExtraScanOptions --unace"  
+#ExtraScanOptions="$ExtraScanOptions --unace=/path/to/unace" 
+
+# Uncomment ONE of the following lines if you have lha installed
+#ExtraScanOptions="$ExtraScanOptions --lha"  
+#ExtraScanOptions="$ExtraScanOptions --lha=/path/to/lha" 
+
+# Uncomment ONE of the following lines if you have zoo installed
+#ExtraScanOptions="$ExtraScanOptions --zoo"  
+#ExtraScanOptions="$ExtraScanOptions --zoo=/path/to/unzoo" 
+
+# Now increase the allowed expansion size of zip files
+# Removed in ClamAV 0.93: ExtraScanOptions="$ExtraScanOptions --max-ratio=500"
+
+# Uncomment next line if you need to disable Clam's DoS protection
+#ExtraScanOptions="--max-files=0 --max-space=0 --max-recursion=0 $ExtraScanOptions"
+
+
+# if the base incoming work directory exists, check if ramdisk	
+if [ -d ${IWD} ]; then
+	FSTYPE=$(df -P -T ${IWD}|tail -n +2 | awk '{print $2}')
+	if [ ${FSTYPE} = tmpfs ]; then
+		# use ramdisk for base tmp
+		IWD="${IWD}/clamav-tmp"
+	else
+		# not ramdisk, just use /tmp for base
+		IWD=/tmp/clamav-tmp
+	fi
+else
+	# work directory does not exist, so just use /tmp as base tmp
+	IWD=/tmp/clamav-tmp
+fi
+
+# create our base tmp directory if missing
+[ -d ${IWD} ] || mkdir -p ${IWD}
+
+# create our working tmp directory in the base tmp directory
+TempDir=`mktemp -d --tmpdir=${IWD}`
+
+# In case we get interupted....
+trap "rm -rf ${TempDir}" EXIT
+
+# passed at cli
+if [ ! -x ${ClamScan} ]; then
+  ClamScan=/usr/bin/clamscan
+fi
+
+# used by SweepViruses.pm to check if this program is installed
+if [ "x$1" = "x-IsItInstalled" ]; then
+  [ -x $ClamScan ] && exit 0
+  exit 1
+fi
+
+# bail if we cannot find clamscan
+if [ ! -x ${ClamScan} ]; then
+  rm -rf ${TempDir}
+  exit 1
+fi
+
+# ScanOptions is for this script
+ScanOptions=" --tempdir=${TempDir}"
+
+# ExtraScanOptions from user settings above
+$ClamScan $ExtraScanOptions $ScanOptions "$@"
+
+retval=$?
+
+#Clean up the temp directory
+if [ -d ${TempDir} ]; then
+	rm -rf ${TempDir}
+fi
+
+exit $retval

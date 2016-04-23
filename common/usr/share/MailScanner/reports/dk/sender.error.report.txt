@@ -1,0 +1,23 @@
+From: "MailScanner" <$Config::LocalPostmaster>
+To: $from
+Subject: Advarsel! Dit e-brev er ikke blevet leveret korrekt
+
+Vores virusskanner har ikke været istand til fuldt ud at kontrolere den
+meddelelse du har sendt:
+
+ Til:  $to
+ Emne: $subject
+ Dato: $date
+
+Den eller de dele der ikke kunne skannes, er ikke blevet sendt til modtageren.
+
+Hvis du anvender Microsoft Outlook, anbefaler vi at du ændre din opsætning
+inde i udgående mail, fra formatet "Rich Text" til "HTML" eller "Plain Text". 
+
+Følgende report blev udskrevet: 
+$report
+
+-- 
+Postmester
+%org-long-name%
+%web-site%

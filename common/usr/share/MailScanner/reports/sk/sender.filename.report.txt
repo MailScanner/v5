@@ -1,0 +1,23 @@
+From: "$postmastername" <$localpostmaster>
+To: $from
+Subject: Upozornenie: zisteny virus/nepovolena priloha
+X-%org-name%-MailScanner: vytvoreny
+
+Detektor virusov spusteny spravou, ktoru ste zaslali:-
+  Komu: $to
+  Predmet: $subject
+  Datum: $date
+
+Jedna alebo viacero priloh su na zozname nepovolenych priloh nasim
+systemom a nebudu dorucene.
+
+Vezmite to prosim v uvahu a pokial ste si isty, ze prilohy su 'ciste' 
+a chcete ich dorucit, vlozte ich prosim nabuduce do "zip" suboru .
+
+Virus detektor hlasi o tejto sprave nasledovne:                                                
+Hlasenie: $report
+-- 
+MailScanner
+Email Virus Scanner
+%org-long-name%
+%web-site%

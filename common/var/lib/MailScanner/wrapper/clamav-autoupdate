@@ -1,0 +1,95 @@
+#!/usr/bin/perl
+
+#
+# ClamAV updater. Original code by Julian Field. Timeout code by
+# Alessandro Bianchi. Timeout code is not perfect but should be okay.
+#
+
+use Sys::Syslog;
+
+# If you have a web proxy or cache server, put its value in the next line
+# in the syntax "full.host.name:port".
+$HTTPproxy = "";
+
+$PackageDir = shift || "/usr";
+
+$LogFile = "/tmp/ClamAV.update.log";
+
+$ClamUpdateCommand = "$PackageDir/bin/freshclam";
+
+$LockFile = shift || "/var/spool/MailScanner/incoming/Locks/clamavBusy.lock";
+
+$LOCK_SH = 1;
+$LOCK_EX = 2;
+$LOCK_NB = 4;
+$LOCK_UN = 8;
+
+eval { Sys::Syslog::setlogsock('unix'); }; # This may fail!
+Sys::Syslog::openlog("ClamAV-autoupdate", 'pid, nowait', 'mail');
+
+if (-x $ClamUpdateCommand) {
+  # Timeout prevention
+  $SIG{ALRM} = sub { die "timeout"};
+
+  &LockClamAV();
+  eval {
+    alarm 300;
+    unlink $LogFile;
+    $Command = "$ClamUpdateCommand --on-update-execute=EXIT_1 --quiet -l $LogFile";
+    $Command .= " --http-proxy $HTTPproxy" if $HTTPproxy;
+    $retval = &UpdateClam($Command); # system($Command)>>8;
+    &UnlockClamAV();
+    alarm 0;
+  };
+
+  if ($@) {
+    if ($@ =~ /timeout/) {
+      # We timed out!
+      &UnlockClamAV();
+      Sys::Syslog::syslog('err', "WARNING ClamAV update timed out");
+      alarm 0;
+    }
+  } else {
+    alarm 0;
+    if ($retval == 1 ) {
+      Sys::Syslog::syslog('info', "ClamAV updated");
+    } elsif ($retval == 0 ) {
+      Sys::Syslog::syslog('info', "ClamAV did not need updating");
+    } else {
+      Sys::Syslog::syslog('err', "ClamAV updater failed");
+    }
+  }
+} else {
+  Sys::Syslog::syslog('err', "ClamAV updater $ClamUpdateCommand cannot be run");
+}
+
+Sys::Syslog::closelog();
+exit 0;
+
+sub LockClamAV {
+	open(LOCK, ">$LockFile") or return;
+	flock(LOCK, $LOCK_EX);
+	print LOCK "Locked for updating ClamAV definitions by $$\n";
+}
+
+sub UnlockClamAV {
+	print LOCK "Unlocked after updating ClamAV definitions by $$\n";
+	flock(LOCK, $LOCK_UN);
+	close LOCK;
+}
+
+sub UpdateClam {
+  my($cmd) = @_;
+
+  open(CMD, "$cmd 2>&1 |") or return $?;
+
+  while(<CMD>) {
+    chomp;
+    Sys::Syslog::syslog('err', "ClamAV update warning: $_")
+      if /warning|error|fatal/i;
+  }
+  close CMD;
+
+  return $?>>8;
+}
+

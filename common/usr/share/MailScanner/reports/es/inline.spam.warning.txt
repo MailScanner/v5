@@ -1,0 +1,15 @@
+Nuestro MailScanner cree que el anexo a este mensaje que le fué enviado a Ud.
+
+      De: $from
+  Asunto: $subject
+
+es un mensaje de correo comercial no solicitado (spam). Por favor borre este 
+mensaje sin abrirlo a menos de que esté seguro de que la clasificación como 
+spam fue incorrecta. El sólo abrir un mensaje que es spam, podría permitir a 
+quien se lo envió verificar su dirección de correo electrónico.
+
+Si usted cree que el mensaje anexo fue marcado como spam incorrectamente, por 
+favor reenvie (forward) este mensaje completo incluyendo el anexo a 
+$localpostmaster.
+
+$longspamreport

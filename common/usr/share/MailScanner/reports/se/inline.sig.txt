@@ -1,0 +1,3 @@
+-- 
+Meddelandet har kontrollerats mot virus samt skadligt 
+innehåll av MailScanner och förmodas vara säkert.

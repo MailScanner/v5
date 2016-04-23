@@ -1,0 +1,24 @@
+From: "$postmastername" <$localpostmaster>
+To: $from
+Subject: Aviso: Detectado vírus no e-mail
+X-%org-name%-MailScanner: generated
+
+Nosso sistema de detecção de vírus foi ativado por uma mensagem
+que você enviou para:-
+  To: $to
+  Subject: $subject
+  Date: $date
+
+Um ou mais dos anexos encontra-se na lista de tipos de arquivo
+proíbidos pelo sistema e não poderá ser entregue.
+
+Considere renomear o(s) arquivo(s) anexos ou coloque-os em formato
+comprimido ("ZIP") para evitar este tipo de problema.
+
+Nosso sistema de anti-virus relatou o seguinte a respeito da sua mensagem:
+Relatório: $report
+
+-- 
+Postmaster
+%org-long-name%
+%web-site%

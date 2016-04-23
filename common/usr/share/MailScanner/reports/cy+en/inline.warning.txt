@@ -1,0 +1,8 @@
+Rhybudd:                               | Warning: 
+Mae un neu fwy o atodiadau wedi'u      | This message has had one or more
+dileu o'r neges hon.                   | attachments removed
+                               ($filename)
+Darllenwch yr atodiad(au)              | Please read the
+                          "$viruswarningname" 
+am fwy o wybodaeth.                    | attachment(s) for more information.
+

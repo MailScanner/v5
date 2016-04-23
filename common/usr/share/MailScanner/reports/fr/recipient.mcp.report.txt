@@ -1,0 +1,28 @@
+From: "$postmastername" <$localpostmaster>
+To: $to
+Subject: Contenu interdit conservé pour révision
+X-%org-name%-MailScanner: generated
+
+Notre vérificateur de contenu de messages a été activé par un message
+que vous avez reçu:
+  De: $from
+  Objet: $subject
+  Date: $date
+Ce message a été mis en quarantaine pour révision avant sa livraison.
+
+Si vous avez des questions à ce sujet, ou si vous croyez avoir reçu ce
+message par erreur, veuillez contacter les administrateurs de système
+de votre site.
+
+Vos administrateurs de système auront besoin de l'information suivante:
+  Nom du serveur: $hostname
+  Numéro d'identification du message: $id
+  Code de date: $datenumber
+
+-- 
+MailScanner
+Email Virus Scanner
+%org-long-name%
+%web-site%
+
+

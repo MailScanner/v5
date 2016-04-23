@@ -1,0 +1,3 @@
+Warning: Questo messaggio presenta un o piu' allegati rimossi in automatico
+Warning: ($filename).
+Warning: Per ulteriori informazioni, consultate l'allegato  "$viruswarningname".

@@ -1,0 +1,354 @@
+#!/usr/bin/perl
+
+#
+#   MailScanner - SMTP Email Processor
+#   Copyright (C) 2002  Julian Field
+#
+#   $Id: ms-upgrade-conf 4896 2009-08-11 09:26:05Z sysjkf $
+#
+#   This program is free software; you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation; either version 2 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program; if not, write to the Free Software
+#   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+#      https://www.mailscanner.info
+#
+
+#
+# This script will output the contents of a new MailScanner.conf file based
+# on an old MailScanner.conf file and a default copy of the new file.
+# It is designed for upgrading MailScanner.conf files from one release of
+# version 4 to another release of version 4. It will not help with the upgrade
+# from version 3 or earlier to version 4, you still have to do that by hand.
+#
+
+use FileHandle;
+use strict;
+
+my $config = "mailscanner";
+my $filedot = "MailScanner.conf";
+my $filenew = "MailScanner.new";
+my $fileold = "MailScanner.old";
+my $filescore = "MailScanner_conf";
+if ($0 =~ /languages?.conf$/i) {
+  $config = "languages";
+  $filedot = "languages.conf";
+  $filenew = "languages.new";
+  $fileold = "languages.old";
+  $filescore = "languages_conf";
+}
+
+sub Usage {
+  if ($config eq "mailscanner") {
+    print STDERR <<EOU;
+Usage:
+
+RPM
+===
+If you are using the RPM distributions then try this:
+
+cd /etc/MailScanner
+ms-upgrade-conf MailScanner.conf MailScanner.conf.rpmnew > MailScanner.new
+mv -f MailScanner.conf MailScanner.old
+mv -f MailScanner.new  MailScanner.conf
+
+TAR
+===
+If you are using the tar distribution so that the old version is in
+/opt/MailScanner and the new one is in /opt/MailScanner.new then:
+
+cd /opt/MailScanner.new/etc
+../bin/ms-upgrade-conf /etc/MailScanner/MailScanner.conf /opt/MailScanner.new/etc/MailScanner.conf > MailScanner.new
+mv -f MailScanner.conf MailScanner.old
+mv -f MailScanner.new  MailScanner.conf
+
+NOTE
+====
+To keep your old comments in your original file, add "--keep-comments"
+to the command line.  Note that this will mean you don't get to find
+out any extra new values you might be able to use in existing "improved"
+configuration options.
+
+EOU
+  } else {
+    print STDERR <<EOLANG;
+Usage:
+
+cd /usr/share/MailScanner/reports/en
+upgrade_languages_conf languages.conf languages.conf.rpmnew > languages.new
+mv -f languages.conf languages.old
+mv -f languages.new  languages.conf
+
+NOTE
+====
+To keep your old comments in your original file, add "--keep-comments"
+to the command line.  Note that this will mean you don't get to find
+out any extra new values you might be able to use in existing "improved"
+configuration options.
+
+EOLANG
+  }
+}
+
+sub Afterwards {
+  print STDERR "\nOnce you have checked that MailScanner.new contains what\n";
+  print STDERR "you want, you can then save your old one and move the new\n";
+  print STDERR "one into place, using commands like these:\n";
+  print STDERR "  mv -f $filedot $fileold\n";
+  print STDERR "  mv -f $filenew  $filedot\n";
+}
+
+
+my $keepcomments = 0;
+my $i = 0;
+while($i<@ARGV) {
+  #print STDERR "Option $i is " . $ARGV[$i] . "\n";
+  # Match anything vaguely like the correct option
+  if ($ARGV[$i] =~ /keep-?com+ent/i) {
+    #print STDERR "Found it\n";
+    splice @ARGV, $i, 1;
+    $keepcomments = 1;
+    next;
+  }
+  $i++;
+}
+
+
+my $oldfname = shift;
+my $newfname = shift;
+
+unless ($oldfname &&    $newfname &&
+     -f $oldfname && -f $newfname &&
+     -s $oldfname && -s $newfname) {
+  Usage();
+  if ($newfname) {
+    # We are really trying to do the upgrade, we have a complete command-line
+    unless (-f $newfname && -s $newfname) {
+      # Either the .rpmnew doesn't exist, or it's empty
+      print STDERR "No .rpmnew file, so just copying your existing .conf file.\n";
+      system("cat $oldfname"); # Copy the original .conf to the stdout redirect
+    }
+  }
+  exit 1;
+}
+    
+
+# Read in the old file to get all their current settings
+my $oldfh = new FileHandle;
+$oldfh->open($oldfname)
+  or die "Cannot read old $filedot file $oldfname, $!";
+my($key, $value, $origkey, $origline, %oldsettings, $ReadOldValue, %oldkeys);
+my(%oldcomments, $comments);
+$ReadOldValue = 0;
+$comments = "";
+while(<$oldfh>) {
+  chomp;
+  $origline = $_;
+  s/#.*$//;
+  s/^\s+//;
+  s/\s+$//;
+  s/^include *([^=]*)$//i; # Treat include lines as comments!
+  ($comments .= "$origline\n"),next if /^$/;
+
+  undef $origkey;
+  undef $key;
+  undef $value;
+  /^(.*?)\s*=/; # \s*(.*)$/;
+  $origkey = $1;
+  $origline =~ /=\s*(.*)$/;
+  $value = $1;
+
+  # Exception cases
+  ($comments="",next) if $origkey =~ /MailScanner\s*Version\s*Number/i;
+
+  $key = lc($origkey);
+  if ($key =~ /%/) {
+    $key =~ s/[^a-z0-9%-]//g; # Leave numbers and letters and % and - only
+  } else {
+    $key =~ s/[^a-z0-9]//g; # Leave numbers and letters only
+  }
+
+  $oldsettings{$key} = $value;
+  $oldkeys{$key} = $origkey;
+  $oldcomments{$key} = $comments;
+  $comments = "";
+  $ReadOldValue++;
+}
+$oldfh->close();
+
+# Do sanity checks only if we are ms-upgrade-conf, not for languages
+if ($config eq 'mailscanner') {
+  # Watch for broken settings in the Monitors for Sophos Updates option.
+  unless ($oldsettings{'monitorsforsophosupdates'} =~ /sophos-av/ &&
+          $oldsettings{'sophosidedir'} =~ /sophos-av/ &&
+          $oldsettings{'sophoslibdir'} =~ /sophos-av/) {
+    print STDERR "\a\n";
+    print STDERR "Important Note\n--------------\n";
+    print STDERR "Your settings for the Sophos SAVI virus scanner are probably\n";
+    print STDERR "broken. They should look like this (unless your Sophos is\n";
+    print STDERR "installed somewhere else)\n";
+    print STDERR "Sophos IDE Dir = /opt/sophos-av/lib/sav\n";
+    print STDERR "Sophos Lib Dir = /opt/sophos-av/lib\n";
+    print STDERR "Monitors for Sophos Updates = /opt/sophos-av/lib/sav/*.ide\n";
+    print STDERR "\a\n";
+    sleep(5);
+  }
+
+  # Watch for broken settings in the Monitors for ClamAV Updates option.
+  unless ($oldsettings{'monitorsforclamavupdates'} =~ /cld/ &&
+          $oldsettings{'monitorsforclamavupdates'} =~ /cvd/) {
+    print STDERR "\a\n";
+    print STDERR "Important Note\n--------------\n";
+    print STDERR "Your setting for 'Monitors for ClamAV Updates' is broken.\n";
+    print STDERR "It should look like this (unless your ClamAV is installed\n";
+    print STDERR "somewhere else)\n";
+    print STDERR "Monitors for ClamAV Updates = /usr/local/share/clamav/*.cld /usr/local/share/clamav/*.cvd\n";
+    print STDERR "\a\n";
+    sleep(5);
+  }
+
+  # Watch for small "Maximum Archive Depth" settings.
+  if ($oldsettings{'maximumarchivedepth'} > 0 &&
+      $oldsettings{'maximumarchivedepth'} < 3) {
+    print STDERR "\a\n";
+    print STDERR "Important Note\n--------------\n";
+    print STDERR "Your setting for 'Maximum Archive Depth' is very low.\n";
+    print STDERR "When expanding archives, Microsoft Office documents are\n";
+    print STDERR "handled the same way as zip and rar archives.\n";
+    print STDERR "A setting as low as your current value (" .
+                 $oldsettings{'maximumarchivedepth'} . ") is likely to\n";
+    print STDERR "cause a lot of messages blocked with a report that the\n";
+    print STDERR "\"Message contained archive nested too deeply\".\n";
+    print STDERR "This will needlessly irritate a lot of your users as\n";
+    print STDERR "their files will be blocked.\n";
+    print STDERR "Please manually set it to at least 3 or 4, after moving into\n";
+    print STDERR "place the new MailScanner.conf file I am writing for you.\n";
+    print STDERR "\a\n";
+    sleep(1);
+    print STDERR "\a";
+    sleep(1);
+    print STDERR "\a";
+    sleep(5);
+  }
+
+}
+
+# Read in the new file to get all the default settings and new key names
+my $newfh = new FileHandle;
+$newfh->open($newfname)
+  or die "Cannot read new default $filedot file $newfname, $!";
+my($defaultvalue, $UsedOldValue, $UsedDefaultValue, $nonpercent, $donepercents);
+$UsedOldValue = 0;
+$UsedDefaultValue = 0;
+$comments = "";
+$nonpercent = 0;
+$donepercents = 0;
+while(<$newfh>) {
+  chomp;
+  $origline = $_;
+  s/#.*$//;
+  s/^\s+//;
+  s/\s+$//;
+  ($comments .= "$origline\n"),next if /^$/;
+
+  undef $origkey;
+  undef $key;
+  undef $defaultvalue;
+  /^(.*?)\s*=/; # \s*(.*)$/;
+  $origkey = $1;
+  /=\s*(.*)$/;
+  $defaultvalue = $1;
+  $nonpercent = 1 unless $origkey =~ /^%/;
+
+  # Retain all their %variable% settings
+  if ($nonpercent && !$donepercents) {
+    # We have hit the first non-%variable% so output all the remaining %%
+    my $firstvalue = 1;
+    foreach $origkey (keys %oldsettings) {
+      next unless $origkey =~ /^%/;
+      if ($firstvalue) {
+        print "\n";
+        $firstvalue = 0;
+      }
+      print $oldcomments{$origkey};
+      print "$origkey = $oldsettings{$origkey}\n";
+      delete $oldsettings{$origkey};
+      $UsedOldValue++;
+    }
+    $donepercents = 1;
+  }
+
+  $key = lc($origkey);
+  if ($key =~ /%/) {
+    $key =~ s/[^a-z0-9%-]//g; # Leave numbers and letters and % and - only
+  } else {
+    $key =~ s/[^a-z0-9]//g; # Leave numbers and letters only
+  }
+
+  # Exception to force everyone with the default to change. Silently...
+  #if ($oldsettings{'webbugreplacement'} =~ /mailscanner\.info/i) {
+    delete $oldsettings{'webbugreplacement'};
+  #}
+  # Force new lockfile directory into existence.
+  delete $oldsettings{'lockfiledir'};
+
+  if (exists $oldsettings{$key}) {
+    # They previously had a setting for this parameter
+    print $keepcomments?$oldcomments{$key}:$comments;
+    print "$origkey = $oldsettings{$key}\n";
+    delete $oldsettings{$key};
+    $comments = "";
+    $UsedOldValue++;
+  } else {
+    # they are using the new default value for this parameter
+    print $comments;
+    print "$origline\n";
+
+    # Exception cases
+    print STDERR "Added new: $origline\n"
+      unless $key =~ /MailScanner\s*Version\s*Number/i;
+
+    sleep(2);
+    $comments = "";
+    $UsedDefaultValue++;
+  }
+}
+$newfh->close();
+while (($key, $value) = each %oldsettings) {
+  print STDERR "Removed old: $oldkeys{$key} = $value\n";
+  sleep(2);
+}
+
+print STDERR <<EOL;
+
+Summary
+-------
+Read $ReadOldValue settings from old $oldfname
+Used $UsedOldValue settings from old $oldfname
+Used $UsedDefaultValue default settings from new $newfname
+
+Notes
+-----
+I would advise you to check on any parameters which are different between
+the default new conf file and the conf file you just created, so that you
+find any parameters whose default values have changed.
+If you ran this with a command like this
+  upgrade_$filescore $filedot $filedot.rpmnew > $filenew
+then you should do
+  diff -w $filedot.rpmnew $filenew
+and check for any differences in values you have not changed yourself.
+
+EOL
+sleep(5);
+Afterwards();
+exit 0;
+

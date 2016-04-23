@@ -1,0 +1,16 @@
+Isto é uma mensagem do Serviço de Proteção contra Vírus
+------------------------------------------------------------------------------
+A mensagem original do correio eletrônico continha conteúdo potencialmente perigoso, que foi retirado para sua segurança.
+
+O conteúdo é perigoso e freqüentemente é usado para espalhar vírus ou ganhar informação pessoal ou
+confidencial de você, tal como senhas ou números de cartão de crédito.
+
+Devido a limitações impostas a nós pela "Regulation of Investigatory Powers
+Act 2000", nós estamos impedidos de manter uma cópia do anexo original. 
+
+O filtro de conteúdo encontrou o seguinte:
+$report
+-- 
+Postmaster
+%org-long-name%
+%web-site%

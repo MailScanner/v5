@@ -1,0 +1,27 @@
+This is a message from the MailScanner E-Mail Virus Protection Service
+----------------------------------------------------------------------
+English Version:
+
+The original e-mail attachment "$filename"
+is on the list of unacceptable attachments for this site and has been
+replaced by this warning message.
+
+Due to limitations placed on us by the Regulation of Investigatory Powers
+Act 2000, we were unable to keep a copy of the original attachment.
+
+Versiunea Romana:
+
+Atasamentul original denumit "$filename"
+este in lista atasamentelor neacceptate de catre acest site si a fost inlocuit
+cu acest avertisment.
+
+Mesajul original nu a fost salvat local.
+
+At $date the virus scanner said:
+$report
+
+-- 
+MailScanner
+Email Virus Scanner
+%org-long-name%
+%web-site%

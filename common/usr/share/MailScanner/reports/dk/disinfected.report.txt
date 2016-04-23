@@ -1,0 +1,7 @@
+Den e-mail du har modtaget fra "$from" med emnet: "$subject"
+indeholdt en eller flere vira.
+
+E-mailen er blevet renset for virus og de rensede filer er vedhæftet denne mail.
+
+Med venlig hilsen
+Postmester

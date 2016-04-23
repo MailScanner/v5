@@ -1,0 +1,28 @@
+From: "$postmastername" <$localpostmaster>
+To: $to
+Subject: Gesperrter Inhalt für Untersuchung gespeichert
+X-%org-name%-MailScanner: generated
+
+Unsere Nachrichten-Detektoren wurden durch eine an Sie adressierte Nachricht
+ausgelöst:
+  Absender: $from
+  Betreff: $subject
+  Datum: $date
+Diese Nachricht wurde unter Quarantäne gestellt, damit sie vor der Auslieferung
+untersucht werden kann.
+
+Wenn Sie Fragen haben oder glauben, diese Nachricht zu Unrecht erhalten zu
+haben, kontaktieren Sie bitte die Systemadministratoren.
+
+Ihre Administratoren werden die folgenden Informationen benötigen:
+  Servername: $hostname
+  Nachrichten-ID: $id
+  Datum: $datenumber
+
+--
+MailScanner
+E-Mail-Virus-Scanner
+%org-long-name%
+%web-site%
+
+

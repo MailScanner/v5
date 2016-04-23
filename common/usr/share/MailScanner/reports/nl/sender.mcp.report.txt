@@ -1,0 +1,24 @@
+From: "$postmastername" <$localpostmaster>
+To: $from
+Subject: Ongewenste inhoud opgeslagen ter nadere bestudering
+X-%org-name%-MailScanner: generated
+
+Onze scanner op de inhoud van berichten is geactiveerd door een bericht
+dat u verzonden heeft:-
+  To: $to
+  Subject: $subject
+  Date: $date
+Dit bericht is gearchiveerd en de inhoud zal worden gecontroleerd
+vooraleer het afgeleverd zal worden.
+
+Mocht u hier nog vragen over hebben, of indien u van mening bent dat dit een
+vergissing betreft, gelieve dan contact op te nemen met de beheerder of
+afdeling systeembeheer.
+
+-- 
+MailScanner
+Email Virus Scanner
+%org-long-name%
+%web-site%
+
+

@@ -1,0 +1,18 @@
+#
+# This is where the rules can go for the Message Content Protection system.
+# Any *.cf file in this directory will be used, so organise them as you like.
+#
+# For details on the format of all this, read
+#     man Mail::SpamAssassin::Conf
+# and look at the *.cf files supplied with SpamAssassin.
+#
+# Remember this is not for spam detection, it is for content detection.
+#
+header   SAMPLE_RULE1    Subject =~ /this subject is banned/i
+describe SAMPLE_RULE1    Banned Subject
+score    SAMPLE_RULE1    2
+
+body     SAMPLE_RULE2    /this text is banned/i
+describe SAMPLE_RULE2    Banned body text
+score    SAMPLE_RULE2    5
+

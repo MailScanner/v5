@@ -1,0 +1,16 @@
+Vous avez récemment reçu un courriel de «$from»
+dont le sujet était «$subject».
+
+Ce courriel contenait une ou plusieurs pièces jointes infectées par
+des virus qui ont pu être désinfectées.
+
+Les pièces jointes désinfectées sont jointes à ce courriel.
+
+Contactez $localpostmaster pour plus d'informations.
+
+-- 
+MailScanner
+%org-long-name%
+%web-site%
+
+

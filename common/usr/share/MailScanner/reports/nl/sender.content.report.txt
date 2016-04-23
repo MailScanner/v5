@@ -1,0 +1,29 @@
+From: "$postmastername" <$localpostmaster>
+To: $from
+Subject: Mogelijk gevaarlijke email geweigerd
+X-%org-name%-MailScanner: generated
+
+Onze email filters zijn geactiveerd door een bericht dat u heeft verzonden:-
+  To: $to
+  Subject: $subject
+  Date: $date
+Dit bericht is geweigerd. De filters gaven de volgende melding:
+$report.
+
+Dit bericht bevatte mogelijkerwijs gevaarlijke inhoud die verwijderd is.
+
+Indien u heeft geprobeerd een web pagina te sturen, probeert u dan s.v.p.
+de pagina als bestand op te slaan en dit bestand vervolgens aan een e-mail
+als attachment mee te sturen.
+
+Mocht u hier nog vragen over hebben, of indien u van mening bent dat dit een
+vergissing betreft, gelieve dan contact op te nemen met de beheerder of
+afdeling systeembeheer.
+
+-- 
+MailScanner
+Email Virus Scanner
+%org-long-name%
+%web-site%
+
+

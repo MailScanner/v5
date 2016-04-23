@@ -1,0 +1,32 @@
+De: "$postmastername" <$localpostmaster>
+A: $to
+Assumpte: {Spam no lliurat} $subject
+X-%org-name%-MailScanner: generat
+
+Els nostres detectors d'UCE (spam) han estat activats per un missatge que heu rebut:-
+  De: $from
+  Assumpte: $subject
+  Data: $date
+Aquest missatge no s'ha lliurat. Els detectors que van ser activats són
+$spamreport.
+
+Teniu un missatge que ha estat detectat com a spam basat o bé en el seu contingut
+o bé en el servidor de correu que ha enviat el missatge, o tots dos.
+
+No s'accepten correus electrònics comercials no sol·licitats (spam)
+i de manera activa treballem per aturar-los.
+
+Si teniu cap pregunta sobre això o creieu que heu rebut aquest missatge
+per error, si us plau, contacteu amb els vostres administradors de sistema.
+
+Els vostres administradors del sistema necessitaran la informació següent:
+  Nom del servidor: $hostname
+  ID del missatge: $id
+  Data codi: $datenumber
+
+-- 
+MailScanner
+L'Escànner de Virus de Correu Electrònic
+%org-long-name%
+%web-site%
+

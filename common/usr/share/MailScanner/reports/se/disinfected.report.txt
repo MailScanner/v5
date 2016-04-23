@@ -1,0 +1,10 @@
+Meddelandet från "$from" 
+med ämnesraden "$subject"
+innehöll ett eller flera virus.
+Meddelandet och bilagor har rensats från virus.
+
+-- 
+MailScanner
+Email Processor
+%org-long-name%
+%web-site%

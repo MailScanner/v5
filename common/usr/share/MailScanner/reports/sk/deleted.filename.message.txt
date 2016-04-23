@@ -1,0 +1,15 @@
+Toto je sprava od "MailScanner E-Mail Virus Protection Service"
+----------------------------------------------------------------------
+Originalna e-mail priloha "$filename"
+je na liste priloh, ktore nie su akceptovane pre tuto stranu a bola vymenena touto
+vystraznou spravou.
+
+Kvoli limitovanemu priestoru ktorym nas postovy system disponuje,
+nieje mozne zachovat kopiu povodnej spravy.
+
+Dna $date virus skener oznamuje:
+$report
+-- 
+Postmaster
+%org-long-name%
+%web-site%

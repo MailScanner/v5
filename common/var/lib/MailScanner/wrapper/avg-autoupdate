@@ -1,0 +1,36 @@
+#!/bin/sh
+
+# avg-autoupdate -- Update the definitions for Grisoft AVG
+#
+# jkf, 25/08/03
+#
+#   MailScanner - SMTP Email Processor
+#   Copyright (C) 2001  Julian Field
+#
+#   This program is free software; you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation; either version 2 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program; if not, write to the Free Software
+#   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+#      https://www.mailscanner.info
+#
+# $Id: avg-autoupdate 5003 2010-02-12 12:35:51Z sysjkf $
+
+Root=$1
+# Remove Root
+shift
+# Remote lockfile
+shift
+# AVG7 and earlier: exec $Root/bin/avgupdate  "$@" --online --priority=3 --no-log --no-progress --no-diff --no-daemons "$@" > /dev/null
+$Root/bin/avgupdate  "$@" --priority=3 --no-log --no-progress "$@" > /dev/null
+exec $Root/bin/avgupdate  "$@" --priority=3 --no-log --no-progress --antispam "$@" > /dev/null
+exit 1

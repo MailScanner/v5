@@ -1,0 +1,34 @@
+Dyma neges gan Wasanaeth MailScanner  | This is a message from the MailScanner
+sy'n Gwarchod rhag Firysau            | E-Mail Virus Protection Service
+----------------------------------------------------------------------
+
+Mae'r atodiad e-bost gwreiddiol, sef  | The original e-mail attachment
+                                  "$filename",
+ar y rhestr atodiadau annerbyniol ar  | is on the list of unacceptable
+gyfer y safle hwn, a rhoddir y        | attachments for this site and has been
+rhybudd hwn yn ei le.                 | replaced by this warning message.
+
+Os ydych yn dymuno derbyn copi o'r    | If you wish to receive a copy of the
+atodiad gwreiddiol, anfonwch neges    | original attachment, please e-mail
+e-bost at staff y ddesg gymorth a     | helpdesk and include the whole of
+chynnwys y cyfan o'r neges hon yn eich| this message in your request.
+cais. Fel arall, gellwch eu ffonio, a | Alternatively, you can call them,
+rhoi cynnwys y neges hon iddynt pan   | with the contents of this message
+fyddwch yn eu galw.                   | to hand when you call.
+
+Ar $date,          | At $date,
+dywedodd y sganiwr firysau:           | the virus scanner said:
+$report
+Nodyn i'r Ddesg Gymorth: Edrychwch ar | Note to Help Desk: Look on 
+                           $hostname yn/in
+                           $quarantinedir/$datenumber 
+                           (neges/message $id).
+
+-- 
+MailScanner
+Email Virus Scanner
+%org-long-name%
+%web-site%
+
+
+

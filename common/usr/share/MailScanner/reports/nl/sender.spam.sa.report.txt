@@ -1,0 +1,29 @@
+From: "$postmastername" <$localpostmaster>
+To: $from
+Subject: {Bounce} Ongewenste (commerciele) e-mail geweigerd
+X-%org-name%-MailScanner: generated
+
+Onze spamdetector reageerde op een bericht dat u heeft verzonden:
+  To: $to
+  Subject: $subject
+  Date: $date
+Het bericht is vernietigd. Onze detector was SpamAssassin.
+
+De inhoud van uw bericht bevat zeer duidelijke kenmerken die normaal
+gesproken alleen bij spam voorkomen. Vandaar dat het bericht is geweigerd.
+
+Wij accepteren geen ongewenste (commerciele) e-mail (spam) and werken
+actief mee aan het stoppen hiervan.  Als u spam stuurt en van plan bent
+hiermee door te gaan kan uw Internet Service Provider benaderd worden
+en gevraagd worden uw account op te heffen.
+
+Indien u van mening bent dat deze melding onjuist is raden we u aan om
+contact op te nemen met beheerder.
+
+-- 
+MailScanner
+Email Virus Scanner
+%org-long-name%
+%web-site%
+
+

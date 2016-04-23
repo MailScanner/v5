@@ -1,0 +1,29 @@
+From: "$postmastername" <$localpostmaster>
+To: $from
+Subject: Atención : Virus de e-mail detectado
+MIME-Version: 1.0
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: Quoted-Printable
+X-%org-name%-MailScanner: generated
+
+Nuestro detector de virus ha sido activado por un mensaje enviado por Usted:
+  A: $to
+  Asunto: $subject
+  Fecha: $date
+
+Uno o más de los anexos están en la lista de archivos no aceptados
+por este sitio y no serán entregados.
+
+Considere renombrar los archivos o comprimirlos en un archivo ".zip" 
+para evitar esta restricción.
+
+El detector de virus dijo lo siguiente acerca del mensaje:
+Informe: $report
+
+-- 
+MailScanner
+Protección contra Virus de E-mail
+%org-long-name%
+%web-site%
+
+

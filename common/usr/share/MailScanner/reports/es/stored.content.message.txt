@@ -1,0 +1,27 @@
+Este es un mensaje del Servicio de Protección de Virus para Correo
+Electrónico MailScanner
+----------------------------------------------------------------------
+El mensaje de correo electrónico original tenía contenido
+potencialmente peligroso que ha sido eliminado para su seguridad.
+
+El contenido es peligroso ya que suele ser utilizado para distribuir
+virus o conseguir acceso a información personal y/o confidencial,
+tales como claves de acceso o números de tarjetas de crédito.
+
+Si desea recibir una copia del mensaje original, por favor
+envíe un correo electrónico al departamento de soporte incluyendo
+este mensaje. Alternativamente, puede llamar a dicho departamento,
+teniendo el contenido de este mensaje a mano.
+
+El $date los filtros de contenido dijeron:
+$report
+
+Nota para el departamento de soporte: Revisar en $hostname en 
+$quarantinedir/$datenumber (mensaje $id).
+
+-- 
+Postmaster
+%org-long-name%
+%web-site%
+
+

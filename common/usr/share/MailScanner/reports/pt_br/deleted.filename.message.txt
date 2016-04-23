@@ -1,0 +1,14 @@
+Esta é uma mensagem do serviço de proteção contra vírus
+----------------------------------------------------------------------
+O anexo "$filename" encontra-se na lista proíbida de tipos de arquivo,
+e foi substituído por esta mensagem de aviso no e-mail.
+
+Nossos sistemas previnem que uma cópia do arquivo em questão fique
+armazenada.
+
+Hoje, $date, o anti-virus relatou o seguinte:
+$report
+-- 
+Postmaster
+%org-long-name%
+%web-site%

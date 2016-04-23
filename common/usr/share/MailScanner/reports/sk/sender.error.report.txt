@@ -1,0 +1,23 @@
+From: "$postmastername" <$localpostmaster>
+To: $from
+Subject: Upozornenie:: E-mail, zitena chyba
+X-%org-name%-MailScanner: vytvoreny
+
+
+Detektor virusov zlyhal pri kompletnej analyze spravy, ktoru ste posielali:-
+  Komu: $to
+  Predmet: $subject
+  Datum: $date
+Ziadna cast spravy, ktora nebola analyzovana, nebude ani dorucena. 
+
+Ak pouzivate Microsoft Outlook, bezpodmienecne doporucujeme, aby ste zmenili
+format odchadzajuce spravy z "Format Textu (.rtf)" do "HTML" alebo "Obycajny Text".
+
+Virus detektor hlasi o tejto sprave nasledovne:
+Hlasenie: $report
+
+-- 
+MailScanner
+Email Virus Scanner
+%org-long-name%
+%web-site%

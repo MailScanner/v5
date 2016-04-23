@@ -1,0 +1,23 @@
+From: "MailScanner" <$Config::LocalPostmaster>
+To: $from
+Subject: Advarsel! Dit e-brev indeholder virus
+
+Vores virusskanner har opdaget virus i det e-brev du har sendt:
+  
+ Til:  $to
+ Emne: $subject
+ Dato: $date
+
+En eller flere af bilagene kunne ikke få lov til at blive leveret,
+da de er på listen og uønskede bilag.
+
+Prøv evt. at kalde filerne et andet navn eller gem dem som en .zip fil, så undgår du
+denne begrænsning.
+
+Virusskanneren kom med følgende report:
+$report
+
+-- 
+Postmester
+%org-long-name%
+%web-site%

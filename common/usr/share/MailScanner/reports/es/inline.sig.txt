@@ -1,0 +1,5 @@
+-- 
+Este mensaje ha sido analizado por MailScanner
+en busca de virus y otros contenidos peligrosos,
+y se considera que está limpio.
+

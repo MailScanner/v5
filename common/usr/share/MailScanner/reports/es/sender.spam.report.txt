@@ -1,0 +1,34 @@
+From: "$postmastername" <$localpostmaster>
+To: $from
+Subject: {Bounce} e-mail comercial no solicitado rechazado
+X-%org-name%-MailScanner: generated
+MIME-Version: 1.0
+Content-type: text/plain; charset=ISO-8859-1 
+Content-transfer-encoding: Quoted-Printable
+  
+Nuestros detectores de correo electrónico no solicitado (UCE/spam)
+fueron activados debido a un mensaje enviado por Usted:
+  A: $to
+  Fecha: $date
+Este mensaje ha sido destruido. Los detectores que lo activaron son:
+$spamreport.
+
+Su mensaje ha sido identificado como spam en base a un análisis tanto
+de su contenido como del servidor que envió el mensaje a nuestro sitio.
+
+No se aceptan mensajes de correo electrónico no solicitados (spam)
+en este sitio, y se trabaja activamente para detenerlos. Si usted
+está enviando spam y continúa haciéndolo, su Proveedor de Internet
+podrá ser requerido para que le clausure su cuenta.
+
+Si tiene dudas acerca de ésto, o cree que ha recibido este mensaje
+erróneamente, por favor, contácte con los administradores de correo
+del sitio.
+
+-- 
+MailScanner 
+Protección contra Virus de E-mail
+%org-long-name%
+%web-site%
+
+

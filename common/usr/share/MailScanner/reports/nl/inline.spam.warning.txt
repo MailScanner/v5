@@ -1,0 +1,14 @@
+Mailscanner vermoed dat de bijlage in deze e-mail
+
+   Afzender:  $from
+   Onderwerp: $subject
+
+niet gewenste commerciele bulk (spam) e-mail is. Als u er zeker van bent
+dat dit bericht correct als spam is gemarkeerd, dan is het verstandig
+om deze email te wissen zonder hem te openen. Door het openen van spam
+berichten kan de verzender van de spam uw e-mail adres verifieeren.
+
+Indien u ervan overtuigd bent dat het bericht onjuist is gemarkeerd als
+spam, stuur dan het bericht door aan $localpostmaster.
+
+$longspamreport

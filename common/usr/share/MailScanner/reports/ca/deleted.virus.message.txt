@@ -1,0 +1,18 @@
+Missatge del Servei de Protecció de Virus de Correu Electrònic de MailScanner
+-----------------------------------------------------------------------------
+El fitxer adjunt original "$filename"
+ha estat considerat que era perillós i/o infectat per un virus i ha estat
+substituït per aquest missatge d'avís.
+
+Degut a les limitacions imposades per l'Acta de Regulació de Poders
+d'Investigació del 2000, no podem mantenir una còpia de l'adjunt original.
+Si us plau demaneu a l'emissor del missatge que desinfecti la seva versió
+original i us enviï una còpia neta.
+
+A $date l'escàner ha dit:
+$report
+-- 
+Postmaster
+%org-long-name%
+%web-site%
+

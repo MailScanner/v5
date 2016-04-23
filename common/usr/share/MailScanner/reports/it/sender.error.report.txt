@@ -1,0 +1,23 @@
+From: "$postmastername" <$localpostmaster>
+To: $from
+Subject: Attenzione: rilevata E-mail contenente errori
+X-%org-name%-MailScanner: generated
+
+Il sistema antivirus non e' riuscito ad analizzare completamente il messaggio spedito:-
+  To: $to
+  Subject: $subject
+  Date: $date
+Ogni parte del messaggio che non e' stato possibile analizzare, non e' stato inviato al destinatario.
+
+Se state utilizzando Microsoft Outlook, vi raccomandiamo di modificare il formato dei messaggi
+da "Rich Text" a "HTML" o "Plain Text".
+
+Il sistema antivirus riporta:
+rapporto: $report
+
+-- 
+MailScanner
+Email Virus Scanner
+%org-long-name%
+%web-site%
+

@@ -1,0 +1,11 @@
+English Version:
+
+Warning: This message has had one or more attachments removed
+Warning: ($filename).
+Warning: Please read the "$viruswarningname" attachment(s) for more information.
+
+Versiunea Romana:
+
+Atentie!
+Acestui mesaj i-au fost inlaturate unul sau mai multe atasamente ($filename).
+Pentru mai multe detalii, cititi "$viruswarningname"

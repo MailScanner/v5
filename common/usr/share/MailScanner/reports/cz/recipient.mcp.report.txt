@@ -1,0 +1,26 @@
+From: "$postmastername" <$localpostmaster>
+To: $to
+Subject: Zakazany obsah byl ulozen k posouzeni
+X-%org-name%-MailScanner: vytvoren
+ 
+Nas system kontroly obsahu elektronicke posty byl spusten zpravou, kterou
+jste zaslali:-
+    Od: $from
+    Predmet: $subject
+    Datum: $date
+Zprava byla pred odeslanim ulozena do karanteny k posouzeni obsahu.
+ 
+Pokud mate jakekoliv dotazy, kontaktujte prosim administratora systemu.
+ 
+Administrator systemu bude potrebovat nasledujici informace:
+    Jmeno serveru: $hostname
+    Identifikator zpravy: $id
+    Kod data: $datenumber
+ 
+-- 
+MailScanner
+Email Virus Scanner
+%org-long-name%
+%web-site%
+
+

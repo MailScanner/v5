@@ -1,0 +1,27 @@
+From: "$postmastername" <$localpostmaster>
+To: $from
+Subject: Oversized email rejected
+X-%org-name%-MailScanner: generated
+
+Our email content filters have been triggered by a message you sent:-
+  To: $to
+  Subject: $subject
+  Date: $date
+This message has been rejected. The filters said this:
+$report.
+
+This message, or an attachment it contained, was too large and has been
+removed ($size > $maxmessagesize).
+
+Please try compressing the attachment file before sending it.
+
+If you have any questions about this, or you believe you have received
+this message in error, please contact the site system administrators.
+
+-- 
+MailScanner
+Email Virus Scanner
+%org-long-name%
+%web-site%
+
+

@@ -1,0 +1,20 @@
+Dies ist eine Nachricht vom MailScanner E-Mail-Virus-Schutzdienst
+----------------------------------------------------------------------
+Die ursprüngliche E-Mail-Nachricht enthielt potenziell gefährliche Inhalte,
+die zu Ihrer Sicherheit entfernt wurden.
+
+Der ursprüngliche Inhalt ist gefährlich, da er häufig benutzt wird, um
+Viren zu verbreiten oder um persönliche oder vertrauliche Informationen
+wie Passwörter oder Kreditkartennummern von Ihnen zu bekommen.
+
+Aus datenschutzrechtlichen Gründen halten wir keine Kopie des Originalanhangs
+vor.
+
+Die Nachrichten-Filter fanden folgendes:
+$report
+--
+Postmaster
+%org-long-name%
+%web-site%
+
+

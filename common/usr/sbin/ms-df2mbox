@@ -1,0 +1,59 @@
+#!/bin/sh
+
+#
+# JKF 27/06/2002 (C) Julian Field
+#
+# This script will create an "mbox" format file called "spam.<dirname>"
+# in the current directory for each of the directories which are passed
+# on the command-line to this script. So you can do
+#    cd /var/spool/MailScanner/quarantine
+#    ms-df2mbox *
+# and it will create a "spam.<dirname>" file in the current directory,
+# where each <dirname> is one of the directory names passed on the
+# command line. This file will contain all the messages that were
+# quarantined in their entirety.
+# So if you have
+#    Quarantine Whole Message = no
+# the only thing in these directories will be spam, not viruses (but
+# it will include spam that contained viruses, so be careful!).
+#
+# Version 1.1 Include date format fix
+# Version 1.2 Supports quarantine directory layour in MailScanner V4
+#
+
+parentdir=`pwd`
+export parentdir
+
+while [ -n "$1" ]
+do
+  dir="$1"
+  shift
+
+  echo -n "Processing directory $dir..."
+  if [ \! -d $dir ]; then
+    echo $dir is not a directory
+    exit 1
+  fi
+
+  cd $dir/spam
+
+  for qf in qf*
+  do
+    id=`echo $qf | sed 's/^qf//'`
+
+    from=`grep '^S' $qf | sed 's/^S//'`
+
+    echo From $from `date "+%a %b %d %T %Y"`
+    # Note that the gap in the next line is a tab character!
+    egrep '(^H\?[^\?]*\?)|(^	)' $qf | sed 's/^H?[^?]*?//'
+    # Version 1.1: get the recipient addresses into the headers too
+    egrep '^R[A-Z]*:' $qf | sed 's/^R[A-Z]*:/X-MailScanner-Recipient:/'
+    echo
+    cat df$id
+    echo
+  done > mbox.$dir
+
+  cd $parentdir
+  mv $dir/spam/mbox.$dir spam.$dir
+  echo
+done

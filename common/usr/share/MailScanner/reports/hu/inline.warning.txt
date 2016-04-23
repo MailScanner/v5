@@ -1,0 +1,3 @@
+Figyelem: Ezen uzenet egy vagy tobb resze eltavolitasra kerult.
+Figyelem: ($filename).
+Figyelem: Olvassa el a "VirusWarning.txt" mellekletet tovabbi informacioert.

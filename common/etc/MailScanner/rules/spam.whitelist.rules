@@ -1,0 +1,10 @@
+# If you are basing a blacklist on this then you can refer to
+# a null (empty) sender address with "/^$/" as the address to match.
+#
+# This is where you can build a Spam WhiteList
+# Addresses matching in here, with the value
+# "yes" will never be marked as spam.
+#From:		152.78.		yes
+#From:		130.246.	yes
+#From:		host:soton.ac.uk yes # Note this is slower than using the IP
+FromOrTo:	default		no

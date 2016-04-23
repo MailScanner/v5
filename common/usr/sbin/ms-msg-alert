@@ -1,0 +1,35 @@
+#!/bin/sh
+
+noticesfrom=`/usr/sbin/ms-peek noticesfrom /etc/MailScanner/MailScanner.conf`
+localpostmaster=`/usr/sbin/ms-peek localpostmaster /etc/MailScanner/MailScanner.conf`
+noticesto=`/usr/sbin/ms-peek noticesto /etc/MailScanner/MailScanner.conf`
+sendnotices=`/usr/sbin/ms-peek sendnotices /etc/MailScanner/MailScanner.conf`
+
+# Only do this if they want to send notices to postmaster at all
+if [ "x$sendnotices" = "xno" ]; then
+  exit 0
+fi
+
+# If there was a / at the start of the destination email address, then the
+# setting was a ruleset which ms-peek does not support. So use the
+# localpostmaster setting instead, it's better than creating an error.
+if ( echo $noticesto | grep -q '^/' ); then
+  noticesto=$localpostmaster
+fi
+
+alert=`/usr/sbin/MailScanner --processing`
+
+if [ \! "x$alert" = "x" ]; then
+  #cat <<EOM
+  sendmail -oem -t <<EOM
+From: $noticesfrom <$localpostmaster>
+To: MailScanner Administrator <$noticesto>
+Subject: Problem Messages
+
+$alert
+
+-- 
+MailScanner
+EOM
+fi
+

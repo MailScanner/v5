@@ -1,0 +1,11 @@
+A mensagem que você recebeu recentemente de: "$from" com o
+assunto: "$subject"
+continha um ou mais vírus de computador que podia ser removido.
+
+Os vírus de computador foram removídos com êxito e os arquivos
+desinfectados for anexados novamente a esta mensagem.
+
+-- 
+Postmaster
+%org-long-name%
+%web-site%

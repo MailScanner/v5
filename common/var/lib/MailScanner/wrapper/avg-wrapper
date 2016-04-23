@@ -1,0 +1,43 @@
+#!/bin/sh
+
+# avg-wrapper --	invoke avg for use with mailscanner
+#
+#   MailScanner - SMTP Email Processor
+#   Copyright (C) 2001  Julian Field
+#
+#   $Id: avg-wrapper 5004 2010-02-12 12:41:47Z sysjkf $
+#
+#   This program is free software; you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation; either version 2 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program; if not, write to the Free Software
+#   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+#      https://www.mailscanner.info
+#
+#
+
+ScanOptions="-a"
+PackageDir=$1
+shift
+Prog=avgscan
+
+if [ "x$1" = "x-IsItInstalled" ]; then
+  [ -x ${PackageDir}/bin/$Prog ] && exit 0
+  exit 1
+fi
+
+# Force output into English
+LANG=EN
+export LANG
+
+exec $PackageDir/bin/$Prog $ScanOptions "$@" 2>&1
+exit 1

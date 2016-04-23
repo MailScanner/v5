@@ -1,0 +1,33 @@
+From: "$postmastername" <$localpostmaster>
+To: $from
+Subject: Mensaje potencialmente peligros rechazado
+X-%org-name%-MailScanner: generated
+MIME-Version: 1.0
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: Quoted-Printable
+
+Nuestros filtros de contenido de correo electrónico fueron activados
+por un mensaje enviado por usted:
+  A: $to
+  Asunto: $subject
+  Fecha: $date
+Este mensaje ha sido rechazado. El mensaje de los filtros es:
+$report.
+
+Este mensaje de correo electrónico original tenía contenido
+potencialmente peligroso que ha sido eliminado.
+
+Si usted estaba intentando enviar una página web, por favor, intente salvar
+la página a un archivo y luego anexar ese archivo al mensaje.
+
+Si tiene dudas acerca de ésto, o cree que ha recibido este mensaje
+erróneamente, por favor, contácte con los administradores de correo
+del sitio.
+
+-- 
+MailScanner
+Protección contra Virus de E-mail
+%org-long-name%
+%web-site%
+
+

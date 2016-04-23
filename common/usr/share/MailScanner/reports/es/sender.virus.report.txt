@@ -1,0 +1,27 @@
+From: "$postmastername" <$localpostmaster>
+To: $from
+Subject: Atención: Virus detectado en e-mail
+X-%org-name%-MailScanner: generated
+MIME-Version: 1.0
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: Quoted-Printable
+
+Nuestro detector de virus ha sido activado por un mensaje enviado por Usted:
+  A: $to
+  Asunto: $subject
+  Fecha: $date
+Las partes del mensaje que estaban infectadas no han sido enviadas.
+
+Este mensaje es sólo para avisarle de que su sistema puede tener un
+virus y debería verificarlo.
+
+El detector de virus dijo lo siguiente acerca del mensaje:
+Informe: $report
+
+-- 
+MailScanner
+Protección contra Virus de E-mail
+%org-long-name%
+%web-site%
+
+

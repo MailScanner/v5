@@ -1,0 +1,21 @@
+Ez egy automata uzenet a MailScanner E-Mail virusvedelmi rendszertol
+--------------------------------------------------------------------
+Az Onnek kuldott level "$filename" nevu melleklete a
+levelezoszerver szamara elfogadhatatlan kiterjesztessel rendelkezo
+mellekletet tartalmazott ezert le lett cserelve erre a figyelmezteto
+uzenetre.
+
+A melleklet a maganszfera vedelme erdekeben nem kerult mentesre.
+
+A viruskereses eredmenye, $date idopontban:
+$report
+
+Azonosito: $hostname $quarantinedir/$datenumber (message $id).
+
+-- 
+$localpostmaster
+MailScanner - Email Virus Scanner - http://www.mailscanner.info
+%org-long-name%
+%web-site%
+
+

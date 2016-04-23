@@ -1,0 +1,61 @@
+#!/bin/sh
+
+#   MailScanner - SMTP Email Processor
+#   Copyright (C) 2001  Julian Field
+#
+#   This program is free software; you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation; either version 2 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program; if not, write to the Free Software
+#   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+#      https://www.mailscanner.info
+#
+
+# Wrapper for generic virus scanners written by you!
+
+PackageDir=$1
+shift
+
+MyScanner=/bin/false
+
+#
+# You get called with an optional "-disinfect" command-line switch, followed
+# by a directory name that will normally be ".".
+# The directory structure you will be in has a directory for each message
+# (named after the message queue id). Each directory contains the files
+# which are attachments to the message.
+# You have to look for viruses in every file in every directory, and print
+# INFECTED::<virus name>::<directory>/<filename>
+# for every infected file you find.
+# You can also print
+# ERROR::<virus name>::<directory>/<filename>
+# for any errors you find and these will be put into the logs but the filename
+# will not be marked as infected.
+#
+
+LANG=C
+export LANG
+
+# If you are called with just the "-IsItInstalled" command-line switch, you
+# should report if your scanner is installed. If it is installed, it will
+# be updated.
+if [ "x$1" = "x-IsItInstalled" ]; then
+  [ -x ${PackageDir}/$MyScanner ] && exit 0
+  exit 1
+fi
+
+# Run your scanner here. You can either have it as an external program,
+# or just put the code straight in here. The command-line arguments
+# (i.e. an optional "-disinfect" followed by a directory name) will be
+# passed straight through to your code.
+exec ${PackageDir}/$MyScanner "$@"
+

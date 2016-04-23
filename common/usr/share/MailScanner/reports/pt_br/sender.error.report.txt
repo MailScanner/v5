@@ -1,0 +1,22 @@
+From: "$postmastername" <$localpostmaster>
+To: $from
+Subject: Aviso: Erro de e-mail detectado
+X-%org-name%-MailScanner: generated
+
+Nosso sistema de detecção de vírus falhou ao analisar uma mensagem que
+você enviou:-
+  To: $to
+  Subject: $subject
+  Date: $date
+Qualquer parte da mensagem que não puder ser analisada, não será entregue.
+
+Se você está utilizando o Microsoft Outlook, sugerimos que você mude o 
+formato de mensagens, de "Rich Text" para "HTML" ou "Plain Text".
+
+Nosso sistema de anti-virus relatou o seguinte a respeito da sua mensagem:
+Relatório: $report
+
+-- 
+Postmaster
+%org-long-name%
+%web-site%

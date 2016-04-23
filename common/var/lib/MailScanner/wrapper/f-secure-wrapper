@@ -1,0 +1,87 @@
+#!/bin/sh
+
+# f-securewrapper --	invoke F-Secure AV for use with
+# 			mailscanner
+#
+# nwp, 14/12/01
+# jkf, 03/04/03 (that's the 3rd of April to you :-)
+#
+#   MailScanner - SMTP Email Processor
+#   Copyright (C) 2001  Julian Field
+#
+#   This program is free software; you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation; either version 2 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program; if not, write to the Free Software
+#   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+#      https://www.mailscanner.info
+#
+# $Id: f-secure-wrapper 4534 2008-09-01 11:33:51Z sysjkf $
+
+
+# Look to see what version we have got installed.
+# The new (4.50) version sets the database directory in /etc/fsav.conf.
+# So if we find it there then we are running the new version.
+
+Root=$1
+shift
+
+# FSAV version 4.6x
+FSAV_CONF=/etc/opt/f-secure/fssp/fssp.conf
+if [ -f $FSAV_CONF ] && grep -i '^daemondatabasedirectory' $FSAV_CONF  >/dev/null
+then
+  PackageDir=$Root/bin
+  ScanOptions="--riskware=on --scanexecutables=on --virus-action1=report --virus-action2=none --riskware-action1=report --riskware-action2=none --skiplarge=no --databasedirectory=/var/opt/f-secure/fssp/databases"
+else
+  # FSAV version 4.6x
+  FSAV_CONF=/etc/opt/f-secure/fsav/fsav.conf
+  if [ -f $FSAV_CONF ] && grep -i '^databasedirectory' $FSAV_CONF >/dev/null
+  then
+    PackageDir=$Root/bin
+    ScanOptions=""
+  else
+    # FSAV version 4.5x
+    FSAV_CONF=/etc/fsav.conf
+    if [ -f $FSAV_CONF ] && grep -i '^databasedirectory' $FSAV_CONF  >/dev/null
+    then
+      # New version
+      PackageDir=$Root/bin
+      ScanOptions=""
+    else
+      # Old version
+      PackageDir=/usr/local/fsav            # This may vary depending on your OS
+      # Use their local setting if it exists. Helps backward compatibility
+      if [ -d "$Root" ]; then
+        PackageDir=$Root
+      fi
+      # I'm only listing ones which we may find useful...
+      #
+      # The *required* options are passed to us by mailscanner.
+      # currently these are "--auto --dumb --archive" (2/1/02) -- nwp
+      #
+      ScanOptions=""
+      #ScanOptions="$ScanOptions --archive" # scan archives
+      #ScanOptions="$ScanOptions --dumb" # don't try to be smart about file types
+      #ScanOptions="$ScanOptions --auto" # no prompts
+      # Where to find signature files
+      ScanOptions="$ScanOptions --databasedirectory $PackageDir"
+    fi
+  fi
+fi
+
+if [ "x$1" = "x-IsItInstalled" ]; then
+  [ -x ${PackageDir}/fsav ] && exit 0
+  exit 1
+fi
+
+exec ${PackageDir}/fsav $ScanOptions "$@"
+

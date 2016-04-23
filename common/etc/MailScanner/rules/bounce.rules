@@ -1,0 +1,15 @@
+# You can use this ruleset to enable the "bounce" Spam Action.
+# You must *only* enable this for mail from sites with which you have
+# agreed to bounce possible spam. Use it on low-scoring spam only (<10)
+# and only to your regular customers for use in the rare case that a
+# message is mis-tagged as spam when it shouldn't have been.
+# Beware that many sites will automatically delete the bounce messages
+# created by using this option unless you have agreed this with them in
+# advance.
+
+# This next line gives an example of how you might enable this option for
+# a frequent customer of yours.
+#From:		yourcustomer.com	yes
+
+# Under no circumstances should this be changed to "yes".
+FromOrTo:	default			no

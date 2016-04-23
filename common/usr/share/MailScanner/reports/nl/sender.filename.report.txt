@@ -1,0 +1,27 @@
+From: "$postmastername" <$localpostmaster>
+To: $from
+Subject: Waarschuwing: E-mail virussen gedetecteerd
+X-%org-name%-MailScanner: generated
+
+Onze virusscanner reageerde op een bericht dat u heeft verzonden:
+  To: $to
+  Subject: $subject
+  Date: $date
+
+Minimaal 1 van de bijlagen staat op de lijst met onaanvaardbare bijlagen
+zoals die voor onze site is vastgelegd. De bijlage is niet afgeleverd bij
+de ontvanger.
+
+Wij raden u aan het bestand te hernoemen of het te versturen in een "zip"
+bestand om deze beperkingen te omzeilen.
+
+De virusscanner gaf onderstaande melding t.a.v. uw bericht:
+Report: $report
+
+-- 
+MailScanner
+Email Virus Scanner
+%org-long-name%
+%web-site%
+
+

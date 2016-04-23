@@ -1,0 +1,114 @@
+#!/usr/bin/env bash
+
+# Jerry Benton
+# 24 APR 2016
+
+# this Build.debian script should be located in the base
+# directory when run. 
+
+# make sure this is run from the base directory
+if [ ! -d 'common' ]; then
+	echo 'This script must be executed from the base directory.';
+	echo;
+	exit 192
+fi
+
+# directory we are in
+THISCURDIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+
+# where the final file will be copied
+FILEOUT="$HOME/msbuilds/deb";
+export FILEOUT;
+
+# check to see if the output directory exists
+if [ ! -d "$FILEOUT" ]; then
+	mkdir -p $FILEOUT
+fi
+
+# if not set from the "Build.all" script
+if [ -z "$MSVERSION" ]; then
+	echo "Please tell me the version number (x.xx.x): ";
+	read MSVERSION
+	export MSVERSION
+fi
+
+# if not set from the "Build.all" script
+if [ -z "$MSBUILD" ]; then
+	echo "And the build number (-x): ";
+	read MSBUILD	
+	export MSBUILD
+fi
+
+# if not set from the "Build.all" script
+if [ -z "$FULLMSVER" ]; then
+	FULLMSVER=$MSVERSION-$MSBUILD
+	export FULLMSVER
+fi
+
+# if not set from the "Build.all" script
+if [ -z "$DEVBASEDIR" ]; then
+	DEVBASEDIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+	#echo "You current directory is $THISCURDIR"; echo;
+	#echo "Enter the parent directory of RPM.files without the trailing slash: ";
+	#read DEVBASEDIR
+	export DEVBASEDIR
+fi
+
+# our working directory
+WORK="/tmp/MailScanner-$FULLMSVER";
+
+# delete work tmp if already exists
+if [ -d $WORK ]; then
+   rm -rf $WORK
+fi
+
+# make working dir and subs
+mkdir -p $WORK
+mkdir -p $WORK/{var,usr,etc}
+
+# etc
+cp -fr $DEVBASEDIR/common/etc/*					$WORK/etc/
+cp -fr $DEVBASEDIR/debian/etc/*					$WORK/etc/
+
+# usr
+cp -fr $DEVBASEDIR/common/usr/* $WORK/usr/
+cp -fr $DEVBASEDIR/debian/usr/* $WORK/usr/
+
+# var
+cp -fr $DEVBASEDIR/common/var/* $WORK/var/
+
+cp -rf $DEVBASEDIR/debian/DEBIAN/ $WORK
+perl -pi -e 's/DebianVersionHere/'$FULLMSVER'/;' $WORK/DEBIAN/control
+perl -pi -e 's/VersionNumberHere/'$MSVERSION'/;' $WORK/etc/MailScanner/MailScanner.conf
+perl -pi -e 's/VersionNumberHere/'$MSVERSION'/;' $WORK/usr/sbin/MailScanner
+perl -pi -e 's/VersionNumberHere/'$MSVERSION'/;' $WORK/DEBIAN/postinst
+
+cd $WORK
+find . -type f -exec chmod 0644 {} \;
+find . -type d -exec chmod 0755 {} \;
+chmod +x $WORK/usr/sbin/*
+chmod +x $WORK/DEBIAN/postinst
+chmod +x $WORK/DEBIAN/preinst
+chmod +x $WORK/DEBIAN/postrm
+chmod +x $WORK/var/lib/MailScanner/wrapper/*-autoupdate
+chmod +x $WORK/var/lib/MailScanner/wrapper/*-wrapper
+chmod +x $WORK/etc/init.d/*
+chmod +x $WORK/etc/cron.daily/*
+chmod +x $WORK/etc/cron.hourly/*
+
+# create a working dir for package
+PKGTMP="/tmp/deb.$$/";
+mkdir -p $PKGTMP/MailScanner-${FULLMSVER}
+fakeroot dpkg -b $WORK $PKGTMP/MailScanner-${FULLMSVER}/MailScanner-$FULLMSVER-noarch.deb
+cp $DEVBASEDIR/debian/install.sh 			$PKGTMP/MailScanner-${FULLMSVER}
+cp $DEVBASEDIR/changelog 						$PKGTMP/MailScanner-${FULLMSVER}
+cp $DEVBASEDIR/COPYING 							$PKGTMP/MailScanner-${FULLMSVER}
+cp $DEVBASEDIR/debian/UPGRADE 			$PKGTMP/MailScanner-${FULLMSVER}
+cp $DEVBASEDIR/README 							$PKGTMP/MailScanner-${FULLMSVER}
+chmod +x $PKGTMP/MailScanner-${FULLMSVER}/install.sh
+cd $PKGTMP
+tar czf MailScanner-${FULLMSVER}.deb.tar.gz *
+mv -f MailScanner-${FULLMSVER}.deb.tar.gz $FILEOUT
+
+rm -rf $PKGTMP
+rm -rf $WORK

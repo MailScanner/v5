@@ -1,0 +1,31 @@
+Neges yw hwn gan Wasanaeth Gwarchod   | This is a message from the MailScanner
+rhag Feirws E-bost MailScanner.       | E-Mail Virus Protection Service.
+--------------------------------------|---------------------------------------
+                                      |
+Yr oedd y neges e-bost gwreiddiol â   | The original e-mail message contained
+chynnwys a allasai fod yn beryglus,   | potentially dangerous content,  which
+ac fe'i symudwyd er diogelwch i chwi. | has been removed for your safety.
+                                      |
+Mae'r cynnwys yn beryglus gan y'i     | The content is dangerous as it is
+defnyddir yn aml i ledaenu feirysau   | often used to spread viruses or to
+neu i gael gwybodaeth bersonol neu    | gain personal or confidential
+gyfrinachol gennych, megis            | information from you, such as
+cyfrineiriau neu rifau cardiau credyd.| passwords or credit card numbers.
+                                      |
+Oherwydd cyfyngiadau a osodir arnom   | Due to limitations placed on us by the
+gan Ddeddf Rheoleiddio Pwerau         | Regulation of Investigatory Powers Act
+Ymchwilio 2000, ni fu modd i ni gadw  | 2000, we were unable to keep a copy
+copi o'r atodiad gwreiddiol.          | of the original attachment.
+                                      |
+Dyma a ganfu'r hidlyddion cynnwys:    | The content filters found this:
+
+       $report
+
+-- 
+MailScanner
+Email Virus Scanner
+%org-long-name%
+%web-site%
+
+
+

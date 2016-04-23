@@ -1,0 +1,14 @@
+Toto je zprava od systemu antivirive ochrany elektronicke posty 'MailScanner'
+-----------------------------------------------------------------------------
+Originalni priloha "$filename" je na seznamu priloh, ktere nejsou 
+akceptovanelne pro tuto stranu a byla nahrazena touto vystraznou zpravou.
+
+V dusledku limitovaneho  prostoru, kterym nas postovni system disponuje,
+neni mozne zachovat kopii puvodni zpravy.
+
+Dne $date detektor viru ohlasil:
+$report
+-- 
+Postmaster
+%org-long-name%
+%web-site%

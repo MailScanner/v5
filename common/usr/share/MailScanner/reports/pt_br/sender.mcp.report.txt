@@ -1,0 +1,26 @@
+From: "$postmastername" <$localpostmaster>
+To: $to
+Subject: Conteúdo bloqueado armazenado para revisão
+X-%org-name%-MailScanner: generated
+
+
+Nosso detector de conteúdo de mensagens foi ativado por uma mensagem que
+você recebeu:-
+    From: $from
+    Subject: $subject
+    Date: $date
+
+Esta mensagem foi posta em quarentena para revisão antes de ser entregue.
+
+Se voce tiver alguma dúvida a respeito, ou acredita que voce recebeu esta
+mensagem por erro, por favor contate o administrador do sistema.
+
+O seu administrador de sistema necessitará das seguintes informações:
+    Server name: $hostname
+    Message id: $id
+    Date code: $datenumber
+
+-- 
+Postmaster
+%org-long-name%
+%web-site%

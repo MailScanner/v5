@@ -1,0 +1,12 @@
+Az uzenet aminek "$from" volt a feladoja a kovetkezo targgyal:
+"$subject"
+egy vagy tobb virust tartalmazott, melyek eltavolitasra kerultek
+a csatolt mellekletekbol.
+
+-- 
+$localpostmaster
+MailScanner - Email Virus Scanner - http://www.mailscanner.info
+%org-long-name%
+%web-site%
+
+

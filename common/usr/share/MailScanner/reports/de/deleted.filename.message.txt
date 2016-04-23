@@ -1,0 +1,17 @@
+Dies ist eine MailScanner E-Mail Virus Protection Service Nachricht
+-------------------------------------------------------------------
+Der ursprüngliche E-Mail-Anhang "$filename"
+ist auf der Liste der unerwünschten Dateianhänge für diese Domain und wurde
+durch diese Warnmeldung ersetzt.
+
+Aus datenschutzrechtlichen Gründen halten wir keine Kopie des Originalanhangs
+vor.
+
+Zu Ihrer Information die Meldung des Virenscanners am $date:
+$report
+--
+Postmaster
+%org-long-name%
+%web-site%
+
+

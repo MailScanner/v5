@@ -1,0 +1,14 @@
+Unser MailScanner denkt, dass der Anhang dieser Nachricht
+
+ Absender: $from
+  Betreff: $subject
+
+eine Werbemail (Spam) ist. Bitte löschen Sie die angehängte Nachricht ohne sie
+zu öffnen, es sei denn, Sie sind sich sicher, dass diese Nachricht
+fälschlicherweise als Spam identifiziert wurde. Das Öffnen von Spam-Nachrichten
+könnte Spammern erlauben, Ihre E-Mail-Adresse zu verifizieren.
+
+Wenn Sie Fragen haben oder glauben, diese Nachricht zu Unrecht erhalten zu
+haben, kontaktieren Sie bitte die Systemadministratoren.
+
+$longspamreport

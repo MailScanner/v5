@@ -1,0 +1,14 @@
+Comunicazione dal servizio di Protezione della posta dai Virus "MailScanner"
+----------------------------------------------------------------------------
+L'allegato originale "$filename"
+e' considerato non accettabile da questo sito ed e' stato sostituito da questo messaggio di avviso.
+
+A causa delle limitazioni imposte dal "Regulation of Investigatory Powers
+Act 2000" (non applicabile in Italia), e' impossibile mantenere copia dell'allegato originale.
+
+Il giorno $date il sistema antivirus riporta:
+$report
+-- 
+Postmaster
+%org-long-name%
+%web-site%

@@ -1,0 +1,100 @@
+#!/usr/bin/perl
+
+# JKF 2009-08-26 Replace the functionality of lines like this:
+# MTA=`perl -n -e 'print "$_" if chomp && s/^\s*MTA\s*=\s*([a-zA-Z]+).*$/$1/ && ($_=lc($_))' /etc/MailScanner/MailScanner.conf`
+# with lines like this:
+# MTA=`/usr/sbin/ms-peek MTA /etc/MailScanner/MailScanner.conf`
+# using a Perl script so that we process 'include' files too.
+
+use FileHandle;
+use strict;
+
+# Command-line syntax is this:
+if ($ARGV[0] =~ /^-+h(elp)?/) {
+  print STDERR "Usage: $0 'Key name' full-path-of-MailScanner-conf-file\n\n";
+  exit 1;
+}
+
+my %QPConfFilesSeen = ();
+my %PercentVars = ();
+
+my $target = shift;
+my $filename = shift;
+
+$target =~ s/\s+//g; # Remove all whitespace from conf setting name
+
+print QuickPeek($filename, $target) . "\n";
+exit 0;
+
+sub QuickPeek {
+  my($filename, $target) = @_;
+
+  my($fh, $key, $value, $targetfound, $targetvalue, $savedline);
+
+  $target = lc($target);        
+  $target =~ s/[^%a-z0-9]//g; # Leave % vars intact
+
+  $fh = new FileHandle;
+  $fh->open("<$filename") or die "Cannot open config file $filename, $!";
+
+  while(<$fh>) {
+    chomp;
+    s/#.*$//;
+    s/^\s*//g;
+    s/\s*$//g;
+    next if /^$/;
+    $savedline = $_;
+
+    # Implement "include" files
+    if ($savedline =~ /^include\s+([^=]*)$/i) {
+      my $wildcard = $1;
+      my @newfiles = glob($wildcard);
+      if (@newfiles) {
+        # Go through each of the @newfiles reading conf from them.
+        for my $newfile (sort @newfiles) {
+          # Have we seen it before?
+          #print STDERR "Checking $newfile\n";
+          unless ($QPConfFilesSeen{$newfile}) {
+            # No, so read it.
+            my $ret = QuickPeek($newfile, $target);
+            if (defined $ret) {
+              $targetfound = 1;
+              $targetvalue = $ret;
+            }
+          }
+        }
+      }
+      # And don't do any more processing on the "include" line.
+      next;
+    }
+
+    $_ = $savedline;
+    $key = undef;   # Don't carry over values from previous iteration
+    $value = undef;
+    /^(.*?)\s*=\s*(.*)$/;
+    ($key,$value) = ($1,$2);
+
+    # Allow %var% = value lines with $VAR in value
+    $value =~ s/\%([^%]+)\%/$PercentVars{lc($1)}/g;
+    $value =~ s/\$\{?(\w+)\}?/$ENV{$1}/g;
+    $value =~ s/\\n/\n/g;
+    if ($key =~ /^\%([^%]+)\%$/) {
+      # 20090826 Always use the most recent value of %variable%
+      #$PercentVars{lc($1)} = $value unless exists $PercentVars{lc($1)};
+      $PercentVars{lc($1)} = $value;
+      #next; -- Store the percentvars in the key{value} hash as well.
+    }
+
+    $key = lc($key);
+    $key =~ s/[^%a-z0-9]//g; # Leave numbers and letters only -- leave % vars
+    if ($key =~ /^$target$/i) {
+      $targetfound = 1;
+      $targetvalue = $value;
+    }
+  }
+
+  $fh->close();
+
+  return $targetvalue;
+}
+

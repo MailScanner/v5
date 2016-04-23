@@ -1,0 +1,28 @@
+From: "$postmastername" <$localpostmaster>
+To: $from
+Subject: {Bounce} Nevyzadana komercni posta - odmitnuta
+X-%org-name%-MailScanner: vytvoren
+
+Nas detektor UCE (spam-u) byl spusten zpravou, kterou posilate:-
+  Komu: $to
+  Predmet: $subject
+  Datum: $date
+
+Tato zprava byla smazana. Detektor, ktery byl spusten je
+$spamreport.
+
+
+Obsah Vasi zpravy indikuje, ze zprava je pravdepodobne spam a byla odmitnuta.
+
+Neakceptujeme zadnou nevyzadanou komercni postu a aktivne proti tomu bojujeme.
+Pokud nam ani po upozornenich neprestanete dorucovat zpravy s nezadoucim obsahem,
+budeme nuceni se obratit na Vaseho ISP, aby zablokoval Vase konto.
+
+Pokud k tomu mate jakekoliv otazky nebo pripominky, pripadne jste obdrzeli toto
+upozorneni omylem, kontaktujte prosim nase administratory.
+
+-- 
+MailScanner
+Email Virus Scanner
+%org-long-name%
+%web-site%

@@ -1,0 +1,20 @@
+Missatge del Servei de Protecció de Virus de Correu Electrònic de MailScanner
+-----------------------------------------------------------------------------
+El missatge de correu electrònic original, o un fitxer adjunt que hi contenia,
+era massa gran i s'ha suprimit.
+
+Hauríeu de provar de comprimir els fitxers adjunts abans d'enviar-los.
+
+Si desitgeu rebre una còpia del correu electrònic original, si us plau
+contacteu amb el Centre de Suport i incluïu tot aquest missatge
+en la sol·licitud. Per altra banda, podeu trucar-los amb
+el contingut d'aquest missatge a mà.
+
+A $date els filtres de contingut van dir:
+$report
+Note pel Centre de Suport: Verifiqueu a $hostname a $quarantinedir/$datenumber (missatge $id).
+-- 
+Postmaster
+%org-long-name%
+%web-site%
+

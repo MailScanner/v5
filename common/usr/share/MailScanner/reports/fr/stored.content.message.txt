@@ -1,0 +1,29 @@
+Avertissement de la passerelle antivirus MailScanner
+----------------------------------------------------
+
+Les règles de sécurité de notre entreprise interdisent la
+transmission du courriel qui vous était destiné.
+
+Le courriel aurait pu permettre de propager des virus ou d'obtenir des
+informations confidentielles comme des mots de passe ou des numéros de
+cartes de crédit.
+
+Pour votre sécurité, il a été remplacé par cet avertissement.
+
+Le courriel a été conservé sur la passerelle.  Il peut donc
+vous être rendu sur demande.  Faites suivre ce message à
+$localpostmaster pour le récupérer.
+
+Résultats de l'analyse du courriel:
+$report
+
+Contactez $localpostmaster pour plus d'informations.
+
+Information de repérage: $hostname:$quarantinedir/$datenumber/$id
+
+-- 
+MailScanner
+%org-long-name%
+%web-site%
+
+

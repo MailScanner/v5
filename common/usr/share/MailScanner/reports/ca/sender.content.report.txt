@@ -1,0 +1,26 @@
+De: "$postmastername" <$localpostmaster>
+A: $from
+Assumpte: Correu electrònic potencialment perillós rebutjat
+X-%org-name%-MailScanner: generat
+
+Els nostres filtres de contingut de correu electrònic han estat activats per un missatge que heu enviat:-
+  A: $to
+  Assumpte: $subject
+  Data: $date
+Aquest missatge ha estat rebutjat. Els filtres han dit això:
+$report.
+
+Aquest missatge té contingut potencialment perillós que ha estat suprimit.
+
+Si heu provat d'enviar una pàgina web, si us plau, proveu primer de desar
+la pàgina web a un arxiu i llavors adjunteu aquest arxiu al missatge.
+
+Si teniu cap pregunta sobre això o creieu que heu rebut aquest missatge
+per error, si us plau, contacteu amb els vostres administradors de sistema.
+
+-- 
+MailScanner
+L'Escànner de Virus de Correu Electrònic
+%org-long-name%
+%web-site%
+

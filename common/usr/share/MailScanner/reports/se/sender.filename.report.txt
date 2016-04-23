@@ -1,0 +1,22 @@
+From: "$postmastername" <$localpostmaster>
+To: $from
+Subject: Varning, ej godkänd bilaga meddelandet
+X-%org-name%-MailScanner: generated
+
+Vårt virusskydd har stoppat ett meddelande ni skickat:
+  Till: $to
+  Ämne: $subject
+  Datum: $date
+
+En eller flera bilagor är inte av en typ som domänen godkänner
+och har blivit ersatt med den här varningstexten.
+Döp om eller zippa filen för att undvika ovanstående problem.
+
+Följande meddelande har genererats:
+$report
+
+-- 
+MailScanner
+Email Virus Scanner
+%org-long-name%
+%web-site%

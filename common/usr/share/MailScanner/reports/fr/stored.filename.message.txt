@@ -1,0 +1,25 @@
+Avertissement de la passerelle antivirus MailScanner
+----------------------------------------------------
+
+Les règles de sécurité de notre entreprise interdisent la
+transmission de la pièce jointe «$filename».
+
+Celle-ci a été remplacée par cet avertissement.
+
+La pièce jointe a été conservée sur la passerelle.  Elle peut donc
+vous être rendue sur demande.  Faites suivre ce message à
+$localpostmaster pour la récupérer.
+
+Résultats de l'antivirus:
+$report
+
+Contactez $localpostmaster pour plus d'informations.
+
+Information de repérage: $hostname:$quarantinedir/$datenumber/$id
+
+-- 
+MailScanner
+%org-long-name%
+%web-site%
+
+

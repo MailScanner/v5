@@ -1,0 +1,24 @@
+Avertissement de la passerelle antivirus MailScanner
+----------------------------------------------------
+
+La pièce jointe "$filename"
+contient probablement un virus.  Elle a été remplacée par cet avertissement.
+
+La pièce jointe a été conservée sur la passerelle.  Elle peut donc
+vous être rendue sur demande, mais comme elle est infectée, vous devrez
+avoir des très bonnes raisons pour la recevoir.  Faites suivre ce message à
+$localpostmaster avec vos raisons pour la récupérer.
+
+Résultats de l'antivirus:
+$report
+
+Contactez $localpostmaster pour plus d'informations.
+
+Information de repérage: $hostname:$quarantinedir/$datenumber/$id
+
+-- 
+MailScanner
+%org-long-name%
+%web-site%
+
+

@@ -1,0 +1,22 @@
+From: "MailScanner" <$Config::LocalPostmaster>
+To: $from
+Subject: Advarsel! Dit e-brev indeholder virus
+
+Vores virusskanner har opdaget virus i den mail du har sendt til:
+  
+ Til:  $to
+ Emne: $subject
+ Dato: $date
+
+Alt hvad der er inficeret med virus er ikke blevet sendt til modtageren.
+
+Denne meddelelse er udelukkende sendt til dig, for at advare dig om, at 
+din computer muligvis er inficeret med virus og skal kontroleres.
+
+Virusskanneren skrev følgende:
+$report
+
+-- 
+Postmester
+%org-long-name%
+%web-site%

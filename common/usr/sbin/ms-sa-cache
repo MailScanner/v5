@@ -1,0 +1,65 @@
+#!/usr/bin/perl
+
+# If this script fails to find your SpamAssassin.cache.db file then put
+# the filename on the command-line.
+
+use DBI;
+
+# Connect to the database
+my $cachefile = shift @ARGV || '/var/spool/MailScanner/incoming/SpamAssassin.cache.db';
+
+my $dbh = DBI->connect("dbi:SQLite:$cachefile");
+
+my($sql, $hash);
+
+# Get total records
+$sql = "SELECT COUNT(*) AS total, strftime('%s','now')-MIN(first) AS oldest_first, strftime('%s','now')-MAX(first) AS newest_first, strftime('%s','now')-MIN(last) AS oldest_last, strftime('%s','now')-MAX(last) AS newest_last FROM cache";
+$hash = $dbh->selectrow_hashref($sql);
+# Get hit rate percent
+$sql = "SELECT (((SELECT SUM(count) FROM cache WHERE count>1)-(SELECT COUNT(*) FROM cache WHERE count>1))*100)/(SUM(count)-(SELECT count(*) FROM cache WHERE COUNT>1)) AS hitrate_percent FROM cache";
+$hash1 = $dbh->selectrow_hashref($sql);
+printf("--------- TOTALS ---------\n");
+printf("Total records:       %d\nFirst seen (oldest): %d sec\nFirst seen (newest): %d sec\nLast seen (oldest):  %d sec\nLast seen (newest):  %d sec\nCache Hit Rate       %d%%\n",$hash->{total},$hash->{'oldest_first'},$hash->{'newest_first'},$hash->{'oldest_last'},$hash->{'newest_last'},$hash1->{hitrate_percent});
+$hash = undef;
+$hash1 = undef;
+
+# Get oldest and newest non-spam records
+printf("-------- NON-SPAM --------\n");
+$sql = "SELECT COUNT(*) AS total, strftime('%s','now')-MIN(first) AS oldest_first, strftime('%s','now')-MAX(first) AS newest_first, strftime('%s','now')-MIN(last) AS oldest_last, strftime('%s','now')-MAX(last) AS newest_last FROM cache WHERE sasaysspam=0 AND virusinfected<1";
+$hash = $dbh->selectrow_hashref($sql);
+printf("Total records:       %d\nFirst seen (oldest): %d sec\nFirst seen (newest): %d sec\nLast seen (oldest):  %d sec\nLast seen (newest):  %d sec\n",$hash->{total},$hash->{oldest_first},$hash->{newest_first},$hash->{oldest_last},$hash->{newest_last});
+$hash = undef;
+
+# Get oldest and newest low-spam records
+printf("-------- LOW-SPAM --------\n");
+$sql = "SELECT COUNT(*) AS total, strftime('%s','now')-MIN(first) AS oldest_first, strftime('%s','now')-MAX(first) AS newest_first, strftime('%s','now')-MIN(last) AS oldest_last, strftime('%s','now')-MAX(last) AS newest_last FROM cache WHERE sasaysspam>0 AND sahighscoring=0 and virusinfected<1";
+$hash = $dbh->selectrow_hashref($sql);
+printf("Total records:       %d\nFirst seen (oldest): %d sec\nFirst seen (newest): %d sec\nLast seen (oldest):  %d sec\nLast seen (newest):  %d sec\n",$hash->{total},$hash->{oldest_first},$hash->{newest_first},$hash->{oldest_last},$hash->{newest_last});
+$hash = undef;
+
+
+# Get oldest and newest high-spam records
+printf("------- HIGH-SPAM --------\n");
+$sql = "SELECT COUNT(*) AS total, strftime('%s','now')-MIN(first) AS oldest_first, strftime('%s','now')-MAX(first) AS newest_first, strftime('%s','now')-MIN(last) AS oldest_last, strftime('%s','now')-MAX(last) AS newest_last FROM cache WHERE sasaysspam>0 AND sahighscoring>0 AND virusinfected<1";
+$hash = $dbh->selectrow_hashref($sql);
+printf("Total records:       %d\nFirst seen (oldest): %d sec\nFirst seen (newest): %d sec\nLast seen (oldest):  %d sec\nLast seen (newest):  %d sec\n",$hash->{total},$hash->{oldest_first},$hash->{newest_first},$hash->{oldest_last},$hash->{newest_last});
+$hash = undef;
+
+# Get oldest and newest virus records
+printf("-------- VIRUSES  --------\n");
+$sql = "SELECT COUNT(*) AS total, strftime('%s','now')-MIN(first) AS oldest_first, strftime('%s','now')-MAX(first) AS newest_first, strftime('%s','now')-MIN(last) AS oldest_last, strftime('%s','now')-MAX(last) AS newest_last FROM cache WHERE virusinfected>0";
+$hash = $dbh->selectrow_hashref($sql);
+printf("Total records:       %d\nFirst seen (oldest): %d sec\nFirst seen (newest): %d sec\nLast seen (oldest):  %d sec\nLast seen (newest):  %d sec\n",$hash->{total},$hash->{oldest_first},$hash->{newest_first},$hash->{oldest_last},$hash->{newest_last});
+$hash = undef;
+
+# List top 5 hashes and count
+printf("----- TOP 5 HASHES -------\n");
+$sql = "SELECT md5, count, strftime('%s','now')-first AS first, strftime('%s','now')-last AS last FROM cache WHERE count>1 ORDER BY count DESC LIMIT 5";
+$sth = $dbh->prepare($sql);
+$sth->execute();
+printf("MD5\t\t\t\t\tCOUNT\tFIRST\tLAST\n");
+while($hash = $sth->fetchrow_hashref) {
+ printf("%s\t%d\t%d\t%d\n",$hash->{md5},$hash->{count},$hash->{first},$hash->{last});
+} 
+
+$dbh->disconnect;

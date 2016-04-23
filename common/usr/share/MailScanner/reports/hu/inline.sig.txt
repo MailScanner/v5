@@ -1,0 +1,4 @@
+-- 
+Ezen uzenet virusellenorzesen esett at, es virusmentesnek bizonyult.
+MailScanner - Email Virus Scanner - http://www.mailscanner.info
+

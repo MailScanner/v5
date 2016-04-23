@@ -1,0 +1,24 @@
+From: "$postmastername" <$localpostmaster>
+To: $from
+Subject: {Bounce} Skräppost blockerat
+X-%org-name%-MailScanner: generated
+
+Vårt SPAM-skydd har blockerat ett meddelande ni skickat.
+  Till: $to
+  Datum: $date
+
+Meddelandet har tagits bort. Följande meddelande har genererats.
+$spamreport.
+
+Domänen accepterar inte skräppost(SPAM) och arbetar aktivt för att stoppa
+det. Om ni skickar SPAM och forsätter att skicka SPAM, kommer er ISP att
+kontaktas med rekommendationen att ert konto stängs med omedelbar verkan.
+
+Om ni har frågor eller tycker att ett fel har begåtts
+kontakta domänens systemadministratör.
+
+-- 
+MailScanner
+Email Virus Scanner
+%org-long-name%
+%web-site%

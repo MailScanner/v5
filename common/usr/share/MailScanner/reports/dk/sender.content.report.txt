@@ -1,0 +1,27 @@
+From: "$postmastername" <$localpostmaster>
+To: $from
+Subject: Potentially dangerous email rejected
+X-%org-name%-MailScanner: generated
+
+Our email content filters have been triggered by a message you sent:-
+  To: $to
+  Subject: $subject
+  Date: $date
+This message has been rejected. The filters said this:
+$report.
+
+This message contained potentially dangerous content which has been removed.
+
+If you were attempting to send a web page, please try saving the web page
+to a file, and then attach that file to the message instead.
+
+If you have any questions about this, or you believe you have received
+this message in error, please contact the site system administrators.
+
+-- 
+MailScanner
+Email Virus Scanner
+%org-long-name%
+%web-site%
+
+

@@ -1,0 +1,19 @@
+From: $to
+To: $from
+Subject: Mail no solicitado no aceptado
+X-%org-name%-MailScanner: generated
+
+Usted nos ha mandado un correo electronico no requerido, y ha sido 
+rechazado. Por favor, no mande mas mails a esta direccion.
+  To: $to
+  Subject: $subject
+  Date: $date
+
+Si tiene preguntas acerca de esto o si cree qeu ha recibido este mensaje
+por error, por favor contactese con los administradores de este sitio.
+
+-- 
+MailScanner
+Email Virus Scanner
+%org-long-name%
+%web-site%

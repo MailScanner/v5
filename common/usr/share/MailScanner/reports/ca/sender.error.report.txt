@@ -1,0 +1,29 @@
+De: "$postmastername" <$localpostmaster>
+A: $from
+Assumpte: Avís: s'ha detectat errors al correu electrònic
+X-%org-name%-MailScanner: generat
+
+El nostre detector de virus no ha pogut analitzar completament un missatge que heu enviat:-
+  A: $to
+  Assumpte: $subject
+  Data: $date
+Les parts del missatge que no han pogut ser analitzades no han estat
+lliurades.
+
+Si esteu fent servir Microsoft Outlook, us recomanem canviar el vostre
+format del missatge sortint de "Rich Text" a "HTML" o "Text net".
+
+1) Feu clic al menú "Eines" i escolliu "Opcions..."
+2) Aneu a la pestanya de "Format de correu"
+3) A format del missatge, seleccioneu "HTML" o "Text net"
+4) Feu clic a D'acord
+
+El detector de virus ha dit el següent sobre el missatge:
+L'informe: $report
+
+-- 
+MailScanner
+L'Escànner de Virus de Correu Electrònic
+%org-long-name%
+%web-site%
+

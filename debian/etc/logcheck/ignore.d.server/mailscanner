@@ -1,0 +1,25 @@
+# enable these if you want less data in the logs
+#
+#MailScanner\[[0-9]+\]: /var/spool/MailScanner/incoming/[0-9]+/[^ ]+  Infection: [^ ]+
+#MailScanner\[[0-9]+\]: Batch completed at [0-9]+ bytes per second \([0-9]+ / [0-9]+\)
+#MailScanner\[[0-9]+\]: Creating hardcoded struct_flock subroutine for linux \(Linux-type\)
+#MailScanner\[[0-9]+\]: Disinfection completed at [0-9]+ bytes per second
+#MailScanner\[[0-9]+\]: Infected message [^ ]+ came from [0-9]+\.[0-9]+\.[0-9]+\.[0-9]+
+#MailScanner\[[0-9]+\]: MCP Checks completed at [0-9]+ bytes per second
+#MailScanner\[[0-9]+\]: MailScanner Email Processor version [^ ]+ starting...
+#MailScanner\[[0-9]+\]: MailScanner child dying of old age
+#MailScanner\[[0-9]+\]: New Batch: Scanning [0-9]+ messages, [0-9]+ bytes
+#MailScanner\[[0-9]+\]: Requeue: [[:alnum:].]+ to [[:alnum:].]+
+#MailScanner\[[0-9]+\]: Silent: Delivered [0-9]+ messages containing silent viruses
+#MailScanner\[[0-9]+\]: Spam Checks completed at [0-9]+ bytes per second
+#MailScanner\[[0-9]+\]: Spam Checks: Found [0-9]+ spam messages
+#MailScanner\[[0-9]+\]: Uninfected: Delivered [0-9]+ messages
+#MailScanner\[[0-9]+\]: Using locktype = posix
+#MailScanner\[[0-9]+\]: Virus Processing completed at [0-9]+ bytes per second
+#MailScanner\[[0-9]+\]: Virus Scanning completed at [0-9]+ bytes per second
+#MailScanner\[[0-9]+\]: Virus Scanning: F-Prot found [0-9]+ infections
+#MailScanner\[[0-9]+\]: Virus Scanning: F-Prot found virus [^ ]+
+#MailScanner\[[0-9]+\]: Virus Scanning: Found [0-9]+ viruses
+#MailScanner\[[0-9]+\]: Virus and Content Scanning: Starting
+#[^ ]+: MailScanner setting GID to [a-zA-Z0-9_-]+ \([0-9]+\)
+#[^ ]+: MailScanner setting UID to [a-zA-Z0-9_-]+ \([0-9]+\)

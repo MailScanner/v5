@@ -1,0 +1,19 @@
+De: $to
+A: $from
+Assumpte: Correu no sol·licitat rebutjat
+X-%org-name%-MailScanner: generat
+
+Ens heu enviat un missatge de correu electrònic que no s'ha sol·licitat i ha estat
+rebutjat. No ens envieu més correus electrònics a aquesta adreça:
+  A: $to
+  Assumpte: $subject
+  Data: $date
+
+Si teniu cap pregunta sobre això o creieu que heu rebut aquest missatge
+per error, si us plau, contacteu amb els vostres administradors de sistema.
+
+-- 
+MailScanner
+L'Escànner de Virus de Correu Electrònic
+%org-long-name%
+%web-site%

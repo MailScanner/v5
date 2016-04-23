@@ -1,0 +1,16 @@
+Dit is een bericht van het MailScanner virus beschermingssysteem
+----------------------------------------------------------------
+Een bericht dat u onlangs ontving van $from met als
+onderwerp $subject
+bevatte 1 of meer virussen.
+
+De virussen zijn verwijderd en de ontsmette bestanden zijn als
+bijlage toegevoegd aan dit bericht.
+
+-- 
+MailScanner
+Email Virus Scanner
+%org-long-name%
+%web-site%
+
+

@@ -1,0 +1,25 @@
+From: "$postmastername" <$localpostmaster>
+To: $from
+Subject: {Bounce} Nem kivant uzenet visszautasitva
+X-%org-name%-MailScanner: generated
+
+Az SPAM (UCE) ellenorzonk SPAM gyanus levelet talalt:
+  Cimzett:  $to
+  Targy  :  $subject
+  Datum  :  $date
+Az uzenet torolve. A SPAM ellenorzo program: $spamreport
+
+A szerver ami a levelet hozzank tovabbitotta, szerepel a rosszul
+konfiguralt vagy rossz celokra hasznalt levelezo szerverek
+nyilvanos listajan.
+
+Ha barmi kerdese van ezzel kapcsolatban vagy ugy gondolja, hogy tevedesbol
+kapta ezt a levelet, keresse meg a helyi rendszergazdat.
+
+-- 
+$localpostmaster
+MailScanner - Email Virus Scanner - http://www.mailscanner.info
+%org-long-name%
+%web-site%
+
+

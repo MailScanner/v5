@@ -1,0 +1,17 @@
+Esta é uma mensagem do serviço de proteção contra vírus
+----------------------------------------------------------------------
+O anexo "$filename" encontra-se na lista proíbida de tipos de arquivo,
+e foi substituído por esta mensagem de aviso no e-mail.
+
+Se você desejar receber uma cópia dos arquivos originais mesmo assim,
+por favor entre em contato com o administrador do sistema e tenha em
+mão as seguintes informações:
+
+Hoje, $date, o anti-virus relatou o seguinte:
+$report
+Nota ao administrador do sistema: Procurar em $hostname in $quarantinedir/$datenumber (message $id).
+
+-- 
+Postmaster
+%org-long-name%
+%web-site%

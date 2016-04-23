@@ -1,0 +1,14 @@
+Meddelande från MailScanner E-Mail Virus Protection Service
+-----------------------------------------------------------
+Bilagan "$filename" 
+har verifierats som virussmittad och har ersatts med den
+här varningstexten.
+
+Av sekretesskäl har inga kopior av bilagorna sparats.
+
+Den $date genererades följande meddelande:
+$report
+-- 
+Postmaster
+%org-long-name%
+%web-site%

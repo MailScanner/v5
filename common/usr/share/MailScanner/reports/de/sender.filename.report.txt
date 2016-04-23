@@ -1,0 +1,24 @@
+From: "$postmastername" <$localpostmaster>
+To: $from
+Subject: Warnung: E-Mail-Virus festgestellt
+X-%org-name%-MailScanner: generated
+
+Unsere Virenscanner wurden von einer von Ihnen gesandten Nachricht ausgelöst:
+  An: $to
+  Betreff: $subject
+  Datum: $date
+Eine oder mehrere Dateianhänge ($filename) sind auf der Liste unerlaubter
+Anhänge dieser Domain und werden nicht weitergeleitet.
+
+Sie können die Dateien umbenennen, um diese Einschränkung zu umgehen.
+
+Der Virenscanner meinte zu dieser Nachricht:
+Report: $report
+
+--
+MailScanner
+E-Mail-Virus-Scanner
+%org-long-name%
+%web-site%
+
+

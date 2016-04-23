@@ -1,0 +1,16 @@
+Toto je sprava od: "MailScanner E-Mail Virus Protection Service"
+----------------------------------------------------------------------
+Originalna e-mail priloha "$filename"
+sa javi, ze bola infikovana virusom a preto boka nahradena touto vystraznou spravou.
+
+Kvoli limitovanemu priestoru ktorym nas postovy system disponuje,
+nieje mozne zachovat kopiu povodnej infikovanej spravy.
+Prosim, poziadajte odosielatela povodnej infikovanej spravy, aby odviril povodnu
+verziu a zaslal Vam ocistenu kopiu. 
+
+Dna $date virus skener oznamuje:
+$report
+-- 
+Postmaster
+%org-long-name%
+%web-site%

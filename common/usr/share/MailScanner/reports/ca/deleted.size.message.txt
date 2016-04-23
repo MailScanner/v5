@@ -1,0 +1,17 @@
+Missatge del Servei de Protecció de Virus de Correu Electrònic de MailScanner
+-----------------------------------------------------------------------------
+El missatge de correu electrònic original era massa gran i s'ha suprimit.
+
+Hauríeu de comprimir algun o tots els fitxers adjunts abans d'enviar
+el missatge.
+
+Degut a les limitacions imposades per l'Acta de Regulació de Poders
+d'Investigació del 2000, no podem mantenir una còpia de l'adjunt original.
+
+Els filtres de contingut han trobat el següent:
+$report
+-- 
+Postmaster
+%org-long-name%
+%web-site%
+

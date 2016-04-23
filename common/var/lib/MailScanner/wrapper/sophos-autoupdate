@@ -1,0 +1,189 @@
+#!/usr/bin/perl
+
+use Sys::Syslog;
+
+$SophosRoot = shift;
+
+#
+# Update V5 first, then V4
+#
+$LockFile = shift || "/var/spool/MailScanner/incoming/Locks/sophosBusy.lock";
+
+$LOCK_SH = 1;
+$LOCK_EX = 2;
+$LOCK_NB = 4;
+$LOCK_UN = 8;
+
+eval { Sys::Syslog::setlogsock('unix'); }; # This may fail!
+Sys::Syslog::openlog("Sophos-autoupdate", 'pid, nowait', 'mail');
+
+$V5Root = $SophosRoot || '/opt/sophos-av';
+if (-d $V5Root && -x "$V5Root/bin/savupdate") {
+  # Timeout prevention
+  $SIG{ALRM} = sub { die "timeout"};
+
+  &LockSophos();
+  eval {
+    alarm 300;
+    $Command = "$V5Root/bin/savupdate -v 0";
+    $retval = &UpdateSophos($Command);
+    &UnlockSophos();
+    alarm 0;
+  };
+
+  if ($@) {
+    if ($@ =~ /timeout/) {
+      # We timed out!
+      &UnlockSophos();
+      Sys::Syslog::syslog('err', "WARNING Sophos V5 update timed out");
+      alarm 0;
+    }
+  } else {
+    alarm 0;
+    if ($retval == 0 ) {
+      Sys::Syslog::syslog('info', "Sophos V5 updated");
+    } else {
+      Sys::Syslog::syslog('err', "Sophos V5 updater failed");
+    }
+  }
+
+  Sys::Syslog::closelog();
+  exit 0;
+}
+
+
+#
+#
+# Sophos Version 4 and earlier
+#
+#
+
+$SophosRoot = "/usr/local/Sophos" unless $SophosRoot;
+$IDELink    = "$SophosRoot/ide";
+$VDLDir     = "../lib";
+
+#$Lynx = "/usr/local/bin/lynx -dump";
+$Lynx = "/usr/bin/wget -q -O-"; # On Linux use this
+$Unzip = "/usr/bin/unzip -joqq";
+$rm = "/bin/rm";
+
+Sys::Syslog::openlog("Sophos-autoupdate", 'pid, nowait', 'mail');
+
+# Work out the current VDL (and hence Sophos Sweep) version number
+unless (chdir "$SophosRoot/bin/$VDLDir") {
+  &BailOut("Could not find directory \"$SophosRoot/bin/$VDLDir\"");
+}
+
+opendir(LIBDIR, ".") || &BailOut("Cannot open Sophos/lib directory");
+foreach $vdlname (sort readdir(LIBDIR)) {
+	next unless $vdlname =~ /^vdl-(\d+)\.(\d+)([a-zA-Z]*)\.dat$/;
+	$MajorVer = $1;
+	$MinorVer = $2;
+        $NSVFlag  = $3;
+}
+closedir(LIBDIR);
+&BailOut("Could not calculate Sophos version number")
+  unless defined($MajorVer) && defined($MinorVer);
+$SophosVersion = "$MajorVer$MinorVer";
+$VDLVersion = "$MajorVer.$MinorVer";
+
+# Derive other variables, filenames and URLs from the version numbers
+$ZipName = $SophosVersion . "_ides.zip";
+$URL  = "http://www.sophos.com/downloads/ide/$ZipName";
+
+($min,$hour,$date,$month,$year) = (localtime)[1,2,3,4,5];
+$month++;
+$year+=1900;
+$IDEDir = "$SophosRoot/$SophosVersion." . sprintf("%04d%02d%02d%02d%02d", $year, $month, $date, $hour, $min);
+
+# If the directory already exists, then we have already done the update
+# for today, so quietly exit.
+Sys::Syslog::syslog('info', "Sophos already up-to-date"),exit 0 if -d $IDEDir;
+
+# Create the IDE files directory
+umask 0022;
+mkdir $IDEDir, 0755;
+chdir $IDEDir or &BailOut("Cannot cd $IDEDir, $!");
+
+# Fetch and unpack the IDE zip file from Sophos
+#print STDERR "URL is $URL\n";
+$result = system("$Lynx $URL > $ZipName");
+if (($result>>8)==1) {
+  Sys::Syslog::syslog('err', "Your Sophos installation may be too old. Please install the latest release of Sophos");
+  print STDERR "Your Sophos installation may be too old. Please install the latest release of Sophos";
+}
+&BailOut("Lynx failed with error return " . ($result>>8) . "\n") if $result>>8;
+
+$result = system("$Unzip $ZipName");
+if ($result>>8) {
+  Sys::Syslog::syslog('err', "Unzipping the new Sophos IDE files failed. This may well be because your Sophos installation is too old. Please install the latest release of Sophos");
+  print STDERR "Unzipping the new Sophos IDE files failed. This may well be because your Sophos installation is too old. Please install the latest release of Sophos";
+  &BailOut("Unzip failed with error return " . ($result>>8) . "\n");
+}
+
+symlink("$VDLDir/vdl-$VDLVersion$NSVFlag.dat", "vdl.dat");
+
+# Add the new vdl*.vdb files if they are there
+foreach $vdlsus ("vdl", "sus", "xvdl") {
+  foreach $number (1..99) {
+    $string = $vdlsus . sprintf("%02d", $number) . ".vdb";
+    symlink("$VDLDir/$string", $string) if -f "$VDLDir/$string";
+  }
+}
+
+# Add the new swpmess.dat and svext.dat files too
+symlink("$VDLDir/swpmess.dat", "swpmess.dat") if -f "$VDLDir/swpmess.dat";
+symlink("$VDLDir/svext.dat", "svext.dat") if -f "$VDLDir/svext.dat";
+
+# Link in this new directory to Sophos
+chdir $SophosRoot or &BailOut("Cannot cd $SophosRoot, $!");
+$OldLinkTarget = readlink $IDELink;
+&LockSophos();
+unlink $IDELink if -l $IDELink;
+symlink $IDEDir, $IDELink;
+&UnlockSophos();
+system("$rm -rf $OldLinkTarget") if defined $OldLinkTarget && -e $OldLinkTarget;
+Sys::Syslog::syslog('info', "Sophos successfully updated in $IDEDir");
+Sys::Syslog::closelog();
+exit 0;
+
+# Used for V4
+sub BailOut {
+	Sys::Syslog::syslog('err', @_);
+	Sys::Syslog::closelog();
+	warn "@_, $!";
+	chdir $SophosRoot or die "Cannot cd $SophosRoot, $!";
+	system("$rm -rf $IDEDir") if -d $IDEDir;
+	exit 1;
+}
+
+# Used for V4 and V5
+sub LockSophos {
+	open(LOCK, ">$LockFile") or return;
+	flock(LOCK, $LOCK_EX);
+	print LOCK "Locked for updating Sophos IDE files by $$\n";
+}
+
+# Used for V4 and V5
+sub UnlockSophos {
+	print LOCK "Unlocked after updating Sophos IDE files by $$\n";
+	flock(LOCK, $LOCK_UN);
+	close LOCK;
+}
+
+# Used for V5
+sub UpdateSophos {
+  my($cmd) = @_;
+
+  open(CMD, "$cmd 2>&1 |") or return $?;
+
+  while(<CMD>) {
+    chomp;
+    Sys::Syslog::syslog('err', "Sophos update warning: $_")
+      if /warning|error|fatal/i;
+  }
+  close CMD;
+
+  return $?>>8;
+}
+

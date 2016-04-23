@@ -1,0 +1,15 @@
+Comunicazione dal servizio di Protezione della posta dai Virus "MailScanner"
+----------------------------------------------------------------------------
+L'allegato originale "$filename"
+probabilmente contiene un virus ed e' stato sostituito da questo messaggio di avviso.
+
+Se volete ricevere una copia dell'allegato *infetto*, contattate il vostro
+helpdesk, includendo una copia integrale di questo messaggio.
+
+Il giorno $date il sistema antivirus riporta:
+$report
+Note per l' Help Desk: controllate su $hostname in $quarantinedir/$datenumber (message $id).
+-- 
+Postmaster
+%org-long-name%
+%web-site%

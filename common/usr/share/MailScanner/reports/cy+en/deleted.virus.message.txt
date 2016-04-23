@@ -1,0 +1,31 @@
+Dyma neges gan Wasanaeth MailScanner  | This is a message from the MailScanner
+sy'n Gwarchod rhag Firysau            | E-Mail Virus Protection Service
+----------------------------------------------------------------------
+
+Mae'r atodiad e-bost gwreiddiol, sef  | The original e-mail attachment
+                                  "$filename",
+wedi'i heintio â firws, a rhoddir y   | was believed to be infected by a
+rhybudd hwn yn ei le.                 | virus and has been replaced by this
+                                      | warning message.
+
+Oherwydd cyfyngiadau a bennwyd arnom  | Due to limitations placed on us by
+gan Ddeddf Rheoli Hawliau Ymchwiliol  | the Regulation of Investigatory Powers
+2000, nid oeddem yn gallu cadw copi   | Act 2000, we were unable to keep
+o'r atodiad heintiedig.               | a copy of the infected attachment.
+
+Gofynnwch i anfonwr y neges           | Please ask the sender of the message
+ddiheintio ei fersiwn gwreiddiol      | to disinfect their original version
+ac anfon copi glân atoch.             | and send you a clean copy.
+
+Ar $date,          | At $date,
+dywedodd y sganiwr firysau:           | the virus scanner said:
+$report
+
+-- 
+MailScanner
+Email Virus Scanner
+%org-long-name%
+%web-site%
+
+
+

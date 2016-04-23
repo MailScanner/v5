@@ -1,0 +1,22 @@
+English Version:
+
+A message you recently received from "$from" with the
+subject "$subject"
+contained one or more viruses that could be disinfected.
+
+The viruses have been removed, and the disinfected files are attached
+to this message.
+
+Versiune Romana:
+
+Mesajul pe care l-ati primit de la "$from" 
+cu subiectul "$subject" 
+a fost infectat cu unul sau mai multi virusi.
+
+Atasamentele au fost devirusate si sunt atasate la acest mesaj. 
+
+-- 
+MailScanner
+Email Virus Scanner
+%org-long-name%
+%web-site%

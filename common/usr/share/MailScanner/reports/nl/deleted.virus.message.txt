@@ -1,0 +1,20 @@
+Dit is een bericht van het MailScanner virus beschermingssysteem
+----------------------------------------------------------------
+De oorspronkelijke e-mail bijlage "$filename"
+lijkt te zijn geinfecteerd door een virus. De bijlage is vervangen
+door deze waarschuwing.
+
+Op basis van de Wet bescherming persoonsgegevens kunnen we geen
+kopie bewaren van de oorspronkelijke bijlage. Indien u de bijlage
+alsnog wenst te ontvangen raden we u aan de afzender te vragen
+zijn bericht te ontsmetten en u een schone versie te sturen.
+
+Op $date genereerde de virus scanner het volgende:
+$report
+
+-- 
+Postmaster
+%org-long-name%
+%web-site%
+
+

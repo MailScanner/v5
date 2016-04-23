@@ -1,0 +1,3 @@
+Avís: Aquest missatge ha tingut un o més fitxers adjunts suprimits
+Avís: ($filename).
+Avís: Si us plau llegiu l'annex "$viruswarningname" per a més informació.

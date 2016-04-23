@@ -1,0 +1,35 @@
+From: "$postmastername" <$localpostmaster>
+To: $from
+Subject: Rhybudd: Canfuwyd firws e-bost/Warning: E-mail viruses detected
+X-%org-name%-MailScanner: generated
+
+Mae neges a anfonasoch newydd roi ein | Our virus detector has just been
+canfyddwr firysau ar waith:-          | triggered by a message you sent:-
+
+  To: $to
+  Subject: $subject
+  Date: $date
+
+Mae unrhyw rannau heintiedig o'r      | Any infected parts of the message
+neges, sef                            | 
+                       ($filename),
+heb gael eu dosbarthu.                |  have not been delivered.
+
+Pwrpas y neges hon, yn syml, yw eich  | This message is simply to warn you
+hysbysu y gall eich system            | that your computer system may have a
+gyfrifiadurol fod â firws yn          | virus present and should be checked.
+bresennol ac y dylid ei gwirio.
+
+Dyma a ddywedodd y canfyddwr firysau  | The virus detector said this about
+am y neges:                           | the message:
+Adroddiad:                            | Report:
+        $report
+
+-- 
+MailScanner
+Email Virus Scanner
+%org-long-name%
+%web-site%
+
+
+

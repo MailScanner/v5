@@ -1,0 +1,35 @@
+From: "$postmastername" <$localpostmaster>
+To: $to
+Subject: Polluriel non livré
+X-%org-name%-MailScanner: generated
+
+Notre détecteur de polluriel (spam) a été déclanché par un message que
+vous avez reçu:-
+  De: $from
+  Objet: $subject
+  Date: $date
+Ce message ne vous a pas été livré.  Le rapport du détecteur est:
+$spamreport.
+
+Ce message vous étant destiné a été détecté comme un polluriel, basé sur
+le serveur de courrier d'origine, son contenu, ou les deux.
+
+Nous n'acceptons pas de polluriels (spam) et nous travaillons pour
+arrêter ce fléau.
+
+Si vous avez des questions à ce sujet, ou si vous croyez avoir reçu ce
+message par erreur, veuillez contacter les administrateurs de système
+de votre site.
+
+Vos administrateurs de système auront besoin de l'information suivante:
+  Nom du serveur: $hostname
+  Numéro d'identification du message: $id
+  Code de date: $datenumber
+
+-- 
+MailScanner
+Email Virus Scanner
+%org-long-name%
+%web-site%
+
+

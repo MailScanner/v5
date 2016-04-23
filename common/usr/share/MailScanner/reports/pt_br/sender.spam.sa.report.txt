@@ -1,0 +1,28 @@
+From: "$postmastername" <$localpostmaster>
+To: $from
+Subject: {Bounce} Aviso: Rejeição de SPAM
+X-%org-name%-MailScanner: generated
+
+Nosso sistema de detecção de SPAM  foi acionado ao analisar uma mensagem que
+você enviou:-
+  To: $to
+  Subject: $subject
+  Date: $date
+A mensagem foi destruida. O parametro que acionou esta regra foi:-
+SpamAssassin.
+
+O conteúdo desta mensagem indica que provavelmente se trata de SPAM, e
+é por este motivo que ela foi rejeitada.
+
+Nossa política de uso é contra qualquer tipo de spam (e-mail de propaganda
+não-solicitada) e bloquearemos todas as tentativas. Se você persistir neste
+ato, nós entraremos em contato com o seu provedor de internet e pedir que as
+medidas cabíveis sejam tomadas.
+
+Se você tem dúvidas a respeito deste e-mail ou acredita tratar-se de um engano,
+por favor, entre em contato com o administrador do sistema.
+
+-- 
+Postmaster
+%org-long-name%
+%web-site%

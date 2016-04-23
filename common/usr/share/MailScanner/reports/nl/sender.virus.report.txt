@@ -1,0 +1,24 @@
+From: "$postmastername" <$localpostmaster>
+To: $from
+Subject: Waarschuwing: E-mail virus ontdekt
+X-%org-name%-MailScanner: generated
+
+Onze virusscanner reageerde op een bericht dat u verstuurde:
+  To: $to
+  Subject: $subject
+  Date: $date
+Besmette bijlagen zijn niet afgeleverd bij de ontvanger.
+
+We zenden u dit bericht om u te waarschuwen dat uw systeem waarschijnlijk
+is besmet en gecontroleerd zou moeten worden.
+
+De virusscanner gaf onderstaande melding:
+$report
+
+-- 
+MailScanner
+Email Virus Scanner
+%org-long-name%
+%web-site%
+
+

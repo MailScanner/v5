@@ -1,0 +1,28 @@
+From: "$postmastername" <$localpostmaster>
+To: $from
+Subject: {Bounce} Unerwünschte Werbemail abgelehnt
+X-%org-name%-MailScanner: generated
+
+Unsere Spam-Detektoren wurden durch eine Nachricht von Ihnen ausgelöst:
+  An: $to
+  Betreff: $subject
+  Datum: $date
+Diese Nachricht wurde gelöscht. Die ausgelösten Spamfilter sind:
+$spamreport.
+
+Ihre Nachricht wurde auf Grund sowohl Ihrer Inhalte als auch des Mail-Servers,
+der diese Nachricht an uns gesendet hat, als Spam erkannt.
+
+Wir akzeptieren keine unerwünschte Werbemail (Spam) und arbeiten aktiv
+daran, diese zu stoppen.
+
+Wenn Sie Fragen haben oder glauben, diese Nachricht zu Unrecht erhalten zu
+haben, kontaktieren Sie bitte die Systemadministratoren.
+
+--
+MailScanner
+E-Mail-Virus-Scanner
+%org-long-name%
+%web-site%
+
+

@@ -1,0 +1,4 @@
+mailscanner: non-standard-dir-perm var/spool/MailScanner/ 0775 != 0755
+mailscanner: non-standard-dir-perm var/spool/MailScanner/archive/ 0775 != 0755
+mailscanner: non-standard-dir-perm var/spool/MailScanner/incoming/ 0775 != 0755
+mailscanner: non-standard-dir-perm var/spool/MailScanner/quarantine/ 0775 != 0755

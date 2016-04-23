@@ -1,0 +1,14 @@
+Nas system ochrany obsahu elektronicke posty MailScanner se domniva ze priloha vam zaslane zpravy
+   
+    From: $from
+ Subject: $subject
+
+je nevyzadana komercni zprava (spam). Jestlize jste si jisti, 
+ze se skutecne jedna o spam, tak prosim zpravu neotvirejte a vymazte ji.
+Otevrenim spamu muzete jeho autorovi umoznit overeni vasi e-mailove
+adresy.
+
+Pokud se domnivate, ze tato zprava byla chybne oznacena jako spam, prosim
+preposlete ji na adresu $localpostmaster.
+
+$longspamreport

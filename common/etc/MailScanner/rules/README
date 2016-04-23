@@ -1,0 +1,80 @@
+Rulesets
+========
+
+This directory is where you should put ruleset files, with filenames ending
+in ".rules" wherever possible as it makes life easier for me.
+
+All blank lines are ignored, and comments start with "#" and continue to the
+end of the line, like this:
+	# This line is just a comment
+
+Other than that, every line is a rule and looks like one of these examples:
+	From:	john.doe@domain.com			yes
+	From:	spammer@domain.com and To: abuse@you	no
+
+As you can see, each rule has 3 fields:
+	1. Direction (or "Virus:")
+	2. Pattern to match
+	3. Result value (or values)
+or 6 fields:
+	1. Direction 1 (or "Virus:")
+	2. Pattern to match
+	3. The literal word "and"
+	4. Direction 2 (or "Virus:")
+	5. Pattern to match
+	6. Result value (or values)
+
+1. Direction should be one of the following:
+     From:      - Matches when the message is from a matching address
+     To:        - Matches when the message is to a matching address
+     FromOrTo:  - Matches when the message is from or to a matching address
+     FromAndTo: - Matches when the message is from and to a matching address
+     Virus:     - Matches when the message contains a virus whose report
+                  contains the "address" somewhere in it
+
+   The syntax of these is very loosely defined. Any word containing
+   "from", any word containing "to", any word containing "from" and "to"
+   (in either order), and any word containing "and" will work just fine.
+   You can put them in upper or lower case, it doesn't matter. And any
+   additional punctuation will be ignored.
+
+   This specifies the whether the rule should be matched against
+   the sender's address (or IP address), or the recipient's address.
+
+2. The pattern describes what messages should match this rule.
+   Some examples are:
+	user@sub.domain.com	# Individual address
+	user@*			# 1 user at any domain
+	*@sub.domain.com	# Any user at 1 domain
+	*@*.domain.com		# Any user at any sub-domain of "domain.com"
+	*@domain.com		# Any user at 1 specific domain
+	/pattern/		# Any address matching this Perl regular
+				# expression
+	192.168.21.		# Any SMTP client IP address in this network
+	192.168.21		# Any SMTP client IP address in this network
+	192.168.21.0/255.255.255.0 # Any SMTP client IP address in this network
+	192.168.21.0/24		# Any SMTP client IP address in this network
+	/pattern-with-no-letters/ # Any SMTP client IP address matching this
+				  # Perl regular expression
+	/^192\.168\.1[4567]\./	# Any SMTP client IP address in the networks
+				# 192.168.14 - 192.168.17
+	host:mail.example.com	# Any hostname
+	host:example.com	# Any domain name
+	host:mail*.example.com	# Any hostname or domain name with wildcards
+	host:mail*.exam*ple.com	# Another wildcard example
+	host:/pattern/		# Any hostname matching this Perl regular
+				# expression
+	host:			# Any IP address that has no hostname
+	host:_SPOOFED_		# Any IP address whose DNS records don't match
+	*@*			# Default value
+	default			# Default value
+   You should be able to do just about anything with that.
+
+3. The result value is what you could have put in the entry in the main
+   mailscanner.conf file had you not given the filename of a ruleset instead.
+
+You can only test a maximum of 2 conditions using the "and" operator. It must
+not appear more than once in each rule.
+
+
+See the file EXAMPLES for a few ideas on how to do things with this system.

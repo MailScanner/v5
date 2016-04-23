@@ -1,0 +1,26 @@
+From: "$postmastername" <$localpostmaster>
+To: $from
+Subject: Contenido no acpetado almacenado para ser revisado
+MIME-Version: 1.0
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: Quoted-Printable
+X-%org-name%-MailScanner: generated
+
+
+Nuestro detector de virus ha sido activado por un mensaje enviado por Usted:
+  To: $to
+  Subject: $subject
+  Date: $date
+Este mensaje ha sido puesto en cuarentena para su revisión.
+
+Si tiene dudas acerca de ésto, o cree que ha recibido este mensaje
+erróneamente, por favor, contácte con los administradores de correo
+del sitio.
+
+-- 
+MailScanner
+Email Virus Scanner
+%org-long-name%
+%web-site%
+
+

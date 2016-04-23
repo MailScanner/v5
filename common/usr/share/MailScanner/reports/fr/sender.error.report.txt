@@ -1,0 +1,28 @@
+From: "Passerelle antivirus $postmastername" <$localpostmaster>
+To: $from
+Subject: ALERTE: =?ISO-8859-1?Q?pi=E8ces?= jointes =?ISO-8859-1?Q?intercept=E9es?=
+X-%org-name%-MailScanner: generated
+
+Notre passerelle antivirus n'a pu analyser ce courriel que vous avez 
+envoyé:
+  À:     $to
+  Sujet: $subject
+  Date:  $date
+
+Les portions du courriel qui n'on pu être analysées ne seront pas
+transmises au destinataire.
+
+Si vous utilisez Microsoft Outlook, nous vous suggérons fortement de
+changer le format de message de «Texte enrichi» à «HTML» ou «Texte brut».
+
+Résultats de l'antivirus:
+$report
+
+Contactez $localpostmaster pour plus d'informations.
+
+-- 
+MailScanner
+%org-long-name%
+%web-site%
+
+

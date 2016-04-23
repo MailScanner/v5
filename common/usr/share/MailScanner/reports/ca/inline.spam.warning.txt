@@ -1,0 +1,15 @@
+El nostre MailScanner creu que el fitxer adjunt que se us ha enviat
+   
+    De: $from
+ Assumpte: $subject
+
+és un correu electrònic comercial no sol·licitat (spam). Si penseu que aquest
+missatge ha estat ben considerat com a correu brossa, si us plau suprimiu-lo sense obrir.
+El sols fet d'obrir un missatge de correu brossa podria permetre a l'spammer
+verificar la vostra adreça de correu electrònic.
+
+Si creieu que aquest missatge ha estat incorrectament marcat com a correu
+brossa, si us plau reenvieu aquest correu electrònic a $localpostmaster.
+
+Data: $datenumber
+$longspamreport

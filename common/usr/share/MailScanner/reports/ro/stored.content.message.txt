@@ -1,0 +1,23 @@
+This is a message from the MailScanner E-Mail Virus Protection Service
+----------------------------------------------------------------------
+The original e-mail message contained potentially dangerous content,
+which has been removed for your safety.
+
+The content is dangerous as it is often used to spread viruses or to gain
+personal or confidential information from you, such as passwords or credit
+card numbers.
+
+If you wish to receive a copy of the original email, please
+e-mail helpdesk and include the whole of this message
+in your request. Alternatively, you can call them, with
+the contents of this message to hand when you call.
+
+At $date the content filters said:
+$report
+Note to Help Desk: Look on $hostname in $quarantinedir/$datenumber (message $id).
+-- 
+Postmaster
+%org-long-name%
+%web-site%
+
+

@@ -1,0 +1,29 @@
+From: "$postmastername" <$localpostmaster>
+To: $to
+Subject: Contenuto bloccato ma memorizzato per revisione
+X-%org-name%-MailScanner: generato
+
+I nostri servizi di analisi dei contenuti sono stati attivati da un tuo
+messaggio:-
+   Da: $from
+   Oggetto: $subject
+   Data: $date
+Il messaggio e' stato messo in quarantena per un'eventuale revisione prima del
+recapito.
+
+Per qualsiasi domanda, o se pensi di aver ricevuto questo messaggio per 
+errore, contatta gli amministratori del sistema.
+
+Le seguenti informazioni identificano il tuo messaggio e vanno
+comunicate agli amministratori di sistema:
+   Nome server: $hostname
+   ID messaggio: $id
+   Codice data: $datenumber
+
+-- 
+MailScanner
+Email Virus Scanner
+%org-long-name%
+%web-site%
+
+

@@ -1,0 +1,22 @@
+Missatge del Servei de Protecció de Virus de Correu Electrònic de MailScanner
+-----------------------------------------------------------------------------
+El missatge de correu electrònic original tenia un contingut potencialment
+perillós, que ha estat suprimit per a la vostra seguretat.
+
+El contingut és perillós, i s'utilitza sovint per difondre virus o per obtenir
+informació confidencial o personal vostra, com ara contrasenyes o
+números de targetes de crèdit.
+
+Si voleu rebre una còpia del correu electrònic original, si us plau
+poseu-vos en contacte amb el Centre de Suport i incluïu tot aquest missatge
+en la vostra sol·licitud. Per altra banda, podeu trucar-los amb
+el contingut d'aquest missatge a mà.
+
+A $date els filtres de contingut van dir:
+$report
+Note pel Centre de Suport: Verifiqueu a $hostname a $quarantinedir/$datenumber (missatge $id).
+-- 
+Postmaster
+%org-long-name%
+%web-site%
+

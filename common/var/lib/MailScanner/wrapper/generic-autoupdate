@@ -1,0 +1,50 @@
+#!/usr/bin/perl
+
+use Sys::Syslog;
+
+# Remove the next line if you actually want to do something with this!
+exit 0;
+
+$GenericRoot = shift;
+
+$LockFile = shift || "/var/spool/MailScanner/incoming/Locks/genericBusy.lock";
+
+$LOCK_SH = 1;
+$LOCK_EX = 2;
+$LOCK_NB = 4;
+$LOCK_UN = 8;
+
+Sys::Syslog::openlog("Generic-autoupdate", 'pid, nowait', 'mail');
+
+&LockGeneric();
+
+#
+# Do your updating code here. The root directory of your scanner installation
+# is in $GenericRoot.
+#
+
+&UnlockGeneric();
+
+Sys::Syslog::syslog('info', "Generic scanner successfully updated");
+Sys::Syslog::closelog();
+exit 0;
+
+sub BailOut {
+	Sys::Syslog::syslog('err', @_);
+	Sys::Syslog::closelog();
+	warn "@_, $!";
+	chdir $GenericRoot or die "Cannot cd $GenericRoot, $!";
+	exit 1;
+}
+
+sub LockGeneric {
+	open(LOCK, ">$LockFile") or return;
+	flock(LOCK, $LOCK_EX);
+	print LOCK "Locked for updating Generic virus scanner by $$\n";
+}
+
+sub UnlockGeneric {
+	print LOCK "Unlocked after updating Generic virus scanner by $$\n";
+	flock(LOCK, $LOCK_UN);
+	close LOCK;
+}

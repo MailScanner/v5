@@ -1,0 +1,86 @@
+#!/bin/sh
+#
+# preinst script for mailscanner
+
+set -e
+
+# summary of how this script can be called:
+#        * <postinst> `configure' <most-recently-configured-version>
+#        * <old-postinst> `abort-upgrade' <new version>
+#        * <conflictor's-postinst> `abort-remove' `in-favour' <package>
+#          <new-version>
+#        * <postinst> `abort-remove'
+#        * <deconfigured's-postinst> `abort-deconfigure' `in-favour'
+#          <failed-install-package> <version> `removing'
+#          <conflicting-package> <version>
+# for details, see http://www.debian.org/doc/debian-policy/ or
+# the debian-policy package
+
+
+# handle old files and updates
+if [ -f "/etc/MailScanner/MailScanner.conf" ]; then
+
+	# create if missing
+	[ -d "/etc/MailScanner/conf.d" ] || mkdir -p /etc/MailScanner/conf.d
+			
+	# /usr/lib/MailScanner
+	if [ -d "/usr/lib/MailScanner" ]; then
+		rm -rf /usr/lib/MailScanner
+	fi
+
+	# /etc/MailScanner/CustomFunctions
+	if [ -d "/etc/MailScanner/CustomFunctions" -a ! -L "/etc/MailScanner/CustomFunctions" ]; then
+		mkdir -p /usr/share/MailScanner/perl/custom/
+		cp -rf /etc/MailScanner/CustomFunctions/* /usr/share/MailScanner/perl/custom/
+		rm -rf /etc/MailScanner/CustomFunctions
+	fi
+
+	# /etc/MailScanner/custom
+	if [ -d "/etc/MailScanner/custom" -a ! -L "/etc/MailScanner/custom" ]; then
+		mkdir -p /usr/share/MailScanner/perl/custom/
+		cp -rf /etc/MailScanner/custom/* /usr/share/MailScanner/perl/custom/
+		rm -rf /etc/MailScanner/custom
+	fi
+	
+	# /etc/MailScanner/custom symlink
+	if [ -L "/etc/MailScanner/custom" ]; then
+		rm -f /etc/MailScanner/custom
+	fi
+
+	# /etc/MailScanner/Custom
+	if [ -d "/etc/MailScanner/Custom" -a ! -L "/etc/MailScanner/Custom" ]; then
+		mkdir -p /usr/share/MailScanner/perl/custom/
+		cp -rf /etc/MailScanner/Custom/* /usr/share/MailScanner/perl/custom/
+		rm -rf /etc/MailScanner/Custom
+	fi
+
+	# /usr/share/MailScanner/MailScanner
+	if [ -d "/usr/share/MailScanner/MailScanner" ]; then
+		rm -rf /usr/share/MailScanner/MailScanner
+	fi
+
+	# /etc/MailScanner/autoupdate
+	if [ -d "/etc/MailScanner/autoupdate" ]; then
+		rm -rf /etc/MailScanner/autoupdate
+	fi
+
+	# /etc/MailScanner/wrapper
+	if [ -d "/etc/MailScanner/wrapper" ]; then
+		rm -rf /etc/MailScanner/wrapper
+	fi
+
+	# /usr/share/MailScanner/reports
+	if [ -d "/etc/MailScanner/reports" -a ! -L "/etc/MailScanner/reports" ]; then
+		mkdir -p /usr/share/MailScanner/reports/
+		cp -rf /etc/MailScanner/reports/* /usr/share/MailScanner/reports/
+		rm -rf /etc/MailScanner/reports/
+	fi
+	
+	# /etc/MailScanner/CustomConfig.pm
+	if [ -f "/etc/MailScanner/CustomConfig.pm" -a ! -L "/etc/MailScanner/CustomConfig.pm" ]; then
+		cp -uf /etc/MailScanner/CustomConfig.pm /usr/share/MailScanner/perl/MailScanner/CustomConfig.pm
+		rm -f /etc/MailScanner/CustomConfig.pm
+	fi
+fi
+
+exit 0

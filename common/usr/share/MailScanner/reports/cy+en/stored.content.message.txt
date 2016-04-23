@@ -1,0 +1,38 @@
+Neges yw hwn gan Wasanaeth Gwarchod   | This is a message from the MailScanner
+rhag Feirws E-bost MailScanner.       | E-Mail Virus Protection Service.
+--------------------------------------|---------------------------------------
+                                      |
+Yr oedd y neges e-bost gwreiddiol â   | The original e-mail message contained
+chynnwys a allasai fod yn beryglus,   | potentially dangerous content,  which
+ac fe'i symudwyd er diogelwch i chwi. | has been removed for your safety.
+                                      |
+Mae'r cynnwys yn beryglus gan y'i     | The content is dangerous as it is
+defnyddir yn aml i ledaenu feirysau   | often used to spread viruses or to
+neu i gael gwybodaeth bersonol neu    | gain personal or confidential
+gyfrinachol gennych, megis            | information from you, such as
+cyfrineiriau neu rifau cardiau credyd.| passwords or credit card numbers.
+                                      |
+Os carech dderbyn copi o'r e-bost     | If you wish to receive a copy of the
+gwreiddiol, e-bostiwch y ddesg gymorth| original email, please e-mail helpdesk
+a chynnwys y cyfan o'r neges hwn yn   | and include the whole of this message
+eich cais. Neu fe fedrwch eu ffonio,  | in your request. Alternatively, you
+gyda chynnwys y neges hwn i law pan   | can call them, with the contents of
+fyddwch yn galw.                      | this message to hand when you call.
+                                      |
+Dyma a ganfu'r hidlyddion cynnwys:    | The content filters found this:
+
+       $report
+
+Nodyn i'r Ddesg Gymorth: Edrychwch ar | Note to Help Desk: Look on
+                           $hostname yn/in
+                           $quarantinedir/$datenumber
+                           (neges/message $id).
+
+-- 
+MailScanner
+Email Virus Scanner
+%org-long-name%
+%web-site%
+
+
+

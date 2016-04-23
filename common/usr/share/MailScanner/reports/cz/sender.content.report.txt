@@ -1,0 +1,26 @@
+From: "$postmastername" <$localpostmaster>
+To: $from
+Subject: Potencialne nebezpecny email vymazan
+X-%org-name%-MailScanner: generated
+ 
+Nas system kontroly obsahu elektronicke posty byl spusten zpravou, 
+kterou jste zaslali:-
+    Komu: $to
+    Predmet: $subject
+    Datum: $date
+Zprava byla vymazana. System ohlasil o teto zprave nasledujici:
+$report.
+ 
+Tato zprava obsahovala potencialne nebezpecny obsah, ktery byl 
+vymazan.
+ 
+Pokud jste se pokouseli odeslat www stranku, ulozte ji prosim do 
+souboru a prilozte ji ke zprave.
+ 
+Pokud mate jakekoliv dotazy, kontaktujte prosim administratora 
+systemu.
+-- 
+MailScanner
+Email Virus Scanner
+%org-long-name%
+%web-site%

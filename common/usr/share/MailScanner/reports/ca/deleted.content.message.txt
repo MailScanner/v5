@@ -1,0 +1,19 @@
+Missatge del Servei de Protecció de Virus de Correu Electrònic de MailScanner
+-----------------------------------------------------------------------------
+El missatge de correu electrònic original tenia un contingut potencialment
+perillós, que s'ha tret per a la vostra seguretat.
+
+El contingut és perillós i s'utilitza sovint per difondre virus o per a obtenir
+informació confidencial o personal vostra, com ara contrasenyes o
+números de targetes de crèdit.
+
+Degut a les limitacions imposades per l'Acta de Regulació de Poders
+d'Investigació del 2000, no podem mantenir una còpia de l'adjunt original.
+
+Els filtres de contingut han trobat el següent:
+$report
+-- 
+Postmaster
+%org-long-name%
+%web-site%
+

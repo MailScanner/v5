@@ -1,0 +1,223 @@
+#!/usr/bin/env bash
+#
+# Written by:
+# Jerry Benton < mailscanner@mailborder.com >
+# 13 FEB 2015
+#
+# This script will build the latest SuSE install 
+# package and put it in /msbuilds/suse
+
+# make sure this is run from the base directory
+if [ ! -d 'RPM.files' ]; then
+	echo 'This script must be executed from the base directory.';
+	echo './RPM.files was not found. Exiting ...';
+	echo;
+	exit 192
+fi
+
+# directory we are in
+THISCURDIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+
+# if not set from the "Build.all" script
+if [ -z "$RPMOUT" ]; then
+	RPMOUT="$HOME/msbuilds/suse";
+	export RPMOUT;
+fi
+
+# check to see if the output directory exists
+if [ ! -d "$RPMOUT" ]; then
+	mkdir -p $RPMOUT
+fi
+
+# if not set from the "Build.all" script
+if [ -z "$MSVERSION" ]; then
+	echo "Please tell me the version number (x.xx.x): ";
+	read MSVERSION
+	export MSVERSION
+fi
+
+# if not set from the "Build.all" script
+if [ -z "$MSBUILD" ]; then
+	echo "And the build number (-x): ";
+	read MSBUILD	
+	export MSBUILD
+fi
+
+# if not set from the "Build.all" script
+if [ -z "$FULLMSVER" ]; then
+	FULLMSVER=$MSVERSION-$MSBUILD
+	export FULLMSVER
+fi
+
+# if not set from the "Build.all" script
+if [ -z "$DEVBASEDIR" ]; then
+	DEVBASEDIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+	#echo "You current directory is $THISCURDIR"; echo;
+	#echo "Enter the parent directory of RPM.files without the trailing slash: ";
+	#read DEVBASEDIR
+	export DEVBASEDIR
+fi
+
+# create this if missing
+if [ ! -f '/tmp/MailScanner.conf.index.html' ]; then
+	sh $DEVBASEDIR/config.index/make.sh
+fi
+
+# the source directory
+SRCDIR=$DEVBASEDIR/RPM.files/SuSE
+
+# version info 
+BUILD=$MSBUILD
+VERSION=$MSVERSION-$BUILD
+export VERSION BUILD
+
+# setup rpm development dirs
+mkdir -p ~/rpmbuild/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
+
+# the work directory
+WORK="/tmp/mailscanner-$MSVERSION";
+
+# delete work tmp if already exists
+if [ -d $WORK ]; then
+   rm -rf $WORK
+fi
+
+# make working dir and subs
+mkdir -p $WORK
+mkdir -p $WORK/{bin,doc,etc,lib,var/run}
+mkdir -p $WORK/etc/{conf.d,wrapper,CustomFunctions}
+mkdir -p $WORK/bin/MailScanner/CustomFunctions
+# /etc/ reports,rules,mcp will get created below
+
+# var
+touch $WORK/var/run/MailScanner.pid
+
+# base
+cp $DEVBASEDIR/common/usr/sbin/ms-check $WORK/ms-check
+cp $DEVBASEDIR/RPM.files/common/ms-check.cron $WORK/
+cp $DEVBASEDIR/RPM.files/common/MailScanner.init.SuSE $WORK/
+cp $DEVBASEDIR/RPM.files/common/MailScanner.opts.SuSE $WORK/
+cp $DEVBASEDIR/RPM.files/common/ms-update-sa.opts.SuSE $WORK/
+cp $DEVBASEDIR/RPM.files/common/ms-update-vs.cron $WORK/
+cp $DEVBASEDIR/RPM.files/common/ms-update-safe-sites.cron $WORK/
+cp $DEVBASEDIR/RPM.files/common/ms-update-bad-sites.cron $WORK/
+cp $DEVBASEDIR/RPM.files/common/clean.quarantine.cron $WORK/
+cp $DEVBASEDIR/RPM.files/common/ms-update-sa.cron $WORK/
+cp $DEVBASEDIR/RPM.files/common/ms-msg-alert.cron $WORK/
+
+# doc dir
+cp $DEVBASEDIR/man/*[12345678] $WORK/doc/
+cp $DEVBASEDIR/COPYING $WORK/doc/
+cp /tmp/MailScanner.conf.index.html $WORK/doc/
+
+# lib dir
+cp $DEVBASEDIR/mailscanner/lib/*{wrapper,update} $WORK/lib/
+cp $DEVBASEDIR/mailscanner/lib/mcafee-autoupdate.old $WORK/lib/
+cp $DEVBASEDIR/mailscanner/lib/kaspersky.prf $WORK/lib/
+
+# etc dir
+for F in filename.rules.conf filetype.rules.conf archives.filename.rules.conf archives.filetype.rules.conf spamassassin.conf spam.lists.conf virus.scanners.conf phishing.safe.sites.conf phishing.bad.sites.conf country.domains.conf
+do
+	cp $DEVBASEDIR/mailscanner/etc/$F $WORK/etc/
+done
+cp $DEVBASEDIR/mailscanner/etc/mailscanner.conf $WORK/etc/MailScanner.conf
+cp $DEVBASEDIR/mailscanner/etc/conf.d/README $WORK/etc/conf.d/
+(cd $DEVBASEDIR/mailscanner/etc&& tar cf - reports rules mcp ) | ( cd $WORK/etc && tar xBpf - )
+
+# bin dir
+cp $DEVBASEDIR/common/usr/sbin/Sophos.install.linux $WORK/bin/Sophos.install
+cp $DEVBASEDIR/common/usr/sbin/ms-peek $WORK/bin/
+cp $DEVBASEDIR/common/usr/sbin/ms-df2mbox $WORK/bin/
+cp $DEVBASEDIR/common/usr/sbin/ms-d2mbox $WORK/bin/
+cp $DEVBASEDIR/common/usr/sbin/CheckModuleVersion $WORK/bin/
+cp $DEVBASEDIR/common/usr/sbin/getPERLLIB $WORK/bin/
+cp $DEVBASEDIR/common/usr/sbin/ms-create-locks $WORK/bin/
+cp $DEVBASEDIR/common/usr/sbin/ms-update-vs $WORK/bin/
+cp $DEVBASEDIR/common/usr/sbin/ms-update-sa $WORK/bin/
+cp $DEVBASEDIR/common/usr/sbin/ms-update-safe-sites $WORK/bin/
+cp $DEVBASEDIR/common/usr/sbin/ms-update-bad-sites $WORK/bin/
+cp $DEVBASEDIR/common/usr/sbin/ms-msg-alert $WORK/bin/
+cp $DEVBASEDIR/common/usr/sbin/ms-sa-cache $WORK/bin/
+cp $DEVBASEDIR/common/usr/sbin/ms-upgrade-conf $WORK/bin/
+cp $DEVBASEDIR/common/usr/sbin/mailscanner.sbin $WORK/bin/mailscanner
+
+# links
+cd $WORK/bin
+ln -sf ms-upgrade-conf upgrade_languages_conf
+
+# set attributes
+chmod a+rx *
+
+# return to where i started
+cd $THISCURDIR
+
+# copy remaining pm items
+cp $DEVBASEDIR/common/usr/sbin/MailScanner.pm $WORK/bin/
+cp $DEVBASEDIR/common/usr/sbin/MailScanner/*pm $WORK/bin/MailScanner
+cp $DEVBASEDIR/common/usr/sbin/MailScanner/*pl $WORK/bin/MailScanner
+cp $DEVBASEDIR/common/usr/sbin/MailScanner/CustomFunctions/*pm $WORK/bin/MailScanner/CustomFunctions
+cp $DEVBASEDIR/common/usr/sbin/MailScanner/CustomFunctions/MyExample.pm $WORK/etc/CustomFunctions
+
+# set conf file permissions
+chmod 0644 $WORK/etc/*.conf
+
+# Insert the version number we are building
+perl -pi -e 's/VersionNumberHere/'$MSVERSION'/;' $WORK/etc/MailScanner.conf
+
+# do the same for the mailscanner.sbin
+perl -pi -e 's/VersionNumberHere/'$MSVERSION'/;' $WORK/bin/mailscanner
+
+# do the same for MailScanner4.spec
+cp -f $DEVBASEDIR/RPM.files/SuSE/SuSE-MailScanner4.spec ~/rpmbuild/SPECS/suse-mailscanner.spec
+perl -pi -e 's/VersionNumberHere/'$MSVERSION'/;' ~/rpmbuild/SPECS/suse-mailscanner.spec
+perl -pi -e 's/ReleaseNumberHere/'$MSBUILD'/;' ~/rpmbuild/SPECS/suse-mailscanner.spec
+
+# remove svn and git and mac stuff
+find $WORK -name '.svn' -exec rm -rf {} \;
+find $WORK -name '.git' -exec rm -rf {} \;
+find $WORK -name '*.DS_Store' -exec rm -rf {} \;
+find $WORK -depth -name '__MACOSX' -exec rm -rf {} \;
+
+# permissions
+find $WORK -name '*.pm' -exec chmod 644 {} \;
+find $WORK -name '*.conf' -exec chmod 644 {} \;
+find $WORK -name '*.txt' -exec chmod 644 {} \;
+find $WORK -name '*.rules' -exec chmod 644 {} \;
+find $WORK -name 'README' -exec chmod 644 {} \;
+find $WORK -name 'EXAMPLES' -exec chmod 644 {} \;
+find $WORK -name 'COPYING' -exec chmod 644 {} \;
+
+# Build the src tarball for RPM construction
+cd $WORK
+cd ..
+tar czf ~/rpmbuild/SOURCES/mailscanner-${MSVERSION}.tgz mailscanner-${MSVERSION}
+
+# return to where i started
+cd $THISCURDIR
+
+# create the output dir in $RPMOUT
+rm -rf $RPMOUT/MailScanner-$VERSION
+mkdir -p $RPMOUT/MailScanner-$VERSION
+
+# copy some file we need
+cp $SRCDIR/install.sh $RPMOUT/MailScanner-$VERSION/
+cp $SRCDIR/README $RPMOUT/MailScanner-$VERSION/
+cp $DEVBASEDIR/QuickInstall-SuSE.txt $RPMOUT/MailScanner-$VERSION/
+find $RPMOUT/MailScanner-$VERSION -name 'install.sh' -exec chmod 655 {} \;
+find $RPMOUT/MailScanner-$VERSION -name '*.txt' -exec chmod 644 {} \;
+find $RPMOUT/MailScanner-$VERSION -name 'README' -exec chmod 644 {} \;
+
+# Build the RPM and SRPMS
+# extra define statements help make the rpm backwards compatible
+rpmbuild -ba --sign --define "_binary_filedigest_algorithm  1"  --define "_binary_payload 1" ~/rpmbuild/SPECS/suse-mailscanner.spec
+
+# copy the rpm built to the output dir
+cp ~/rpmbuild/RPMS/noarch/mailscanner-${VERSION}.noarch.rpm $RPMOUT/MailScanner-$VERSION
+cd $RPMOUT
+tar czf MailScanner-${VERSION}.suse-rpm.tar.gz MailScanner-$VERSION
+rm -rf $RPMOUT/MailScanner-$VERSION
+rm -rf $work
+
+echo;
+echo "Completed: $RPMOUT/MailScanner-${VERSION}.rpm.tar.gz";
+

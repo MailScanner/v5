@@ -1,0 +1,20 @@
+This is a message from the MailScanner E-Mail Virus Protection Service
+----------------------------------------------------------------------
+The original e-mail message contained potentially dangerous content,
+which has been removed for your safety.
+
+The content is dangerous as it is often used to spread viruses or to gain
+personal or confidential information from you, such as passwords or credit
+card numbers.
+
+Due to limitations placed on us by the Regulation of Investigatory Powers
+Act 2000, we were unable to keep a copy of the original attachment.
+
+The content filters found this:
+$report
+-- 
+Postmaster
+%org-long-name%
+%web-site%
+
+

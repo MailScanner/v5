@@ -1,0 +1,25 @@
+From: "$postmastername" <$localpostmaster>
+To: $from
+Subject: {Bounce} Ongewenste (commerciele) e-mail geweigerd
+X-%org-name%-MailScanner: generated
+
+Onze spamdetector reageerde op een bericht dat u heeft verzonden:
+  To: $to
+  Subject: $subject
+  Date: $date
+Het bericht is vernietigd. De punten waarop onze detector reageerde was
+$spamreport.
+
+De server die het bericht op onze machine afleverde is opgenomen in een
+openbare zwarte lijst, slecht geconfigueerd of misbruikt.
+
+Indien u van mening bent dat deze melding onjuist is raden we u aan om
+contact op te nemen met beheerder.
+
+-- 
+MailScanner
+Email Virus Scanner
+%org-long-name%
+%web-site%
+
+

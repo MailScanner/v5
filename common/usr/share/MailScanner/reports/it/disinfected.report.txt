@@ -1,0 +1,11 @@
+Il messaggio ricevuto recentemente da "$from" avente
+soggetto "$subject"
+conteneva uno o piu' virus che possono essere eliminati.
+
+I virus sono stati rimossi, e gli allegati sono stati sostituiti con la versione non infetta.
+
+-- 
+MailScanner
+Email Virus Scanner
+%org-long-name%
+%web-site%

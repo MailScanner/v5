@@ -1,0 +1,25 @@
+From: "$postmastername" <$localpostmaster>
+To: $from
+Subject: Warnung: E-Mail-Virus festgestellt!
+X-%org-name%-MailScanner: generated
+
+Unser Virenscanner wurde durch eine Nachricht von Ihnen ausgelöst:
+  An: $to
+  Betreff: $subject
+  Datum: $date
+Alle infizierten Teile der Nachricht ($filename)
+wurden entfernt.
+
+Diese Nachricht soll Sie nur warnen, dass Ihr Computer-System
+könnte virenverseucht sein und sollte untersucht werden.
+
+Zu Ihrer Information die Meldung des Virenscanners:
+Report: $report
+
+--
+MailScanner
+E-Mail-Virus-Scanner
+%org-long-name%
+%web-site%
+
+

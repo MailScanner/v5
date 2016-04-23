@@ -1,0 +1,651 @@
+#!/usr/bin/perl
+
+#
+# **** README ****
+#
+# 14 April 2004
+# Note from Jules: This looks awfully complicated, but it is because the
+#                  old version of the --update flag didn't work in bdc.
+#                  This code detects what version of bdc you are running
+#                  and uses the appropriate code for each version.
+#
+#                  YOU DON'T HAVE TO TWEAK IT!!! Please don't modify this file.
+#
+
+#####################################################################
+# Since the --update function of BitDefender doesn't work, I wrote
+# this little script to update "manually" via cron task the plugin
+# directory from:
+# ftp://ftp.bitdefender.com/pub/updates/bitdefender_v7/plugins/
+#
+# This software is free, use it at your own risk
+# Not me nor my company are related in any way to bitdefender's company
+#
+# This is a VERY basic implementation and it may be implemented ad improved
+# in many ways.
+#
+# Since it seems to me that there is no way of knowing wich files were changed,
+# the script connects to bitdefender's ftp site and downloads all the plugins, then
+# diffs the files whith the list of known viruses and outputs to the log the newly added
+# virus names.
+#
+#
+# HOW TO USE
+# Set Up all the variabiles (if everything is standard no chages are required
+# Put this script where you may prefer (I keep mine within my bdc/shared dir)
+# Add a new cron job to launch it once a day (it may be executed with enough
+# privileges to have writing permissions on the bdc/shared/Plugins directory
+# and to the log file path.
+#
+# Any suggestion is welcome.
+#
+# Feel free to make any change you may need (I'm not a perl guru) but PLEASE
+# if you make any change just mail a copy of the chenges to me at
+#
+# alex@skynet-srl.com
+# www.skynet-srl.com
+#
+# Thank you
+#
+# Alessandro Bianchi
+#
+# Borgomanero Italy 06.09.03
+############################################################################
+#
+# C H A N G E      H I S T O R Y
+#
+# 06-09-03 First pubblic release, very basic implementation and poor commenting
+# 06-10-03 Added logging functions and diff
+# 06-11-03 Added the removed or added labels to the log
+# 06-13-03 Added smtp support
+# 06-16-03 Fixed a bug in the report that skipped the first $ignore lines
+# 06-26-03 Changed the strategy: now download the cumulative.zip file, then
+#          decompress it in a temporary directory and install upgrade file.
+#          ZIP files managment is obtained using the Archive-Zip-1.0.5 perl module.
+#          Get it from www.CPAN.org or from
+#          http://search.cpan.org/CPAN/authors/id/N/NE/NEDKONZ/Archive-Zip-1.05.tar.gz
+# 06-26-03 Added locking code from MailScanner by Julian Field
+# 06-27-03 Added rotation function so that you can determine to download only
+#          the daily file and at a certain interval do a cumulative update.
+#          Even faster !
+#          WARNING: according to BitDefender's web site, the cumulative.zip file
+#          is made available each monday and all the daily.zip are cumulative in
+#          a week period. So I suggest to:
+#          a) run bitdefenderUpdater the first time to let it do cumulative upd;
+#          b) edit /etc/bitdefenderRotation to have the 0 period each monday
+#          c) run the script once a day to have your definition updated
+#
+#          ROTATION EXAMPLE
+#          ================
+#          I set rotation period to 6 that means 7 days (from 0 to 6)
+#          I get sure to have the number of the weekday accordingly in /etc/...
+#          Check the log to be sure everything is OK
+#
+# 06-30-03 Added auto creation of folders needed for download and expansion
+#          of .zip files
+# 07-01-03 Added smart detection of the updates so that the files need to be
+#          newer than the last update done. Detection is done "on line" so that
+#          no download takes place if the remote file is older (or equal) to
+#          last downloaded file. Rotation status is only updated if update of
+#          the definitions take place
+# 07-07-03 Better error handling and minor bug fix
+#
+# 15-10-03 Bitdefender changed installation directory from /usr/local/bd7 to
+#            /opt/bdc so cahnged the variabile accordingly
+#
+# 21-10-03 With version 7.0 of bitdefender the autoupdate function has been
+#	    fixed, so, added the option to use bdc built-in function and also
+#	    added to bitdefende report at the end of the update report to "see"
+#	    the number of viruses includung families otherwise seen as one virus only
+#
+############################################################################
+
+use POSIX;
+use Net::FTP;
+use File::Basename;
+use IO::File;
+use Archive::Zip qw(:ERROR_CODES);
+use Sys::Syslog;
+
+my $PackageDir = shift || "/opt/bdc";
+
+$LockFile = shift || "/var/spool/MailScanner/incoming/Locks/bitdefenderBusy.lock";
+
+# This is the maximum time allowed for the bdc --update command to run.
+my $MaximumTime = 60*20; # 20 minutes
+
+# my @ext = qw(.xmd .cvd .ivd .rvd .dat);                     # extensions used by definitions
+my $ftpSite = "ftp.bitdefender.com";                          # address of ftp update site
+my $ftpDir = "/pub/updates/bitdefender_v7/";                  # remote ftp dir containing updates
+my $dailyUpdateFile = "daily.zip";                            # name of the daily update file, usually "daily.zip"
+my $cumulativeUpdateFile = "cumulative.zip";                  # name of the cumulative update file, usually "cumulative.zip"
+my $ftpUpdateFile = $cumulativeUpdateFile;                    # update file to be downloaded
+my $ftpLogin ="anonymous";                                    # ftp login to be used (usual anonymous
+my $ftpPassword = "me\@here..com";                            # ftp password to be sent (usually email address)
+my $bitDefenderPath=  "$PackageDir/";                                  # local path to bitdefender
+my $destDir = $bitDefenderPath ."Plugins/";                   # bitdefender's plugins path
+my $downTemporaryFolder = $bitDefenderPath . "test/";         # where to store the zipped update file
+my $expandTempFolder =  $bitDefenderPath . "temp/";           # where to expand the zipped file
+$loggingEnabled = 1;                                          # set to 0 to disable logging
+$verbose =0;                                                  # log verbose information about files that get updated set to 0 to avoid it
+$logFile= "/var/log/bitdefender_updater.log";                 # full path to the log file
+$rotationFile = "/etc/bitdefenderRotation";                   # contains the current status
+$rotationPeriod = 6;                                          # number in days before doing cumulative seto to 0 to get always cumulative
+my $bitDefBinary = "bdc";                                     # name of the bitdefender's binary
+my $beforeFile   = "beforeupdate.txt";                        # list of viruses before update
+my $afterFile   = "afterupdate.txt";                          # list of viruses after update
+my $ignoreLines = 5;                                          # lines to be ignored in total virus defs
+my $ftpPassive = 1;                                           # 1= use passive ftp - 0= normal
+my $timeStampFile = "/etc/bdUpdater.data";                    # where to store the modification time of the file
+####### MAIL VARIABILES ###############
+$useSMTP =0 ;                                                 # 1= send mail - 0= don't send mail
+$smtpFrom = 'Bitdefender console';                            # Frm , appears in the mail message
+$smtpTo= 'postmaster';                                        # address who receives the report (p.e. postmaster)
+$smtpSubject = "Bitdefender's virus definition update process";  # report's subject
+#@smtpMessages = "";                                          # message holder
+$sendmailPath = "/usr/sbin/sendmail";                         # full sendmail path
+######## LOGFILE SIZE LIMIT ##############
+$logFileLimit = 5120;                                         # logfile limit size in bytes - 0 = no limit - 5120 = 5 kb
+#JKF This is now calculated $useBDCUpdate = 0;                # select the method to use for updating
+                                                                        # 1 = user bdc --update method,
+                                                                        # 0 = download file, unzip and test it
+#######################################################################
+#
+#    NO CHANGES ABOVE THIS LINE REQUIRED
+#
+#######################################################################
+my $addedMarker = ">";
+my $removedMarker = "<";
+my $addedLabel = "added\t";
+my $removedLabel = "removed\t";
+
+# JKF This should always be over-written later, see JKF comments
+$bdcBinary = $bitDefenderPath . $bitDefBinary ; # full path to binary
+
+$LOCK_SH = 1;
+$LOCK_EX = 2;
+$LOCK_NB = 4;
+$LOCK_UN = 8;
+
+eval { Sys::Syslog::setlogsock('unix'); }; # This may fail! 
+Sys::Syslog::openlog("BitDefender-autoupdate", 'pid, nowait', 'mail');
+
+&checkLogSize;
+&updateLog("----->  Starting update...");
+
+if ($PackageDir eq "" || ! -e $PackageDir) {
+  &updateLog("Installation dir \"$PackageDir\" does not exist!");
+  exit;
+}
+
+
+# JKF Set $useBDCUpdate according to which version is installed
+if (-e $bitDefenderPath . "shared/$bitDefBinary") {
+  # JKF Old version. --update is broken and bdc is in "shared" directory
+  &updateLog("Old version. --update is broken and bdc is in shared directory");
+  $useBDCUpdate = 0;
+  $bdcBinary = $bitDefenderPath . "shared/$bitDefBinary";
+}
+if (-e "$bitDefenderPath$bitDefBinary") {
+  # JKF New version. --update works and bdc is in main package directory
+  &updateLog("New version. --update works and bdc is in main package directory");
+  $useBDCUpdate = 1;
+  $bdcBinary = $bitDefenderPath . $bitDefBinary;
+}
+
+# calcolo il numero di virus su cui siamo inizialmente protetti e restituisco il numero direttamente nel log
+#my $bitDCmd = $bdcBinary . " --vlist";
+#my $origFile = $bitDefenderPath  .  $beforeFile;
+#system  "$bitDCmd > $origFile ";
+
+#&countViruses($origFile);
+
+if ( $useBDCUpdate == 1)
+{
+        my $bitDCmd = $bdcBinary . " --update";
+        &updateLog ( "Starting update using BDC built-in function...");
+        &LockBitDefender;                                          # lock it...
+	Sys::Syslog::syslog('info', 'BitDefender starting update');
+	eval {
+	  alarm $MaximumTime;
+	  system $bitDCmd;
+	  &UnlockBitDefender;
+	  alarm 0;
+	};
+
+	if ($@) {
+	  if ($@ =~ /timeout/i) {
+	    # We timed out!
+	    &UnlockBitDefender;
+	    &updateLog("WARNING BitDefender update timed out");
+	    Sys::Syslog::syslog('warn', 'BitDefender update timed out');
+	    alarm 0;
+	  }
+	} else {
+	  alarm 0;
+	  &updateLog("BitDefender update completed");
+	  Sys::Syslog::syslog('info', 'BitDefender updated');
+	}
+
+        #system  ("$bitDCmd"); # update
+        #&UnlockBitDefender;    # .. then unlock it
+}
+else
+{
+       &determineRotation; 
+	$ftp = Net::FTP->new($ftpSite, Timeout => 30, Debug => 0, Passive =>$ftpPassive) || &updateLog( "Can't connect to ftp server.");
+
+        if ( ! defined $ftp)
+        {
+             # something went wrong with connection, so abort
+             &updateLog ( "Cannot connect to ftp site, $@");
+             &sendMail;                          # notify the administrator
+             exit 0;
+        }
+        $ftp->login($ftpLogin, $ftpPassword) || &updateLog( "Can't login to ftp server.");
+        $ftp->cwd($ftpDir) || &updateLog ("Path $ftpDir not found on ftp server.\n");
+        $ftp->binary();
+
+        # carico i files nella directory di destinazione
+        #foreach $plugin ($ftp->ls())
+        #{
+        #   ($name, $dir, $extl) = fileparse ($plugin , @ext);
+           # estraggo il nome del file corrente
+           #$localFile = $destDir . $name . $extl;
+           #$ftp->get($plugin,$localFile);
+           &dirCheck (  $downTemporaryFolder);
+           $zipName = $downTemporaryFolder . $ftpUpdateFile;
+
+          my $modTime = $ftp->mdtm ( $ftpUpdateFile);
+          # now check that modTime is greater than last done update time
+          if ( &determineNewerUpdate ( $modTime)== 0 )
+          {
+             $ftp->quit;
+             &updateLog ( "Database is Up to Date - No update is required\n");
+	     Sys::Syslog::syslog('info', 'Bitdefender update not needed');
+             goto ENDING;
+          }
+           $ftp->get ( $ftpUpdateFile,  $zipName);
+           if ( $verbose ==1 )
+           {
+                   updateLog ("Update file downloaded: $zipName");
+           }
+
+        # chiudo la connessione
+        $ftp->quit;
+
+        &LockBitDefender;                                          # lock it...
+        &unCompressAndInstall();                                   # ...install..
+        &UnlockBitDefender;                                        # .. then unlock it
+
+}
+my $destFile = $bitDefenderPath  .  $afterFile;
+
+# calcolo il numero di virus su cui siamo protetti e restituisco il numero direttamente nel log
+#system  "$bitDCmd > $destFile ";
+
+#&updateLog ("Following the changes:");
+
+#COMPARE:
+#my $newsFile = $bitDefenderPath . "news.txt";
+
+#$afterFile  = $bitDefenderPath . $afterFile;
+#$beforeFile = $bitDefenderPath . $beforeFile;
+
+#system  "diff $beforeFile $afterFile > $newsFile";
+
+# include bdc report fr reporting families
+#my $bitDCmd = $bdcBinary . " --info";
+#system  "$bitDCmd >> $newsFile ";
+
+# get the file and print it in the log...
+#my $fh = new IO::File  "< $newsFile" || &updateLog( "no news file found!");
+#my @lines = $fh->getlines;
+#$fh->close;
+
+
+my $lines = @lines;
+
+if ( $lines > 9)
+{
+ for ($i=0; $i<=$lines; $i++)
+ {
+
+     # aggiungo le diciture added o removed
+     $lines[$i] =~ s/$addedMarker/$addedLabel/g;
+     $lines[$i] =~ s/$removedMarker/$removedLabel/g;
+     &updateLog ( $lines[$i] );
+  }
+
+}
+else
+{
+ &updateLog ( "No new definitions found...");
+ Sys::Syslog::syslog('info', 'Bitdefender update not needed');
+ $useSMTP = 0;                               # avoid mail
+}
+
+#&countViruses($destFile);
+if ( $useBDCUpdate == 0 )
+{
+	&determineRotation (1);                   # update rotation status
+}
+&sendMail;
+ENDING:
+&updateLog("------> Update was succesful...");
+
+exit 0 ;
+
+##########################################################################
+#
+#        Aggiorno il log se il parametro $loggingEnabled = 1
+#        e se Ë stato definito il parametro $logFile
+#
+#
+#        updateLog ( $message );
+#
+##########################################################################
+sub updateLog
+{
+        if ($useSMTP == 1)
+        {
+                push @smtpMessages, $_[0];
+        }
+
+        if (!defined $loggingEnabled )
+        {
+             return;
+        }
+
+        if  ($loggingEnabled  != 1)
+        {
+             return;
+        }
+        $tab = "\t"; # tab for log output   delimiter
+
+         # aggiorno il log
+       use POSIX qw(strftime);
+       # $now_string = strftime "%a %b %e %H:%M:%S %Y", gmtime;
+        $now_string = strftime "%a %b %e %H:%M:%S %Y", localtime;
+        $fh = new IO::File  ">> $logFile";
+        if (defined $fh)
+         {
+        # scrivo i dati del log
+
+             print $fh $now_string, , $tab, $_[0] ,"\n";
+             $fh->close ;
+             undef $fh;
+        }
+}
+
+sub countViruses
+{
+        # apro il file e conto il numero dei virus protetti
+        $fh = new IO::File  "< $_[0]" || &updateLog( "no input file found!");
+        @lines = $fh->getlines;
+        $fh->close;
+        my $lines = @lines - $ignoreLines;
+        &updateLog ("*** You're now protected against $lines viruses ...");
+}
+
+##################################################################
+#        If enabled send mail to the desired address(es) using sendmail
+#
+#        13-06-03
+##################################################################
+sub sendMail
+{
+
+        if ($useSMTP != 1)
+        {
+                return;
+        }
+
+        open (SENDMAIL, "| $sendmailPath -t");
+        print SENDMAIL "TO: $smtpTo\n";
+        print SENDMAIL "Subject: $smtpSubject\n";
+
+        foreach $msg (@smtpMessages)
+        {
+                print SENDMAIL "$msg\n";
+        }
+        close (SENDMAIL);
+}
+
+#####################################################################
+# Check log size and il exceeds the defined size resets it to 0 length
+# if logSize == 0 no checking takes place
+######################################################################
+sub checkLogSize
+{
+        if ( $logFileLimit == 0)
+        {
+                return;
+        }
+
+        # get the current file size
+        if ( -s $logFile > $logFileLimit )
+        {
+                # truncate it to 0 bytes lenght before starting
+                $fh = new IO::File  "> $logFile";
+                $fh->close;
+        }
+}
+#####################################################################
+#
+#  Uncompress downloaded file and upgrade data, then delete
+#  temporary file.
+#  This routine requires  Archive::Zip: Get it from CPAN
+#
+#####################################################################
+sub unCompressAndInstall
+{
+   my $zip = Archive::Zip->new();
+   my $status = $zip->read( $zipName );
+   # abort if something goes wrong but
+   # unlock the file first to re-enable mail processing
+   if ($status != AZ_OK)
+   {
+    &updateLog("Read of $zipName failed\n") ;
+    &UnlockBitDefender;
+    exit 0;
+   }
+   my $finalName ="";
+   my $removed= "";
+   &dirCheck ( $expandTempFolder);
+   my @content = $zip->memberNames();
+
+   foreach my $memberName (@content)
+   {
+       if ( $verbose == 1)
+       {
+         &updateLog ( "Extracting $memberName\n");
+       }
+        $finalName = reverse $memberName ;
+        $removed = chop $finalName;
+
+        if ($removed eq ".")
+        {
+             $finalName = $expandTempFolder. reverse ($finalName);
+        }
+        else
+        {
+                $finalName = $expandTempFolder. $memberName;
+        }
+
+        $status = $zip->extractMemberWithoutPaths($memberName , $finalName);
+        #        : $zip->extractMember($memberName);
+        if ($status != AZ_OK )
+        {
+         &updateLog ("Extracting $memberName from $zipName failed\n") ;
+         &UnlockBitDefender;
+         &sendMail;                          # notify the administrator
+         exit 0;
+        }
+
+   }
+
+   # sposto i files nella directory di destinazione
+   # using -p preserve and -u upgrade
+   system ("cp -pu $expandTempFolder* $destDir");
+   # svuoto la directory temporanea
+   system  ("rm -f $expandTempFolder*");
+   # cancello il file da cui ho eseguito l'aggiornamento
+   # system "rm -f $zipName ";
+}
+
+#########################################################################
+#
+# Locking code from MailScanner, just copied and adapted
+#
+#
+######################################################################
+
+sub LockBitDefender {
+        open(LOCK, ">$LockFile") or return;
+        flock(LOCK, $LOCK_EX);
+        print LOCK "Locked for updating BitDefender definitions by $$\n";
+       # &updateLog ( "Locked for updating BitDefender definitions by $$\n");
+}
+
+sub UnlockBitDefender {
+        print LOCK "Unlocked after updating BitDefender definitions by $$\n";
+        flock(LOCK, $LOCK_UN);
+        close LOCK;
+       # &updateLog ( "Unlocked after updating BitDefender definitions by $$\n");
+}
+
+########################################################################
+#
+# Determine rotation status and current filename
+# if 1 is passed as argument, then update the rotation situation
+# &determineRotation() <--- don't update rotation status
+# &determineRotation(1)<---- UPDATE ROTATION STATUS
+#
+########################################################################
+sub determineRotation
+{
+  #return if $rotationPeriod == 0;
+   my $update = 0;
+   my $currentStatus =0;
+
+   if (defined $_[0] )
+   {
+     $update = $_[0];
+   }
+
+    # get the current rotation status from the status file
+    my $fh = new IO::File  "< $rotationFile";
+    if (! defined $fh)
+    {
+        # initialize status file
+        my  $fh = new IO::File  "> $rotationFile";
+        print $fh $currentStatus;
+        $fh->close ;
+        undef $fh;
+        $ftpUpdateFile = $cumulativeUpdateFile;  # do cumulative
+    }
+    else
+    {
+     $currentStatus = $fh->getline;
+
+     if ($currentStatus > $rotationPeriod)
+     {
+       $ftpUpdateFile = $cumulativeUpdateFile;  # do cumulative
+       $currentStatus = 0;
+     }
+     else
+     {
+      $currentStatus += 1;
+      $ftpUpdateFile = $dailyUpdateFile;         # do incremental
+     }
+    }
+
+    $fh->close ;
+    undef $fh;
+
+    if ($update == 1)
+    {
+           # update (overwrite) the file for next round
+           $fh = new IO::File  "> $rotationFile";
+           print $fh  $currentStatus;
+           $fh->close ;
+           &updateLog ( "current status is $currentStatus, rotation period is $rotationPeriod");
+           if ( $currentStatus > $rotationPeriod)
+           {
+            &updateLog ("*** NEXT UPDATE IS CUMULATIVE ***");
+            }
+
+    }
+    else
+    {
+       &updateLog ( "***\nNEW JOB\n***\nSelecting $ftpUpdateFile for update");
+    }
+}
+
+##################################################################
+#
+# Check if the required directory exists an is empty
+# if doesn't exist create it
+# if exists get sure it is empty
+#
+###################################################################
+sub dirCheck
+{
+   my $dir;                       # dir to check on
+
+   #try to open it
+  if (not opendir $dir, $_[0])
+   {
+       #directory exists, so proceed
+       mkdir $_[0];
+       &updateLog( "Directory $_[0] has been created for you\n");
+   }
+   else
+   {
+       closedir  $dir;
+      # &updateLog ("Directory $_[0] exists\n");
+   }
+}
+
+
+########################################################################
+#
+# Determine if current update is newer than latest done update
+# the function accepts one parameter that is the time to be checked
+# returns true if is newer of last update and false otherwise
+# &determineNewerUpdate( $timeToBe Checked)
+#
+########################################################################
+sub determineNewerUpdate
+{
+    my $lastUpdate  = 0;
+    my $timeToCheck = $_[0];
+    # get the last update date and return true or false according to it
+    my $fh = new IO::File  "< $timeStampFile";
+    if (! defined $fh)
+    {
+        # initialize update file
+        my  $fh = new IO::File  "> $timeStampFile";
+        print $fh $lastUpdate;
+        $fh->close ;
+        undef $fh;
+        return 1;
+    }
+    else
+    {
+     $lastUpdate = $fh->getline;
+     $fh->close ;
+
+      if ($timeToCheck > $lastUpdate )
+      {
+       # update the file and proceed
+       $fh = new IO::File  "> $timeStampFile";
+       print $fh  $timeToCheck;
+       $fh->close ;
+       return 1;
+       }
+    }
+ return 0;
+}
+

@@ -1,0 +1,33 @@
+From: "$postmastername" <$localpostmaster>
+To: $to
+Subject: Ongewenste (commerciele) e-mail geweigerd
+X-%org-name%-MailScanner: generated
+
+Onze spamdetector reageerde op een bericht dat aan u is verzonden:
+  From: $from
+  Subject: $subject
+  Date: $date
+Het bericht is vernietigd. De punten waarop onze detector reageerde was
+$spamreport.
+
+Op uw bericht is gereageerd op basis van de inhoud en/of de machine waar
+vandaan de e-mail was verstuurd.
+
+Wij accepteren geen ongewenste (commerciele) e-mail (spam) and werken
+actief mee aan het stoppen hiervan.
+
+Indien u van mening bent dat deze melding onjuist is raden we u aan om
+contact op te nemen met beheerder.
+
+Uw beheerder heeft de volgende informatie nodig:
+  Server: $hostname
+  Message id: $id
+  Datum code: $datenumber
+
+-- 
+MailScanner
+Email Virus Scanner
+%org-long-name%
+%web-site%
+
+

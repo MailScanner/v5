@@ -1,0 +1,38 @@
+From: "$postmastername" <$localpostmaster>
+To: $from
+Subject: Warning: E-mail error detected
+
+English Version:
+
+Our virus detector failed to completely analyse a message you sent:-
+  To: $to
+  Subject: $subject
+  Date: $date
+Any parts of the message that could not be analysed will not have been
+delivered.
+
+If you are using Microsoft Outlook, we strongly recommend you change your
+outgoing message format from "Rich Text" to "HTML" or "Plain Text".
+
+Versiunea Romana:
+
+Antivirusul de pe serverul nostru de e-mail nu a putut analiza unul dintre
+mesajele trimise de dumneavoastra la 
+
+adresa : 		 $to
+data:			 $date
+avand subiectul:	 $subject
+
+Acest lucru a condus la netrimiterea mesajului la destinatar.
+
+Daca utilizati Microsoft Outlook, va recomandam sa schimbati formatul mesajului din "Rich Text" in "HTML" sau "Plain Text"
+
+
+The virus detector said this about the message:
+Report: $report
+
+-- 
+MailScanner
+Email Virus Scanner
+%org-long-name%
+%web-site%

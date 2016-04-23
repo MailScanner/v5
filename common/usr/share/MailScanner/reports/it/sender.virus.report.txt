@@ -1,0 +1,22 @@
+From: "$postmastername" <$localpostmaster>
+To: $from
+Subject: Attenzione: rilevata E-mail infetta
+X-%org-name%-MailScanner: generated
+
+Il sistema antivirus e' stato sollecitato dal messaggio seguente:-
+  To: $to
+  Subject: $subject
+  Date: $date
+Ogni parte del messaggio ritenuta infetta non e' stata consegnata al destinatario.
+
+Questo messaggio e' semplicemente per mettervi sull'avviso che molto probabilmente sul vostro computer e' presente un virus, vi consigliamo di controllare con urgenza il sistema.
+
+Il sistema antivirus riporta:
+rapporto: $report
+
+-- 
+MailScanner
+Email Virus Scanner
+%org-long-name%
+%web-site%
+

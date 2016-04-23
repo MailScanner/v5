@@ -1,0 +1,29 @@
+From: "$postmastername" <$localpostmaster>
+To: $from
+Subject: Potenziell gefährliche Inhalte zurückgewiesen
+X-%org-name%-MailScanner: generated
+
+Unsere Nachrichten-Filter wurden durch eine von Ihnen gesendete Nachricht
+ausgelöst:
+  An: $to
+  Betreff: $subject
+  Datum: $date
+Diese Nachricht wurde zurückgewiesen. Die Filter gaben folgendes aus:
+$report.
+
+Diese Nachricht enthielt potenziell gefährliche Inhalte, die entfernt wurden.
+
+Wenn Sie probiert haben, eine Webseite zu senden, versuchen Sie bitte, diese
+Webseite in eine Datei zu speichern und diese Datei statt dessen an die
+Nachricht anzuhängen.
+
+Wenn Sie Fragen haben oder glauben, diese Nachricht zu Unrecht erhalten zu
+haben, kontaktieren Sie bitte die Systemadministratoren.
+
+--
+MailScanner
+E-Mail-Virus-Scanner
+%org-long-name%
+%web-site%
+
+

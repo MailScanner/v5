@@ -1,0 +1,40 @@
+From: "$postmastername" <$localpostmaster>
+To: $from
+Subject: Warning: E-mail viruses detected
+
+English Version:
+
+Our virus detector has just been triggered by a message you sent:-
+  To: $to
+  Subject: $subject
+  Date: $date
+
+One or more of the attachments are on the list of unacceptable attachments
+for this site and will not have been delivered.
+
+Consider renaming the files or putting them into a "zip" file to avoid
+this constraint.
+
+Versiunea Romana:
+
+Antivirusul de pe serverul nostru de mail a gasit unele dintre atasamentele
+trimise de catre dumneavoastra la
+
+adresa:			$to
+data:			$date
+avand subiectul:	$subject
+
+ca fiind inacceptabile, fapt ce a condus la
+netrimiterea mesajului la destinatar.
+
+Pentru a rezolva acest lucru, puteti spre exemplu sa creati o arhiva zip cu
+fisierele atasate si sa retransmiteti mesajul.
+
+The virus detector said this about the message:
+Report: $report
+
+-- 
+MailScanner
+Email Virus Scanner
+%org-long-name%
+%web-site%

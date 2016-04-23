@@ -1,0 +1,27 @@
+From: "$postmastername" <$localpostmaster>
+To: $from
+Subject: Elfogadhatatlan melleklet - Unacceptable attachment
+X-%org-name%-MailScanner: generated
+
+Viruskeresonk az On altal kuldott levelben elfogadhatatlan kiterjesztesu
+mellekletet talalt ($filename):
+  Cimzett:  $to
+  Targy  :  $subject
+  Datum  :  $date
+
+A kerdeses melleklet(ek) kezbesitese nem tortent meg.
+Nevezze at, vagy tomoritse "zip" fajlba az ilyen tipusu uzeneteket
+a kesobbiekben.
+
+A viruskereses eredmenye, $date idopontban:
+$report
+
+Azonosito: $hostname $quarantinedir/$datenumber (message $id).
+
+-- 
+$localpostmaster
+MailScanner - Email Virus Scanner - http://www.mailscanner.info
+%org-long-name%
+%web-site%
+
+

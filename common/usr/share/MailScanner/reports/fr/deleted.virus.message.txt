@@ -1,0 +1,22 @@
+Avertissement de la passerelle antivirus MailScanner
+----------------------------------------------------
+
+La pièce jointe «$filename»
+contient probablement un virus.  Elle a été remplacée par cet avertissement.
+
+La pièce jointe n'a pas été conservée sur la passerelle.
+
+Si vous voulez recevoir la pièce jointe désinfectée, demandez-la à
+l'émetteur du courriel.
+
+Résultats de l'antivirus:
+$report
+
+Contactez $localpostmaster pour plus d'informations.
+
+-- 
+MailScanner
+%org-long-name%
+%web-site%
+
+

@@ -1,0 +1,30 @@
+This is a message from the MailScanner E-Mail Virus Protection Service
+----------------------------------------------------------------------
+English Version:
+
+The original e-mail attachment "$filename"
+was believed to be infected by a virus and has been replaced by this warning
+message.
+
+Due to limitations placed on us by the Regulation of Investigatory Powers
+Act 2000, we were unable to keep a copy of the infected attachment. Please
+ask the sender of the message to disinfect their original version and send
+you a clean copy.
+
+Versiunea Romana:
+
+Atasamentul original denumit "$filename"
+era infectat cu un virus si a fost inlocuit cu acest avertisment.
+
+Mesajul original nu a fost salvat local.
+Luati legatura cu cel care a trmis mail-ul pentru a il retrimite, dupa ce l-a dezinfectat utilizand un antivirus performant.
+
+
+At $date the virus scanner said:
+$report
+
+-- 
+MailScanner
+Email Virus Scanner
+%org-long-name%
+%web-site%

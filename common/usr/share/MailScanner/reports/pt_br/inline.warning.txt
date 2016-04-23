@@ -1,0 +1,3 @@
+Warning: Esta mensagem continha anexos que foram removidos
+Warning: ($filename).
+Warning: Leia o anexo "$viruswarningname" para maiores informações.

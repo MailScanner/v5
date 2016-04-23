@@ -1,0 +1,70 @@
+#
+# Uncomment this line once MailScanner has been fully configured.
+#
+#run_mailscanner=1
+
+# MailScanner configuration file
+# by default the file /etc/MailScanner/MailScanner.conf is used to pull
+# various settings for the daemon and permissions for working directories. 
+# You may set a different custom file here.
+#
+# Example: /etc/MailScanner/conf.d/my.conf
+#
+# Important: to ensure correct permissions are set automatically when
+# the MailScanner daemon starts, make sure that these items are included:
+#
+#	Incoming Work User
+#	Incoming Work Group
+#	Incoming Work Dir
+#	Incoming Work Permissions
+#
+# ms_conf=/etc/MailScanner/MailScanner.conf
+
+# RAMDISK Management
+# If you are using a ramdisk, this will sync the "Incoming Work Dir"
+# (which is where your ramdisk should be mounted if anywhere)
+# to a saved state directory upon stopping the MailScanner service 
+# and then restore it when the MailScanner service starts again.
+#ramdisk_sync=1
+
+# RAMDISK Persistent Store
+# The location to store and retrieve the ramdisk contents during
+# normal startup and shutdown of the MailScanner process or server.
+# This is ignored if you are not using a ramdisk for the 
+# "Incoming Work Dir" setting. 
+#ramdisk_store=/var/spool/MailScanner/ramdisk_store
+
+#
+# This sets how many days files will remain in the "quarantine" area before
+# being automatically removed.
+#
+q_days=30
+
+#
+# This sets how much the priority of the mailscanner daemon should be
+# reduced by (i.e. "nice -X").  Since it is a batch oriented task,
+# there it can easily give up some CPU cycles to more interactive
+# tasks. On a system with the main-task to scan mails set this to 0.
+#
+run_nice=2
+
+# Uncomment the following two lines to enable usage of the
+# $HOSTNAME environment variable in MailScanner.conf
+# settings
+#
+HOSTNAME=$(hostname)
+export HOSTNAME
+
+#
+# Lockfile to inform scripts if MailScanner was stopped by hand
+# and should not be started automaticly
+#
+stopped_lockfile=/var/lock/subsys/MailScanner.off
+
+#
+# The Mailscanner share directory
+ms_core=/usr/share/MailScanner
+
+#
+# The MailScanner lib directory
+ms_lib=/var/lib/MailScanner

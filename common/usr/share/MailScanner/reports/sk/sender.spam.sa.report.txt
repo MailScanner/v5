@@ -1,0 +1,28 @@
+From: "$postmastername" <$localpostmaster>
+To: $from
+Subject: {Bounce} Nevyziadana komercna posta odmietnuta
+X-%org-name%-MailScanner: vytvoreny
+
+Nas detektor UCE/NKP (spam-u) prave zistil, ze sprava ktoru posielate:-
+  Komu: $to
+  Predmet: $subject
+  Datum: $date
+
+Tato sprava bola znicena. Detektory ktore spustili
+$spamreport.
+
+
+Vasa sprava bola oznacena ako spam.
+
+Neakceptujeme ziadnu nevyziadanu komercnu postu a aktivne proti tomu bojujeme.
+Pokial ani po upozorneniach nam neprestanete dorucovat spravy s neziaducim obsahom,
+budeme nuteni sa obratit na Vaseho ISP aby zablokoval Vase konto.
+
+Ak mate k tomu akekolvek otazky alebo pripomienky, pripadne ste obdrzali toto
+upozornenie omylom, kontaktujte prosim nasich administratorov.
+
+-- 
+MailScanner
+Email Virus Scanner
+%org-long-name%
+%web-site%

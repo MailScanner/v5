@@ -1,0 +1,24 @@
+Este es un mensaje del Servicio de Protección de Virus para Correo
+Electrónico MailScanner
+----------------------------------------------------------------------
+El archivo anexado original "$filename"
+está en la lista de anexos inaceptables para este sitio y el mismo
+ha sido reemplazado por este mensaje de aviso.
+
+Si desea recibir una copia del archivo anexado original, por favor
+envíe un correo electrónico al departamento de soporte incluyendo 
+este mensaje. Alternativamente, puede llamar a dicho departamento, 
+teniendo el contenido de este mensaje a mano.
+
+El $date el analizador de virus dijo:
+$report
+
+Nota para el departamento de soporte: Revisar en $hostname en
+$quarantinedir/$datenumber (mensaje $id).
+
+-- 
+Postmaster
+%org-long-name%
+%web-site%
+
+

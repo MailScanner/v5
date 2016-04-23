@@ -1,0 +1,37 @@
+From: "$postmastername" <$localpostmaster>
+To: $from
+Subject: Warning: E-mail viruses detected
+
+English Version:
+
+Our virus detector has just been triggered by a message you sent:-
+  To: $to
+  Subject: $subject
+  Date: $date
+Any infected parts of the message have not been delivered.
+
+This message is simply to warn you that your computer system may have a
+virus present and should be checked.
+
+Versiunea Romana:
+
+Antivirusul de pe serverul nostru de mail a gasit intr-unul dintre mailurile
+trimise de dumneavoastra la
+
+adresa:			$to
+data:			$date
+avand subiectul:	$subject
+
+un virus. Atasamentele infectate nu vor ajunge la
+destinatar. 
+
+Acest mesaj v-a fost trimis automat cu recomandarea de a  
+scana calculatorul de pe care a fost trimis mailul.
+
+The virus detector said this about the message:
+Report: $report
+-- 
+MailScanner
+Email Virus Scanner
+%org-long-name%
+%web-site%

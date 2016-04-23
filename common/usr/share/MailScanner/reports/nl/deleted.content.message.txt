@@ -1,0 +1,20 @@
+Dit is een bericht van het MailScanner virus beschermingssysteem
+----------------------------------------------------------------
+Het originele e-mail bericht bevatte mogelijk gevaarlijke inhoud,
+hetgeen voor uw veiligheid verwijderd is.
+
+De inhoud was gevaarlijk omdat ze meestal gebruikt wordt om virussen
+te verspreiden of om persoonlijke cq. vertrouwelijke informatie te verkrijgen
+zoals wachtwoorden of credit card nummers.
+
+Op basis van de Wet bescherming persoonsgegevens kunnen we geen
+kopie bewaren van de oorspronkelijke bijlage.
+
+De filters die de inhoud controleren hebben dit gevonden:
+$report
+-- 
+Postmaster
+%org-long-name%
+%web-site%
+
+

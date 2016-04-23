@@ -1,0 +1,16 @@
+Toto je zprava od systemu antivirove ochrany elektronicke posty 'MailScanner'
+-----------------------------------------------------------------------------
+Originalni priloha "$filename" se zda byt infikovana virem a proto byla 
+nahrazena touto vystraznou zpravou.
+
+V dusledku limitovaneho prostoru, kterym nas postovni system disponuje,
+neni mozne zachovat kopii puvodni infikovane zpravy. Pozadejte prosim 
+odesilatele puvodni infikovane zpravy, aby ji odviroval a zaslal Vam jeji
+ocistenou kopii. 
+
+Dne $date detektor viru ohlasil:
+$report
+-- 
+Postmaster
+%org-long-name%
+%web-site%

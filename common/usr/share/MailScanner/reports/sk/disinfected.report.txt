@@ -1,0 +1,11 @@
+Spravu, ktoru ste prave dostali od "$from" 
+s predmetom "$subject",
+obsahovala jeden alebo viac virusov, ktore by mali byt odstranene.
+
+Virusy boli odstranene a ocisteny subor je pripojeny k tejto sprave.
+
+-- 
+MailScanner
+Email Virus Scanner
+%org-long-name%
+%web-site%

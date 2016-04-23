@@ -1,0 +1,30 @@
+From: "$postmastername" <$localpostmaster>
+To: $from
+Subject: Warnung: E-Mail-Fehler festgestellt!
+X-%org-name%-MailScanner: generated
+
+Unser Virenscanner konnte eine Nachricht von Ihnen nicht komplett untersuchen:
+  An: $to
+  Betreff: $subject
+  Datum: $date
+Die betreffenden Teile der Nachricht wurden nicht an den Empfänger weitergeleitet.
+
+Wenn Sie Microsoft Outlook verwenden, empfehlen wir dringend,
+das Format der von Ihnen versendeten Nachrichten von "Rich Text" auf "HTML" oder
+"Plain Text" umzustellen.
+
+1) Klicken Sie auf "Werkzeuge"-Menü und Wählen Sie "Einstellungen..."
+2) Gehen Sie zum "Mail Format"-Tab
+3) Beim Nachrichten-Format wählen Sie "HTML" oder "Plain text"
+4) Klicken Sie OK
+
+Der Virusscanner meinte zu der Nachricht:
+Report: $report
+
+--
+MailScanner
+E-Mail-Virus-Scanner
+%org-long-name%
+%web-site%
+
+

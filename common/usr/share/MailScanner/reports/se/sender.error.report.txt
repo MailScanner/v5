@@ -1,0 +1,20 @@
+From: "$postmastername" <$localpostmaster>
+To: $from
+Subject: Varning: Formateringfel har upptäckts
+X-%org-name%-MailScanner: generated
+
+Virusscannern misslyckades med att analysera följande meddelande:
+Till: $to
+Ämne: $subject
+Datum: $date
+De delar av meddelandet som inte kunde analyseras har inte blivit 
+levererade. Om ni använder Microsoft Outlook rekommenderas att ändra
+meddelandeformatet från "RTF" till "HTML" alternativt "oformaterad text".
+
+Virusscannern genererade följande meddelande:
+$report
+
+-- 
+MailScanner
+%org-long-name%
+%web-site%

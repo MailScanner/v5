@@ -1,0 +1,48 @@
+From: "$postmastername" <$localpostmaster>
+To: $to
+Subject: Ni ddosbarthwyd e-bost masnachol na ofynnwyd amdano / Unsolicited commercial email not delivered
+X-%org-name%-MailScanner: generated
+
+Mae neges yr ydych wedií dderbyn wedi | Our UCE (spam) detectors have been
+rhoi ein canfyddwyr UCE (sbam) ar     | triggered by a message you received:-
+waith:-                               |
+
+   From: $from
+   Subject: $subject
+   Date: $date
+
+Ni ddosbarthwyd y neges hon. Dyma'r   | This message has not been delivered.
+canfyddwyr a roddwyd ar waith:        | The detectors that were triggered are:
+$spamreport.
+
+Mae'r neges a ddanfonwyd i chi wedi   | The message to you has been detected
+ei ganfod fel sbam wedi ei seilio ar  | as spam based on either its contents
+naill ai gynnwys y neges neu'r        | or the mail server which sent the
+gwasanaethydd e-bost a ddanfonodd y   | message to us, or both.
+neges i ni, neu'r ddau.               |
+
+Nid ydym yn derbyn e-bost masnachol na| We do not accept unsolicited
+ofynnir amdano (sbam), ac rydym yn    | commercial (spam) e-mail and actively
+cymryd camau gweithredol i'w atal.    | work to stop it.
+
+Os oes gennych unrhyw gwestiynau      | If you have any questions about this,
+ynglyn â hyn, neu os ydych yn credu   | or you believe you have received
+eich bod wedi derbyn y neges hon ar   | this message in error, please contact
+gam, cysylltwch â gweinyddwyr system  | the site system administrators.
+y safle.
+
+Mi fydd eich gweinyddwyr system angen | Your system administrators will need
+gweld y wybodaeth ganlynol:           | the following information:
+
+   Server name: $hostname
+   Message id: $id
+   Date code: $datenumber
+
+--
+MailScanner
+Email Virus Scanner
+%org-long-name%
+%web-site%
+
+
+

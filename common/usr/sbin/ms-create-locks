@@ -1,0 +1,84 @@
+#!/usr/bin/perl
+
+use DirHandle;
+use FileHandle;
+use strict;
+no strict 'subs';
+
+# Find the root of the locks directory
+my $locksdirname = shift;
+my $lduname      = shift;
+my $ldgname      = shift;
+
+# Turn them all into numbers and stuff with sensible defaults
+#$locksdirname = '/var/spool/MailScanner/incoming/Locks'
+$locksdirname=`/usr/sbin/ms-peek lockfiledir /etc/MailScanner/MailScanner.conf`
+  unless $locksdirname =~ /^\//;
+my $lduid = getpwnam($lduname);
+my $ldgid = getgrnam($ldgname);
+
+# If it's not a directory, destroy it and start again.
+lstat $locksdirname;
+unlink $locksdirname unless -d _;
+lstat $locksdirname;
+unless (-d _) {
+  mkdir $locksdirname or die "Can't mkdir $locksdirname, $!";
+}
+
+# Now work through all the virus scanner autoupdate names, building Lock files.
+my($dh, $fh, $updatename, $lockname, @updatenames, @locknames);
+$dh = new DirHandle "/var/lib/MailScanner/wrapper";
+die "Can't read dir /var/lib/MailScanner/wrapper to build list of -autoupdate scripts, $!" unless $dh;
+while (defined($updatename = $dh->read)) {
+  next unless $updatename =~ s/-autoupdate$//;
+  next unless $updatename =~ /^[a-z0-9_-]+$/i; # No nasty chars thanks!
+  $lockname = "$locksdirname/$updatename" . "Busy.lock";
+  lstat $lockname;
+  unless (-f _) {
+    # It's not a plain file!
+    if (-d _) {
+      # It's a directory, so cannot just unlink it
+      system("rm -rf $lockname");
+    } else {
+      # It's not a plain file nor a directory, so just remove it
+      unlink $lockname;
+    }
+  }
+  $fh = new FileHandle($lockname, O_CREAT|O_WRONLY|O_APPEND);
+  $fh->close;
+  # Quicker to collect them and do 1 big chmod and chown call later.
+  push @locknames, $lockname;
+}
+$dh->close;
+
+# Now do the Bayes rebuild lock files
+my $lockfname;
+foreach $lockfname ('MS.bayes.rebuild.lock', 'MS.bayes.starting.lock') {
+  $lockname = "$locksdirname/$lockfname";
+  lstat $lockname;
+  unless (-f _) {
+    # It's not a plain file!
+    if (-d _) {
+      # It's a directory, so cannot just unlink it
+      system("rm -rf $lockname");
+    } else {
+      # It's not a plain file nor a directory, so just remove it
+      unlink $lockname;
+    }
+  }
+  $fh = new FileHandle($lockname, O_CREAT|O_WRONLY|O_APPEND);
+  $fh->close;
+  # Quicker to collect them and do 1 big chmod and chown call later.
+  push @locknames, $lockname;
+}
+
+# Set perms and ownership of /v/s/M/i/Locks to
+# drwxr-x--- root run-as-group
+chmod 0755, $locksdirname unless $locksdirname =~ /^\/tmp/;
+chown -1, $ldgid, $locksdirname;
+# Set perms and ownership of /v/s/M/i/Locks/*.lock to
+# -rw------- run-as-user run-as-group
+chmod 0600, @locknames;
+chown $lduid, $ldgid, @locknames;
+
+exit 0;

@@ -1,0 +1,4 @@
+-- 
+Tato sprava bola prehladana na vyskyt virusov
+a nebezpecneho obsahu antivirovym systemom
+a zda sa byt cista.

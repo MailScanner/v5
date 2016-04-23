@@ -1,0 +1,12 @@
+Nosso Sistema Anti-Vírus acredita que o anexo desta mensagem enviado a você por
+
+    From: $from
+ Subject: $subject
+
+
+É um email comerial não solicitado(spam). A menos que você esteja seguro que esta mensagem foi incorretamente classificada como um spam, por favor exclua a mensagem sem abri-la. 
+Abrir mensagens de spam podem permitem ao "spammer" verificar se seu endereço de email realmente existe. 
+
+Se acredita que esta mensagem foi incorretamente classificada como um spam, por favor remete este email a $localpostmaster. 
+
+$longspamreport

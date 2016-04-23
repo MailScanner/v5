@@ -1,0 +1,34 @@
+From: "$postmastername" <$localpostmaster>
+To: $to
+Subject: Nevyzadana komercni zprava nebyla dorucena
+X-%org-name%-MailScanner: vytvoren
+ 
+Nas UCE (spam) system kontroly obsahu elektronicke posty byl spusten
+zpravou, kterou jste zaslali:-
+    Od: $from
+    Predmet: $subject
+    Datum: $date
+Tato zprava nemohla byt dorucena. System, ktery byl spusten zpravou je
+$spamreport.
+ 
+Vam urcena zprava byla detekovana jako spam na zaklade sveho obsahu nebo
+postovniho systemu, ze ktereho byla odeslana nebo kombinace obou predeslych
+zpusobu.
+ 
+Neakceptujeme nevyzadane komercni (spam) zpravy a aktivne se je snazime
+odstranovat.
+ 
+Pokud mate jakekoliv dotazy, kontaktujte prosim administratora systemu.
+ 
+Administrator systemu bude potrebovat nasledujici informace:
+    Jmeno serveru: $hostname
+    Identifikator zpravy: $id
+    Kod data: $datenumber
+ 
+-- 
+MailScanner
+Email Virus Scanner
+%org-long-name%
+%web-site%
+
+

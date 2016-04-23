@@ -1,0 +1,21 @@
+Notre détecteur de polluriel croit que la pièce jointe à ce courriel,
+reçue:
+
+    De: $from
+ Sujet: $subject
+
+est un courriel commercial non sollicité (polluriel ou spam).
+
+Nous vous conseillons de détruire ce courriel sans ouvrir la pièce
+jointe, à moins que vous n'ayez une bonne raison de croire que notre
+logiciel a pris une mauvaise décision.
+
+Si vous ouvrez un polluriel, vous risquez d'indiquer à l'émetteur que
+votre adresse de courriel est active, ce qui va l'encourager à vous en
+envoyer d'autres.
+
+Si vous jugez que ce courriel a été déclaré polluriel alors qu'il n'en
+était pas, SVP le faire suivre avec toutes ses entêtes à
+$localpostmaster.
+
+$longspamreport

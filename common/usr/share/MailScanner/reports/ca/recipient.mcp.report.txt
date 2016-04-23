@@ -1,0 +1,25 @@
+De: "$postmastername" <$localpostmaster>
+A: $to
+Assumpte: Contingut prohibit emmagatzemat per a revisió
+X-%org-name%-MailScanner: generat
+
+Els nostres detectors de contingut de missatges han estat activats per un missatge que heu rebut:-
+  De: $from
+  Assumpte: $subject
+  Data: $date
+Aquest missatge ha estat posat en quarantena per ser revisat abans del lliurament.
+
+Si teniu cap pregunta sobre això o creieu que heu rebut aquest missatge
+per error, si us plau, contacteu amb els vostres administradors de sistema.
+
+Els vostres administradors del sistema necessitaran la informació següent:
+  Nom del servidor: $hostname
+  ID del missatge: $id
+  Data codi: $datenumber
+
+-- 
+MailScanner
+L'Escànner de Virus de Correu Electrònic
+%org-long-name%
+%web-site%
+

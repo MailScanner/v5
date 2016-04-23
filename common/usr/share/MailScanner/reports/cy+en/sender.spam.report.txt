@@ -1,0 +1,45 @@
+From: "$postmastername" <$localpostmaster>
+To: $from
+Subject: {Bounce} Gwrthod e-bost masnachol na ofynnwyd amdano/Unsolicited commercial email rejected
+X-%org-name%-MailScanner: generated
+
+Mae neges yr ydych wedi'i hanfon wedi | Our UCE (spam) detectors have been
+rhoi ein canfyddwyr UCE (sbam) ar     | triggered by a message you sent:-
+waith:-                               |
+
+  To: $to
+  Subject: $subject
+  Date: $date
+
+Mae'r neges hon wedi'i dinistrio.     | This message has been destroyed. The
+Dyma'r canfyddwyr a roddwyd ar waith: | detectors that were triggered are:
+                               $spamreport.
+
+Canfuwyd mai sbam oedd eich neges, ar | Your message has been detected as
+sail ei chynnwys a hefyd yn ôl y      | spam based on both its contents and
+gwasanaethydd post sydd wedi anfon y  | the mail server which has sent the
+neges atom ni.                        | message to us.
+
+Nid ydym yn derbyn e-bost masnachol na| We do not accept unsolicited
+ofynnir amdano (sbam), ac rydym yn    | commercial (spam) e-mail and actively
+cymryd camau gweithredol i'w atal. Os | work to stop it. If you are sending
+ydych rn anfon sbam - ac yn parhau i  | spam and continue to do so, your    
+wneud hynny - mae'n bosibl y          | Internet Service Provider may be
+cysylltir â'ch Darparwr Gwasanaeth    | contacted and requested to close your
+Rhyngrwyd a gofyn iddo gau eich       | account.
+cyfrif.                               |
+
+Os oes gennych unrhyw gwestiynau      | If you have any questions about this,
+ynglyn â hyn, neu os ydych yn credu   | or you believe you have received
+eich bod wedi derbyn y neges hon ar   | this message in error, please contact
+gam, cysylltwch â gweinyddwyr system  | the site system administrators.
+y safle.
+
+-- 
+MailScanner
+Email Virus Scanner
+%org-long-name%
+%web-site%
+
+
+

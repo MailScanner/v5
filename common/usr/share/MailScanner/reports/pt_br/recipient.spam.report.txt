@@ -1,0 +1,32 @@
+From: "$postmastername" <$localpostmaster>
+To: $to
+Subject: O email comercial não solicitado não foi entregue
+X-%org-name%-MailScanner: generated
+
+Nossos detetores de emails comerciais não solicitados(spam) foram
+ativados por uma mensagem que voce recebeu:-
+  From: $from
+  Subject: $subject
+  Date: $date
+Esta mensagem não foi entregue. Os detetores que foram ativados são
+$spamreport.
+
+A mensagem destinada para voce foi classificada como SPAM com base nestas
+regras ou no servidor que enviou a mensagem para voce, ou em ambos.
+
+Nos não iremos  aceitar emails comerciais não solicitados (spam)
+e trabalharemos ativamente para bloquea-los.
+
+Se voce tiver alguma dúvida a respeito, ou acredita que voce recebeu esta
+mensagem por erro, por favor contate o administrador do sistema.
+
+O seu administrador de sistema necessitará das seguintes informações:
+  Server name: $hostname
+  Message id: $id
+  Date code: $datenumber
+
+-- 
+MailScanner
+Email Virus Scanner
+%org-long-name%
+%web-site%

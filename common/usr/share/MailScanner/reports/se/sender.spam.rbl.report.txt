@@ -1,0 +1,22 @@
+From: "$postmastername" <$localpostmaster>
+To: $from
+Subject: {Bounce} Skräppost stoppad
+X-%org-name%-MailScanner: generated
+
+Vårt SPAM-skydd har stoppat ett meddelande ni skickat.
+  Till: $to
+  Datum: $date
+Meddelandet har tagits bort. Följande rapport genererades:
+$spamreport.
+
+Meddelandet mottogs från en server som är svartlistad(RBL) som
+dåligt konfigurerad eller missbrukas för skräppost(SPAM).
+
+Om ni har frågor eller tycker att något fel begåtts
+kontakta domänens systemadministratör.
+
+-- 
+MailScanner
+Email Virus Scanner
+%org-long-name%
+%web-site%

@@ -1,0 +1,4 @@
+-- 
+Tato zprava byla prohledana na vyskyt viru
+a nebezpecneho obsahu antivirovym systemem
+MailScanner a zda se byt cista.

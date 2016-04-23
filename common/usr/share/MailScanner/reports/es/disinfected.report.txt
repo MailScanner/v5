@@ -1,0 +1,14 @@
+Un mensaje que usted recibió recientemente de "$from"
+con el asunto "$subject"
+contenía uno o más virus que pudieron ser desinfectados.
+
+Los virus han sido eliminados y los archivos desinfectados se han
+anexado a este mensaje.
+
+-- 
+MailScanner
+Protección contra Virus de E-mail
+%org-long-name%
+%web-site%
+
+
