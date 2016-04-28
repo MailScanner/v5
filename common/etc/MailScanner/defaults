@@ -1,0 +1,165 @@
+## MailScanner Run Options
+#
+# This file controls the system level behavior of MailScanner. The file
+# /etc/MailScanner/MailScanner.conf should also be reviewed before 
+# running MailScanner.
+#
+# This file is replaced during upgrades.
+
+
+# Enable MailScanner Daemon
+#
+# Change this to 1 to allow the MailScanner daemon to run.
+# 0 = off, 1 = on
+#
+run_mailscanner=0
+
+
+## Cron Job Actions
+
+# MailScanner cron jobs are executed like this:
+#
+# hourly items: /usr/sbin/ms-cron HOURLY
+# daily items:  /usr/sbin/ms-cron DAILY
+# daemon check: /usr/sbin/ms-cron CHECK
+# maintenance:  /usr/sbin/ms-cron MAINT
+#
+# The parameters passed (HOURLY, DAILY, etc.) are case insensitive.
+#
+# You can of course create your own custom cron jobs. These are built
+# in for convenience using the options specified below.
+
+# Quarantine Retention
+#
+# This sets how many days files will remain in the "quarantine" area before
+# being automatically removed. Set to 0 (zero) to disable. 
+#
+# This is executed during the MAINT cron option. 
+#
+q_days=30
+
+# Update Virus Scanner sigs
+#
+# Update the virus scanner definitions. Most virus scanners update themselves 
+# these days so this is off by default.
+#
+# This is executed during the DAILY cron option.  0 = off, 1 = on
+#
+ms_cron_av=0
+
+# Update SpamAssassin sigs
+#
+# Update the SpamAssassin signatures. This will also compile the rules if the Rule2XSBody plugin 
+# is enabled and /usr/bin/re2c is installed. This is enabled by default.
+#
+# This is executed during the DAILY cron option.  0 = off, 1 = on
+#
+ms_cron_sa=1
+
+# Update Safe/Bad Phishing sites
+#
+# Update the phishing sites signatures. http://phishing.mailscanner.info
+# This is enabled by default.
+#
+# This is executed during the DAILY cron option.  0 = off, 1 = on
+#
+ms_cron_ps=1
+
+# Update ScamNailer bad emails
+#
+# You must have ScamNailer setup before enabling this. http://www.scamnailer.info
+# This is disabled by default.
+#
+# This is executed during the DAILY cron option.  0 = off, 1 = on
+#
+ms_cron_sn=0
+
+# MailScanner Process Check
+#
+# Check to see if MailScanner is running. If not, start it if the process
+# was not manually stopped via the init script. 
+#
+# This is executed during the HOURLY cron option.  0 = off, 1 = on
+#
+ms_cron_check=1
+
+# MailScanner Problem Message Alert
+#
+# Check the process attempts database to see if there are any emails 
+# MailScanner is having trouble processing. If there are, an email will
+# be sent to the address specified in MailScanner.conf "Notices To". This
+# is off by default. 
+#
+# This is executed during the HOURLY cron option.  0 = off, 1 = on
+#
+ms_cron_msg_alert=0
+
+
+## RAMDISK Management
+
+# Ramdisk Sync
+#
+# If you are using a ramdisk, this will sync the "Incoming Work Dir"
+# (which is where your ramdisk should be mounted if anywhere)
+# to a saved state directory upon stopping the MailScanner service 
+# and then restore it when the MailScanner service starts again.
+# 0 = off, 1 = on
+ramdisk_sync=0
+
+# The MailScanner RAMDISK Persistent Store
+#
+# The location to store and retrieve the ramdisk contents during
+# normal startup and shutdown of the MailScanner process or server.
+# This is ignored if you are not using a ramdisk for the 
+# "Incoming Work Dir" setting. 
+ramdisk_store=/var/spool/MailScanner/ramdisk_store
+
+
+## Directories
+
+# The MailScanner etc directory
+#
+ms_etc=/etc/MailScanner
+
+# The Mailscanner share directory
+#
+ms_core=/usr/share/MailScanner
+
+# The MailScanner lib directory
+#
+ms_lib=/var/lib/MailScanner
+
+
+## Files
+
+# MailScanner configuration file
+#
+# by default the file /etc/MailScanner/MailScanner.conf is used to pull
+# various settings for the daemon and permissions for working directories. 
+# You may set a different custom file here. Normally this should not be
+# changed. Any custom settings in /etc/MailScanner/conf.d/ will be
+# picked up without changing this value.
+#
+ms_conf=/etc/MailScanner/MailScanner.conf
+
+# MailScanner Virus Scanner config
+#
+# This file defines the virus scanners used by MailScanner.
+#
+ms_vs_conf=/etc/MailScanner/virus.scanners.conf
+
+# MailScanner Lock file
+#
+# Lockfile to inform scripts if MailScanner was stopped by hand
+# and should not be started automaticly
+#
+stopped_lockfile=/var/lock/subsys/MailScanner.off
+
+# RE2C
+#
+# re2c is required to compile spamassassin rules, which greatly increases the
+# speed of spamassassin. If the re2c executable is not present, the rules
+# simply will not be compiled. Compiling rules also requires the Rule2XSBody
+# plugin to be enabled in /etc/mail/spamassassin/v320.pre 
+#
+ms_re2c=/usr/bin/re2c

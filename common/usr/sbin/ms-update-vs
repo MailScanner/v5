@@ -1,9 +1,25 @@
 #!/bin/sh
 
-SCANNERSCONF=/etc/MailScanner/virus.scanners.conf
-LOCKDIR=`/usr/sbin/ms-peek lockfiledir /etc/MailScanner/MailScanner.conf`
-RUNASU=`/usr/sbin/ms-peek runasuser /etc/MailScanner/MailScanner.conf`
-RUNASG=`/usr/sbin/ms-peek runasgroup /etc/MailScanner/MailScanner.conf`
+# update virus scanners 
+
+# updated: 	Jerry Benton <mailscanner@mailborder.com>
+#			28 APR 2016
+
+ms_conf=/etc/MailScanner/MailScanner.conf
+ms_vs_conf=/etc/MailScanner/virus.scanners.conf
+
+# basic config file
+if [ -f /etc/MailScanner/defaults ] ; then
+	. /etc/MailScanner/defaults
+else
+	logger -i -p mail.notice "ERROR: ms-update-vs missing configuration file /etc/MailScanner/defaults"
+	echo "Aborted: missing configuration file /etc/MailScanner/defaults"
+    exit 1
+fi
+
+LOCKDIR=`/usr/sbin/ms-peek lockfiledir ${ms_conf}`
+RUNASU=`/usr/sbin/ms-peek runasuser ${ms_conf}`
+RUNASG=`/usr/sbin/ms-peek runasgroup ${ms_conf}`
 
 Disabled=no
 if [ "x$Disabled" = "xyes" ]; then
@@ -35,7 +51,7 @@ fi
 [ -x /usr/sbin/ms-create-locks ] && \
 /usr/sbin/ms-create-locks "$LOCKDIR" "$RUNASU" "$RUNASG"
 
-cat ${SCANNERSCONF} | sed -e 's/#.*$//' | ${GREP} -e -wrapper | \
+cat ${ms_vs_conf} | sed -e 's/#.*$//' | ${GREP} -e -wrapper | \
 while read NAME WRAPPER PACKAGEDIR
 do
   #echo String is $NAME $WRAPPER $PACKAGEDIR
@@ -47,11 +63,11 @@ do
     if ${WRAPPER} "${PACKAGEDIR}" -IsItInstalled
     then
       #echo Found $NAME installed
-      logger -p mail.info -t update.virus.scanners Found $NAME installed
+      logger -p mail.notice -t "ms-update-vs Found $NAME installed"
       if [ -x ${UPDATER} ]
       then
         #echo Updating $NAME
-        logger -p mail.info -t update.virus.scanners Running autoupdate for $NAME
+        logger -p mail.info -t "ms-update-vs Running autoupdate for $NAME"
         ${UPDATER} "${PACKAGEDIR}" "${LOCK}" >/dev/null 2>&1
       fi
     fi

@@ -6,6 +6,6 @@ Priority: optional
 Maintainer: Jerry Benton <mailscanner@mailborder.com>
 Description: Open Source Email Gateway
  Virus, malware, phishing, and spam detection engine.
-Homepage: http://www.mailscanner.info
-Depends: perl (>=5.8.7), perl-base (>=5.8.7), perl-modules (>=5.8.7), tnef, libconvert-tnef-perl, libdbd-mysql-perl, libfilesys-df-perl, libio-stringy-perl, libsys-hostname-long-perl, libnet-cidr-perl, libsys-sigaction-perl, libmailtools-perl, libmime-tools-perl, libnet-cidr-perl, libhtml-tokeparser-simple-perl, libarchive-zip-perl, libole-storage-lite-perl, libdbd-sqlite3-perl, libsys-syslog-perl, libsys-sigaction-perl               
-Recommends: wget | curl, clamav, clamav-daemon, unrar, rsync 
+Homepage: https://www.mailscanner.info
+Depends: perl (>=5.8.7)              
+Recommends: wget | curl, clamav, clamav-daemon, unrar, rsync, tnef, libconvert-tnef-perl, libdbd-mysql-perl, libfilesys-df-perl, libio-stringy-perl, libsys-hostname-long-perl, libnet-cidr-perl, libsys-sigaction-perl, libmailtools-perl, libmime-tools-perl, libnet-cidr-perl, libhtml-tokeparser-simple-perl, libarchive-zip-perl, libole-storage-lite-perl, libdbd-sqlite3-perl, libsys-syslog-perl, libsys-sigaction-perl 

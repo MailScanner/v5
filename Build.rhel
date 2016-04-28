@@ -65,7 +65,7 @@ fi
 #fi
 
 # the source directory
-SRCDIR=$DEVBASEDIR/RPM.files/RHEL
+SRCDIR=$DEVBASEDIR/rhel
 
 # version info 
 BUILD=$MSBUILD
@@ -88,93 +88,25 @@ fi
 
 # make working dir and subs
 mkdir -p $WORK
-mkdir -p ${WORK}/doc
-mkdir -p ${WORK}/cron
-mkdir -p ${WORK}/etc/rc.d/init.d
-mkdir -p ${WORK}/usr/sbin/
-mkdir -p ${WORK}/usr/share/man/{man8,man5}
-mkdir -p ${WORK}/etc/MailScanner{conf.d,rules,mcp}
-mkdir -p ${WORK}/etc/{cron.hourly,cron.daily,sysconfig,logcheck/ignore.d.workstation,logcheck/ignore.d.server}
-mkdir -p ${WORK}/usr/share/MailScanner/reports/{hu,de,se,ca,cy+en,pt_br,fr,es,en,cz,it,dk,nl,ro,sk}
-mkdir -p ${WORK}/usr/share/MailScanner/perl/{MailScanner,custom}
-mkdir -p ${WORK}/var/{lib/MailScanner/wrapper,spool/MailScanner/archive,spool/MailScanner/quarantine,spool/MailScanner/incoming/Locks,spool/mqueue,spool/mqueue.in,run}
+mkdir -p $WORK/{var,usr,etc}
 
+# etc
+cp -fr $DEVBASEDIR/common/etc/*					$WORK/etc/
+cp -fr $DEVBASEDIR/rhel/etc/*					$WORK/etc/
 
-# base
-cp $DEVBASEDIR/common/usr/sbin/ms-check 				$WORK/usr/sbin/ms-check
-cp $DEVBASEDIR/Redhat.files/etc/cron.daily/mailscanner 			$WORK/etc/cron.daily/MailScanner
-cp $DEVBASEDIR/Redhat.files/etc/cron.hourly/mailscanner 		$WORK/etc/cron.hourly/MailScanner
-cp $DEVBASEDIR/Redhat.files/etc/rc.d/init.d/MailScanner			$WORK/etc/rc.d/init.d/MailScanner
-cp $DEVBASEDIR/Redhat.files/etc/sysconfig/mailscanner 			$WORK/etc/sysconfig/mailscanner
+# usr
+cp -fr $DEVBASEDIR/common/usr/* $WORK/usr/
+cp -fr $DEVBASEDIR/rhel/usr/* $WORK/usr/
 
-cp $DEVBASEDIR/RPM.files/common/ms-update-vs.cron 		$WORK/cron
-cp $DEVBASEDIR/RPM.files/common/ms-update-safe-sites.cron 		$WORK/cron
-cp $DEVBASEDIR/RPM.files/common/ms-update-bad-sites.cron 	$WORK/cron
-cp $DEVBASEDIR/RPM.files/common/clean.quarantine.cron 			$WORK/cron
-cp $DEVBASEDIR/RPM.files/common/ms-update-sa.cron 		$WORK/cron
-cp $DEVBASEDIR/RPM.files/common/ms-msg-alert.cron 	$WORK/cron
-
-# doc dir
-cp $DEVBASEDIR/man/*[12345678] 			$WORK/doc/
-cp $DEVBASEDIR/LICENSE 					$WORK/doc/
-cp /tmp/MailScanner.conf.index.html 	$WORK/doc/
-
-# lib dir
-cp $DEVBASEDIR/mailscanner/lib/*{wrapper,update} 	$WORK/lib/
-cp $DEVBASEDIR/mailscanner/lib/kaspersky.prf 		$WORK/lib/
-
-# etc dir
-for F in filename.rules.conf filetype.rules.conf archives.filename.rules.conf archives.filetype.rules.conf spamassassin.conf spam.lists.conf virus.scanners.conf phishing.safe.sites.conf phishing.bad.sites.conf country.domains.conf
-do
-	cp $DEVBASEDIR/mailscanner/etc/$F $WORK/etc/
-done
-cp $DEVBASEDIR/mailscanner/etc/mailscanner.conf $WORK/etc/MailScanner.conf
-cp $DEVBASEDIR/mailscanner/etc/conf.d/README $WORK/etc/conf.d/
-(cd $DEVBASEDIR/mailscanner/etc&& tar cf - reports rules mcp ) | ( cd $WORK/etc && tar xBpf - )
-
-# bin dir
-cp $DEVBASEDIR/common/usr/sbin/ms-peek 					$WORK/bin/
-cp $DEVBASEDIR/common/usr/sbin/ms-df2mbox 						$WORK/bin/
-cp $DEVBASEDIR/common/usr/sbin/ms-d2mbox 						$WORK/bin/
-cp $DEVBASEDIR/common/usr/sbin/CheckModuleVersion 			$WORK/bin/
-cp $DEVBASEDIR/common/usr/sbin/getPERLLIB 					$WORK/bin/
-cp $DEVBASEDIR/common/usr/sbin/ms-create-locks 	$WORK/bin/
-cp $DEVBASEDIR/common/usr/sbin/ms-update-vs 		$WORK/bin/
-cp $DEVBASEDIR/common/usr/sbin/ms-update-sa 			$WORK/bin/
-cp $DEVBASEDIR/common/usr/sbin/ms-update-safe-sites 		$WORK/bin/
-cp $DEVBASEDIR/common/usr/sbin/ms-update-bad-sites 	$WORK/bin/
-cp $DEVBASEDIR/common/usr/sbin/ms-msg-alert 	$WORK/bin/
-cp $DEVBASEDIR/common/usr/sbin/ms-sa-cache 	$WORK/bin/
-cp $DEVBASEDIR/common/usr/sbin/ms-upgrade-conf 	$WORK/bin/
-cp $DEVBASEDIR/common/usr/sbin/mailscanner.sbin 			$WORK/bin/mailscanner
-
-# links
-cd $WORK/bin
-ln -sf ms-upgrade-conf upgrade_languages_conf
-
-# set attributes
-chmod a+rx *
-
-# return to where i started
-cd $THISCURDIR
-
-# copy remaining pm items
-cp $DEVBASEDIR/common/usr/sbin/MailScanner.pm $WORK/bin/
-cp $DEVBASEDIR/common/usr/sbin/MailScanner/*pm $WORK/bin/MailScanner
-cp $DEVBASEDIR/common/usr/sbin/MailScanner/*pl $WORK/bin/MailScanner
-cp $DEVBASEDIR/common/usr/sbin/MailScanner/CustomFunctions/*pm $WORK/bin/MailScanner/CustomFunctions
-
-# set conf file permissions
-chmod 0644 $WORK/etc/*.conf
+# var
+cp -fr $DEVBASEDIR/common/var/* $WORK/var/
 
 # Insert the version number we are building
-perl -pi -e 's/VersionNumberHere/'$MSVERSION'/;' $WORK/etc/MailScanner.conf
+perl -pi -e 's/VersionNumberHere/'$MSVERSION'/;' $WORK/etc/MailScanner/MailScanner.conf
+perl -pi -e 's/VersionNumberHere/'$MSVERSION'/;' $WORK/usr/sbin/MailScanner
 
-# do the same for the mailscanner.sbin
-perl -pi -e 's/VersionNumberHere/'$MSVERSION'/;' $WORK/bin/mailscanner
-
-# do the same for MailScanner4.spec
-cp -f $DEVBASEDIR/RPM.files/RHEL/MailScanner4.spec ~/rpmbuild/SPECS/mailscanner.spec
+# do the same for mailscanner.spec
+cp -f $DEVBASEDIR/rhel/mailscanner.spec ~/rpmbuild/SPECS/mailscanner.spec
 perl -pi -e 's/VersionNumberHere/'$MSVERSION'/;' ~/rpmbuild/SPECS/mailscanner.spec
 perl -pi -e 's/ReleaseNumberHere/'$MSBUILD'/;' ~/rpmbuild/SPECS/mailscanner.spec
 
@@ -193,6 +125,9 @@ find $WORK -name 'README' -exec chmod 644 {} \;
 find $WORK -name 'EXAMPLES' -exec chmod 644 {} \;
 find $WORK -name 'LICENSE' -exec chmod 644 {} \;
 
+# set attributes
+chmod a+rx $WORK/usr/sbin/*
+
 # Build the src tarball for RPM construction
 cd $WORK
 cd ..
@@ -207,10 +142,10 @@ mkdir -p $RPMOUT/MailScanner-$VERSION
 
 # copy some file we need
 cp $SRCDIR/install.sh $RPMOUT/MailScanner-$VERSION/
-cp $SRCDIR/README $RPMOUT/MailScanner-$VERSION/
-cp $DEVBASEDIR/QuickInstall.txt $RPMOUT/MailScanner-$VERSION/
+cp $DEVBASEDIR/README $RPMOUT/MailScanner-$VERSION/
+cp $DEVBASEDIR/LICENSE $RPMOUT/MailScanner-$VERSION/
 find $RPMOUT/MailScanner-$VERSION -name 'install.sh' -exec chmod 655 {} \;
-find $RPMOUT/MailScanner-$VERSION -name '*.txt' -exec chmod 644 {} \;
+find $RPMOUT/MailScanner-$VERSION -name 'LICENSE' -exec chmod 644 {} \;
 find $RPMOUT/MailScanner-$VERSION -name 'README' -exec chmod 644 {} \;
 
 # Build the RPM and SRPMS

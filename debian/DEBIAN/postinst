@@ -33,6 +33,10 @@ if id -u clamav >/dev/null 2>&1; then
 	usermod -a -G mtagroup clamav >/dev/null 2>&1
 fi
 
+if id -u clamscan >/dev/null 2>&1; then
+	usermod -a -G mtagroup clamscan >/dev/null 2>&1
+fi
+
 if id -u vscan >/dev/null 2>&1; then
 	usermod -a -G mtagroup vscan >/dev/null 2>&1
 fi
@@ -89,8 +93,8 @@ if [ -f '/etc/MailScanner/MailScanner.conf' ]; then
 fi
 
 # fix custom functions directory
-OLDTHING='\/usr\/share\/MailScanner\/MailScanner\/CustomFunctions';
-NEWTHING='\/usr\/share\/MailScanner\/perl\/custom';
+OLDTHING='^Custom Functions Dir.*';
+NEWTHING='Custom Functions Dir = \/usr\/share\/MailScanner\/perl\/custom';
 if [ -f '/etc/MailScanner/MailScanner.conf' ]; then
 	sed -i "s/${OLDTHING}/${NEWTHING}/g" /etc/MailScanner/MailScanner.conf
 fi
@@ -108,6 +112,19 @@ fi
 if [ -d '/etc/mail/spamassassin' -a ! -L '/etc/spamassassin/mailscanner.cf' -a -f '/etc/MailScanner/spamassassin.conf' -a ! -f '/etc/spamassassin/mailscanner.cf' ]; then
 	ln -s /etc/MailScanner/spamassassin.conf /etc/mail/spamassassin/mailscanner.cf 
 fi
+
+# remove old symlink if present
+if [ -L '/etc/init.d/mailscanner' ]; then
+	rm -f /etc/init.d/mailscanner
+fi
+
+# remove old file if present
+if [ -f '/etc/init.d/mailscanner' ]; then
+	rm -f /etc/init.d/mailscanner
+fi
+
+# add symlink to init script
+ln -s /var/lib/MailScanner/init/mailscanner /etc/init.d/mailscanner
 
 # fix the clamav wrapper if the user does not exist
 if [ -d '/etc/clamav' ]; then

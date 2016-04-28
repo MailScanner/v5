@@ -1,15 +1,28 @@
 #!/bin/bash
 
+# created:	Jerry Benton <mailscanner@mailborder.com>
+#			28 APR 2016
+
 SAUPDATE=/usr/bin/sa-update
 SACOMPILE=/usr/bin/sa-compile
-SAUPDATEARGS=""
+ms_re2c=/usr/bin/re2c
+SAUPDATEARGS="--refreshmirrors"
+
+# basic config file
+if [ -f /etc/MailScanner/defaults ] ; then
+	. /etc/MailScanner/defaults
+else
+	logger -i -p mail.notice "ERROR: ms-update-sa missing configuration file /etc/MailScanner/defaults"
+	echo "Aborted: missing configuration file /etc/MailScanner/defaults"
+    exit 1
+fi
 
 export SAUPDATE
 export SACOMPILE
 export SAUPDATEARGS
 UPDATESUCCESS=0
 COMPILESUCCESS=0
-LOGFILE=/tmp/ms-update-sa.$(date +%m%d)
+LOGFILE=/tmp/ms-update-sa.$(date +%m%d%H%M%S)
 
 # Update SpamAssassin rules
 [ -x $SAUPDATE ] || exit 0
@@ -19,20 +32,21 @@ UPDATESUCCESS=$?
 
 if [ $UPDATESUCCESS = 0 ]; then
   # If we have sa-compile and they are using the Rule2XSBody plugin then compile
-  if test -x $SACOMPILE && grep -q '^loadplugin.*Rule2XSBody' /etc/mail/spamassassin/*pre 2>/dev/null ; then
+  if test -x $SACOMPILE && -x $ms_re2c && grep -q '^loadplugin.*Rule2XSBody' /etc/mail/spamassassin/*pre 2>/dev/null ; then
     $SACOMPILE >>$LOGFILE 2>&1
     COMPILESUCCESS=$?
   else
-    echo $SACOMPILE does not exist or Rule2XSBody plugin not enabled >>$LOGFILE
+    echo missing $SACOMPILE or $ms_re2c or Rule2XSBody plugin not enabled >>$LOGFILE
     COMPILESUCCESS=1
   fi
 fi
 
-/etc/init.d/mailscanner reload >>$LOGFILE 2>&1
+/var/lib/MailScanner/init/mailscanner reload >>$LOGFILE 2>&1
 
 # Only delete the logfile if the update succeeded
 if [ $UPDATESUCCESS = 0 -a $COMPILESUCCESS = 0 -o $UPDATESUCCESS = 1 ]; then
-  rm -f $LOGFILE
+	logger -i -p mail.notice "ms-update-sa: spamassassin signatures updated"  	
+	rm -f $LOGFILE
 fi
 
 exit 0

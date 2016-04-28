@@ -67,8 +67,8 @@ mkdir -p $WORK
 mkdir -p $WORK/{var,usr,etc}
 
 # etc
-cp -fr $DEVBASEDIR/common/etc/*					$WORK/etc/
-cp -fr $DEVBASEDIR/debian/etc/*					$WORK/etc/
+cp -fr $DEVBASEDIR/common/etc/*	$WORK/etc/
+cp -fr $DEVBASEDIR/debian/etc/*	$WORK/etc/
 
 # usr
 cp -fr $DEVBASEDIR/common/usr/* $WORK/usr/
@@ -83,6 +83,12 @@ perl -pi -e 's/VersionNumberHere/'$MSVERSION'/;' $WORK/etc/MailScanner/MailScann
 perl -pi -e 's/VersionNumberHere/'$MSVERSION'/;' $WORK/usr/sbin/MailScanner
 perl -pi -e 's/VersionNumberHere/'$MSVERSION'/;' $WORK/DEBIAN/postinst
 
+# remove svn and git and mac stuff
+find $WORK -name '.svn' -exec rm -rf {} \;
+find $WORK -name '.git' -exec rm -rf {} \;
+find $WORK -name '*.DS_Store' -exec rm -rf {} \;
+find $WORK -depth -name '__MACOSX' -exec rm -rf {} \;
+
 cd $WORK
 find . -type f -exec chmod 0644 {} \;
 find . -type d -exec chmod 0755 {} \;
@@ -92,6 +98,7 @@ chmod +x $WORK/DEBIAN/preinst
 chmod +x $WORK/DEBIAN/postrm
 chmod +x $WORK/var/lib/MailScanner/wrapper/*-autoupdate
 chmod +x $WORK/var/lib/MailScanner/wrapper/*-wrapper
+chmod +x $WORK/var/lib/MailScanner/init/*
 chmod +x $WORK/etc/init.d/*
 chmod +x $WORK/etc/cron.daily/*
 chmod +x $WORK/etc/cron.hourly/*

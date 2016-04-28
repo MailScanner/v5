@@ -1,0 +1,548 @@
+#!/bin/sh
+
+# This script provides MailScanner daemon initialization across
+# multiple Unices. 
+#
+# Author: Jerry Benton <mailscanner@mailborder.com>
+# 25 APR 2016
+
+# The below block contains various items for different Unices 
+# Some are required based on OS, so do not change them.
+
+# $FreeBSD$
+#
+# PROVIDE: MailScanner
+
+# Debian
+#
+### BEGIN INIT INFO
+# Provides: MailScanner
+# Required-Start: $remote_fs $network $syslog
+# Required-Stop: $remote_fs $network $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Mailscanner daemon
+# Description:       starts MailScanner using internal daemon mechanism
+### END INIT INFO
+
+# RHEL
+#
+# chkconfig: 345 20 80
+# description: MailScanner daemon
+# processname: MailScanner
+
+PATH=$PATH:/usr/sbin:/usr/bin:/bin:/sbin
+export PATH
+NAME=MailScanner
+DAEMON=/usr/sbin/MailScanner
+QUICKPEEK=/usr/sbin/ms-peek
+run_mailscanner=0
+ramdisk_sync=0
+ms_conf=/etc/MailScanner/MailScanner.conf
+ms_core=/usr/share/MailScanner
+ms_lib=/var/lib/MailScanner
+ramdisk_store=/var/spool/MailScanner/ramdisk_store
+stopped_lockfile=/var/lock/subsys/MailScanner.off
+HOSTNAME=$(hostname)
+export HOSTNAME
+
+# enable logging of non-critical notices to the maillog: yes/no
+VERBOSE=yes
+
+# basic config file
+if [ -f /etc/MailScanner/defaults ] ; then
+	. /etc/MailScanner/defaults
+else
+	echo "Aborted: missing configuration file /etc/MailScanner/defaults"
+    exit 1
+fi
+
+# Exit if the MailScanner executable is not installed
+[ -x $DAEMON ] || exit 0
+
+# if /var/lock/subsys is missing
+[ -d /var/lock/subsys ] || mkdir -p /var/lock/subsys
+
+# Don't start if MailScanner is not configured
+if [ $run_mailscanner = 0 ]; then
+	cat <<-EOF
+	Edit the file /etc/MailScanner/MailScanner.conf according to
+	your needs. When complete, edit /etc/MailScanner/defaults and set 
+	the variable to enable MailScanner to run:
+
+	run_mailscanner=1
+	EOF
+    exit 0
+fi
+
+# work directory ownership and permissions
+WORKDIR=`${QUICKPEEK} IncomingWorkDir ${ms_conf}`
+QUARDIR=`${QUICKPEEK} QuarantineDir ${ms_conf}`
+QUARUSER=`${QUICKPEEK} QuarantineUser ${ms_conf}`
+QUARGRP=`${QUICKPEEK} QuarantineGroup ${ms_conf}`
+RDUSER=`${QUICKPEEK} IncomingWorkUser ${ms_conf}`
+RDGROUP=`${QUICKPEEK} IncomingWorkGroup ${ms_conf}`
+PIDFILE=`${QUICKPEEK} PIDFile ${ms_conf}`
+
+# check to make sure these are set
+if [ -z $WORKDIR ]; then
+	WORKDIR=/var/spool/MailScanner/incoming
+fi
+
+if [ -z $QUARDIR ]; then
+	QUARDIR=/var/spool/MailScanner/quarantine
+fi
+
+# check to make sure these are set
+if [ -z $QUARUSER ]; then
+	QUARUSER=root
+fi
+
+if [ -z $QUARGRP ]; then
+	QUARGRP=mtagroup
+fi
+
+if [ -z $RDUSER ]; then
+	RDUSER=root
+fi
+
+if [ -z $RDGROUP ]; then
+	RDGROUP=mtagroup
+fi
+
+if [ -z $PIDFILE ]; then
+	PIDFILE=/var/run/MailScanner.pid
+fi
+
+# create if does not exist
+if [ ! -d $WORKDIR ]; then
+	mkdir -p $WORKDIR
+	chown ${RDUSER}:${RDGROUP} $WORKDIR
+	chmod 770 $WORKDIR
+fi
+
+# create if does not exist
+if [ ! -d $QUARDIR ]; then
+	mkdir -p $QUARDIR
+	chown ${QUARUSER}:${QUARGRP} $QUARDIR
+	chmod 770 $QUARDIR
+fi
+
+if [ ! -f $ms_conf ] ; then
+	ms_conf=/etc/MailScanner/MailScanner.conf
+fi
+
+#
+# Function that starts the daemon/service
+#
+do_start()
+{	
+	# Return
+	#   0 if daemon has been started
+	#   2 if daemon could not be started
+	# 	3 unknown error
+	
+	# check if the daemon is already running
+	# should have already been checked in the CASE
+	# statement below
+	
+	# starts the daemon
+	$DAEMON $ms_conf
+	
+	RETVAL="$?"
+	
+	# Set lockfile to inform cronjobs about the running daemon
+	if [ $RETVAL -eq 0 ]; then
+	    
+	    # set run file
+	    if [ ! -f /run/lock/subsys/MailScanner ] ; then
+	    	touch /run/lock/subsys/MailScanner
+	    fi 
+	    
+	    # remove lock file if any
+	    if [ -f $stopped_lockfile ] ; then
+	    	rm -f $stopped_lockfile
+	    fi
+	    
+	    # note: the PID file is created by the daemon automatically
+	    
+	    return 0
+	else
+		# unable to start the daemon
+		logger -i -p mail.notice "Unable to start $NAME"
+		return 2
+	fi
+	
+	# we should never get this far
+	return 3
+}
+
+#
+# Function that stops the daemon/service
+#
+do_stop()
+{
+	# Return
+	#   0 if daemon has been stopped
+	#   1 if daemon was already stopped
+	#   2 if daemon could not be stopped
+	#	3 unknown error
+
+	# get the PID
+	if [ -f $PIDFILE ] ; then
+		PID=$(head -n 1 $PIDFILE)
+	else
+		# no pid
+		PID=
+	fi
+			
+	# no pid so MailScanner should not be running
+	if [ "x$PID" = "x" ]; then
+		RETVAL=9
+	else
+		ps wwp $PID|grep -iq [M]ailScanner > /dev/null 2>&1
+		RETVAL="$?"
+	fi
+
+	
+	# MailScanner is not running
+	if [ $RETVAL -ne 0 ]; then
+	
+		# kill any rogue processes
+		kill $(ps axww | grep -i [M]ailScanner | awk '{print $1}') > /dev/null 2>&1
+		
+		# these should not exist if the process is stopped, so they
+		# are removed if they do exist
+		
+		# remove subsys
+		if [ -f /run/lock/subsys/MailScanner ] ; then
+			rm -f /run/lock/subsys/MailScanner
+		fi    
+	
+		# remove pid file
+		if [ -f $PIDFILE ] ; then
+			rm -f $PIDFILE
+		fi
+		
+		# create stopped file
+		if [ ! -f $stopped_lockfile ] ; then
+			touch $stopped_lockfile
+		fi
+			
+		return 1
+	else
+		# MailScanner is running. kill it
+		kill -15 $PID
+		RETVAL="$?"
+		
+		# process killed
+		if [ $RETVAL -eq 0 ]; then
+			[ "$VERBOSE" != no ] && logger -i -p mail.notice "$NAME stopped"
+			
+			# remove subsys
+			if [ -f /run/lock/subsys/MailScanner ] ; then
+				rm -f /run/lock/subsys/MailScanner
+			fi    
+		
+		    # remove pid file
+		    if [ -f $PIDFILE ] ; then
+				rm -f $PIDFILE
+			fi
+			
+			# create stopped file
+			touch $stopped_lockfile
+			
+			return 0
+		else
+			# unable to kill process
+			logger -i -p mail.notice "WARN: $NAME $DESC could not be stopped"
+			return 2
+		fi
+	fi
+	
+	# we should never get this far
+	return 3
+}
+
+#
+# Function that sends a SIGHUP to the daemon/service
+#
+do_reload()
+{
+	# check if a PID file exists
+	if [ -f $PIDFILE ] ; then
+		# get the PID
+		PID=$(head -n 1 $PIDFILE)
+		
+		# check to see if running and belongs to mailscanner
+		ps wwp $PID|grep -iq [M]ailScanner > /dev/null 2>&1
+		
+		# get the return
+		RETVAL="$?"
+		
+		# if 0 it is already running
+		if [ $RETVAL -eq 0 ]; then
+				kill -1 $PID
+				return 0
+		else
+				[ "$VERBOSE" != no ] && logger -i -p mail.notice "Found a dead PID. Stopping all $NAME rogue processes ..."
+				kill -15 $(ps axww | grep -i [M]ailScanner | awk '{print $1}') > /dev/null 2>&1
+				rm -f $PIDFILE
+				return 1
+		fi
+	else
+		# process not running
+		return 2
+	fi
+}
+
+do_perms()
+{
+	# make sure share permissions are correct
+	if [ -d $ms_core ]; then
+		find $ms_core -type f -exec chmod 644 {} \;
+	fi
+	
+	# wrappers
+	if [ -d $ms_lib ]; then
+		find ${ms_core}/wrapper/ -type f -exec chmod 755 {} \;
+	fi
+	
+	# MailScanner executables
+	chmod 755 /usr/sbin/ms-*
+	
+	# MailScanner daemon
+	if [ ! -x $DAEMON ]; then
+		chmod 755 $DAEMON
+	fi
+	
+	# incoming
+	chmod 770 $WORKDIR
+	
+	# set owner:group
+	chown ${RDUSER}:${RDGROUP} $WORKDIR
+	
+	# processing.db and spamassassin.cache.db
+	chmod 660 ${WORKDIR}/*.db
+	
+	# ramdisk
+	if [ -d $ramdisk_store ];then
+		chown ${RDUSER}:${RDGROUP} $ramdisk_store 
+		chmod 770 $ramdisk_store
+	fi	
+}
+
+case "$1" in
+  start)
+  	# check if a PID file exists
+	if [ -f $PIDFILE ] ; then
+			# get the PID
+			PID=$(head -n 1 $PIDFILE)
+			
+			# check to see if running and belongs to mailscanner
+			ps wwp $PID|grep -iq [M]ailScanner > /dev/null 2>&1
+			
+			# get the return
+			RETVAL="$?"
+			
+			# if 0 it is already running
+			if [ $RETVAL -eq 0 ]; then
+					echo "$NAME is already running"
+					exit 0
+			else
+					[ "$VERBOSE" != no ] && logger -i -p mail.notice "Found a dead PID. Stopping all $NAME rogue processes ..."
+					kill -15 $(ps axww | grep -i [M]ailScanner | awk '{print $1}') > /dev/null 2>&1
+					rm -f $PIDFILE
+			fi
+	fi
+	
+	# check the stop file and remove if present
+	if [ -f $stopped_lockfile ] ; then
+		rm -f $stopped_lockfile
+	fi
+	
+	# sync the ramdisk if in use
+	if [ $ramdisk_sync = 1 ]; then
+		# make sure this is a RAMDISK tmpfs
+		FSTYPE=$(df -P -T $WORKDIR|tail -n +2 | awk '{print $2}');
+
+		if [ $FSTYPE = tmpfs ]; then
+			# if /var/spool/MailScanner/ramdisk_save is missing
+			if [ ! -d $ramdisk_store ]; then
+				mkdir -p $ramdisk_store 
+				chown ${RDUSER}:${RDGROUP} $ramdisk_store
+				chmod 770 $ramdisk_store
+			fi
+			
+			# sync
+			[ "$VERBOSE" != no ] && logger -i -p mail.notice "Syncing ramdisk from persistent store"			
+			rsync --quiet --archive ${ramdisk_store}/ $WORKDIR
+		fi
+	fi
+			
+	[ "$VERBOSE" != no ] && logger -i -p mail.notice "Starting $NAME "
+	
+	# make sure the correct permissions are set
+	echo "$NAME starting ... "
+	do_perms
+	do_start
+	
+	STARTRETVAL="$?"
+	
+	if [ $STARTRETVAL -eq 0 ]; then
+		[ "$VERBOSE" != no ] && logger -i -p mail.notice "$NAME started"
+		PID=$(head -n 1 $PIDFILE)
+		echo "$NAME started with process id $PID"
+	else
+		logger -i -p mail.notice "$NAME failed to start"
+		kill -15 $(ps axww | grep -i [M]ailScanner | awk '{print $1}') > /dev/null 2>&1
+		exit 1
+	fi
+	
+	;;
+  stop)
+  	[ "$VERBOSE" != no ] && logger -i -p mail.notice "Stopping $NAME "
+	
+	do_stop
+	RETVAL="$?"
+	
+	# error in do_stop - this should never trigger
+	if [ $RETVAL -eq 3 ]; then
+		echo "There was a fatal error in stopping the daemon. Use the"
+		echo "'kill' option to force any running processes to stop."
+		exit 1
+	fi
+	
+	# mailscanner could not be stopped
+	if [ $RETVAL -eq 2 ]; then
+		echo "ERROR: Unable to stop $NAME"
+		echo "ERROR: Use the 'kill' option to force stop"
+		exit 0
+	fi
+	
+	# mailscanner was not running
+	if [ $RETVAL -eq 1 ]; then
+		echo "$NAME is already stopped"
+		exit 0
+	fi
+	
+	# successfully stopped
+	if [ $RETVAL -eq 0 ]; then
+		if [ $ramdisk_sync = 1 ]; then
+			# make sure this is a RAMDISK tmpfs
+			FSTYPE=$(df -P -T ${WORKDIR}|tail -n +2 | awk '{print $2}');
+
+			if [ ${FSTYPE} = tmpfs ]; then
+				# if /var/spool/MailScanner/ramdisk_save is missing
+				if [ ! -d ${ramdisk_store} ]; then
+					mkdir -p ${ramdisk_store} 
+					chmod 0755 ${ramdisk_store}
+				fi
+			
+				# sync
+				[ "$VERBOSE" != no ] && logger -i -p mail.notice "$NAME syncing ramdisk to persistent store"
+				rm -rf ${ramdisk_store}/*
+				rsync --quiet --archive --delete --recursive --force ${WORKDIR}/ ${ramdisk_store}
+			fi
+		fi
+		
+		echo "$NAME stopped"
+		
+	fi
+
+	;;
+  status)
+	
+	if [ -f $PIDFILE ] ; then
+			# get the PID
+			PID=$(head -n 1 $PIDFILE)
+			
+			# check to see if running and belongs to mailscanner
+			ps wwp $PID|grep -iq [M]ailScanner > /dev/null 2>&1
+			
+			# get the return
+			RETVAL="$?"
+			
+			# if 0 it is already running
+			if [ $RETVAL -eq 0 ]; then
+					echo "$NAME is running under process id $PID"
+					exit 0
+			else
+					[ "$VERBOSE" != no ] && logger -i -p mail.notice "Found a dead PID. Killing all $NAME rogue processes ..."
+					echo "$NAME had a dead PID. Any rogue processes were killed."
+					kill -15 $(ps axww | grep -i [M]ailScanner | awk '{print $1}') > /dev/null 2>&1
+					rm -f $PIDFILE
+			fi
+	fi
+	
+	echo "$NAME is not running"
+	exit 0
+	
+	;;
+  restart)
+  	echo "Restarting $NAME ..."
+	[ "$VERBOSE" != no ] && logger -i -p mail.notice "Restarting $NAME "
+	do_stop
+	do_start
+	
+	STARTRETVAL="$?"
+	
+	if [ $STARTRETVAL -eq 0 ]; then
+		[ "$VERBOSE" != no ] && logger -i -p mail.notice "$NAME restarted"
+		PID=$(head -n 1 $PIDFILE)
+		echo "$NAME restarted with process id $PID"
+		exit 0
+	else
+		logger -i -p mail.notice "$NAME failed to start"
+		echo "$NAME failed to start ... doh!"
+		kill $(ps axww | grep -i [M]ailScanner | awk '{print $1}') > /dev/null 2>&1
+		exit 1
+	fi
+	
+	;;
+
+  reload)
+  	echo "Reloading $NAME configuration ..."
+	[ "$VERBOSE" != no ] && logger -i -p mail.notice "Reloading $NAME configuration"
+	do_reload
+	
+	RETVAL="$?"
+	
+	if [ $RETVAL -eq 0 ]; then
+		PID=$(head -n 1 $PIDFILE)
+		echo "$NAME reloaded with process id $PID"
+		exit 0
+	elif [ $RETVAL -eq 2 ]; then
+		echo "$NAME is not running"
+		exit 0
+	else
+		echo "$NAME reload failed"
+		exit 1
+	fi
+	
+	;;
+	
+  kill)
+	[ "$VERBOSE" != no ] && logger -i -p mail.notice "Killing $NAME "
+	echo "Killing $NAME and children ... mwa ha ha ha!"
+	kill -9 $(ps axww | grep -i [M]ailScanner | awk '{print $1}') > /dev/null 2>&1
+	
+	# remove subsys
+	if [ -f /run/lock/subsys/MailScanner ] ; then
+		rm -f /run/lock/subsys/MailScanner
+	fi    
+
+	# remove pid file
+	if [ -f $PIDFILE ] ; then
+		rm -f $PIDFILE
+	fi
+	
+	# create stopped file
+	touch $stopped_lockfile
+	
+	;;
+  *)
+	echo "        Usage: { start | stop | reload  | restart | kill | status }" >&2
+	exit 3
+	;;
+esac

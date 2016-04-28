@@ -15,6 +15,8 @@
 # from <https://code.google.com/p/anti-phishing-email-reply/> instead
 # of the Mailscanner data which has become unreliable.
 #
+# Updated 28 APR 2016 by Jerry Benton <mailscanner@mailborder.com> to
+# use new $mailscanner_restart
 
 use strict;
 use File::Temp;
@@ -35,7 +37,7 @@ my $emailscurrent = '/var/cache/ScamNailer/';
 # Set this next value to '' if ou are not using MailScanner.
 # Or else change it to any command you need to run after updating the
 # SpamAssassin rules, such as '/sbin/service spamd restart'.
-my $mailscanner_restart = '/sbin/service MailScanner reload';
+my $mailscanner_restart = '/var/lib/MailScanner/init/mailscanner reload';
 
 # The SpamAssassin score to assign to the final rule that fires if any of
 # the addresses hit. Multiple hits don't increase the score.

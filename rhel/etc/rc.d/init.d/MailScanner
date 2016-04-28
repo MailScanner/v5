@@ -4,10 +4,15 @@
 #               MailScanner, and its associated copies of sendmail.
 #
 # chkconfig: 2345 80 30
-# description: MailScanner is an open-source E-Mail Gateway Virus Scanner.
+# description: MailScanner is an open source Email processor.
 # processname: MailScanner
-# config: /etc/MailScanner/MailScanner.conf
-# pidfile: /var/run/MailScanner.pid
+# default config: /etc/MailScanner/MailScanner.conf
+# default pidfile: /var/run/MailScanner.pid
+#
+# author: Jerry Benton <mailscanner@mailborder.com>
+
+# config file in /etc/default
+PNAME=mailscanner
 
 # Source function library.
 if [ -f /etc/rc.d/init.d/functions ] ; then
@@ -19,21 +24,75 @@ if [ -f /etc/sysconfig/network ] ; then
 	. /etc/sysconfig/network
 fi
 
+# Read configuration variable file if it is present
+[ -r /etc/default/$PNAME ] && . /etc/default/$PNAME
 
-#
-# If you are using sendmail, Exim or Postfix, please try to avoid editing
-# thie file. Edit /etc/sysconfig/mailscanner instead.
-#
-MTA=sendmail
+# this should have been picked up automatically from above
+if [ -z ${ms_conf} ]; then
+	ms_conf="/etc/MailScanner/MailScanner.conf"
+fi
+
+# set variables we need
+MTA=`${QUICKPEEK} MTA ${ms_conf}`
+MSPID=`${QUICKPEEK} PIDFILE ${ms_conf}`
+WORKDIR=`${QUICKPEEK} IncomingWorkDir ${ms_conf}`
+WORKPERM=`${QUICKPEEK} IncomingWorkPermissions ${ms_conf}`
+WORKUSER=`${QUICKPEEK} IncomingWorkUser ${ms_conf}`
+WORKGROUP=`${QUICKPEEK} IncomingWorkGroup ${ms_conf}`
+RUNUSER=`${QUICKPEEK} RunAsUser ${ms_conf}`
+RUNGROUP=`${QUICKPEEK} RunAsGroup ${ms_conf}`
+QUARDIR=`${QUICKPEEK} QuarantineDir ${ms_conf}`
+INQDIR=`${QUICKPEEK} IncomingQueueDir ${ms_conf}`
+
+
+# check to make sure these are set
+if [ -z ${MTA} ]; then
+	MTA="sendmail"
+fi
+
+if [ -z ${MSPID} ]; then
+	MSPID="/var/run/MailScanner.pid"
+fi
+
+if [ -z ${WORKDIR} ]; then
+	WORKDIR="/var/spool/MailScanner/incoming"
+fi
+
+if [ -z ${WORKPERM} ]; then
+	WORKPERM="0660"
+fi
+
+if [ -z ${WORKUSER} ]; then
+	WORKUSER="root"
+fi
+
+if [ -z ${WORKGROUP} ]; then
+	WORKGROUP="mtagroup"
+fi
+
+if [ -z ${RUNUSER} ]; then
+	RUNUSER="root"
+fi
+
+if [ -z ${RUNGROUP} ]; then
+	RUNGROUP="mtagroup"
+fi
+
+if [ -z ${QUARDIR} ]; then
+	QUARDIR="/var/spool/MailScanner/quarantine"
+fi
+
+if [ -z ${INQDIR} ]; then
+	INQDIR="/var/spool/mqueue.in"
+fi
+
+
+# Some MTA specific items
 QUEUETIME=15m
-WORKDIR=/var/spool/MailScanner/incoming
-QUARDIR=/var/spool/MailScanner/quarantine
-INQDIR=/var/spool/mqueue.in
-RUNAS=root
 INPID=/var/run/sendmail.in.pid
 OUTPID=/var/run/sendmail.out.pid
 SMPID=/var/run/sm-client.pid
-MSPID=/var/run/MailScanner.pid
+
 MSPUSER=smmsp
 MSPGROUP=smmsp
 SENDMAIL=/usr/sbin/sendmail
@@ -49,17 +108,14 @@ ZMAILER=/usr/lib/zmailer/zmailer
 ZMAILERCF=/etc/zmailer/zmailer.conf
 RESTART_DELAY=10
 
-# Source mailscanner configuration.
-if [ -f /etc/sysconfig/mailscanner ] ; then
-        . /etc/sysconfig/mailscanner
-fi
+
 export HOSTNAME
 export MTA
 export QUEUETIME
 export WORKDIR
 export QUARDIR
 export INQDIR
-export RUNAS
+export RUNUSER
 export INPID
 export OUTPID
 export SMPID
@@ -239,7 +295,7 @@ case "$1" in
 	echo -n '         MailScanner:       '
 	if [ $MTA = 'postfix' ]; then
 	  :> $MSPID
-	  chown $RUNAS $MSPID
+	  chown $RUNUSER $MSPID
 	  chown $POSTFIXWORKOWNER $WORKDIR
 	  #chown $POSTFIXQUAROWNER $QUARDIR
 	fi
@@ -447,7 +503,7 @@ case "$1" in
 	echo -n 'Starting MailScanner:       '
 	if [ $MTA = 'postfix' ]; then
 	  :> $MSPID
-	  chown $RUNAS $MSPID
+	  chown $RUNUSER $MSPID
 	  chown $POSTFIXWORKOWNER $WORKDIR
 	  #chown $POSTFIXQUAROWNER $QUARDIR
 	fi

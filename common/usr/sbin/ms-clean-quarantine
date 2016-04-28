@@ -1,0 +1,46 @@
+#!/bin/sh
+
+# This script cleans the mailscanner quarantine directory
+# Edit /etc/MailScanner/defaults to change options
+#
+# Author: Jerry Benton <mailscanner@mailborder.com>
+# 27 APR 2016
+
+PATH=$PATH:/usr/sbin:/usr/bin:/bin:/sbin
+export PATH
+QUICKPEEK=/usr/sbin/ms-peek
+ms_conf=/etc/MailScanner/MailScanner.conf
+QUARDIR=`${QUICKPEEK} QuarantineDir ${ms_conf}`
+q_days=0
+
+# basic config file
+if [ -f /etc/MailScanner/defaults ] ; then
+	. /etc/MailScanner/defaults
+else
+	logger -i -p mail.notice "ERROR: ms-clean-quarantine missing configuration file /etc/MailScanner/defaults"
+	echo "Aborted: missing configuration file /etc/MailScanner/defaults"
+    exit 1
+fi
+
+# die if does not exist
+if [ ! -d $QUARDIR ]; then
+	logger -i -p mail.notice "ERROR: ms-clean-quarantine - quarantine directory not found"
+	echo "Aborted: cannot find quarantine directory. Check the /etc/MailScanner/MailScanner.conf file"
+	echo "'Quarantine Dir' setting."
+	exit 1
+fi
+
+# if not disabled
+if [ $q_days -gt 0 ]; then
+	if [ -d $QUARDIR ]; then
+		cd $QUARDIR
+		logger -i -p mail.notice "NOTICE: ms-clean-quarantine cleaning quarantine older than $q_days days"	
+		find . -type f -mtime +$q_days -exec rm -f {} \; >/dev/null 2>&1
+		find . -type d -empty -delete >/dev/null 2>&1
+	fi
+	exit 0
+else
+	logger -i -p mail.notice "WARN: ms-clean-quarantine called but is disabled"
+	echo "Aborted: quarantine cleaning is disabled"
+    exit 1
+fi

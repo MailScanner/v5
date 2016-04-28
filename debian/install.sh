@@ -8,7 +8,7 @@
 #
 # Written by:
 # Jerry Benton < mailscanner@mailborder.com >
-# 26 JAN 2016
+# 26 APR 2016
 
 # clear the screen. yay!
 clear
@@ -45,7 +45,9 @@ fi
 echo "MailScanner Installation for Debian Based Systems"; echo; echo;
 echo "This will INSTALL or UPGRADE the required software for MailScanner on Debian based systems";
 echo "via the Apt package manager. Supported distributions are Debian and associated variants";
-echo "such as Ubuntu. Internet connectivity is required for this installation script to execute."; echo;
+echo "such as Ubuntu. Internet connectivity is required for this installation script to execute."; 
+echo;
+echo "	WARNING - Make a backup of any custom configuration files if upgrading - WARNING";
 echo;
 echo "You may press CTRL + C at any time to abort the installation. Note that you may see";
 echo "some errors during the perl module installation. You may safely ignore errors regarding";
@@ -359,7 +361,13 @@ ARMOD+=('Mail::SPF::Query');	ARMOD+=('Module::Build');		ARMOD+=('Net::CIDR::Lite
 ARMOD+=('Net::DNS');			ARMOD+=('Net::LDAP');			ARMOD+=('Net::DNS::Resolver::Programmable');
 ARMOD+=('NetAddr::IP');			ARMOD+=('Parse::RecDescent');	ARMOD+=('Test::Harness');
 ARMOD+=('Test::Manifest');		ARMOD+=('Text::Balanced');		ARMOD+=('URI');	
-ARMOD+=('version');				ARMOD+=('Mail::SpamAssassin::Plugin::Rule2XSBody');				
+ARMOD+=('version');
+
+# additional spamassassin plugins				
+ARMOD+=('Mail::SpamAssassin::Plugin::Rule2XSBody');		
+ARMOD+=('Mail::SpamAssassin::Plugin::DCC');				
+ARMOD+=('Mail::SpamAssassin::Plugin::Pyzor');
+
 
 # logging starts here
 (

@@ -1,28 +1,13 @@
-#!/bin/bash
-#
-# cron script to clean up MailScanner quarantine
+#!/bin/sh
 #
 # Written by Jerry Benton <mailscanner@mailborder.com>
 #
+# see /etc/MailScanner/defaults
 
-# how many days to keep quarantined messages if not defined
-q_days=30
+# daily actions
+. /usr/sbin/ms-cron DAILY
 
-# bail if directory not present
-if [[ ! -d /var/spool/MailScanner/quarantine ]]; then
-	exit 0
-fi
-
-# load user-defaults
-if [[ -f /etc/default/mailscanner ]]; then
-    . /etc/default/mailscanner
-fi
-
-# go to mailscanner spool directory
-cd /var/spool/MailScanner/quarantine
-
-# remove old files and directories
-find . -type f -mtime +$q_days -exec rm -f {} \; >/dev/null 2>&1
-find . -type d -empty -delete >/dev/null 2>&1
+# maintenance
+. /usr/sbin/ms-cron MAINT
 
 exit 0

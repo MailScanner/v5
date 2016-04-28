@@ -1,9 +1,26 @@
 #!/bin/sh
 
-noticesfrom=`/usr/sbin/ms-peek noticesfrom /etc/MailScanner/MailScanner.conf`
-localpostmaster=`/usr/sbin/ms-peek localpostmaster /etc/MailScanner/MailScanner.conf`
-noticesto=`/usr/sbin/ms-peek noticesto /etc/MailScanner/MailScanner.conf`
-sendnotices=`/usr/sbin/ms-peek sendnotices /etc/MailScanner/MailScanner.conf`
+# send alert to administrator about emails mailscanner is 
+# having problems processing
+#
+# created:	Jerry Benton <mailscanner@mailborder.com>
+#			28 APR 2016
+
+ms_conf=/etc/MailScanner/MailScanner.conf
+
+# basic config file
+if [ -f /etc/MailScanner/defaults ] ; then
+	. /etc/MailScanner/defaults
+else
+	logger -i -p mail.notice "ERROR: ms-msg-alert missing configuration file /etc/MailScanner/defaults"
+	echo "Aborted: missing configuration file /etc/MailScanner/defaults"
+    exit 1
+fi
+
+noticesfrom=`/usr/sbin/ms-peek noticesfrom ${ms_conf}`
+localpostmaster=`/usr/sbin/ms-peek localpostmaster ${ms_conf}`
+noticesto=`/usr/sbin/ms-peek noticesto ${ms_conf}`
+sendnotices=`/usr/sbin/ms-peek sendnotices ${ms_conf}`
 
 # Only do this if they want to send notices to postmaster at all
 if [ "x$sendnotices" = "xno" ]; then
@@ -23,7 +40,7 @@ if [ \! "x$alert" = "x" ]; then
   #cat <<EOM
   sendmail -oem -t <<EOM
 From: $noticesfrom <$localpostmaster>
-To: MailScanner Administrator <$noticesto>
+To: Administrator <$noticesto>
 Subject: Problem Messages
 
 $alert
@@ -32,4 +49,3 @@ $alert
 MailScanner
 EOM
 fi
-

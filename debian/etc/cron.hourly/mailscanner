@@ -1,42 +1,10 @@
 #!/bin/sh
 #
-# Regular cron jobs for the mailscanner package
+# Written by Jerry Benton <mailscanner@mailborder.com>
 #
-# Calls the init-script to start MailScanner if
-# no pids are found
+# see /etc/MailScanner/defaults
 
-run_mailscanner=0;
-stopped_lockfile=/var/lock/subsys/MailScanner.off
-QUICKPEEK=/usr/sbin/ms-peek
-# Default for MailScanner.conf
-ms_conf=/etc/MailScanner/MailScanner.conf
+# hourly cron items - includes ms-check to check if MS is running
+. /usr/sbin/ms-cron HOURLY
 
-# get settings
-if [ -f /etc/default/mailscanner ]; then
-	. /etc/default/mailscanner;
-fi
-
-# if not configred, exit
-[ $run_mailscanner = 0 ] && exit 0;
-
-# if was stopped manually, exit
-[ -f $stopped_lockfile ] && exit 0;
-
-PIDFILE=`${QUICKPEEK} PIDfile ${ms_conf}`
-if [ -z "$PIDFILE" ]; then
-	PIDFILE=/var/run/MailScanner.pid
-fi
-
-# get a list of PIDS
-PIDS=$(ps cax |grep -i mailscanner | grep -o '^[ ]*[0-9]*')
-
-# if there are no PIDS, restart (will also start if not running)
-if [ -z "$PIDS" ]; then
-	if [ -f "$PIDFILE" ]; then
-		rm -f $PIDFILE
-	fi
-	
-	/usr/bin/service MailScanner start >/dev/null 2>&1;
-fi
-
-exit 0;
+exit 0

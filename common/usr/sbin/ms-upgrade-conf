@@ -52,24 +52,14 @@ sub Usage {
     print STDERR <<EOU;
 Usage:
 
-RPM
+Upgrading a File
 ===
-If you are using the RPM distributions then try this:
 
 cd /etc/MailScanner
 ms-upgrade-conf MailScanner.conf MailScanner.conf.rpmnew > MailScanner.new
 mv -f MailScanner.conf MailScanner.old
 mv -f MailScanner.new  MailScanner.conf
 
-TAR
-===
-If you are using the tar distribution so that the old version is in
-/opt/MailScanner and the new one is in /opt/MailScanner.new then:
-
-cd /opt/MailScanner.new/etc
-../bin/ms-upgrade-conf /etc/MailScanner/MailScanner.conf /opt/MailScanner.new/etc/MailScanner.conf > MailScanner.new
-mv -f MailScanner.conf MailScanner.old
-mv -f MailScanner.new  MailScanner.conf
 
 NOTE
 ====

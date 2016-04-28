@@ -1,0 +1,124 @@
+#!/bin/sh
+
+# This script provides MailScanner cron job actions.
+# Edit /etc/MailScanner/defaults to change options
+#
+# Author: Jerry Benton <mailscanner@mailborder.com>
+# 27 APR 2016
+
+PATH=$PATH:/usr/sbin:/usr/bin:/bin:/sbin
+export PATH
+NAME=MailScanner
+DAEMON=/usr/sbin/MailScanner
+QUICKPEEK=/usr/sbin/ms-peek
+ms_conf=/etc/MailScanner/MailScanner.conf
+ms_core=/usr/share/MailScanner
+ms_lib=/var/lib/MailScanner
+ramdisk_store=/var/spool/MailScanner/ramdisk_store
+stopped_lockfile=/var/lock/subsys/MailScanner.off
+
+# defaults
+ms_cron_check=0
+ms_cron_msg_alert=0
+ms_cron_sa=0
+ms_cron_av=0
+ms_cron_ps=0
+ms_cron_sn=0
+q_days=0
+
+# if no arguments are passed
+if [ -z $1 ]; then
+	# user info screen
+	clear
+	echo; 
+	echo "MailScanner Cron"; echo; echo;
+	echo "This script provides basic maintenance services for MailScanner. Edit the file";
+	echo "/etc/MailScanner/defaults to set your preferences.";
+	echo;
+	echo "You may use this from the command line or within a cron job. Usage:";
+	echo;
+	echo "hourly items: /usr/sbin/ms-cron HOURLY";
+	echo "daily items:  /usr/sbin/ms-cron DAILY";
+	echo "daemon check: /usr/sbin/ms-cron CHECK";
+	echo "maintenance:  /usr/sbin/ms-cron MAINT";
+	echo;
+
+	exit 0
+else	
+	ACTION=`echo $1 | tr '[:lower:]' '[:upper:]'`
+fi
+
+# basic config file
+if [ -f /etc/MailScanner/defaults ] ; then
+	. /etc/MailScanner/defaults
+else
+	logger -i -p mail.notice "ERROR: ms-cron missing configuration file /etc/MailScanner/defaults"
+	echo "Aborted: missing configuration file /etc/MailScanner/defaults"
+    exit 1
+fi
+
+# checks if mailscanner is running and starts if not
+if [ $ACTION = CHECK ]; then
+	/usr/sbin/ms-check
+	exit 0
+fi
+
+# hourly cron actions
+if [ $ACTION = HOURLY ]; then
+	
+	# check if mailscanner process is running
+	if [ $ms_cron_check = 1 ]; then
+		. /usr/sbin/ms-check
+	fi
+	
+	# processing messages alert
+	if [ $ms_cron_msg_alert = 1 ]; then
+		. /usr/sbin/ms-msg-alert
+	fi
+
+	exit 0
+fi
+
+# daily cron actions
+if [ $ACTION = DAILY ]; then
+	
+	# update spamassassin
+	if [ $ms_cron_sa = 1 ]; then
+		. /usr/sbin/ms-update-sa
+	fi
+	
+	# update virus scanners
+	if [ $ms_cron_av = 1 ]; then
+		. /usr/sbin/ms-update-vs
+	fi
+	
+	# update phishing sites
+	if [ $ms_cron_ps = 1 ]; then
+		. /usr/sbin/ms-update-safe-sites
+		. /usr/sbin/ms-update-bad-sites
+	fi
+	
+	# update ScamNailer phishing emails
+	if [ $ms_cron_sn = 1 ]; then
+		if [ ! -d /var/cache/ScamNailer ]; then
+			mkdir -p /var/cache/ScamNailer
+		fi
+		. /usr/sbin/ms-update-bad-emails
+	fi
+
+	exit 0
+fi
+
+# maintenance
+if [ $ACTION = MAINT ]; then
+	
+	# clean the quarantine
+	if [ $q_days -gt 0 ]; then	
+		. /usr/sbin/ms-clean-quarantine
+	fi
+
+	exit 0
+fi
+
+# if we got this far
+echo "I don't know what you are doing, but you are doing it wrong.";

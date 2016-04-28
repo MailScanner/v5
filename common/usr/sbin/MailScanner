@@ -22,7 +22,7 @@
 #      https://www.mailscanner.info
 #
 # 	Updated: 	Jerry Benton <mailscanner@mailborder.com>
-#				26 JAN 2016
+#				26 APR 2016
 
 use strict;
 no strict 'subs';
@@ -246,7 +246,7 @@ exit 1 if $error;
 # Work out what directory we're in and add it onto the front
 # of the include path so that we can work if we're just chucked
 # any old where in a directory with the modules. Also add
-# ./MailScanner for v4.
+# ./MailScanner 
 #
 # Also get process name while we're at it.
 #
@@ -839,7 +839,7 @@ for (;;) {
 
   # I have started enough children. Let's wait for one to die...
   my $dying_pid;
-  $0 = 'MailScanner: master waiting for children, sleeping';
+  $0 = 'MailScanner: master process sleeping';
   until (($dying_pid = wait()) == -1) {
     my $exitstatus = $?;
 
@@ -896,7 +896,7 @@ for (;;) {
       # I am the parent process.
       $Children{$born_pid} = 1;
       $NumberOfChildren++;
-      sleep 5; # Dropped this from 11 2006-11-01
+      sleep 2; # Dropped this from 11 2006-11-01
     } else {
       warn "We have just tried to reap a process which wasn't one of ours!, $!";
     }
