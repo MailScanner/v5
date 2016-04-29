@@ -86,6 +86,11 @@ if [ -d '/usr/share/MailScanner/perl/custom' -a ! -L '/etc/MailScanner/custom' ]
 	ln -s /usr/share/MailScanner/perl/custom/ /etc/MailScanner/custom
 fi
 
+# softlink for reports
+if [ -d '/usr/share/MailScanner/reports' -a ! -L '/etc/MailScanner/reports' ]; then
+	ln -s /usr/share/MailScanner/reports /etc/MailScanner/reports
+fi
+
 # update web bug link
 OLD="^Web Bug Replacement.*";
 NEW="Web Bug Replacement = https\:\/\/s3\.amazonaws\.com\/msv5\/images\/spacer\.gif";
