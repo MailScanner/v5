@@ -60,14 +60,14 @@ do
   LOCK="${LOCKDIR}/${LOCK}Busy.lock"
   if [ -n "${NAME}" -a -n "${WRAPPER}" -a -n "${PACKAGEDIR}" ]
   then
-    if ${WRAPPER} "${PACKAGEDIR}" -IsItInstalled
+    if ${WRAPPER} ${PACKAGEDIR} -IsItInstalled
     then
       #echo Found $NAME installed
-      logger -p mail.notice -t "ms-update-vs Found $NAME installed"
+      logger -p mail.notice -t ms-update-vs Found $NAME installed
       if [ -x ${UPDATER} ]
       then
         #echo Updating $NAME
-        logger -p mail.info -t "ms-update-vs Running autoupdate for $NAME"
+        logger -p mail.info -t ms-update-vs Running autoupdate for $NAME
         ${UPDATER} "${PACKAGEDIR}" "${LOCK}" >/dev/null 2>&1
       fi
     fi

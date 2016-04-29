@@ -38,8 +38,10 @@ ms_conf=/etc/MailScanner/MailScanner.conf
 
 # Read configuration variable file if it is present to get a different
 # ms_conf
-[ -r /etc/default/mailscanner ] && . /etc/default/mailscanner
-[ -r /etc/sysconfig/mailscanner ] && . /etc/sysconfig/mailscanner
+if [ -f /etc/MailScanner/defaults ] ; then
+	. /etc/MailScanner/defaults
+fi
+
 
 # get incoming work directory
 IWD=`${QUICKPEEK} IncomingWorkDir ${ms_conf}`

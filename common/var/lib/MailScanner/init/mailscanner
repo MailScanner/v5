@@ -305,7 +305,7 @@ do_perms()
 	
 	# wrappers
 	if [ -d $ms_lib ]; then
-		find ${ms_core}/wrapper/ -type f -exec chmod 755 {} \;
+		find ${ms_lib}/wrapper/ -type f -exec chmod 755 {} \;
 	fi
 	
 	# MailScanner executables
