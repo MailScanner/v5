@@ -34,7 +34,7 @@ fi
 if [ $q_days -gt 0 ]; then
 	if [ -d $QUARDIR ]; then
 		cd $QUARDIR
-		logger -i -p mail.notice "NOTICE: ms-clean-quarantine cleaning quarantine older than $q_days days"	
+		logger -i -p mail.notice "ms-clean-quarantine: cleaning quarantine older than $q_days days"	
 		find . -type f -mtime +$q_days -exec rm -f {} \; >/dev/null 2>&1
 		find . -type d -empty -delete >/dev/null 2>&1
 	fi
