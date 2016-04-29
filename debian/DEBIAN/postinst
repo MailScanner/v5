@@ -57,6 +57,14 @@ if id -u mail >/dev/null 2>&1; then
 	usermod -a -G mtagroup mail >/dev/null 2>&1
 fi
 
+if [ ! -d "/var/spool/MailScanner/incoming" ]; then
+	mkdir -p /var/spool/MailScanner/incoming
+fi
+
+if [ ! -d "/var/spool/MailScanner/quarantine" ]; then
+	mkdir -p /var/spool/MailScanner/quarantine
+fi
+
 if [ -d "/var/spool/exim4.in" ]; then
 	install -d -oDebian-exim -gmtagroup -m0750 /var/spool/exim4.in
 	install -d -oDebian-exim -gmtagroup -m0750 /var/spool/exim4.in/db
@@ -121,6 +129,16 @@ fi
 # remove old file if present
 if [ -f '/etc/init.d/mailscanner' ]; then
 	rm -f /etc/init.d/mailscanner
+fi
+
+# remove old symlink if present
+if [ -L '/etc/init.d/MailScanner' ]; then
+	rm -f /etc/init.d/MailScanner
+fi
+
+# remove old file if present
+if [ -f '/etc/init.d/MailScanner' ]; then
+	rm -f /etc/init.d/MailScanner
 fi
 
 # add symlink to init script

@@ -81,7 +81,7 @@ if [ -f '/etc/MailScanner/MailScanner.conf' ]; then
     	AUTOUPGRADE=0
     fi
     
-    # set this to automatically answer conffiles questions
+    # set this to automatically answer conf files questions
     CONFFILES="--force-confold"
    
 else
@@ -243,6 +243,7 @@ SAVEDIR="$HOME/ms_upgrade/saved.$$";
 if [ -f "/etc/default/mailscanner" ]; then
 	mkdir -p ${SAVEDIR}/etc/default
 	cp -f /etc/default/mailscanner ${SAVEDIR}/etc/default/mailscanner
+	rm -f /etc/default/mailscanner
 	clear
 	echo;
 	echo "I have copied /etc/default/mailscanner to";
@@ -254,6 +255,7 @@ fi
 if [ -f "/etc/default/MailScanner" ]; then
 	mkdir -p ${SAVEDIR}/etc/default
 	cp -f /etc/default/MailScanner ${SAVEDIR}/etc/default/MailScanner
+	rm -f /etc/default/MailScanner
 	clear
 	echo;
 	echo "I have copied /etc/default/MailScanner to";
@@ -265,19 +267,20 @@ fi
 if [ -d "/usr/lib/MailScanner/MailScanner/CustomFunctions" ]; then
 	mkdir -p ${SAVEDIR}/usr/lib/MailScanner/MailScanner/CustomFunctions
 	cp -f /usr/lib/MailScanner/MailScanner/CustomFunctions/* $SAVEDIR/usr/lib/MailScanner/MailScanner/CustomFunctions
+	rm -rf /usr/lib/MailScanner
 	clear
 	echo;
 	echo "I have copied /usr/lib/MailScanner/MailScanner/CustomFunctions/* to";
 	echo "$SAVEDIR/usr/lib/MailScanner/MailScanner/CustomFunctions";
 	echo "Copy your required custom functions to: /usr/share/MailScanner/custom";
 	echo;
-	rm -rf /usr/lib/MailScanner/MailScanner
 	timewait 3;
 fi
 
 if [ -d "/etc/MailScanner/CustomFunctions" ]; then
 	mkdir -p ${SAVEDIR}/etc/MailScanner/CustomFunctions
 	cp -f /etc/MailScanner/CustomFunctions/* $SAVEDIR/etc/MailScanner/CustomFunctions
+	rm -rf /etc/MailScanner/CustomFunctions
 	clear
 	echo;
 	echo "I have copied /etc/MailScanner/CustomFunctions/* to";
@@ -290,17 +293,42 @@ fi
 if [ -f "/etc/MailScanner/CustomConfig.pm" ]; then
 	mkdir -p ${SAVEDIR}/etc/MailScanner
 	cp -f /etc/MailScanner/CustomConfig.pm $SAVEDIR/etc/MailScanner/
+	rm -f /etc/MailScanner/CustomConfig.pm
 	clear
 	echo;
 	echo "I have copied /etc/MailScanner/CustomConfig.pm to";
 	echo "$SAVEDIR/etc/MailScanner/CustomConfig.pm";
 	echo;
-	rm -f /etc/MailScanner/CustomConfig.pm
 	timewait 3;
 fi
 
+if [ -d "/etc/MailScanner/reports" ]; then
+	mkdir -p ${SAVEDIR}/etc/MailScanner/reports
+	cp -pr /etc/MailScanner/reports $SAVEDIR/etc/MailScanner/reports
+	rm -rf /etc/MailScanner/reports
+	clear
+	echo;
+	echo "I have copied /etc/MailScanner/reports to";
+	echo "$SAVEDIR/etc/MailScanner/reports";
+	echo;
+	timewait 3;
+fi
+
+if [ -d "/etc/MailScanner/custom" ]; then
+	rm -rf /etc/MailScanner/custom
+fi
+
+if [ -d "/etc/MailScanner/wrapper" ]; then
+	rm -rf /etc/MailScanner/wrapper
+fi
+
+if [ -d "/etc/MailScanner/autoupdate" ]; then
+	rm -rf /etc/MailScanner/autoupdate
+fi
+
 # base system packages
-BASEPACKAGES=();					BASEPACKAGES+=('perl-doc');						BASEPACKAGES+=('libmailtools-perl');
+BASEPACKAGES=();					
+BASEPACKAGES+=('perl-doc');			BASEPACKAGES+=('libmailtools-perl');			BASEPACKAGES+=('re2c');
 BASEPACKAGES+=('curl');				BASEPACKAGES+=('libnet-cidr-lite-perl');		BASEPACKAGES+=('libmime-tools-perl');
 BASEPACKAGES+=('wget');				BASEPACKAGES+=('libtest-manifest-perl');		BASEPACKAGES+=('libnet-cidr-perl');
 BASEPACKAGES+=('tar');				BASEPACKAGES+=('libdata-dump-perl');			BASEPACKAGES+=('libsys-syslog-perl');
@@ -317,6 +345,7 @@ BASEPACKAGES+=('gzip');				BASEPACKAGES+=('libnetaddr-ip-perl');			BASEPACKAGES+
 BASEPACKAGES+=('unzip');			BASEPACKAGES+=('libnet-ldap-perl');				BASEPACKAGES+=('libsys-hostname-long-perl');
 BASEPACKAGES+=('openssl');			BASEPACKAGES+=('libmail-dkim-perl');			BASEPACKAGES+=('libhtml-tokeparser-simple-perl');
 BASEPACKAGES+=('perl');				BASEPACKAGES+=('libbusiness-isbn-data-perl');	BASEPACKAGES+=('libnet-dns-resolver-programmable-perl');
+
 	
 # install these from array above in case one of the 
 # packages produce an error
@@ -526,10 +555,10 @@ else
 				mount -t tmpfs -o size=${RAMDISKSIZE}M tmpfs ${DISK}
 				echo "tmpfs ${DISK} tmpfs rw,size=${RAMDISKSIZE}M 0 0" >> /etc/fstab
 				echo "Enabling ramdisk sync ...";
-				if [ -f '/etc/default/mailscanner' ]; then
+				if [ -f '/etc/MailScanner/defaults' ]; then
 					OLD="^#ramdisk_sync=1";
 					NEW="ramdisk_sync=1";
-					sed -i "s/${OLD}/${NEW}/g" /etc/default/mailscanner
+					sed -i "s/${OLD}/${NEW}/g" /etc/MailScanner/defaults
 				fi
 			else
 				echo "${DISK} is already a RAMDISK!"; echo;
@@ -550,10 +579,10 @@ else
 	echo 'See http://www.mailscanner.info for more information and  '
 	echo 'support via the MailScanner mailing list.'
 	echo;
-	echo 'NOTE! If this was an upgrade, edit /etc/default/mailscanner'
+	echo 'NOTE! If this was an upgrade, edit /etc/MailScanner/defaults'
 	echo;
 	echo 'New Install: Set your preferences in /etc/MailScanner/MailScanner.conf'
-	echo 'and then edit /etc/default/mailscanner to enable';
+	echo 'and then edit /etc/MailScanner/defaults to enable';
 	echo;
 fi 
 

@@ -10,7 +10,7 @@
 #
 # Written by:
 # Jerry Benton < mailscanner@mailborder.com >
-# 18 FEB 2015
+# 29 APR 2016
 
 # clear the screen. yay!
 clear
@@ -65,22 +65,14 @@ else
 	fi
 fi
 
-# basic test to see if we can ping google
-if ping -c 1 8.8.8.8 > /dev/null; then
-	# got a return on the single ping request
-    CONNECTTEST=
-else
-	# a ping return isn't required, but it may signal a problem with the network connection. this simply warns the user
-    CONNECTTEST="WARNING: I was unable to ping outside of your network. \nYou may ignore this warning if you have confirmed your connection is valid."
-fi
-
 # user info screen before the install process starts
 echo "MailScanner Installation for RPM Based Systems"; echo; echo;
 echo "This will INSTALL or UPGRADE the required software for MailScanner on RPM based systems";
 echo "via the Yum package manager. Supported distributions are RHEL 5,6,7 and associated";
 echo "variants such as CentOS and Scientific Linux. Internet connectivity is required for"; 
 echo "this installation script to execute. "; echo;
-echo -e $CONNECTTEST
+echo;
+echo "	WARNING - Make a backup of any custom configuration files if upgrading - WARNING";
 echo;
 echo "You may press CTRL + C at any time to abort the installation. Note that you may see";
 echo "some errors during the perl module installation. You may safely ignore errors regarding";
@@ -452,9 +444,12 @@ ARMOD+=('Socket'); 				ARMOD+=('Storable'); 	 	 	ARMOD+=('Test::Harness');
 ARMOD+=('Test::Pod');			ARMOD+=('Test::Simple');		ARMOD+=('Time::HiRes');			
 ARMOD+=('Time::localtime'); 	ARMOD+=('Sys::Hostname::Long');	ARMOD+=('Sys::SigAction');		
 ARMOD+=('Sys::Syslog'); 		ARMOD+=('Env'); 				ARMOD+=('File::ShareDir::Install');
+ARMOD+=('Mail::SpamAssassin');
 
 # not required but nice to have
 if [ "$NICETOHAVE" = "1" ]; then
+
+	# not required but nice to have
 	ARMOD+=('bignum');				ARMOD+=('Business::ISBN');		ARMOD+=('Business::ISBN::Data');
 	ARMOD+=('Data::Dump');			ARMOD+=('DB_File');				ARMOD+=('DBD::SQLite');
 	ARMOD+=('DBI');					ARMOD+=('Digest');				ARMOD+=('Encode::Detect');
@@ -465,7 +460,13 @@ if [ "$NICETOHAVE" = "1" ]; then
 	ARMOD+=('Net::DNS');			ARMOD+=('Net::LDAP');			ARMOD+=('Net::DNS::Resolver::Programmable');
 	ARMOD+=('NetAddr::IP');			ARMOD+=('Parse::RecDescent');	ARMOD+=('Test::Harness');
 	ARMOD+=('Test::Manifest');		ARMOD+=('Text::Balanced');		ARMOD+=('URI');	
-	ARMOD+=('version');				
+	ARMOD+=('version');
+
+	# additional spamassassin plugins				
+	ARMOD+=('Mail::SpamAssassin::Plugin::Rule2XSBody');		
+	ARMOD+=('Mail::SpamAssassin::Plugin::DCC');				
+	ARMOD+=('Mail::SpamAssassin::Plugin::Pyzor');
+
 fi
 
 # add to array if the user is installing spamassassin

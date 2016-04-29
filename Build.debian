@@ -99,7 +99,6 @@ chmod +x $WORK/DEBIAN/postrm
 chmod +x $WORK/var/lib/MailScanner/wrapper/*-autoupdate
 chmod +x $WORK/var/lib/MailScanner/wrapper/*-wrapper
 chmod +x $WORK/var/lib/MailScanner/init/*
-chmod +x $WORK/etc/init.d/*
 chmod +x $WORK/etc/cron.daily/*
 chmod +x $WORK/etc/cron.hourly/*
 

@@ -8,8 +8,6 @@
 /etc/MailScanner/rules/max.message.size.rules
 /etc/MailScanner/rules/spam.whitelist.rules
 /etc/MailScanner/spamassassin.conf
-/etc/cron.daily/mailscanner
-/etc/cron.hourly/mailscanner
 /etc/logcheck/ignore.d.server/mailscanner
 /etc/logcheck/ignore.d.workstation/mailscanner
 /usr/share/MailScanner/reports/ca/deleted.content.message.txt
