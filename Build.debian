@@ -109,7 +109,6 @@ fakeroot dpkg -b $WORK $PKGTMP/MailScanner-${FULLMSVER}/MailScanner-$FULLMSVER-n
 cp $DEVBASEDIR/debian/install.sh 			$PKGTMP/MailScanner-${FULLMSVER}
 cp $DEVBASEDIR/changelog 						$PKGTMP/MailScanner-${FULLMSVER}
 cp $DEVBASEDIR/LICENSE 							$PKGTMP/MailScanner-${FULLMSVER}
-cp $DEVBASEDIR/debian/UPGRADE 			$PKGTMP/MailScanner-${FULLMSVER}
 cp $DEVBASEDIR/README 							$PKGTMP/MailScanner-${FULLMSVER}
 chmod +x $PKGTMP/MailScanner-${FULLMSVER}/install.sh
 cd $PKGTMP
