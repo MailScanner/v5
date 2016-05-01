@@ -205,33 +205,7 @@ do_stop()
 		RETVAL="$?"
 	fi
 
-	
-	# MailScanner is not running
-	if [ $RETVAL -ne 0 ]; then
-	
-		# kill any rogue processes
-		kill $(ps axww | grep -i [M]ailScanner | awk '{print $1}') > /dev/null 2>&1
-		
-		# these should not exist if the process is stopped, so they
-		# are removed if they do exist
-		
-		# remove subsys
-		if [ -f /var/lock/subsys/MailScanner ] ; then
-			rm -f /var/lock/subsys/MailScanner
-		fi    
-	
-		# remove pid file
-		if [ -f $PIDFILE ] ; then
-			rm -f $PIDFILE
-		fi
-		
-		# create stopped file
-		if [ ! -f $stopped_lockfile ] ; then
-			touch $stopped_lockfile
-		fi
-			
-		return 1
-	else
+	if [ $RETVAL -eq 0 ]; then
 		# MailScanner is running. kill it
 		kill -15 $PID
 		RETVAL="$?"
@@ -259,6 +233,32 @@ do_stop()
 			logger -i -p mail.notice "WARN: $NAME $DESC could not be stopped"
 			return 2
 		fi
+	else
+		# MailScanner is not running
+		echo "not running"
+		
+		# kill any rogue processes
+		kill $(ps axww | grep -i [M]ailScanner | awk '{print $1}') > /dev/null 2>&1
+		
+		# these should not exist if the process is stopped, so they
+		# are removed if they do exist
+		
+		# remove subsys
+		if [ -f /var/lock/subsys/MailScanner ] ; then
+			rm -f /var/lock/subsys/MailScanner
+		fi    
+	
+		# remove pid file
+		if [ -f $PIDFILE ] ; then
+			rm -f $PIDFILE
+		fi
+		
+		# create stopped file
+		if [ ! -f $stopped_lockfile ] ; then
+			touch $stopped_lockfile
+		fi
+			
+		return 1
 	fi
 	
 	# we should never get this far
@@ -453,6 +453,7 @@ case "$1" in
   	echo "Restarting $NAME ..."
 	[ "$VERBOSE" != no ] && logger -i -p mail.notice "Restarting $NAME "
 	do_stop
+	sleep 3
 	do_start
 	
 	STARTRETVAL="$?"
@@ -475,6 +476,7 @@ case "$1" in
   	echo "Reloading $NAME ..."
 	[ "$VERBOSE" != no ] && logger -i -p mail.notice "Reloading $NAME "
 	do_stop
+	sleep 3
 	do_start
 	
 	STARTRETVAL="$?"
