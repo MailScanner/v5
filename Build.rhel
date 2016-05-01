@@ -96,7 +96,6 @@ cp -fr $DEVBASEDIR/rhel/etc/*		$WORK/etc/
 
 # usr
 cp -fr $DEVBASEDIR/common/usr/* 	$WORK/usr/
-cp -fr $DEVBASEDIR/rhel/usr/* 		$WORK/usr/
 
 # var
 cp -fr $DEVBASEDIR/common/var/* 	$WORK/var/
