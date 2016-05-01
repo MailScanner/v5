@@ -129,7 +129,7 @@ chmod +x $WORK/etc/cron.hourly/*
 # Build the src tarball for RPM construction
 cd $WORK
 cd ..
-tar czf ~/rpmbuild/SOURCES/mailscanner-${MSVERSION}.tgz Mailscanner-${MSVERSION}
+tar czf ~/rpmbuild/SOURCES/Mailscanner-${MSVERSION}.tgz Mailscanner-${MSVERSION}
 
 # return to where i started
 cd $THISCURDIR
