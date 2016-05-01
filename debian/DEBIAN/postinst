@@ -150,7 +150,7 @@ if [ -f '/etc/init.d/MailScanner' ]; then
 fi
 
 # add symlink to init script
-ln -s /var/lib/mailscanner/init/ms-init /etc/init.d/ms
+ln -s /var/lib/MailScanner/init/ms-init /etc/init.d/ms
 
 # fix the clamav wrapper if the user does not exist
 if [ -d '/etc/clamav' ]; then

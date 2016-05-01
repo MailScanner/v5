@@ -37,7 +37,7 @@ my $emailscurrent = '/var/cache/ScamNailer/';
 # Set this next value to '' if ou are not using MailScanner.
 # Or else change it to any command you need to run after updating the
 # SpamAssassin rules, such as '/sbin/service spamd restart'.
-my $mailscanner_restart = '/var/lib/mailscanner/init/ms-init reload';
+my $mailscanner_restart = '/var/lib/MailScanner/init/ms-init reload';
 
 # The SpamAssassin score to assign to the final rule that fires if any of
 # the addresses hit. Multiple hits don't increase the score.

@@ -390,8 +390,8 @@ if [ -d '/usr/share/MailScanner/perl/custom' -a ! -L '/etc/MailScanner/custom' ]
 fi
 
 # create init.d symlink
-if [ -d '/etc/rc.d/init.d' -a ! -L '/etc/rc.d/init.d/ms' -a -f '/var/lib/mailscanner/init/ms-init' ]; then
-	ln -s /var/lib/mailscanner/init/ms-init /etc/rc.d/init.d/ms
+if [ -d '/etc/rc.d/init.d' -a ! -L '/etc/rc.d/init.d/ms' -a -f '/var/lib/MailScanner/init/ms-init' ]; then
+	ln -s /var/lib/MailScanner/init/ms-init /etc/rc.d/init.d/ms
 fi
 
 # Sort out the rc.d directories
@@ -463,7 +463,7 @@ exit 0
 %attr(755,root,root) /usr/sbin/ms-update-vs
 %attr(755,root,root) /usr/sbin/ms-upgrade-conf
 
-%attr(755,root,root) /var/lib/mailscanner/init/ms-init
+%attr(755,root,root) /var/lib/MailScanner/init/ms-init
 
 %attr(755,root,root) /var/lib/MailScanner/wrapper/avg-autoupdate
 %attr(755,root,root) /var/lib/MailScanner/wrapper/avg-wrapper
