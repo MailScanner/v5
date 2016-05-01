@@ -706,7 +706,7 @@ echo;
 echo "Installing the MailScanner RPM ... ";
 
 # install the mailscanner rpm
-$RPM -Uvh $NODEPS mailscanner*noarch.rpm
+$RPM -Uvh $NODEPS MailScanner*noarch.rpm
 
 # fix the clamav wrapper if the user does not exist
 if [ -f '/etc/freshclam.conf' ]; then
