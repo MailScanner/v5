@@ -564,6 +564,7 @@ exit 0
 %config(noreplace) /usr/share/MailScanner/reports/en/inline.warning.html
 %config(noreplace) /usr/share/MailScanner/reports/en/inline.warning.txt
 %config(noreplace) /usr/share/MailScanner/reports/en/languages.conf
+%config(noreplace) /usr/share/MailScanner/reports/en/languages.conf.strings
 %config(noreplace) /usr/share/MailScanner/reports/en/recipient.spam.report.txt
 %config(noreplace) /usr/share/MailScanner/reports/en/recipient.mcp.report.txt
 %config(noreplace) /usr/share/MailScanner/reports/en/rejection.report.txt
@@ -591,6 +592,7 @@ exit 0
 %config(noreplace) /usr/share/MailScanner/reports/cy+en/inline.warning.html
 %config(noreplace) /usr/share/MailScanner/reports/cy+en/inline.warning.txt
 %config(noreplace) /usr/share/MailScanner/reports/cy+en/languages.conf
+%config(noreplace) /usr/share/MailScanner/reports/cy+en/languages.conf.strings
 %config(noreplace) /usr/share/MailScanner/reports/cy+en/recipient.spam.report.txt
 %config(noreplace) /usr/share/MailScanner/reports/cy+en/recipient.mcp.report.txt
 %config(noreplace) /usr/share/MailScanner/reports/cy+en/rejection.report.txt
@@ -618,6 +620,7 @@ exit 0
 %config(noreplace) /usr/share/MailScanner/reports/de/inline.warning.html
 %config(noreplace) /usr/share/MailScanner/reports/de/inline.warning.txt
 %config(noreplace) /usr/share/MailScanner/reports/de/languages.conf
+%config(noreplace) /usr/share/MailScanner/reports/de/languages.conf.strings
 %config(noreplace) /usr/share/MailScanner/reports/de/recipient.spam.report.txt
 %config(noreplace) /usr/share/MailScanner/reports/de/recipient.mcp.report.txt
 %config(noreplace) /usr/share/MailScanner/reports/de/rejection.report.txt
@@ -645,6 +648,7 @@ exit 0
 %config(noreplace) /usr/share/MailScanner/reports/fr/inline.warning.html
 %config(noreplace) /usr/share/MailScanner/reports/fr/inline.warning.txt
 %config(noreplace) /usr/share/MailScanner/reports/fr/languages.conf
+%config(noreplace) /usr/share/MailScanner/reports/fr/languages.conf.strings
 %config(noreplace) /usr/share/MailScanner/reports/fr/recipient.spam.report.txt
 %config(noreplace) /usr/share/MailScanner/reports/fr/recipient.mcp.report.txt
 %config(noreplace) /usr/share/MailScanner/reports/fr/rejection.report.txt
@@ -672,6 +676,7 @@ exit 0
 %config(noreplace) /usr/share/MailScanner/reports/es/inline.warning.html
 %config(noreplace) /usr/share/MailScanner/reports/es/inline.warning.txt
 %config(noreplace) /usr/share/MailScanner/reports/es/languages.conf
+%config(noreplace) /usr/share/MailScanner/reports/es/languages.conf.strings
 %config(noreplace) /usr/share/MailScanner/reports/es/recipient.spam.report.txt
 %config(noreplace) /usr/share/MailScanner/reports/es/recipient.mcp.report.txt
 %config(noreplace) /usr/share/MailScanner/reports/es/rejection.report.txt
@@ -699,6 +704,7 @@ exit 0
 %config(noreplace) /usr/share/MailScanner/reports/nl/inline.warning.html
 %config(noreplace) /usr/share/MailScanner/reports/nl/inline.warning.txt
 %config(noreplace) /usr/share/MailScanner/reports/nl/languages.conf
+%config(noreplace) /usr/share/MailScanner/reports/nl/languages.conf.strings
 %config(noreplace) /usr/share/MailScanner/reports/nl/recipient.spam.report.txt
 %config(noreplace) /usr/share/MailScanner/reports/nl/recipient.mcp.report.txt
 %config(noreplace) /usr/share/MailScanner/reports/nl/rejection.report.txt
@@ -726,6 +732,7 @@ exit 0
 %config(noreplace) /usr/share/MailScanner/reports/pt_br/inline.warning.html
 %config(noreplace) /usr/share/MailScanner/reports/pt_br/inline.warning.txt
 %config(noreplace) /usr/share/MailScanner/reports/pt_br/languages.conf
+%config(noreplace) /usr/share/MailScanner/reports/pt_br/languages.conf.strings
 %config(noreplace) /usr/share/MailScanner/reports/pt_br/recipient.spam.report.txt
 %config(noreplace) /usr/share/MailScanner/reports/pt_br/recipient.mcp.report.txt
 %config(noreplace) /usr/share/MailScanner/reports/pt_br/rejection.report.txt
@@ -753,6 +760,7 @@ exit 0
 %config(noreplace) /usr/share/MailScanner/reports/sk/inline.warning.html
 %config(noreplace) /usr/share/MailScanner/reports/sk/inline.warning.txt
 %config(noreplace) /usr/share/MailScanner/reports/sk/languages.conf
+%config(noreplace) /usr/share/MailScanner/reports/sk/languages.conf.strings
 %config(noreplace) /usr/share/MailScanner/reports/sk/recipient.spam.report.txt
 %config(noreplace) /usr/share/MailScanner/reports/sk/recipient.mcp.report.txt
 %config(noreplace) /usr/share/MailScanner/reports/sk/rejection.report.txt
@@ -780,6 +788,7 @@ exit 0
 %config(noreplace) /usr/share/MailScanner/reports/dk/inline.warning.html
 %config(noreplace) /usr/share/MailScanner/reports/dk/inline.warning.txt
 %config(noreplace) /usr/share/MailScanner/reports/dk/languages.conf
+%config(noreplace) /usr/share/MailScanner/reports/dk/languages.conf.strings
 %config(noreplace) /usr/share/MailScanner/reports/dk/recipient.spam.report.txt
 %config(noreplace) /usr/share/MailScanner/reports/dk/recipient.mcp.report.txt
 %config(noreplace) /usr/share/MailScanner/reports/dk/rejection.report.txt
@@ -807,6 +816,7 @@ exit 0
 %config(noreplace) /usr/share/MailScanner/reports/it/inline.warning.html
 %config(noreplace) /usr/share/MailScanner/reports/it/inline.warning.txt
 %config(noreplace) /usr/share/MailScanner/reports/it/languages.conf
+%config(noreplace) /usr/share/MailScanner/reports/it/languages.conf.strings
 %config(noreplace) /usr/share/MailScanner/reports/it/recipient.spam.report.txt
 %config(noreplace) /usr/share/MailScanner/reports/it/recipient.mcp.report.txt
 %config(noreplace) /usr/share/MailScanner/reports/it/rejection.report.txt
@@ -834,6 +844,7 @@ exit 0
 %config(noreplace) /usr/share/MailScanner/reports/ro/inline.warning.html
 %config(noreplace) /usr/share/MailScanner/reports/ro/inline.warning.txt
 %config(noreplace) /usr/share/MailScanner/reports/ro/languages.conf
+%config(noreplace) /usr/share/MailScanner/reports/ro/languages.conf.strings
 %config(noreplace) /usr/share/MailScanner/reports/ro/recipient.spam.report.txt
 %config(noreplace) /usr/share/MailScanner/reports/ro/recipient.mcp.report.txt
 %config(noreplace) /usr/share/MailScanner/reports/ro/rejection.report.txt
@@ -861,6 +872,7 @@ exit 0
 %config(noreplace) /usr/share/MailScanner/reports/se/inline.warning.html
 %config(noreplace) /usr/share/MailScanner/reports/se/inline.warning.txt
 %config(noreplace) /usr/share/MailScanner/reports/se/languages.conf
+%config(noreplace) /usr/share/MailScanner/reports/se/languages.conf.strings
 %config(noreplace) /usr/share/MailScanner/reports/se/recipient.spam.report.txt
 %config(noreplace) /usr/share/MailScanner/reports/se/recipient.mcp.report.txt
 %config(noreplace) /usr/share/MailScanner/reports/se/rejection.report.txt
@@ -888,6 +900,7 @@ exit 0
 %config(noreplace) /usr/share/MailScanner/reports/cz/inline.warning.html
 %config(noreplace) /usr/share/MailScanner/reports/cz/inline.warning.txt
 %config(noreplace) /usr/share/MailScanner/reports/cz/languages.conf
+%config(noreplace) /usr/share/MailScanner/reports/cz/languages.conf.strings
 %config(noreplace) /usr/share/MailScanner/reports/cz/recipient.spam.report.txt
 %config(noreplace) /usr/share/MailScanner/reports/cz/recipient.mcp.report.txt
 %config(noreplace) /usr/share/MailScanner/reports/cz/rejection.report.txt
@@ -915,6 +928,7 @@ exit 0
 %config(noreplace) /usr/share/MailScanner/reports/hu/inline.warning.html
 %config(noreplace) /usr/share/MailScanner/reports/hu/inline.warning.txt
 %config(noreplace) /usr/share/MailScanner/reports/hu/languages.conf
+%config(noreplace) /usr/share/MailScanner/reports/hu/languages.conf.strings
 %config(noreplace) /usr/share/MailScanner/reports/hu/recipient.spam.report.txt
 %config(noreplace) /usr/share/MailScanner/reports/hu/recipient.mcp.report.txt
 %config(noreplace) /usr/share/MailScanner/reports/hu/rejection.report.txt
@@ -942,6 +956,7 @@ exit 0
 %config(noreplace) /usr/share/MailScanner/reports/ca/inline.warning.html
 %config(noreplace) /usr/share/MailScanner/reports/ca/inline.warning.txt
 %config(noreplace) /usr/share/MailScanner/reports/ca/languages.conf
+%config(noreplace) /usr/share/MailScanner/reports/ca/languages.conf.strings
 %config(noreplace) /usr/share/MailScanner/reports/ca/recipient.spam.report.txt
 %config(noreplace) /usr/share/MailScanner/reports/ca/recipient.mcp.report.txt
 %config(noreplace) /usr/share/MailScanner/reports/ca/rejection.report.txt
