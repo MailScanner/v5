@@ -129,7 +129,7 @@ chmod +x $WORK/etc/cron.hourly/*
 # Build the src tarball for RPM construction
 cd $WORK
 cd ..
-tar czf ~/rpmbuild/SOURCES/Mailscanner-${MSVERSION}.tgz MailScanner-${MSVERSION}
+tar czf ~/rpmbuild/SOURCES/MailScanner-${MSVERSION}.tgz MailScanner-${MSVERSION}
 
 # return to where i started
 cd $THISCURDIR
@@ -154,7 +154,7 @@ find $RPMOUT/MailScanner-$VERSION -name 'README' -exec chmod 644 {} \;
 rpmbuild -ba --define "_binary_filedigest_algorithm  1"  --define "_binary_payload 1" ~/rpmbuild/SPECS/mailscanner.spec
 
 # copy the rpm built to the output dir
-cp ~/rpmbuild/RPMS/noarch/mailscanner-${VERSION}.noarch.rpm $RPMOUT/MailScanner-$VERSION
+cp ~/rpmbuild/RPMS/noarch/MailScanner-${VERSION}.noarch.rpm $RPMOUT/MailScanner-$VERSION
 cd $RPMOUT
 tar czf mailScanner-${VERSION}.rpm.tar.gz MailScanner-$VERSION
 rm -rf $RPMOUT/MailScanner-$VERSION
