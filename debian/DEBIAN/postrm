@@ -6,12 +6,12 @@ set -e
 # unregister the old startup script
 update-rc.d -f mailscanner remove
 
-if [ -L '/etc/init.d/mailscanner' ]; then
-	rm -f /etc/init.d/mailscanner
+if [ -L '/etc/init.d/ms' ]; then
+	rm -f /etc/init.d/ms
 fi
 
-if [ -f '/etc/init.d/mailscanner' ]; then
-	rm -f /etc/init.d/mailscanner
+if [ -f '/etc/init.d/ms' ]; then
+	rm -f /etc/init.d/ms
 fi
 
 exit 0
