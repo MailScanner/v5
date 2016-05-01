@@ -265,37 +265,6 @@ do_stop()
 	return 3
 }
 
-#
-# Function that sends a SIGHUP to the daemon/service
-#
-do_reload()
-{
-	# check if a PID file exists
-	if [ -f $PIDFILE ] ; then
-		# get the PID
-		PID=$(head -n 1 $PIDFILE)
-		
-		# check to see if running and belongs to mailscanner
-		ps wwp $PID|grep -iq [M]ailScanner > /dev/null 2>&1
-		
-		# get the return
-		RETVAL="$?"
-		
-		# if 0 it is already running
-		if [ $RETVAL -eq 0 ]; then
-				kill -1 $PID
-				return 0
-		else
-				[ "$VERBOSE" != no ] && logger -i -p mail.notice "Found a dead PID. Stopping all $NAME rogue processes ..."
-				kill -15 $(ps axww | grep -i [M]ailScanner | awk '{print $1}') > /dev/null 2>&1
-				rm -f $PIDFILE
-				return 1
-		fi
-	else
-		# process not running
-		return 2
-	fi
-}
 
 do_perms()
 {
@@ -503,21 +472,22 @@ case "$1" in
 	;;
 
   reload)
-  	echo "Reloading $NAME configuration ..."
-	[ "$VERBOSE" != no ] && logger -i -p mail.notice "Reloading $NAME configuration"
-	do_reload
+  	echo "Reloading $NAME ..."
+	[ "$VERBOSE" != no ] && logger -i -p mail.notice "Reloading $NAME "
+	do_stop
+	do_start
 	
-	RETVAL="$?"
+	STARTRETVAL="$?"
 	
-	if [ $RETVAL -eq 0 ]; then
+	if [ $STARTRETVAL -eq 0 ]; then
+		[ "$VERBOSE" != no ] && logger -i -p mail.notice "$NAME reloaded"
 		PID=$(head -n 1 $PIDFILE)
 		echo "$NAME reloaded with process id $PID"
 		exit 0
-	elif [ $RETVAL -eq 2 ]; then
-		echo "$NAME is not running"
-		exit 0
 	else
-		echo "$NAME reload failed"
+		logger -i -p mail.notice "$NAME failed to start"
+		echo "$NAME failed to start ... doh!"
+		kill $(ps axww | grep -i [M]ailScanner | awk '{print $1}') > /dev/null 2>&1
 		exit 1
 	fi
 	
