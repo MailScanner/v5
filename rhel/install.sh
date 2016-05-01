@@ -210,10 +210,10 @@ if [ $EPEL == 1 ]; then
 		# some of these options may result in a 'no package available' on
 		# some distributions, but that is ok
 		CAV=1
-		CAVOPTION="clamav clamav-db clamav-devel clamd clamav-update clamav-server clamav-data-empty";
+		CAVOPTION="clamav clamd clamav-update clamav-server";
 	elif [ -z $response ]; then  
 		CAV=1
-		CAVOPTION="clamav clamav-db clamav-devel clamd clamav-update clamav-server clamav-data-empty";
+		CAVOPTION="clamav clamd clamav-update clamav-server";
 	else
 		# user does not want clam av
 		CAV=0
