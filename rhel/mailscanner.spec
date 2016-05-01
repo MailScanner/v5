@@ -59,11 +59,11 @@ install etc/cron.daily/mailscanner ${RPM_BUILD_ROOT}/etc/cron.daily/
 install etc/cron.hourly/mailscanner ${RPM_BUILD_ROOT}/etc/cron.hourly/
 
 ### etc/MailScanenr
-install etc/MailScanenr/conf.d/README ${RPM_BUILD_ROOT}/etc/MailScanner/conf.d/
+install etc/MailScanner/conf.d/README ${RPM_BUILD_ROOT}/etc/MailScanner/conf.d/
 
 while read f
 do
-  install etc/MailScanenr/mcp/$f ${RPM_BUILD_ROOT}/etc/MailScanner/mcp/
+  install etc/MailScanner/mcp/$f ${RPM_BUILD_ROOT}/etc/MailScanner/mcp/
 done << EOF
 10_example.cf
 mcp.spamassassin.conf
@@ -71,7 +71,7 @@ EOF
 
 while read f 
 do
-  install etc/MailScanenr/rules/$f ${RPM_BUILD_ROOT}/etc/MailScanner/rules
+  install etc/MailScanner/rules/$f ${RPM_BUILD_ROOT}/etc/MailScanner/rules
 done << EOF
 bounce.rules
 EXAMPLES
@@ -82,7 +82,7 @@ EOF
 
 while read f 
 do
-  install etc/MailScanenr/$f ${RPM_BUILD_ROOT}/etc/MailScanner/
+  install etc/MailScanner/$f ${RPM_BUILD_ROOT}/etc/MailScanner/
 done << EOF
 archives.filename.rules.conf
 archives.filetype.rules.conf
