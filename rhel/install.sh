@@ -476,6 +476,9 @@ $YUM -y install $BASEPACKAGES $EPELOPTION
 # install this separate in case it conflicts
 if [ "x$MTAOPTION" != "x" ]; then
 	$YUM -y install $MTAOPTION
+	if [ $MTAOPTION = "sendmail" ]; then
+		mkdir -p /var/spool/mqueue.in
+	fi
 fi
 
 # make sure rpm is available
