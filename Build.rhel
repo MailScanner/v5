@@ -79,7 +79,7 @@ mkdir -p ~/rpmbuild/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
 mkdir -p $RPMOUT
 
 # the work directory
-WORK="/tmp/Mailscanner-$MSVERSION";
+WORK="/tmp/MailScanner-$MSVERSION";
 
 # delete work tmp if already exists
 if [ -d $WORK ]; then
