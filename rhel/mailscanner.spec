@@ -218,7 +218,7 @@ EOF
 
 ### var/lib/MailScanner
 
-install var/lib/MailScanner/init/mailscanner ${RPM_BUILD_ROOT}/var/lib/MailScanner/init/
+install var/lib/MailScanner/init/ms-init ${RPM_BUILD_ROOT}/var/lib/MailScanner/init/
 
 while read f 
 do
