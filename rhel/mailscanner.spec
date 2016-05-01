@@ -53,6 +53,7 @@ mkdir -p ${RPM_BUILD_ROOT}/etc/{cron.hourly,cron.daily}
 mkdir -p ${RPM_BUILD_ROOT}/usr/share/MailScanner/reports/{hu,de,se,ca,cy+en,pt_br,fr,es,en,cz,it,dk,nl,ro,sk}
 mkdir -p ${RPM_BUILD_ROOT}/usr/share/MailScanner/perl/{MailScanner,custom}
 mkdir -p ${RPM_BUILD_ROOT}/var/{lib/MailScanner/wrapper,lib/MailScanner/init}
+mkdir -p ${RPM_BUILD_ROOT}/var/spool/MailScanner{archive,incoming,quarantine}
 
 ### etc
 install etc/cron.daily/mailscanner ${RPM_BUILD_ROOT}/etc/cron.daily/
@@ -479,7 +480,7 @@ exit 0
 
 %config(noreplace) /usr/share/MailScanner/perl/custom/CustomAction.pm
 %config(noreplace) /usr/share/MailScanner/perl/custom/GenericSpamScanner.pm
-%config(noreplace) /usr/share/MailScanner/perl/custom/Lastspam.pm
+%config(noreplace) /usr/share/MailScanner/perl/custom/LastSpam.pm
 %config(noreplace) /usr/share/MailScanner/perl/custom/MyExample.pm
 %config(noreplace) /usr/share/MailScanner/perl/custom/Ruleset-from-Function.pm
 %config(noreplace) /usr/share/MailScanner/perl/custom/SpamWhitelist.pm
