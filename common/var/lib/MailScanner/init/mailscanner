@@ -62,6 +62,7 @@ fi
 
 # if /var/lock/subsys is missing
 [ -d /var/lock/subsys ] || mkdir -p /var/lock/subsys
+[ -d /var/run ] || mkdir -p /var/run
 
 # Don't start if MailScanner is not configured
 if [ $run_mailscanner = 0 ]; then
@@ -155,8 +156,8 @@ do_start()
 	if [ $RETVAL -eq 0 ]; then
 	    
 	    # set run file
-	    if [ ! -f /run/lock/subsys/MailScanner ] ; then
-	    	touch /run/lock/subsys/MailScanner
+	    if [ ! -f /var/lock/subsys/MailScanner ] ; then
+	    	touch /var/lock/subsys/MailScanner
 	    fi 
 	    
 	    # remove lock file if any
@@ -215,8 +216,8 @@ do_stop()
 		# are removed if they do exist
 		
 		# remove subsys
-		if [ -f /run/lock/subsys/MailScanner ] ; then
-			rm -f /run/lock/subsys/MailScanner
+		if [ -f /var/lock/subsys/MailScanner ] ; then
+			rm -f /var/lock/subsys/MailScanner
 		fi    
 	
 		# remove pid file
@@ -240,8 +241,8 @@ do_stop()
 			[ "$VERBOSE" != no ] && logger -i -p mail.notice "$NAME stopped"
 			
 			# remove subsys
-			if [ -f /run/lock/subsys/MailScanner ] ; then
-				rm -f /run/lock/subsys/MailScanner
+			if [ -f /var/lock/subsys/MailScanner ] ; then
+				rm -f /var/lock/subsys/MailScanner
 			fi    
 		
 		    # remove pid file
@@ -528,8 +529,8 @@ case "$1" in
 	kill -9 $(ps axww | grep -i [M]ailScanner | awk '{print $1}') > /dev/null 2>&1
 	
 	# remove subsys
-	if [ -f /run/lock/subsys/MailScanner ] ; then
-		rm -f /run/lock/subsys/MailScanner
+	if [ -f /var/lock/subsys/MailScanner ] ; then
+		rm -f /var/lock/subsys/MailScanner
 	fi    
 
 	# remove pid file
