@@ -48,7 +48,7 @@ based Linux distributions.
 
 mkdir -p $RPM_BUILD_ROOT
 mkdir -p ${RPM_BUILD_ROOT}/usr/sbin/
-mkdir -p ${RPM_BUILD_ROOT}/etc/MailScanner{conf.d,rules,mcp}
+mkdir -p ${RPM_BUILD_ROOT}/etc/MailScanner/{conf.d,rules,mcp}
 mkdir -p ${RPM_BUILD_ROOT}/etc/{cron.hourly,cron.daily}
 mkdir -p ${RPM_BUILD_ROOT}/usr/share/MailScanner/reports/{hu,de,se,ca,cy+en,pt_br,fr,es,en,cz,it,dk,nl,ro,sk}
 mkdir -p ${RPM_BUILD_ROOT}/usr/share/MailScanner/perl/{MailScanner,custom}
