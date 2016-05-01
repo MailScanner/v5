@@ -53,7 +53,7 @@ mkdir -p ${RPM_BUILD_ROOT}/etc/{cron.hourly,cron.daily}
 mkdir -p ${RPM_BUILD_ROOT}/usr/share/MailScanner/reports/{hu,de,se,ca,cy+en,pt_br,fr,es,en,cz,it,dk,nl,ro,sk}
 mkdir -p ${RPM_BUILD_ROOT}/usr/share/MailScanner/perl/{MailScanner,custom}
 mkdir -p ${RPM_BUILD_ROOT}/var/{lib/MailScanner/wrapper,lib/MailScanner/init}
-mkdir -p ${RPM_BUILD_ROOT}/var/spool/MailScanner{archive,incoming,quarantine}
+mkdir -p ${RPM_BUILD_ROOT}/var/spool/MailScanner/{archive,incoming,quarantine}
 
 ### etc
 install etc/cron.daily/mailscanner ${RPM_BUILD_ROOT}/etc/cron.daily/
@@ -486,7 +486,7 @@ exit 0
 %config(noreplace) /usr/share/MailScanner/perl/custom/SpamWhitelist.pm
 %config(noreplace) /usr/share/MailScanner/perl/custom/ZMRouterDirHash.pm
 
-%attr(644,root,root) /usr/share/MailScanner/MailScanner.pm
+%attr(644,root,root) /usr/share/MailScanner/perl/MailScanner.pm
 %attr(644,root,root) /usr/share/MailScanner/perl/MailScanner/Antiword.pm
 %attr(644,root,root) /usr/share/MailScanner/perl/MailScanner/Config.pm
 %attr(644,root,root) /usr/share/MailScanner/perl/MailScanner/ConfigDefs.pl
