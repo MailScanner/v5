@@ -9,7 +9,7 @@
 # package and put it in /msbuilds/rpm
 
 # make sure this is run from the base directory
-if [ ! -d 'RPM.files' ]; then
+if [ ! -d 'rhel' ]; then
 	echo 'This script must be executed from the base directory.';
 	echo './RPM.files was not found. Exiting ...';
 	echo;
@@ -61,7 +61,7 @@ fi
 
 # create this if missing
 #if [ ! -f '/tmp/MailScanner.conf.index.html' ]; then
-	sh $DEVBASEDIR/config.index/make.sh
+	#sh $DEVBASEDIR/config.index/make.sh
 #fi
 
 # the source directory
@@ -91,15 +91,15 @@ mkdir -p $WORK
 mkdir -p $WORK/{var,usr,etc}
 
 # etc
-cp -fr $DEVBASEDIR/common/etc/*					$WORK/etc/
-cp -fr $DEVBASEDIR/rhel/etc/*					$WORK/etc/
+cp -fr $DEVBASEDIR/common/etc/*		$WORK/etc/
+cp -fr $DEVBASEDIR/rhel/etc/*		$WORK/etc/
 
 # usr
-cp -fr $DEVBASEDIR/common/usr/* $WORK/usr/
-cp -fr $DEVBASEDIR/rhel/usr/* $WORK/usr/
+cp -fr $DEVBASEDIR/common/usr/* 	$WORK/usr/
+cp -fr $DEVBASEDIR/rhel/usr/* 		$WORK/usr/
 
 # var
-cp -fr $DEVBASEDIR/common/var/* $WORK/var/
+cp -fr $DEVBASEDIR/common/var/* 	$WORK/var/
 
 # Insert the version number we are building
 perl -pi -e 's/VersionNumberHere/'$MSVERSION'/;' $WORK/etc/MailScanner/MailScanner.conf
@@ -117,16 +117,15 @@ find $WORK -name '*.DS_Store' -exec rm -rf {} \;
 find $WORK -depth -name '__MACOSX' -exec rm -rf {} \;
 
 # permissions
-find $WORK -name '*.pm' -exec chmod 644 {} \;
-find $WORK -name '*.conf' -exec chmod 644 {} \;
-find $WORK -name '*.txt' -exec chmod 644 {} \;
-find $WORK -name '*.rules' -exec chmod 644 {} \;
-find $WORK -name 'README' -exec chmod 644 {} \;
-find $WORK -name 'EXAMPLES' -exec chmod 644 {} \;
-find $WORK -name 'LICENSE' -exec chmod 644 {} \;
-
-# set attributes
-chmod a+rx $WORK/usr/sbin/*
+cd $WORK
+find . -type f -exec chmod 0644 {} \;
+find . -type d -exec chmod 0755 {} \;
+chmod +x $WORK/usr/sbin/*
+chmod +x $WORK/var/lib/MailScanner/wrapper/*-autoupdate
+chmod +x $WORK/var/lib/MailScanner/wrapper/*-wrapper
+chmod +x $WORK/var/lib/MailScanner/init/*
+chmod +x $WORK/etc/cron.daily/*
+chmod +x $WORK/etc/cron.hourly/*
 
 # Build the src tarball for RPM construction
 cd $WORK
@@ -150,7 +149,8 @@ find $RPMOUT/MailScanner-$VERSION -name 'README' -exec chmod 644 {} \;
 
 # Build the RPM and SRPMS
 # extra define statements help make the rpm backwards compatible
-rpmbuild -ba --sign --define "_binary_filedigest_algorithm  1"  --define "_binary_payload 1" ~/rpmbuild/SPECS/mailscanner.spec
+#rpmbuild -ba --sign --define "_binary_filedigest_algorithm  1"  --define "_binary_payload 1" ~/rpmbuild/SPECS/mailscanner.spec
+rpmbuild -ba --define "_binary_filedigest_algorithm  1"  --define "_binary_payload 1" ~/rpmbuild/SPECS/mailscanner.spec
 
 # copy the rpm built to the output dir
 cp ~/rpmbuild/RPMS/noarch/mailscanner-${VERSION}.noarch.rpm $RPMOUT/MailScanner-$VERSION

@@ -24,13 +24,7 @@
 # domain.com # Has the same effect as the line above
 # 10.2.3.4 # Complete exact IP address
 # 
-# You need to copy the
-# cp SpamWhiteList.pm /usr/share/MailScanner/MailScanner/CustomFunctions/
-# 
-# and then restart MailScanner completely.
-# 
-# Any queries, drop me a line at jules@jules.fm.
-# 
+
 
 
 use FileHandle;

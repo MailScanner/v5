@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 #
 # MailScanner installation script for RPM based systems
 # 
@@ -141,28 +141,6 @@ elif [ $response == 3 ]; then
     MTAOPTION="exim";        
 else
 	MTAOPTION=
-fi
-
-# ask if the user wants bonus perl modules installed
-clear
-echo;
-echo "Do you want to install recommended Perl modules?"; echo;
-echo "I will automatically attempt to install the required Perl modules, but I";
-echo "can also attempt to install additional recommended modules. Do you want to";
-echo "install additional recommended Perl modules?";
-echo;
-echo "Recommended: Y (yes)"; echo;
-read -r -p "Install recommended Perl modules? [n/Y] : " response
-
-if [[ $response =~ ^([yY][eE][sS]|[yY])$ ]]; then
-    # user wants extra installed
-    NICETOHAVE=1
-elif [ -z $response ]; then    
-	# user wants extra installed
-    NICETOHAVE=1
-else
-    # user does not want extra
-	NICETOHAVE=0
 fi
 
 # ask if the user wants spamassassin installed
@@ -366,7 +344,7 @@ if [ $CPANOPTION != 1 ]; then
 
 	if [[ $response =~ ^([yY][eE][sS]|[yY])$ ]]; then
 		# user wants to ignore deps
-		NODEPS='--nodeps'
+		NODEPS='--nodeps --force'
 	else
 		# requiring deps
 		NODEPS=
@@ -417,7 +395,7 @@ BASEPACKAGES="binutils gcc glibc-devel libaio make man-pages man-pages-overrides
 # package is not available for their distro release it
 # will be ignored during the install.
 #
-MOREPACKAGES="perl-Archive-Tar perl-Archive-Zip perl-Compress-Raw-Zlib perl-Compress-Zlib perl-Convert-BinHex perl-Convert-TNEF perl-CPAN perl-Data-Dump perl-DBD-SQLite perl-DBI perl-Digest-HMAC perl-Digest-SHA1 perl-Env perl-ExtUtils-MakeMaker perl-File-ShareDir-Install perl-File-Temp perl-Filesys-Df perl-Getopt-Long perl-IO-String perl-IO-stringy perl-HTML-Parser perl-HTML-Tagset perl-Inline perl-IO-Zlib perl-Mail-DKIM perl-Mail-IMAPClient perl-Mail-SPF perl-MailTools perl-MIME-tools perl-Net-CIDR perl-Net-DNS perl-Net-DNS-Resolver-Programmable perl-Net-IP perl-OLE-Storage_Lite perl-Pod-Escapes perl-Pod-Simple perl-Scalar-List-Utils perl-Storable perl-Pod-Escapes perl-Pod-Simple perl-Razor-Agent perl-Sys-Hostname-Long perl-Sys-SigAction perl-Test-Manifest perl-Test-Pod perl-Time-HiRes perl-TimeDate perl-URI perl-YAML pyzor unrar tnef unrar";
+MOREPACKAGES="perl-Archive-Tar perl-Archive-Zip perl-Compress-Raw-Zlib perl-Compress-Zlib perl-Convert-BinHex perl-Convert-TNEF perl-CPAN perl-Data-Dump perl-DBD-SQLite perl-DBI perl-Digest-HMAC perl-Digest-SHA1 perl-Env perl-ExtUtils-MakeMaker perl-File-ShareDir-Install perl-File-Temp perl-Filesys-Df perl-Getopt-Long perl-IO-String perl-IO-stringy perl-HTML-Parser perl-HTML-Tagset perl-Inline perl-IO-Zlib perl-Mail-DKIM perl-Mail-IMAPClient perl-Mail-SPF perl-MailTools perl-MIME-tools perl-Net-CIDR perl-Net-DNS perl-Net-DNS-Resolver-Programmable perl-Net-IP perl-OLE-Storage_Lite perl-Pod-Escapes perl-Pod-Simple perl-Scalar-List-Utils perl-Storable perl-Pod-Escapes perl-Pod-Simple perl-Razor-Agent perl-Sys-Hostname-Long perl-Sys-SigAction perl-Test-Manifest perl-Test-Pod perl-Time-HiRes perl-TimeDate perl-URI perl-YAML pyzor re2c unrar tnef unrar";
 
 # the array of perl modules needed
 ARMOD=();
@@ -447,27 +425,23 @@ ARMOD+=('Sys::Syslog'); 		ARMOD+=('Env'); 				ARMOD+=('File::ShareDir::Install')
 ARMOD+=('Mail::SpamAssassin');
 
 # not required but nice to have
-if [ "$NICETOHAVE" = "1" ]; then
+ARMOD+=('bignum');				ARMOD+=('Business::ISBN');		ARMOD+=('Business::ISBN::Data');
+ARMOD+=('Data::Dump');			ARMOD+=('DB_File');				ARMOD+=('DBD::SQLite');
+ARMOD+=('DBI');					ARMOD+=('Digest');				ARMOD+=('Encode::Detect');
+ARMOD+=('Error');				ARMOD+=('ExtUtils::CBuilder');	ARMOD+=('ExtUtils::ParseXS');
+ARMOD+=('Getopt::Long');		ARMOD+=('Inline');				ARMOD+=('IO::String');	
+ARMOD+=('IO::Zlib');			ARMOD+=('IP::Country');			ARMOD+=('Mail::SPF');
+ARMOD+=('Mail::SPF::Query');	ARMOD+=('Module::Build');		ARMOD+=('Net::CIDR::Lite');
+ARMOD+=('Net::DNS');			ARMOD+=('Net::LDAP');			ARMOD+=('Net::DNS::Resolver::Programmable');
+ARMOD+=('NetAddr::IP');			ARMOD+=('Parse::RecDescent');	ARMOD+=('Test::Harness');
+ARMOD+=('Test::Manifest');		ARMOD+=('Text::Balanced');		ARMOD+=('URI');	
+ARMOD+=('version');
 
-	# not required but nice to have
-	ARMOD+=('bignum');				ARMOD+=('Business::ISBN');		ARMOD+=('Business::ISBN::Data');
-	ARMOD+=('Data::Dump');			ARMOD+=('DB_File');				ARMOD+=('DBD::SQLite');
-	ARMOD+=('DBI');					ARMOD+=('Digest');				ARMOD+=('Encode::Detect');
-	ARMOD+=('Error');				ARMOD+=('ExtUtils::CBuilder');	ARMOD+=('ExtUtils::ParseXS');
-	ARMOD+=('Getopt::Long');		ARMOD+=('Inline');				ARMOD+=('IO::String');	
-	ARMOD+=('IO::Zlib');			ARMOD+=('IP::Country');			ARMOD+=('Mail::SPF');
-	ARMOD+=('Mail::SPF::Query');	ARMOD+=('Module::Build');		ARMOD+=('Net::CIDR::Lite');
-	ARMOD+=('Net::DNS');			ARMOD+=('Net::LDAP');			ARMOD+=('Net::DNS::Resolver::Programmable');
-	ARMOD+=('NetAddr::IP');			ARMOD+=('Parse::RecDescent');	ARMOD+=('Test::Harness');
-	ARMOD+=('Test::Manifest');		ARMOD+=('Text::Balanced');		ARMOD+=('URI');	
-	ARMOD+=('version');
+# additional spamassassin plugins				
+ARMOD+=('Mail::SpamAssassin::Plugin::Rule2XSBody');		
+ARMOD+=('Mail::SpamAssassin::Plugin::DCC');				
+ARMOD+=('Mail::SpamAssassin::Plugin::Pyzor');
 
-	# additional spamassassin plugins				
-	ARMOD+=('Mail::SpamAssassin::Plugin::Rule2XSBody');		
-	ARMOD+=('Mail::SpamAssassin::Plugin::DCC');				
-	ARMOD+=('Mail::SpamAssassin::Plugin::Pyzor');
-
-fi
 
 # add to array if the user is installing spamassassin
 if [ $SA == 1 ]; then
@@ -572,16 +546,22 @@ if [ $TNEFOPTION == 1 ]; then
 		echo "Tnef missing. Installing via RPM ..."; echo;
 		if [ $MACHINE_TYPE == 'x86_64' ]; then
 			# 64-bit stuff here
-			$CURL -O https://s3.amazonaws.com/mailscanner/install/rpm/tnef-1.4.12-1.x86_64.rpm
-			$RPM -Uvh tnef-1.4.12-1.x86_64.rpm
+			$CURL -O https://s3.amazonaws.com/msv5/rpm/tnef-1.4.12-1.x86_64.rpm
+			if [ -f 'tnef-1.4.12-1.x86_64.rpm' ]; then
+				$RPM -Uvh tnef-1.4.12-1.x86_64.rpm
+			fi
 		elif [ $MACHINE_TYPE == 'i686' ]; then
 			# i686 stuff here
-			$CURL -O https://s3.amazonaws.com/mailscanner/install/rpm/tnef-1.4.12-1.i686.rpm
-			$RPM -Uvh tnef-1.4.12-1.i686.rpm
+			$CURL -O https://s3.amazonaws.com/msv5/rpm/tnef-1.4.12-1.i686.rpm
+			if [ -f 'tnef-1.4.12-1.i686.rpm' ]; then
+				$RPM -Uvh tnef-1.4.12-1.i686.rpm
+			fi
 		elif [ $MACHINE_TYPE == 'i386' ]; then
 			# i386 stuff here
-			$CURL -O https://s3.amazonaws.com/mailscanner/install/rpm/tnef-1.4.12-1.i386.rpm
-			$RPM -Uvh tnef-1.4.12-1.i686.rpm
+			$CURL -O https://s3.amazonaws.com/msv5/rpm/tnef-1.4.12-1.i386.rpm
+			if [ -f 'tnef-1.4.12-1.i686.rpm' ]; then
+				$RPM -Uvh tnef-1.4.12-1.i686.rpm
+			fi
 		else
 			echo "NOTICE: I cannot find a suitable RPM to install tnef (x86_64, i686, i386)";
 			timewait 5
@@ -604,16 +584,22 @@ if [ $UNRAROPTION == 1 ]; then
 		echo "unrar missing. Installing via RPM ..."; echo;
 		if [ $MACHINE_TYPE == 'x86_64' ]; then
 			# 64-bit stuff here
-			$CURL -O https://s3.amazonaws.com/mailscanner/install/rpm/unrar-5.0.3-1.x86_64.rpm
-			$RPM -Uvh unrar-5.0.3-1.x86_64.rpm
+			$CURL -O https://s3.amazonaws.com/msv5/rpm/unrar-5.0.3-1.x86_64.rpm
+			if [ -f 'unrar-5.0.3-1.x86_64.rpm' ]; then
+				$RPM -Uvh unrar-5.0.3-1.x86_64.rpm
+			fi
 		elif [ $MACHINE_TYPE == 'i686' ]; then
 			# i686 stuff here
-			$CURL -O https://s3.amazonaws.com/mailscanner/install/rpm/unrar-5.0.3-1.i686.rpm
-			$RPM -Uvh unrar-5.0.3-1.i686.rpm
+			$CURL -O https://s3.amazonaws.com/msv5/rpm/unrar-5.0.3-1.i686.rpm
+			if [ -f 'unrar-5.0.3-1.i686.rpm' ]; then
+				$RPM -Uvh unrar-5.0.3-1.i686.rpm
+			fi
 		elif [ $MACHINE_TYPE == 'i386' ]; then
 			# i386 stuff here
-			$CURL -O https://s3.amazonaws.com/mailscanner/install/rpm/unrar-5.0.3-1.i386.rpm
-			$RPM -Uvh unrar-5.0.3-1.i386.rpm
+			$CURL -O https://s3.amazonaws.com/msv5/rpm/unrar-5.0.3-1.i386.rpm
+			if [ -f 'unrar-5.0.3-1.i386.rpm' ]; then
+				$RPM -Uvh unrar-5.0.3-1.i386.rpm
+			fi
 		else
 			echo "NOTICE: I cannot find a suitable RPM to install unrar (x86_64, i686, i386)";
 			timewait 5
@@ -635,28 +621,33 @@ if [ $DFOPTION == 1 ]; then
 	# perl-Filesys-Df
 	perldoc -l Filesys::Df >/dev/null 2>&1
 	if [ $? != 0 ]; then
-		$CURL -O https://s3.amazonaws.com/mailscanner/install/rpm/perl-Filesys-Df-0.92-1.el7.x86_64.rpm
-		rpm -Uvh perl-Filesys-Df-0.92-1.el7.x86_64.rpm
+		if [ $MACHINE_TYPE == 'x86_64' ]; then
+			$CURL -O https://s3.amazonaws.com/msv5/rpm/perl-Filesys-Df-0.92-1.el7.x86_64.rpm
+			if [ -f 'perl-Filesys-Df-0.92-1.el7.x86_64.rpm' ]; then
+				rpm -Uvh perl-Filesys-Df-0.92-1.el7.x86_64.rpm
+			fi
+		fi
 	fi
 	
 	# perl-Sys-Hostname-Long
 	perldoc -l Sys::Hostname::Long >/dev/null 2>&1
 	if [ $? != 0 ]; then
-		$CURL -O https://s3.amazonaws.com/mailscanner/install/rpm/perl-Sys-Hostname-Long-1.5-1.el7.noarch.rpm
-		rpm -Uvh perl-Sys-Hostname-Long-1.5-1.el7.noarch.rpm
+		$CURL -O https://s3.amazonaws.com/msv5/rpm/perl-Sys-Hostname-Long-1.5-1.el7.noarch.rpm
+		if [ -f 'perl-Sys-Hostname-Long-1.5-1.el7.noarch.rpm' ]; then
+			rpm -Uvh perl-Sys-Hostname-Long-1.5-1.el7.noarch.rpm
+		fi
 	fi
 	
 	# go back to where i started
-	rm -f perl-Filesys-Df*
-	rm -f perl-Sys-Hostname-Long*
 	cd $THISCURRPMDIR
 fi
 
 # fix the stupid line in /etc/freshclam.conf that disables freshclam 
-# in RHEL7 by default
 if [ $CAV == 1 ]; then
 	COUT='#Example';
-	perl -pi -e 's/Example/'$COUT'/;' /etc/freshclam.conf
+	if [ -f '/etc/freshclam.conf' ]; then
+		perl -pi -e 's/Example/'$COUT'/;' /etc/freshclam.conf
+	fi
 	freshclam
 fi
 
@@ -707,22 +698,15 @@ if [ -f "/etc/postfix/master.cf" ]; then
 	sed -i "s/qmgr      unix/qmgr      fifo/g" /etc/postfix/master.cf
 fi
 
-# get the public signing key for the mailscanner rpm
-cd /tmp
-rm -f jb_ms_rpm_public.key
-$CURL -O https://s3.amazonaws.com/mailscanner/gpg/jb_ms_rpm_public.key
-rpm --import jb_ms_rpm_public.key
-rm -f jb_ms_rpm_public.key
+# make sure in starting directory
 cd $THISCURRPMDIR
 
 clear
 echo;
 echo "Installing the MailScanner RPM ... ";
 
-# using --force option to reinstall the rpm if the same version is
-# already installed. this will not overwrite configuration files
-# as they are protected in the rpm spec file
-$RPM -Uvh --force $NODEPS mailscanner*noarch.rpm
+# install the mailscanner rpm
+$RPM -Uvh $NODEPS mailscanner*noarch.rpm
 
 # fix the clamav wrapper if the user does not exist
 if [ -f '/etc/freshclam.conf' ]; then
@@ -734,8 +718,10 @@ if [ -f '/etc/freshclam.conf' ]; then
 		OLDCAVGRP='ClamGroup="clamav"';
 		NEWCAVGRP='ClamGroup="clam"';
 	
-		perl -pi -e 's/'$OLDCAVUSR'/'$NEWCAVUSR'/;' /usr/share/MailScanner/clamav-wrapper
-		perl -pi -e 's/'$OLDCAVGRP'/'$NEWCAVGRP'/;' /usr/share/MailScanner/clamav-wrapper
+		if [ -f '/var/lib/MailScanner/wrapper/clamav-wrapper' ]; then
+			perl -pi -e 's/'$OLDCAVUSR'/'$NEWCAVUSR'/;' /var/lib/MailScanner/wrapper/clamav-wrapper
+			perl -pi -e 's/'$OLDCAVGRP'/'$NEWCAVGRP'/;' /var/lib/MailScanner/wrapper/clamav-wrapper
+		fi
 		
 		freshclam
 	fi

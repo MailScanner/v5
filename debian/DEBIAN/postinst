@@ -57,6 +57,10 @@ if id -u mail >/dev/null 2>&1; then
 	usermod -a -G mtagroup mail >/dev/null 2>&1
 fi
 
+if [ ! -d "/var/spool/MailScanner/archive" ]; then
+	mkdir -p /var/spool/MailScanner/archive
+fi
+
 if [ ! -d "/var/spool/MailScanner/incoming" ]; then
 	mkdir -p /var/spool/MailScanner/incoming
 fi
@@ -77,7 +81,6 @@ if [ ! -d "/var/spool/mqueue.in" ]; then
 fi
 
 # lock down some directory permissions
-install -d -omail -gmtagroup -m0775 /var/spool/MailScanner/archive
 install -d -omail -gmtagroup -m0775 /var/spool/MailScanner/incoming
 install -d -omail -gmtagroup -m0775 /var/spool/MailScanner/quarantine
 
