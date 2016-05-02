@@ -202,9 +202,9 @@ sub initialise {
                                          ($installed{'clamd'} ||
                                           $installed{'clamavmodule'});
     $scannerlist = join(' ', keys %installed);
-    MailScanner::Log::InfoLog("Found virus scanners: %s ", $scannerlist);
+    MailScanner::Log::InfoLog("Auto: Found virus scanners: %s ", $scannerlist);
     if ($scannerlist =~ /^\s*$/) {
-      MailScanner::Log::WarnLog("Warning: no virus scanners found");
+      MailScanner::Log::WarnLog("Warning: no virus scanners found via auto select");
       #print STDERR "No virus scanners found to be installed at all!\n";
       $scannerlist = "none";
     }
