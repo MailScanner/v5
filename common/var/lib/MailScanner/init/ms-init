@@ -201,7 +201,7 @@ do_stop()
 	if [ "x$PID" = "x" ]; then
 		RETVAL=9
 	else
-		ps wwp $PID|grep -iq [M]ailScanner > /dev/null 2>&1
+		ps wwp $PID|grep -q [M]ailScanner > /dev/null 2>&1
 		RETVAL="$?"
 	fi
 
@@ -238,7 +238,7 @@ do_stop()
 		echo "not running"
 		
 		# kill any rogue processes
-		kill $(ps axww | grep -i [M]ailScanner | awk '{print $1}') > /dev/null 2>&1
+		kill $(ps axww | grep [M]ailScanner | awk '{print $1}') > /dev/null 2>&1
 		
 		# these should not exist if the process is stopped, so they
 		# are removed if they do exist
@@ -310,7 +310,7 @@ case "$1" in
 			PID=$(head -n 1 $PIDFILE)
 			
 			# check to see if running and belongs to mailscanner
-			ps wwp $PID|grep -iq [M]ailScanner > /dev/null 2>&1
+			ps wwp $PID|grep -q [M]ailScanner > /dev/null 2>&1
 			
 			# get the return
 			RETVAL="$?"
@@ -321,7 +321,7 @@ case "$1" in
 					exit 0
 			else
 					[ "$VERBOSE" != no ] && logger -i -p mail.notice "Found a dead PID. Stopping all $NAME rogue processes ..."
-					kill -15 $(ps axww | grep -i [M]ailScanner | awk '{print $1}') > /dev/null 2>&1
+					kill -15 $(ps axww | grep [M]ailScanner | awk '{print $1}') > /dev/null 2>&1
 					rm -f $PIDFILE
 			fi
 	fi
@@ -355,6 +355,7 @@ case "$1" in
 	# make sure the correct permissions are set
 	echo "$NAME starting ... "
 	do_perms
+	sleep 1
 	do_start
 	
 	STARTRETVAL="$?"
@@ -365,7 +366,7 @@ case "$1" in
 		echo "$NAME started with process id $PID"
 	else
 		logger -i -p mail.notice "$NAME failed to start"
-		kill -15 $(ps axww | grep -i [M]ailScanner | awk '{print $1}') > /dev/null 2>&1
+		kill -15 $(ps axww | grep [M]ailScanner | awk '{print $1}') > /dev/null 2>&1
 		exit 1
 	fi
 	
@@ -428,7 +429,7 @@ case "$1" in
 			PID=$(head -n 1 $PIDFILE)
 			
 			# check to see if running and belongs to mailscanner
-			ps wwp $PID|grep -iq [M]ailScanner > /dev/null 2>&1
+			ps wwp $PID|grep -q [M]ailScanner > /dev/null 2>&1
 			
 			# get the return
 			RETVAL="$?"
@@ -440,7 +441,7 @@ case "$1" in
 			else
 					[ "$VERBOSE" != no ] && logger -i -p mail.notice "Found a dead PID. Killing all $NAME rogue processes ..."
 					echo "$NAME had a dead PID. Any rogue processes were killed."
-					kill -15 $(ps axww | grep -i [M]ailScanner | awk '{print $1}') > /dev/null 2>&1
+					kill -15 $(ps axww | grep [M]ailScanner | awk '{print $1}') > /dev/null 2>&1
 					rm -f $PIDFILE
 			fi
 	fi
@@ -466,7 +467,7 @@ case "$1" in
 	else
 		logger -i -p mail.notice "$NAME failed to start"
 		echo "$NAME failed to start ... doh!"
-		kill $(ps axww | grep -i [M]ailScanner | awk '{print $1}') > /dev/null 2>&1
+		kill $(ps axww | grep [M]ailScanner | awk '{print $1}') > /dev/null 2>&1
 		exit 1
 	fi
 	
@@ -489,7 +490,7 @@ case "$1" in
 	else
 		logger -i -p mail.notice "$NAME failed to start"
 		echo "$NAME failed to start ... doh!"
-		kill $(ps axww | grep -i [M]ailScanner | awk '{print $1}') > /dev/null 2>&1
+		kill $(ps axww | grep [M]ailScanner | awk '{print $1}') > /dev/null 2>&1
 		exit 1
 	fi
 	
@@ -498,7 +499,7 @@ case "$1" in
   kill)
 	[ "$VERBOSE" != no ] && logger -i -p mail.notice "Killing $NAME "
 	echo "Killing $NAME and children ... mwa ha ha ha!"
-	kill -9 $(ps axww | grep -i [M]ailScanner | awk '{print $1}') > /dev/null 2>&1
+	kill -9 $(ps axww | grep [M]ailScanner | awk '{print $1}') > /dev/null 2>&1
 	
 	# remove subsys
 	if [ -f /var/lock/subsys/MailScanner ] ; then

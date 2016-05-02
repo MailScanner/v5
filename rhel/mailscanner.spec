@@ -292,17 +292,17 @@ if [ ! -d "/var/spool/MailScanner/quarantine" ]; then
 fi
 
 # remove old link if present
-if [ -L '/etc/spamassassin/mailscanner.cf' ]; then
-	rm -f /etc/spamassassin/mailscanner.cf
+if [ -L '/etc/mail/spamassassin/mailscanner.cf' ]; then
+	rm -f /etc/mail/spamassassin/mailscanner.cf
 fi
 
-if [ -L '/etc/spamassassin/MailScanner.cf' ]; then
-	rm -f /etc/spamassassin/MailScanner.cf
+if [ -L '/etc/mail/spamassassin/MailScanner.cf' ]; then
+	rm -f /etc/mail/spamassassin/MailScanner.cf
 fi
 
 # create symlink for spamasassin
-if [ -d '/etc/spamassassin' -a ! -L '/etc/spamassassin/mailscanner.cf' -a -f '/etc/MailScanner/spamassassin.conf' -a ! -f '/etc/spamassassin/mailscanner.cf' ]; then
-	ln -s /etc/MailScanner/spamassassin.conf /etc/spamassassin/mailscanner.cf 
+if [ -d '/etc/spamassassin' -a ! -L '/etc/mail/spamassassin/MailScanner.cf' -a -f '/etc/MailScanner/spamassassin.conf' -a ! -f '/etc/mail/spamassassin/MailScanner.cf' ]; then
+	ln -s /etc/MailScanner/spamassassin.conf /etc/mail/spamassassin/MailScanner.cf 
 fi
 
 # fix the clamav wrapper if the user does not exist
@@ -390,8 +390,8 @@ if [ -d '/usr/share/MailScanner/perl/custom' -a ! -L '/etc/MailScanner/custom' ]
 fi
 
 # create init.d symlink
-if [ -d '/etc/rc.d/init.d' -a ! -L '/etc/rc.d/init.d/ms' -a -f '/var/lib/MailScanner/init/ms-init' ]; then
-	ln -s /var/lib/MailScanner/init/ms-init /etc/rc.d/init.d/ms
+if [ -d '/etc/rc.d/init.d' -a ! -L '/etc/rc.d/init.d/mailscanner' -a -f '/var/lib/MailScanner/init/ms-init' ]; then
+	ln -s /var/lib/MailScanner/init/ms-init /etc/rc.d/init.d/mailscanner
 fi
 
 # Sort out the rc.d directories

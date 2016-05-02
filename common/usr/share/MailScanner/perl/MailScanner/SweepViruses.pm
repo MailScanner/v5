@@ -202,9 +202,9 @@ sub initialise {
                                          ($installed{'clamd'} ||
                                           $installed{'clamavmodule'});
     $scannerlist = join(' ', keys %installed);
-    MailScanner::Log::InfoLog("I have found %s scanners installed, and will use them all by default.", $scannerlist);
+    MailScanner::Log::InfoLog("Found virus scanners: %s ", $scannerlist);
     if ($scannerlist =~ /^\s*$/) {
-      MailScanner::Log::WarnLog("You appear to have no virus scanners installed at all! This is not good. If you have installed any, then check your virus.scanners.conf file to make sure the locations of your scanners are correct");
+      MailScanner::Log::WarnLog("Warning: no virus scanners found");
       #print STDERR "No virus scanners found to be installed at all!\n";
       $scannerlist = "none";
     }
@@ -230,7 +230,7 @@ sub initialise {
 
 sub InitialiseClam {
   # Initialise ClamAV Module
-  MailScanner::Log::DieLog("ClamAV Perl module not found, did you install it?")
+  MailScanner::Log::DieLog("ClamAV Perl module not found")
     unless eval 'require Mail::ClamAV';
 
   my $ver = $Mail::ClamAV::VERSION + 0.0;

@@ -100,7 +100,7 @@ else
 	fi
 	
 	# kill any rogue processes
-	kill -15 $(ps axww | grep -i [M]ailScanner | awk '{print $1}') > /dev/null 2>&1
+	kill -15 $(ps axww | grep [M]ailScanner | awk '{print $1}') > /dev/null 2>&1
 	
 
 	# log the start
@@ -110,8 +110,8 @@ else
 	$DAEMON $ms_conf
 	
 	# set run file
-	if [ ! -f /run/lock/subsys/MailScanner ] ; then
-		touch /run/lock/subsys/MailScanner
+	if [ ! -f /var/lock/subsys/MailScanner ] ; then
+		touch /var/lock/subsys/MailScanner
 	fi
 	
 	exit 0
