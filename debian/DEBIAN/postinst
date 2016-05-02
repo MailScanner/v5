@@ -212,6 +212,20 @@ if [ -d '/etc/clamav' ]; then
 
 fi
 
+# set the correct sock for debian systems
+CAVOLD='^Clamd Socket.*';
+CAVNEW='Clamd Socket = \/var\/run\/clamav\/clamd\.ctl';
+if [ -f '/etc/MailScanner/MailScanner.conf' ]; then
+	sed -i "s/${CAVOLD}/${CAVNEW}/g" /etc/MailScanner/MailScanner.conf
+fi
+
+# set the correct lock file for debian systems
+CAVOLD='^Clamd Lock File.*';
+CAVNEW='Clamd Lock File = \/var\/run\/clamav\/clamd\.pid';
+if [ -f '/etc/MailScanner/MailScanner.conf' ]; then
+	sed -i "s/${CAVOLD}/${CAVNEW}/g" /etc/MailScanner/MailScanner.conf
+fi
+	
 # postfix fix
 if [ -f "/etc/postfix/master.cf" ]; then
 	sed -i "s/pickup    unix/pickup    fifo/g" /etc/postfix/master.cf

@@ -72,7 +72,7 @@ echo "via the Yum package manager. Supported distributions are RHEL 5,6,7 and as
 echo "variants such as CentOS and Scientific Linux. Internet connectivity is required for"; 
 echo "this installation script to execute. "; echo;
 echo;
-echo "	WARNING - Make a backup of any custom configuration files if upgrading - WARNING";
+echo "WARNING - Make a backup of any custom configuration files if upgrading - WARNING";
 echo;
 echo "You may press CTRL + C at any time to abort the installation. Note that you may see";
 echo "some errors during the perl module installation. You may safely ignore errors regarding";
