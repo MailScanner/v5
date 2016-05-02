@@ -351,6 +351,31 @@ if [ $CPANOPTION != 1 ]; then
 	fi
 fi
 
+# ask about setting permissive mode for SeLinux
+clear
+echo;
+echo "Set PERMISSIVE mode for SELinux?"; echo;
+echo "SELinux will cause problems for virus scanners accessing the working directory";
+echo "used when processing email. Enabling permissive mode will allow the virus scanner";
+echo "to access the files that need to be scanned until you can create a policy to ";
+echo "allow working directory file access while in ENFORCING mode. If you have already";
+echo "disabled SELinux selecting 'yes' will not change that. Note that a reboot is ";
+echo "required after the installation for this to take effect.";
+echo;
+echo "Recommended: Y (yes)"; echo;
+read -r -p "Set permissive mode for SELinux? [n/Y] : " response
+
+if [[ $response =~ ^([yY][eE][sS]|[yY])$ ]]; then
+    # user wants to set permissive mode
+	SELMODE=1
+elif [ -z $response ]; then 
+	 # user wants to set permissive mode
+	SELMODE=1
+else
+    # user does not want to change SELinux
+    SELMODE=0
+fi
+
 # back up their stuff
 SAVEDIR="$HOME/ms_upgrade/saved.$$";
 
@@ -701,16 +726,6 @@ if [ -f "/etc/postfix/master.cf" ]; then
 	sed -i "s/qmgr      unix/qmgr      fifo/g" /etc/postfix/master.cf
 fi
 
-# make sure in starting directory
-cd $THISCURRPMDIR
-
-clear
-echo;
-echo "Installing the MailScanner RPM ... ";
-
-# install the mailscanner rpm
-$RPM -Uvh $NODEPS MailScanner*noarch.rpm
-
 # fix the clamav wrapper if the user does not exist
 if [ -f '/etc/freshclam.conf' ]; then
 	if id -u clam >/dev/null 2>&1; then
@@ -728,7 +743,38 @@ if [ -f '/etc/freshclam.conf' ]; then
 		
 		freshclam
 	fi
+	
+	if [ -f '/etc/init.d/clamd' ]; then
+		chkconfig clamd on
+	fi
 fi
+
+# selinux
+if [ $SELMODE == 1 ]; then
+	OLDTHING='SELINUX=enforcing';
+	NEWTHING='SELINUX=permissive';
+		
+	if [ -f '/etc/selinux/config' ]; then
+		perl -pi -e 's/'$OLDTHING'/'$NEWTHING'/;' /etc/selinux/config
+	else	
+		clear
+		echo;
+		echo "WARNING: I was unable to find the SELinux configuration file to set";
+		echo "the permissive mode. You will need to find the file and set this item";
+		echo "manually. Press <return> to continue.";
+		read foobar
+	fi
+fi
+
+# make sure in starting directory
+cd $THISCURRPMDIR
+
+clear
+echo;
+echo "Installing the MailScanner RPM ... ";
+
+# install the mailscanner rpm
+$RPM -Uvh $NODEPS MailScanner*noarch.rpm
 
 if [ $? != 0 ]; then
 	echo;
