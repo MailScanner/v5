@@ -188,59 +188,13 @@ else
 fi
 
 # ask if the user wants to install the Mail::ClamAV module
-if [ "$CPANOPTION" = "1" ]; then
+if [ $CPANOPTION = 1 ]; then
 	# Mail::ClamAV
-	clear
-	echo;
-	echo "Do you want to install Mail::ClamAV via CPAN?"; echo;
-	echo "If you are using Clam AV I can install the perl module that supports command line";
-	echo "scanning via Perl and Clam AV. This is only required if you are not going to use";
-	echo "the Clam AV daemon. However, it does not hurt to have this module available.";
-	echo;
-	echo "Note: If using Clam AV it is recommended that you use the Clam AV daemon.";
-	echo;
-	echo "Recommended: N (no)"; echo;
-	read -r -p "Install missing Mail::ClamAV module via CPAN? [y/N] : " response
-	
-	if [ "$response" = "yes" ]; then
-		# user wants to use CPAN for clam av module
-		CAV=1
-	elif [ "$response" = "y" ]; then
-		# user wants to use CPAN for clam av module
-		CAV=1
-	elif [ "x$response" = "x" ]; then     
-		# user does not want to use CPAN for clam av module
-		CAV=0
-	else
-		# user does not want to use CPAN for clam av module
-		CAV=0
-	fi
-	
+	CAV=1
+
 	# Mail::SpamAssassin
-	clear
-	echo;
-	echo "Will you be using Spamassassin?"; echo;
-	echo "If you are using spamassassin I can verify that the Mail::SpamAssassin perl module is ";
-	echo "installed. Normally the spamassassin package will install the module by default, but I";
-	echo "can verify this and install it via CPAN if missing. Enter 'n' or 'no' if you will not ";
-	echo "be using spamassassin.";
-	echo;
-	echo "Recommended: Y (yes)"; echo;
-	read -r -p "Install missing Mail::SpamAssassin module via CPAN? [n/Y] : " response
-	
-	if [ "$response" = "yes" ]; then
-		# user wants to use CPAN for SpamAssassin module
-		SA=1
-	elif [ "$response" = "y" ]; then
-		# user wants to use CPAN for SpamAssassin module
-		SA=1
-	elif [ "x$response" = "x" ]; then  
-		# user does want to use CPAN for SpamAssassin module
-		SA=1
-	else
-		# user does not want to use CPAN for SpamAssassin module
-		SA=0
-	fi
+	SA=1
+
 else
 	# don't install if not using CPAN
 	CAV=0
