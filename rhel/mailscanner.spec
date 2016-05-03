@@ -323,6 +323,10 @@ if [ -d '/etc/clamav' ]; then
 	if id -u clamscan >/dev/null 2>&1; then
 		CAVUSR='ClamUser="clamscan"';
 	fi
+	
+	if id -u vscan >/dev/null 2>&1; then
+		CAVUSR='ClamUser="vscan"';
+	fi
 
 	if getent group clamav >/dev/null 2>&1; then
 		CAVGRP='ClamGroup="clamav"';
@@ -391,7 +395,7 @@ fi
 
 # create init.d symlink
 if [ -d '/etc/rc.d/init.d' -a ! -L '/etc/rc.d/init.d/mailscanner' -a -f '/var/lib/MailScanner/init/ms-init' ]; then
-	ln -s /var/lib/MailScanner/init/ms-init /etc/rc.d/init.d/mailscanner
+	ln -s /var/lib/MailScanner/init/ms-init /etc/init.d/mailscanner
 fi
 
 # Sort out the rc.d directories

@@ -5,11 +5,11 @@
 # This script installs the required software for
 # MailScanner via zypper and CPAN based on user input.  
 #
-# Tested distributions: 	SuSE 13.2
+# Tested distributions: 	OpenSUSE 13.2
 #
 # Written by:
 # Jerry Benton < mailscanner@mailborder.com >
-# 27 FEB 2015
+# 3 MAY 2016
 
 # clear the screen. yay!
 clear
@@ -49,22 +49,11 @@ if [ -f '/etc/redhat-release' ]; then
 	exit 192
 fi
 
-# basic test to see if we can ping google
-if ping -c 1 8.8.8.8 > /dev/null; then
-	# got a return on the single ping request
-    CONNECTTEST=
-else
-	# a ping return isn't required, but it may signal a problem with the network connection. this simply warns the user
-    CONNECTTEST="WARNING: I was unable to ping outside of your network. \nYou may ignore this warning if you have confirmed your connection is valid."
-fi
-
 # user info screen before the install process starts
 echo "MailScanner Installation for SuSE Based Systems"; echo; echo;
 echo "This will INSTALL or UPGRADE the required software for MailScanner on SuSE based systems";
 echo "via the zypper package manager. Tested distributions are SuSE 13.2 and associated";
 echo "variants. Internet connectivity is required for this installation script to execute."; 
-echo;
-echo -e $CONNECTTEST
 echo;
 echo "You may press CTRL + C at any time to abort the installation. Note that you may see";
 echo "some errors during the perl module installation. You may safely ignore errors regarding";
@@ -153,60 +142,19 @@ if [[ $response =~ ^([yY][eE][sS]|[yY])$ ]]; then
 	# some of these options may result in a 'no package available' on
 	# some distributions, but that is ok
 	CAV=1
-	CAVOPTION="clamav";
+	CAVOPTION="pcre-devel clamav clamav-database clamav-nodb clamz";
 elif [ -z $response ]; then  
 	CAV=1
-	CAVOPTION="clamav";
+	CAVOPTION="pcre-devel clamav clamav-database clamav-nodb clamz";
 else
 	# user does not want clam av
 	CAV=0
 	CAVOPTION=
 fi
 	
-# ask if the user wants spamassassin installed
-clear
-echo;
-echo "Do you want to install or update Spamassassin?"; echo;
-echo "This package is recommended unless you have your own spam detection solution.";
-echo;
-echo "Recommended: Y (yes)"; echo;
-read -r -p "Install or update Spamassassin? [n/Y] : " response
-
-if [[ $response =~ ^([yY][eE][sS]|[yY])$ ]]; then
-    # user wants SA installed
-    SA=1
-    SAOPTION="spamassassin"
-elif [ -z $response ]; then    
-	# user wants SA installed
-    SA=1
-    SAOPTION="spamassassin"
-else
-    # user does not want SA
-	SA=0
-	SAOPTION=
-fi
-
-# ask if the user wants bonus perl modules installed
-clear
-echo;
-echo "Do you want to install recommended Perl modules?"; echo;
-echo "I will automatically attempt to install the required Perl modules, but I";
-echo "can also attempt to install additional recommended modules. Do you want to";
-echo "install additional recommended Perl modules?";
-echo;
-echo "Recommended: Y (yes)"; echo;
-read -r -p "Install recommended Perl modules? [n/Y] : " response
-
-if [[ $response =~ ^([yY][eE][sS]|[yY])$ ]]; then
-    # user wants extra installed
-    NICETOHAVE=1
-elif [ -z $response ]; then    
-	# user wants extra installed
-    NICETOHAVE=1
-else
-    # user does not want extra
-	NICETOHAVE=0
-fi
+# no longer asking - just get spamassassin installed
+SA=1
+SAOPTION="spamassassin"
 
 # ask if the user wants missing modules installed via CPAN
 clear
@@ -363,7 +311,7 @@ BASEPACKAGES="binutils gcc glibc-devel libaio1 patch make man-pages patch rpm ta
 # Packages available in the suse base 13.2. If the user elects not to use EPEL or if the 
 # package is not available for their distro release it will be ignored during the install.
 #
-MOREPACKAGES="perl-Archive-Zip perl-Convert-BinHex perl-Convert-TNEF perl-DBD-SQLite perl-DBI perl-Digest-HMAC perl-Digest-SHA1 perl-ExtUtils-MakeMaker perl-File-ShareDir-Install perl-File-Temp perl-Filesys-Df perl-Getopt-Long-Descriptive perl-IO-stringy perl-HTML-Parser perl-HTML-Tagset perl-Inline perl-Mail-DKIM perl-Mail-SPF perl-MailTools perl-MIME-tools perl-Net-CIDR-Set perl-Net-DNS perl-Net-IP perl-OLE-Storage_Lite perl-Scalar-List-Utils perl-razor-agents perl-Sys-Hostname-Long perl-Sys-SigAction perl-Test-Pod perl-TimeDate perl-URI ";
+MOREPACKAGES="perl-Archive-Zip perl-Convert-BinHex perl-Convert-TNEF perl-DBD-SQLite perl-DBI perl-Digest-HMAC perl-Digest-SHA1 perl-ExtUtils-MakeMaker perl-File-ShareDir-Install perl-File-Temp perl-Filesys-Df perl-Getopt-Long-Descriptive perl-IO-stringy perl-HTML-Parser perl-HTML-Tagset perl-Inline perl-Mail-DKIM perl-Mail-SPF perl-MailTools perl-MIME-tools perl-Net-CIDR-Set perl-Net-DNS perl-Net-IP perl-OLE-Storage_Lite perl-Scalar-List-Utils perl-razor-agents perl-Sys-Hostname-Long perl-Sys-SigAction perl-Test-Pod perl-TimeDate perl-URI re2c ";
 
 # the array of perl modules needed
 ARMOD=();
@@ -390,21 +338,25 @@ ARMOD+=('Socket'); 				ARMOD+=('Storable'); 	 	 	ARMOD+=('Test::Harness');
 ARMOD+=('Test::Pod');			ARMOD+=('Test::Simple');		ARMOD+=('Time::HiRes');			
 ARMOD+=('Time::localtime'); 	ARMOD+=('Sys::Hostname::Long');	ARMOD+=('Sys::SigAction');		
 ARMOD+=('Sys::Syslog'); 		ARMOD+=('Env'); 				ARMOD+=('File::ShareDir::Install');
+ARMOD+=('Mail::SpamAssassin');
 
 # not required but nice to have
-if [ "$NICETOHAVE" = "1" ]; then
-	ARMOD+=('bignum');				ARMOD+=('Business::ISBN');		ARMOD+=('Business::ISBN::Data');
-	ARMOD+=('Data::Dump');			ARMOD+=('DB_File');				ARMOD+=('DBD::SQLite');
-	ARMOD+=('DBI');					ARMOD+=('Digest');				ARMOD+=('Encode::Detect');
-	ARMOD+=('Error');				ARMOD+=('ExtUtils::CBuilder');	ARMOD+=('ExtUtils::ParseXS');
-	ARMOD+=('Getopt::Long');		ARMOD+=('Inline');				ARMOD+=('IO::String');	
-	ARMOD+=('IO::Zlib');			ARMOD+=('IP::Country');			ARMOD+=('Mail::SPF');
-	ARMOD+=('Mail::SPF::Query');	ARMOD+=('Module::Build');		ARMOD+=('Net::CIDR::Lite');
-	ARMOD+=('Net::DNS');			ARMOD+=('Net::LDAP');			ARMOD+=('Net::DNS::Resolver::Programmable');
-	ARMOD+=('NetAddr::IP');			ARMOD+=('Parse::RecDescent');	ARMOD+=('Test::Harness');
-	ARMOD+=('Test::Manifest');		ARMOD+=('Text::Balanced');		ARMOD+=('URI');	
-	ARMOD+=('version');					
-fi
+ARMOD+=('bignum');				ARMOD+=('Business::ISBN');		ARMOD+=('Business::ISBN::Data');
+ARMOD+=('Data::Dump');			ARMOD+=('DB_File');				ARMOD+=('DBD::SQLite');
+ARMOD+=('DBI');					ARMOD+=('Digest');				ARMOD+=('Encode::Detect');
+ARMOD+=('Error');				ARMOD+=('ExtUtils::CBuilder');	ARMOD+=('ExtUtils::ParseXS');
+ARMOD+=('Getopt::Long');		ARMOD+=('Inline');				ARMOD+=('IO::String');	
+ARMOD+=('IO::Zlib');			ARMOD+=('IP::Country');			ARMOD+=('Mail::SPF');
+ARMOD+=('Mail::SPF::Query');	ARMOD+=('Module::Build');		ARMOD+=('Net::CIDR::Lite');
+ARMOD+=('Net::DNS');			ARMOD+=('Net::LDAP');			ARMOD+=('Net::DNS::Resolver::Programmable');
+ARMOD+=('NetAddr::IP');			ARMOD+=('Parse::RecDescent');	ARMOD+=('Test::Harness');
+ARMOD+=('Test::Manifest');		ARMOD+=('Text::Balanced');		ARMOD+=('URI');	
+ARMOD+=('version');
+
+# additional spamassassin plugins				
+ARMOD+=('Mail::SpamAssassin::Plugin::Rule2XSBody');		
+ARMOD+=('Mail::SpamAssassin::Plugin::DCC');				
+ARMOD+=('Mail::SpamAssassin::Plugin::Pyzor');
 
 # add to array if the user is installing spamassassin
 if [ $SA == 1 ]; then
@@ -435,6 +387,9 @@ $ZYPPER --non-interactive install $BASEPACKAGES
 # install this separate in case it conflicts
 if [ "x$MTAOPTION" != "x" ]; then
 	$ZYPPER --non-interactive install $MTAOPTION
+	if [ $MTAOPTION = "sendmail" ]; then
+		mkdir -p /var/spool/mqueue.in
+	fi
 fi
 
 # make sure rpm is available
@@ -534,22 +489,8 @@ done
 # will pause if a perl module was missing
 timewait $PMODWAIT
 
-# get the public signing key for the mailscanner rpm
-cd /tmp
-rm -f jb_ms_rpm_public.key
-$CURL -O https://s3.amazonaws.com/mailscanner/gpg/jb_ms_rpm_public.key
-rpm --import jb_ms_rpm_public.key
-rm -f jb_ms_rpm_public.key
+# go to where i started
 cd $THISCURRPMDIR
-
-clear
-echo;
-echo "Installing the MailScanner RPM ... ";
-
-# using --force option to reinstall the rpm if the same version is
-# already installed. this will not overwrite configuration files
-# as they are protected in the rpm spec file
-$RPM -Uvh --force $NODEPS mailscanner*noarch.rpm
 
 # fix the clamav wrapper if the user does not exist
 if [ -f '/etc/freshclam.conf' ]; then
@@ -564,6 +505,13 @@ if [ -f '/etc/freshclam.conf' ]; then
 		perl -pi -e 's/'$OLDCAVUSR'/'$NEWCAVUSR'/;' /usr/share/MailScanner/clamav-wrapper
 		perl -pi -e 's/'$OLDCAVGRP'/'$NEWCAVGRP'/;' /usr/share/MailScanner/clamav-wrapper
 		
+		COUT='#Example';
+		perl -pi -e 's/Example/'$COUT'/;' /etc/freshclam.conf
+
+		if [ $CAV == 1 ]; then
+			systemctl enable clamd.service
+		fi
+		
 		mkdir -p /var/run/clamav
 		chown vscan:vscan /var/run/clamav
 		freshclam
@@ -575,6 +523,15 @@ if [ -f "/etc/postfix/master.cf" ]; then
 	sed -i "s/pickup    unix/pickup    fifo/g" /etc/postfix/master.cf
 	sed -i "s/qmgr      unix/qmgr      fifo/g" /etc/postfix/master.cf
 fi
+
+clear
+echo;
+echo "Installing the MailScanner RPM ... ";
+
+# using --force option to reinstall the rpm if the same version is
+# already installed. this will not overwrite configuration files
+# as they are protected in the rpm spec file
+$RPM -Uvh --force $NODEPS MailScanner*noarch.rpm
 
 if [ $? != 0 ]; then
 	echo;

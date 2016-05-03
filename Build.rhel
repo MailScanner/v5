@@ -156,10 +156,10 @@ rpmbuild -ba --define "_binary_filedigest_algorithm  1"  --define "_binary_paylo
 # copy the rpm built to the output dir
 cp ~/rpmbuild/RPMS/noarch/MailScanner-${VERSION}.noarch.rpm $RPMOUT/MailScanner-$VERSION
 cd $RPMOUT
-tar czf MailScanner-${VERSION}.rpm.tar.gz MailScanner-$VERSION
+tar czf MailScanner-${VERSION}.rhel.tar.gz MailScanner-$VERSION
 rm -rf $RPMOUT/MailScanner-$VERSION
 rm -rf $WORK
 
 echo;
-echo "Completed: $RPMOUT/MailScanner-${VERSION}.rpm.tar.gz";
+echo "Completed: $RPMOUT/MailScanner-${VERSION}.rhel.tar.gz";
 

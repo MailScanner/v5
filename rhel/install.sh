@@ -143,28 +143,9 @@ else
 	MTAOPTION=
 fi
 
-# ask if the user wants spamassassin installed
-clear
-echo;
-echo "Do you want to install or update Spamassassin?"; echo;
-echo "This package is recommended unless you have your own spam detection solution.";
-echo;
-echo "Recommended: Y (yes)"; echo;
-read -r -p "Install or update Spamassassin? [n/Y] : " response
-
-if [[ $response =~ ^([yY][eE][sS]|[yY])$ ]]; then
-    # user wants SA installed
-    SA=1
-    SAOPTION="spamassassin"
-elif [ -z $response ]; then    
-	# user wants SA installed
-    SA=1
-    SAOPTION="spamassassin"
-else
-    # user does not want SA
-	SA=0
-	SAOPTION=
-fi
+# no longer asking - just get spamassassin installed
+SA=1
+SAOPTION="spamassassin"
 
 # ask if the user wants to install EPEL
 clear
