@@ -1,11 +1,11 @@
 # Welcome to MailScanner!
 #
-#MailScanner is an open source email gateway that processes email for
-#spam, viruses, phishing, and other malicious content. MailScanner 
-#leverages other open source software such as ClamAV and 
-#Spamassassin. MailScanner will run on any NIX platform and includes
-#install packages for popular distributions such as Redhat, Debian, and
-#SUSE in addition to a generic NIX package.
+# MailScanner is an open source email gateway that processes email for
+# spam, viruses, phishing, and other malicious content. MailScanner 
+# leverages other open source software such as ClamAV and 
+# Spamassassin. MailScanner will run on any NIX platform and includes
+# install packages for popular distributions such as Redhat, Debian, and
+# SUSE in addition to a generic NIX package.
 #
 #
 #	Info: 	http://www.mailscanner.info
