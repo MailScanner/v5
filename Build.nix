@@ -43,13 +43,11 @@ fi
 
 
 # version info 
-BUILD=$MSBUILD
-VERSION=$MSVERSION-$BUILD
-export VERSION BUILD
-export BUILDROOT=$HOME/msbuilds/tar
+VERSION=$MSVERSION-$MSBUILD
+export VERSION 
 
 # make some dirs
-mkdir -p $BUILDROOT
+mkdir -p ~/msbuilds/tar
 
 # the work directory
 WORK="/tmp/MailScanner-$MSVERSION";
@@ -89,5 +87,5 @@ chmod +x $WORK/var/lib/MailScanner/init/*
 tar czf ~/msbuilds/tar/MailScanner-${VERSION}.nix.tar.gz MailScanner-$VERSION
 
 cd $DEVBASEDIR
-rm -rf $WORK
+#rm -rf $WORK
 
