@@ -172,7 +172,6 @@ do
 			perl -MCPAN -e "CPAN::Shell->force(qw(install $i ));"
 		else
 			echo "WARNING: $i is missing. You should fix this.";
-			sleep 1
 		fi
 	else
 		echo "$i => OK";
@@ -201,13 +200,17 @@ if [ -f './etc/MailScanner/MailScanner.conf' ]; then
 		rm -f /etc/MailScanner/custom
 	fi
 	
-	ln -s /usr/share/MailScanner/perl/custom /etc/MailScanner/custom
+	if [ ! -L '/etc/MailScanner/custom' ]; then
+		ln -s /usr/share/MailScanner/perl/custom /etc/MailScanner/custom
+	fi
 	
 	if [ -f '/etc/MailScanner/reports' ]; then
 		rm -f /etc/MailScanner/reports
 	fi
 	
-	ln -s /usr/share/MailScanner/reports /etc/MailScanner/reports
+	if [ ! -L '/etc/MailScanner/custom' ]; then
+		ln -s /usr/share/MailScanner/reports /etc/MailScanner/reports
+	fi
 	
 	echo;
 	echo '----------------------------------------------------------';
