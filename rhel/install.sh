@@ -382,6 +382,10 @@ if [ -d "/etc/MailScanner/CustomFunctions" ]; then
 	timewait 3;
 fi
 
+if [ -f "/etc/MailScanner/CustomFunctions" ]; then
+	rm -f /etc/MailScanner/CustomFunctions
+fi
+
 if [ -f "/etc/MailScanner/CustomConfig.pm" ]; then
 	mkdir -p $SAVEDIR/etc/MailScanner
 	cp -f /etc/MailScanner/CustomConfig.pm $SAVEDIR/etc/MailScanner/

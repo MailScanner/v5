@@ -398,7 +398,12 @@ fi
 
 # softlink for custom functions
 if [ -d '/usr/share/MailScanner/perl/custom' -a ! -L '/etc/MailScanner/custom' ]; then
-	ln -s /usr/share/MailScanner/perl/custom/ /etc/MailScanner/custom
+	ln -s /usr/share/MailScanner/perl/custom /etc/MailScanner/custom
+fi
+
+# softlink for custom reports
+if [ -d '/usr/share/MailScanner/reports' -a ! -L '/etc/MailScanner/reports' ]; then
+	ln -s /usr/share/MailScanner/reports /etc/MailScanner/reports
 fi
 
 # create init.d symlink

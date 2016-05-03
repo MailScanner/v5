@@ -415,6 +415,11 @@ if [ -d '/usr/share/MailScanner/perl/custom' -a ! -L '/etc/MailScanner/custom' ]
 	ln -s /usr/share/MailScanner/perl/custom/ /etc/MailScanner/custom
 fi
 
+# softlink for custom reports
+if [ -d '/usr/share/MailScanner/reports' -a ! -L '/etc/MailScanner/reports' ]; then
+	ln -s /usr/share/MailScanner/reports /etc/MailScanner/reports
+fi
+
 # create init.d symlink
 if [ -d '/etc/init.d' -a ! -L '/etc/init.d/mailscanner' -a -f '/var/lib/MailScanner/init/ms-init' ]; then
 	ln -s /var/lib/MailScanner/init/ms-init /etc/init.d/mailscanner
