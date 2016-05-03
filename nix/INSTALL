@@ -1,0 +1,50 @@
+# Welcome to MailScanner!
+#
+# All the documentation is on-line at:
+#
+#	Wiki: http://github.com/MailScanner/v5
+#	Info: http://www.mailscanner.info
+#
+# See /etc/MailScanner/MailScanner.conf for config details.
+#
+# Manual: https://s3.amazonaws.com/msv5/docs/ms-admin-guide.pdf
+#
+# Support: http://lists.mailscanner.info/listinfo/mailscanner
+#			
+# Jerry Benton - 3 May 2016
+#
+
+The install for NIX* is very straightforward. It simply copies the files into place. From
+there you will need to create the links to get MailScanner to start at boot. 
+
+Requirements: perl, perldoc, curl, and network access if you want to install missing Perl modules
+via CPAN. 
+
+Important files to note:
+
+/etc/MailScanner/defaults
+
+This file contains the system level settings for MailScanner. You will need to edit this file
+and at a minimum set run_mailscanner=1 for the daemon to start.
+
+
+/etc/MailScanner/MailScanner.conf
+
+The main configuration file for MailScanner's engine. You will also need to customize this file.
+
+
+/var/lib/MailScanner/init/ms-init
+
+This is the initialization script for MailScanner. This is the script you would symlink to control
+MailScanner using start/stop/restart/reload/kill. 
+
+
+/usr/sbin/ms-perl-check
+
+This executable will tell you what Perl modules you are missing, if any. 
+
+
+/usr/sbin/ms-*
+
+Many MailScanner executables. Most are self explanatory from the name alone. 
+

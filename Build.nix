@@ -62,6 +62,7 @@ mkdir -p $WORK
 
 # etc
 cp -fr $DEVBASEDIR/common/*		$WORK/
+cp -fr $DEVBASEDIR/nix/*		$WORK/
 
 # Insert the version number we are building
 perl -pi -e 's/VersionNumberHere/'$MSVERSION'/;' $WORK/etc/MailScanner/MailScanner.conf
@@ -78,6 +79,7 @@ find $WORK -depth -name '__MACOSX' -exec rm -rf {} \;
 cd $WORK
 find . -type f -exec chmod 0644 {} \;
 find . -type d -exec chmod 0755 {} \;
+chmod +x install.sh
 chmod +x $WORK/usr/sbin/*
 chmod +x $WORK/var/lib/MailScanner/wrapper/*-autoupdate
 chmod +x $WORK/var/lib/MailScanner/wrapper/*-wrapper
@@ -88,5 +90,5 @@ cd /tmp
 tar czf ~/msbuilds/tar/MailScanner-${VERSION}.nix.tar.gz MailScanner-$MSVERSION
 
 cd $DEVBASEDIR
-#rm -rf $WORK
+rm -rf $WORK
 
