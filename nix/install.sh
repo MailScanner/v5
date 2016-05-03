@@ -208,7 +208,7 @@ if [ -f './etc/MailScanner/MailScanner.conf' ]; then
 		rm -f /etc/MailScanner/reports
 	fi
 	
-	if [ ! -L '/etc/MailScanner/custom' ]; then
+	if [ ! -L '/etc/MailScanner/reports' ]; then
 		ln -s /usr/share/MailScanner/reports /etc/MailScanner/reports
 	fi
 	
