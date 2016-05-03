@@ -750,6 +750,17 @@ fi
 # make sure in starting directory
 cd $THISCURRPMDIR
 
+# remove old versions
+if [ -d /etc/MailScanner ]; then
+	rpm -q mailscanner > /dev/null 2>&1
+
+	RETVAL="$?"
+
+	if [ $RETVAL -eq 0 ]; then
+		rpm -e mailscanner
+	fi
+fi
+
 clear
 echo;
 echo "Installing the MailScanner RPM ... ";

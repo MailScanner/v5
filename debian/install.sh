@@ -508,6 +508,17 @@ done
 # will pause if a perl module was missing
 timewait $PMODWAIT
 
+# remove old versions
+if [ -d /etc/MailScanner ]; then
+	dpkg-query -l mailscanner > /dev/null 2>&1
+
+	RETVAL="$?"
+
+	if [ $RETVAL -eq 0 ]; then
+		apt-get -y remove mailscanner
+	fi
+fi
+
 clear
 echo;
 echo "Installing the MailScanner .deb package ... ";
