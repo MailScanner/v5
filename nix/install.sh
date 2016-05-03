@@ -41,10 +41,10 @@ read foobar
 clear
 echo;
 echo "Do you want to install missing perl modules via CPAN?"; echo;
-echo "I will attempt to install Perl modules via yum, but some may not be unavailable during the";
-echo "installation process. Missing modules will likely cause MailScanner to malfunction.";
+echo "I can attempt to install Perl modules via CPAN. Missing modules will likely ";
+echo "cause MailScanner to malfunction.";
 echo;
-echo "WARNING: You must have perl, cpan and perldoc installed for this to work!";
+echo "WARNING: You must have perl, perldoc, curl, cpan installed for this to work!";
 echo;
 echo "Recommended: Y (yes)"; echo;
 read -r -p "Install missing Perl modules via CPAN? [n/Y] : " response
