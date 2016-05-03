@@ -752,7 +752,7 @@ cd $THISCURRPMDIR
 
 # save the old MailScanner.conf
 if [ -f '/etc/MailScanner/MailScanner.conf' ]; then
-	cp /etc/MailScanner.conf /etc/MailScanner.conf.$$
+	cp /etc/MailScanner/MailScanner.conf /etc/MailScanner/MailScanner.conf.$$
 fi
 
 # remove old versions

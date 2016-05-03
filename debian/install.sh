@@ -510,7 +510,7 @@ timewait $PMODWAIT
 
 # save the old MailScanner.conf
 if [ -f '/etc/MailScanner/MailScanner.conf' ]; then
-	cp /etc/MailScanner.conf /etc/MailScanner.conf.$$
+	cp /etc/MailScanner/MailScanner.conf /etc/MailScanner/MailScanner.conf.$$
 fi
 
 # remove old versions
@@ -529,7 +529,7 @@ echo;
 echo "Installing the MailScanner .deb package ... ";
 
 # install the mailscanner package
-dpkg -i --force-overwrite $CONFFILES $NODEPS $THISCURRPMDIR/MailScanner-*-noarch.deb
+dpkg -i $CONFFILES $NODEPS $THISCURRPMDIR/MailScanner-*-noarch.deb
 
 if [ $? != 0 ]; then
 	echo;

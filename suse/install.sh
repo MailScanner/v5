@@ -481,7 +481,7 @@ fi
 
 # save the old MailScanner.conf
 if [ -f '/etc/MailScanner/MailScanner.conf' ]; then
-	cp /etc/MailScanner.conf /etc/MailScanner.conf.$$
+	cp /etc/MailScanner/MailScanner.conf /etc/MailScanner/MailScanner.conf.$$
 fi
 
 # remove old versions
@@ -502,7 +502,7 @@ echo "Installing the MailScanner RPM ... ";
 # using --force option to reinstall the rpm if the same version is
 # already installed. this will not overwrite configuration files
 # as they are protected in the rpm spec file
-$RPM -Uvh --force $NODEPS MailScanner*noarch.rpm
+$RPM -Uvh $NODEPS MailScanner*noarch.rpm
 
 if [ $? != 0 ]; then
 	echo;
