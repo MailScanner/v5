@@ -1,0 +1,10 @@
+#!/bin/sh
+#
+# Written by Jerry Benton <mailscanner@mailborder.com>
+#
+# see /etc/MailScanner/defaults
+
+# hourly cron items - includes ms-check to check if MS is running
+. /usr/sbin/ms-cron HOURLY
+
+exit 0

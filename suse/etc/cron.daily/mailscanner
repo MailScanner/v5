@@ -1,0 +1,13 @@
+#!/bin/sh
+#
+# Written by Jerry Benton <mailscanner@mailborder.com>
+#
+# see /etc/MailScanner/defaults
+
+# daily actions
+. /usr/sbin/ms-cron DAILY
+
+# maintenance
+. /usr/sbin/ms-cron MAINT
+
+exit 0

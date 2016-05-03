@@ -91,7 +91,7 @@ mkdir -p $WORK/{var,usr,etc}
 
 # etc
 cp -fr $DEVBASEDIR/common/etc/*		$WORK/etc/
-cp -fr $DEVBASEDIR/rhel/etc/*		$WORK/etc/
+cp -fr $DEVBASEDIR/suse/etc/*		$WORK/etc/
 
 # usr
 cp -fr $DEVBASEDIR/common/usr/* 	$WORK/usr/
@@ -104,7 +104,7 @@ perl -pi -e 's/VersionNumberHere/'$MSVERSION'/;' $WORK/etc/MailScanner/MailScann
 perl -pi -e 's/VersionNumberHere/'$MSVERSION'/;' $WORK/usr/sbin/MailScanner
 
 # do the same for mailscanner.spec
-cp -f $DEVBASEDIR/rhel/mailscanner.spec ~/rpmbuild/SPECS/mailscanner.spec
+cp -f $DEVBASEDIR/suse/mailscanner.spec ~/rpmbuild/SPECS/mailscanner.spec
 perl -pi -e 's/VersionNumberHere/'$MSVERSION'/;' ~/rpmbuild/SPECS/mailscanner.spec
 perl -pi -e 's/ReleaseNumberHere/'$MSBUILD'/;' ~/rpmbuild/SPECS/mailscanner.spec
 

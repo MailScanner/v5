@@ -59,7 +59,7 @@ mkdir -p ${RPM_BUILD_ROOT}/var/spool/MailScanner/{archive,incoming,quarantine}
 install etc/cron.daily/mailscanner ${RPM_BUILD_ROOT}/etc/cron.daily/
 install etc/cron.hourly/mailscanner ${RPM_BUILD_ROOT}/etc/cron.hourly/
 
-### etc/MailScanenr
+### etc/MailScanner
 install etc/MailScanner/conf.d/README ${RPM_BUILD_ROOT}/etc/MailScanner/conf.d/
 
 while read f
