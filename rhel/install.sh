@@ -755,7 +755,7 @@ echo;
 echo "Installing the MailScanner RPM ... ";
 
 # install the mailscanner rpm
-$RPM -Uvh $NODEPS MailScanner*noarch.rpm
+$RPM -Uvh --force $NODEPS MailScanner*noarch.rpm
 
 if [ $? != 0 ]; then
 	echo;
