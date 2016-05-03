@@ -84,7 +84,7 @@ chmod +x $WORK/var/lib/MailScanner/wrapper/*-wrapper
 chmod +x $WORK/var/lib/MailScanner/init/*
 
 # Build the MailScanner-version.tar.gz archive
-tar czf ~/msbuilds/tar/MailScanner-${VERSION}.nix.tar.gz MailScanner-$VERSION
+tar czf ~/msbuilds/tar/MailScanner-${VERSION}.nix.tar.gz MailScanner-$MSVERSION
 
 cd $DEVBASEDIR
 #rm -rf $WORK
