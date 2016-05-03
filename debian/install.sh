@@ -552,7 +552,7 @@ else
 		timewait 1
 		
 		if [ -f '/etc/MailScanner/MailScanner.conf' ]; then
-			ms-upgrade-conf /etc/MailScanner/MailScanner.conf /etc/MailScanner/MailScanner.conf.$$ > /etc/MailScanner/MailScanner.new
+			ms-upgrade-conf /etc/MailScanner/MailScanner.conf.$$ /etc/MailScanner/MailScanner.conf > /etc/MailScanner/MailScanner.new
 			mv -f /etc/MailScanner/MailScanner.conf /etc/MailScanner/MailScanner.conf.old.$$
 			mv -f /etc/MailScanner/MailScanner.new  /etc/MailScanner/MailScanner.conf
 		fi
