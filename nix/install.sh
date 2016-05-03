@@ -31,6 +31,10 @@ clear
 echo;
 echo "WRANING: backup your custom MailScanner files before proceeding. They will be overwritten!";
 echo;
+echo "These items should be installed before proceeding: perl, perldoc, curl, cpan";
+echo;
+echo "Press <return> to continue or CTRL+C to quit.";
+echo;
 read foobar
 
 # ask if the user wants missing modules installed via CPAN
@@ -40,7 +44,7 @@ echo "Do you want to install missing perl modules via CPAN?"; echo;
 echo "I will attempt to install Perl modules via yum, but some may not be unavailable during the";
 echo "installation process. Missing modules will likely cause MailScanner to malfunction.";
 echo;
-echo "WARNING: You must have perl and perldoc installed for this to work!";
+echo "WARNING: You must have perl, cpan and perldoc installed for this to work!";
 echo;
 echo "Recommended: Y (yes)"; echo;
 read -r -p "Install missing Perl modules via CPAN? [n/Y] : " response
@@ -165,19 +169,15 @@ do
 		if [ $CPANOPTION == 1 ]; then
 			clear
 			echo "$i is missing. Installing via CPAN ..."; echo;
-			timewait 1
 			perl -MCPAN -e "CPAN::Shell->force(qw(install $i ));"
 		else
 			echo "WARNING: $i is missing. You should fix this.";
-			PMODWAIT=5
+			sleep 1
 		fi
 	else
 		echo "$i => OK";
 	fi
 done
-
-# will pause if a perl module was missing
-timewait $PMODWAIT
 
 # postfix fix
 if [ -f "/etc/postfix/master.cf" ]; then
@@ -193,9 +193,9 @@ echo;
 echo "Installing the MailScanner files ... ";
 
 if [ -f './etc/MailScanner/MailScanner.conf' ]; then
-	cp -fr ./etc /etc
-	cp -fr ./usr /usr
-	cp -fr ./var /var
+	cp -fr ./etc /
+	cp -fr ./usr /
+	cp -fr ./var /
 	
 	if [ -f '/etc/MailScanner/custom' ]; then
 		rm -f /etc/MailScanner/custom

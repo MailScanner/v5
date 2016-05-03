@@ -17,7 +17,7 @@
 The install for NIX* is very straightforward. It simply copies the files into place. From
 there you will need to create the links to get MailScanner to start at boot. 
 
-Requirements: perl, perldoc, curl, and network access if you want to install missing Perl modules
+Requirements: perl, perldoc, curl, cpan, and network access if you want to install missing Perl modules
 via CPAN. 
 
 Important files to note:
