@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/usr/bin/sh
 
 # Checked and updated to be more streamlined by
 # Jerry Benton
