@@ -225,6 +225,13 @@ CAVNEW='Clamd Lock File = \/var\/run\/clamav\/clamd\.pid';
 if [ -f '/etc/MailScanner/MailScanner.conf' ]; then
 	sed -i "s/${CAVOLD}/${CAVNEW}/g" /etc/MailScanner/MailScanner.conf
 fi
+
+# allow supplementary groups
+CAVOLD='^#AllowSupplementaryGroups.*';
+CAVNEW='AllowSupplementaryGroups yes';
+if [ -f '/etc/clamav/clamd.conf' ]; then
+	sed -i "s/${CAVOLD}/${CAVNEW}/g" /etc/clamav/clamd.conf
+fi
 	
 # postfix fix
 if [ -f "/etc/postfix/master.cf" ]; then

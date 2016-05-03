@@ -245,6 +245,27 @@ rm -rf ${RPM_BUILD_ROOT}
 
 %post
 
+# set the correct sock for suse systems
+CAVOLD='^Clamd Socket.*';
+CAVNEW='Clamd Socket = \/var\/run\/clamav\/clamd-socket';
+if [ -f '/etc/MailScanner/MailScanner.conf' ]; then
+	sed -i "s/${CAVOLD}/${CAVNEW}/g" /etc/MailScanner/MailScanner.conf
+fi
+
+# set the correct lock file for suse systems
+CAVOLD='^Clamd Lock File.*';
+CAVNEW='Clamd Lock File = \/var\/run\/clamav\/clamd\.pid';
+if [ -f '/etc/MailScanner/MailScanner.conf' ]; then
+	sed -i "s/${CAVOLD}/${CAVNEW}/g" /etc/MailScanner/MailScanner.conf
+fi
+
+# allow supplementary groups
+CAVOLD='^#AllowSupplementaryGroups.*';
+CAVNEW='AllowSupplementaryGroups yes';
+if [ -f '/etc/clamd.conf' ]; then
+	sed -i "s/${CAVOLD}/${CAVNEW}/g" /etc/clamd.conf
+fi
+
 # group for users to run under
 if ! getent group mtagroup >/dev/null 2>&1; then
 	groupadd -f mtagroup >/dev/null 2>&1
@@ -394,7 +415,7 @@ if [ -d '/usr/share/MailScanner/perl/custom' -a ! -L '/etc/MailScanner/custom' ]
 fi
 
 # create init.d symlink
-if [ -d '/etc/rc.d/init.d' -a ! -L '/etc/rc.d/init.d/mailscanner' -a -f '/var/lib/MailScanner/init/ms-init' ]; then
+if [ -d '/etc/init.d' -a ! -L '/etc/init.d/mailscanner' -a -f '/var/lib/MailScanner/init/ms-init' ]; then
 	ln -s /var/lib/MailScanner/init/ms-init /etc/init.d/mailscanner
 fi
 

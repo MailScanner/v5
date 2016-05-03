@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# MailScanner installation script for SuSE based systems
+# MailScanner installation script for SUSE based systems
 # 
 # This script installs the required software for
 # MailScanner via zypper and CPAN based on user input.  
@@ -50,9 +50,9 @@ if [ -f '/etc/redhat-release' ]; then
 fi
 
 # user info screen before the install process starts
-echo "MailScanner Installation for SuSE Based Systems"; echo; echo;
+echo "MailScanner Installation for SUSE Based Systems"; echo; echo;
 echo "This will INSTALL or UPGRADE the required software for MailScanner on SuSE based systems";
-echo "via the zypper package manager. Tested distributions are SuSE 13.2 and associated";
+echo "via the zypper package manager. Tested distributions are openSUSE 13.2 and associated";
 echo "variants. Internet connectivity is required for this installation script to execute."; 
 echo;
 echo "You may press CTRL + C at any time to abort the installation. Note that you may see";
@@ -351,7 +351,7 @@ ARMOD+=('Mail::SPF::Query');	ARMOD+=('Module::Build');		ARMOD+=('Net::CIDR::Lite
 ARMOD+=('Net::DNS');			ARMOD+=('Net::LDAP');			ARMOD+=('Net::DNS::Resolver::Programmable');
 ARMOD+=('NetAddr::IP');			ARMOD+=('Parse::RecDescent');	ARMOD+=('Test::Harness');
 ARMOD+=('Test::Manifest');		ARMOD+=('Text::Balanced');		ARMOD+=('URI');	
-ARMOD+=('version');
+ARMOD+=('version');				ARMOD+=('IO::Compress::Bzip2');
 
 # additional spamassassin plugins				
 ARMOD+=('Mail::SpamAssassin::Plugin::Rule2XSBody');		
@@ -388,6 +388,7 @@ $ZYPPER --non-interactive install $BASEPACKAGES
 if [ "x$MTAOPTION" != "x" ]; then
 	$ZYPPER --non-interactive install $MTAOPTION
 	if [ $MTAOPTION = "sendmail" ]; then
+		mkdir -p /var/spool/mqueue
 		mkdir -p /var/spool/mqueue.in
 	fi
 fi
