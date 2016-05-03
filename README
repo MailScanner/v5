@@ -14,7 +14,7 @@ SUSE in addition to a generic NIX package.
 # 	/etc/MailScanner/MailScanner.conf 	for config details
 #
 # 
-# Support: http://lists.mailscanner.info/listinfo/mailscanner
+# 	Support: http://lists.mailscanner.info/listinfo/mailscanner
 #			
 # Jerry Benton - 3 May 2016
 # <mailscanner@mailborder.com>
