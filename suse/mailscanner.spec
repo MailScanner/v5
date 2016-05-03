@@ -21,6 +21,7 @@ Source:      %{name}-%{version}.tgz
 BuildRoot:   %{_tmppath}/%{name}-root
 BuildArchitectures: noarch
 AutoReqProv: yes
+Obsoletes: mailscanner
 
 
 %description
