@@ -479,6 +479,10 @@ if [ -f "/etc/postfix/master.cf" ]; then
 	sed -i "s/qmgr      unix/qmgr      fifo/g" /etc/postfix/master.cf
 fi
 
+# save the old MailScanner.conf
+if [ -f '/etc/MailScanner/MailScanner.conf' ]; then
+	cp /etc/MailScanner.conf /etc/MailScanner.conf.$$
+fi
 
 # remove old versions
 if [ -d /etc/MailScanner ]; then
@@ -526,7 +530,7 @@ else
 		CAVNEW='Monitors for ClamAV Updates = /usr/local/share/clamav/*.cld /usr/local/share/clamav/*.cvd /var/lib/clamav/*.inc/* /var/lib/clamav/*.?db /var/lib/clamav/*.cvd';
 		perl -pi -e 's/'$CAVOLD'/'$CAVNEW'/;' /etc/MailScanner/MailScanner.conf
 		
-		ms-upgrade-conf /etc/MailScanner/MailScanner.conf /etc/MailScanner/MailScanner.conf.rpmnew > /etc/MailScanner/MailScanner.new
+		ms-upgrade-conf /etc/MailScanner/MailScanner.conf /etc/MailScanner/MailScanner.conf.$$ > /etc/MailScanner/MailScanner.new
 		mv -f /etc/MailScanner/MailScanner.conf /etc/MailScanner/MailScanner.conf.old.$$
 		mv -f /etc/MailScanner/MailScanner.new  /etc/MailScanner/MailScanner.conf
 		

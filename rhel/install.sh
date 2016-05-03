@@ -750,6 +750,11 @@ fi
 # make sure in starting directory
 cd $THISCURRPMDIR
 
+# save the old MailScanner.conf
+if [ -f '/etc/MailScanner/MailScanner.conf' ]; then
+	cp /etc/MailScanner.conf /etc/MailScanner.conf.$$
+fi
+
 # remove old versions
 if [ -d /etc/MailScanner ]; then
 	rpm -q mailscanner > /dev/null 2>&1
@@ -794,7 +799,7 @@ else
 		CAVNEW='Monitors for ClamAV Updates = /usr/local/share/clamav/*.cld /usr/local/share/clamav/*.cvd /var/lib/clamav/*.inc/* /var/lib/clamav/*.?db /var/lib/clamav/*.cvd';
 		perl -pi -e 's/'$CAVOLD'/'$CAVNEW'/;' /etc/MailScanner/MailScanner.conf
 		
-		ms-upgrade-conf /etc/MailScanner/MailScanner.conf /etc/MailScanner/MailScanner.conf.rpmnew > /etc/MailScanner/MailScanner.new
+		ms-upgrade-conf /etc/MailScanner/MailScanner.conf /etc/MailScanner/MailScanner.conf.$$ > /etc/MailScanner/MailScanner.new
 		mv -f /etc/MailScanner/MailScanner.conf /etc/MailScanner/MailScanner.conf.old.$$
 		mv -f /etc/MailScanner/MailScanner.new  /etc/MailScanner/MailScanner.conf
 

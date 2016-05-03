@@ -508,6 +508,11 @@ done
 # will pause if a perl module was missing
 timewait $PMODWAIT
 
+# save the old MailScanner.conf
+if [ -f '/etc/MailScanner/MailScanner.conf' ]; then
+	cp /etc/MailScanner.conf /etc/MailScanner.conf.$$
+fi
+
 # remove old versions
 if [ -d /etc/MailScanner ]; then
 	dpkg-query -l mailscanner > /dev/null 2>&1
@@ -547,7 +552,7 @@ else
 		timewait 1
 		
 		if [ -f '/etc/MailScanner/MailScanner.conf' ]; then
-			ms-upgrade-conf /etc/MailScanner/MailScanner.conf /etc/MailScanner/MailScanner.conf.dpkg-dist > /etc/MailScanner/MailScanner.new
+			ms-upgrade-conf /etc/MailScanner/MailScanner.conf /etc/MailScanner/MailScanner.conf.$$ > /etc/MailScanner/MailScanner.new
 			mv -f /etc/MailScanner/MailScanner.conf /etc/MailScanner/MailScanner.conf.old.$$
 			mv -f /etc/MailScanner/MailScanner.new  /etc/MailScanner/MailScanner.conf
 		fi
