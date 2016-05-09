@@ -5,6 +5,6 @@
 # see /etc/MailScanner/defaults
 
 # hourly cron items - includes ms-check to check if MS is running
-. /usr/sbin/ms-cron HOURLY
+/usr/sbin/ms-cron HOURLY
 
 exit 0

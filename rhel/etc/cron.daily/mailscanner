@@ -5,9 +5,9 @@
 # see /etc/MailScanner/defaults
 
 # daily actions
-. /usr/sbin/ms-cron DAILY
+/usr/sbin/ms-cron DAILY
 
 # maintenance
-. /usr/sbin/ms-cron MAINT
+/usr/sbin/ms-cron MAINT
 
 exit 0
