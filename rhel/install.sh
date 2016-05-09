@@ -721,9 +721,9 @@ if [ -f '/etc/freshclam.conf' ]; then
 		OLDCAVGRP='ClamGroup="clamav"';
 		NEWCAVGRP='ClamGroup="clam"';
 	
-		if [ -f '/var/lib/MailScanner/wrapper/clamav-wrapper' ]; then
-			perl -pi -e 's/'$OLDCAVUSR'/'$NEWCAVUSR'/;' /var/lib/MailScanner/wrapper/clamav-wrapper
-			perl -pi -e 's/'$OLDCAVGRP'/'$NEWCAVGRP'/;' /var/lib/MailScanner/wrapper/clamav-wrapper
+		if [ -f '/usr/lib/MailScanner/wrapper/clamav-wrapper' ]; then
+			perl -pi -e 's/'$OLDCAVUSR'/'$NEWCAVUSR'/;' /usr/lib/MailScanner/wrapper/clamav-wrapper
+			perl -pi -e 's/'$OLDCAVGRP'/'$NEWCAVGRP'/;' /usr/lib/MailScanner/wrapper/clamav-wrapper
 		fi
 		
 		freshclam

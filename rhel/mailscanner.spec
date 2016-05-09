@@ -53,7 +53,7 @@ mkdir -p ${RPM_BUILD_ROOT}/etc/MailScanner/{conf.d,rules,mcp}
 mkdir -p ${RPM_BUILD_ROOT}/etc/{cron.hourly,cron.daily}
 mkdir -p ${RPM_BUILD_ROOT}/usr/share/MailScanner/reports/{hu,de,se,ca,cy+en,pt_br,fr,es,en,cz,it,dk,nl,ro,sk}
 mkdir -p ${RPM_BUILD_ROOT}/usr/share/MailScanner/perl/{MailScanner,custom}
-mkdir -p ${RPM_BUILD_ROOT}/var/{lib/MailScanner/wrapper,lib/MailScanner/init}
+mkdir -p ${RPM_BUILD_ROOT}/usr/{lib/MailScanner/wrapper,lib/MailScanner/init}
 mkdir -p ${RPM_BUILD_ROOT}/var/spool/MailScanner/{archive,incoming,quarantine}
 
 ### etc
@@ -217,13 +217,13 @@ SpamWhitelist.pm
 ZMRouterDirHash.pm
 EOF
 
-### var/lib/MailScanner
+### usr/lib/MailScanner
 
-install var/lib/MailScanner/init/ms-init ${RPM_BUILD_ROOT}/var/lib/MailScanner/init/
+install usr/lib/MailScanner/init/ms-init ${RPM_BUILD_ROOT}/usr/lib/MailScanner/init/
 
 while read f 
 do
-  install var/lib/MailScanner/wrapper/$f ${RPM_BUILD_ROOT}/var/lib/MailScanner/wrapper
+  install usr/lib/MailScanner/wrapper/$f ${RPM_BUILD_ROOT}/usr/lib/MailScanner/wrapper
 done << EOF
 avg-autoupdate
 avg-wrapper
@@ -348,9 +348,9 @@ if [ -d '/etc/clamav' ]; then
 		CAVGRP='ClamGroup="clamscan"';
 	fi
 	
-	if [ -f '/var/lib/MailScanner/wrapper/clamav-wrapper' ]; then
-		sed -i "s/${DISTROCAVUSER}/${CAVUSR}/g" /var/lib/MailScanner/wrapper/clamav-wrapper
-		sed -i "s/${DISTROCAVGRP}/${CAVGRP}/g" /var/lib/MailScanner/wrapper/clamav-wrapper
+	if [ -f '/usr/lib/MailScanner/wrapper/clamav-wrapper' ]; then
+		sed -i "s/${DISTROCAVUSER}/${CAVUSR}/g" /usr/lib/MailScanner/wrapper/clamav-wrapper
+		sed -i "s/${DISTROCAVGRP}/${CAVGRP}/g" /usr/lib/MailScanner/wrapper/clamav-wrapper
 	fi
 	
 	# fix old style clamav Monitors if preset in old mailscanner.conf
@@ -407,8 +407,8 @@ if [ -d '/usr/share/MailScanner/reports' -a ! -L '/etc/MailScanner/reports' ]; t
 fi
 
 # create init.d symlink
-if [ -d '/etc/init.d' -a ! -L '/etc/init.d/mailscanner' -a -f '/var/lib/MailScanner/init/ms-init' ]; then
-	ln -s /var/lib/MailScanner/init/ms-init /etc/init.d/mailscanner
+if [ -d '/etc/init.d' -a ! -L '/etc/init.d/mailscanner' -a -f '/usr/lib/MailScanner/init/ms-init' ]; then
+	ln -s /usr/lib/MailScanner/init/ms-init /etc/init.d/mailscanner
 fi
 
 # Sort out the rc.d directories
@@ -451,8 +451,8 @@ exit 0
 %attr(755,root,root) %dir /etc/MailScanner/rules
 %attr(755,root,root) %dir /etc/MailScanner/mcp
 %attr(755,root,root) %dir /etc/MailScanner/conf.d
-%attr(755,root,root) %dir /var/lib/MailScanner/wrapper
-%attr(755,root,root) %dir /var/lib/MailScanner/init
+%attr(755,root,root) %dir /usr/lib/MailScanner/wrapper
+%attr(755,root,root) %dir /usr/lib/MailScanner/init
 %attr(755,root,root) %dir /var/spool/MailScanner/archive
 %attr(755,root,root) %dir /var/spool/MailScanner/incoming
 %attr(755,root,root) %dir /var/spool/MailScanner/quarantine
@@ -480,20 +480,20 @@ exit 0
 %attr(755,root,root) /usr/sbin/ms-update-vs
 %attr(755,root,root) /usr/sbin/ms-upgrade-conf
 
-%attr(755,root,root) /var/lib/MailScanner/init/ms-init
+%attr(755,root,root) /usr/lib/MailScanner/init/ms-init
 
-%attr(755,root,root) /var/lib/MailScanner/wrapper/avg-autoupdate
-%attr(755,root,root) /var/lib/MailScanner/wrapper/avg-wrapper
-%attr(755,root,root) /var/lib/MailScanner/wrapper/bitdefender-autoupdate
-%attr(755,root,root) /var/lib/MailScanner/wrapper/bitdefender-wrapper
-%attr(755,root,root) /var/lib/MailScanner/wrapper/clamav-autoupdate
-%attr(755,root,root) /var/lib/MailScanner/wrapper/clamav-wrapper
-%attr(755,root,root) /var/lib/MailScanner/wrapper/f-secure-autoupdate
-%attr(755,root,root) /var/lib/MailScanner/wrapper/f-secure-wrapper
-%attr(755,root,root) /var/lib/MailScanner/wrapper/generic-autoupdate
-%attr(755,root,root) /var/lib/MailScanner/wrapper/generic-wrapper
-%attr(755,root,root) /var/lib/MailScanner/wrapper/sophos-autoupdate
-%attr(755,root,root) /var/lib/MailScanner/wrapper/sophos-wrapper
+%attr(755,root,root) /usr/lib/MailScanner/wrapper/avg-autoupdate
+%attr(755,root,root) /usr/lib/MailScanner/wrapper/avg-wrapper
+%attr(755,root,root) /usr/lib/MailScanner/wrapper/bitdefender-autoupdate
+%attr(755,root,root) /usr/lib/MailScanner/wrapper/bitdefender-wrapper
+%attr(755,root,root) /usr/lib/MailScanner/wrapper/clamav-autoupdate
+%attr(755,root,root) /usr/lib/MailScanner/wrapper/clamav-wrapper
+%attr(755,root,root) /usr/lib/MailScanner/wrapper/f-secure-autoupdate
+%attr(755,root,root) /usr/lib/MailScanner/wrapper/f-secure-wrapper
+%attr(755,root,root) /usr/lib/MailScanner/wrapper/generic-autoupdate
+%attr(755,root,root) /usr/lib/MailScanner/wrapper/generic-wrapper
+%attr(755,root,root) /usr/lib/MailScanner/wrapper/sophos-autoupdate
+%attr(755,root,root) /usr/lib/MailScanner/wrapper/sophos-wrapper
 
 %config(noreplace) /usr/share/MailScanner/perl/custom/CustomAction.pm
 %config(noreplace) /usr/share/MailScanner/perl/custom/GenericSpamScanner.pm

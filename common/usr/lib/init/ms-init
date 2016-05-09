@@ -27,7 +27,7 @@
 
 # RHEL
 #
-# chkconfig: 345 20 80
+# chkconfig: 345 80 20
 # description: MailScanner daemon
 # processname: MailScanner
 
@@ -40,7 +40,7 @@ run_mailscanner=0
 ramdisk_sync=0
 ms_conf=/etc/MailScanner/MailScanner.conf
 ms_core=/usr/share/MailScanner
-ms_lib=/var/lib/MailScanner
+ms_lib=/usr/lib/MailScanner
 ramdisk_store=/var/spool/MailScanner/ramdisk_store
 stopped_lockfile=/var/lock/subsys/MailScanner.off
 HOSTNAME=$(hostname)

@@ -1659,7 +1659,7 @@ __DATA__
 #
 #      https://www.mailscanner.info
 #
-push @INC,"/usr/share/MailScanner","/var/lib/MailScanner";
+push @INC,"/usr/share/MailScanner","/usr/lib/MailScanner";
 use FileHandle;
 use Fcntl qw(:DEFAULT :flock);
 use Sys::Syslog;

@@ -64,7 +64,7 @@ fi
 
 # make working dir and subs
 mkdir -p $WORK
-mkdir -p $WORK/{var,usr,etc}
+mkdir -p $WORK/{usr,etc}
 
 # etc
 cp -fr $DEVBASEDIR/common/etc/*	$WORK/etc/
@@ -74,8 +74,6 @@ cp -fr $DEVBASEDIR/debian/etc/*	$WORK/etc/
 cp -fr $DEVBASEDIR/common/usr/* $WORK/usr/
 cp -fr $DEVBASEDIR/debian/usr/* $WORK/usr/
 
-# var
-cp -fr $DEVBASEDIR/common/var/* $WORK/var/
 
 cp -rf $DEVBASEDIR/debian/DEBIAN/ $WORK
 perl -pi -e 's/DebianVersionHere/'$FULLMSVER'/;' $WORK/DEBIAN/control
@@ -96,9 +94,9 @@ chmod +x $WORK/usr/sbin/*
 chmod +x $WORK/DEBIAN/postinst
 chmod +x $WORK/DEBIAN/preinst
 chmod +x $WORK/DEBIAN/postrm
-chmod +x $WORK/var/lib/MailScanner/wrapper/*-autoupdate
-chmod +x $WORK/var/lib/MailScanner/wrapper/*-wrapper
-chmod +x $WORK/var/lib/MailScanner/init/*
+chmod +x $WORK/usr/lib/MailScanner/wrapper/*-autoupdate
+chmod +x $WORK/usr/lib/MailScanner/wrapper/*-wrapper
+chmod +x $WORK/usr/lib/MailScanner/init/*
 chmod +x $WORK/etc/cron.daily/*
 chmod +x $WORK/etc/cron.hourly/*
 

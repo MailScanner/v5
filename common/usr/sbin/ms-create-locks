@@ -27,8 +27,8 @@ unless (-d _) {
 
 # Now work through all the virus scanner autoupdate names, building Lock files.
 my($dh, $fh, $updatename, $lockname, @updatenames, @locknames);
-$dh = new DirHandle "/var/lib/MailScanner/wrapper";
-die "Can't read dir /var/lib/MailScanner/wrapper to build list of -autoupdate scripts, $!" unless $dh;
+$dh = new DirHandle "/usr/lib/MailScanner/wrapper";
+die "Can't read dir /usr/lib/MailScanner/wrapper to build list of -autoupdate scripts, $!" unless $dh;
 while (defined($updatename = $dh->read)) {
   next unless $updatename =~ s/-autoupdate$//;
   next unless $updatename =~ /^[a-z0-9_-]+$/i; # No nasty chars thanks!

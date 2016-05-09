@@ -13,7 +13,7 @@ DAEMON=/usr/sbin/MailScanner
 QUICKPEEK=/usr/sbin/ms-peek
 ms_conf=/etc/MailScanner/MailScanner.conf
 ms_core=/usr/share/MailScanner
-ms_lib=/var/lib/MailScanner
+ms_lib=/usr/lib/MailScanner
 ramdisk_store=/var/spool/MailScanner/ramdisk_store
 stopped_lockfile=/var/lock/subsys/MailScanner.off
 

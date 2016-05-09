@@ -14,11 +14,27 @@ export SAUPDATEARGS
 COMPILESUCCESS=0
 LOGFILE=/tmp/ms-update-sa.$(date +%m%d%H%M%S)
 
+if [ "x$SAUPDATE" = "x" ]; then
+	# sa-update not found. exiting
+	exit 0
+fi
+
+
 # Update SpamAssassin rules
 [ -x $SAUPDATE ] || exit 0
 rm -f $LOGFILE
 $SAUPDATE $SAUPDATEARGS > $LOGFILE 2>&1
 UPDATESUCCESS="$?"
+
+if [ "x$SACOMPILE" = "x" ]; then
+	# sa-compile not found. exiting
+	exit 0
+fi
+
+if [ "x$ms_re2c" = "x" ]; then
+	# re2c not found. exiting
+	exit 0
+fi
 
 # If we have sa-compile and they are using the Rule2XSBody plugin then compile
 grep -q '^loadplugin.*Rule2XSBody' /etc/mail/spamassassin/*pre 2>/dev/null
@@ -37,7 +53,7 @@ fi
 if [ $UPDATESUCCESS = 0 -a $COMPILESUCCESS = 0 -o $UPDATESUCCESS = 1 ]; then
 	logger -i -p mail.notice "ms-update-sa: spamassassin signatures updated"
 	rm -f $LOGFILE
-	. /var/lib/MailScanner/init/ms-init reload >>$LOGFILE 2>&1  		
+	. /usr/lib/MailScanner/init/ms-init reload >>$LOGFILE 2>&1  		
 fi
 
 exit 0

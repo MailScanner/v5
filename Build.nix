@@ -83,9 +83,9 @@ find . -type f -exec chmod 0644 {} \;
 find . -type d -exec chmod 0755 {} \;
 chmod +x install.sh
 chmod +x $WORK/usr/sbin/*
-chmod +x $WORK/var/lib/MailScanner/wrapper/*-autoupdate
-chmod +x $WORK/var/lib/MailScanner/wrapper/*-wrapper
-chmod +x $WORK/var/lib/MailScanner/init/*
+chmod +x $WORK/usr/lib/MailScanner/wrapper/*-autoupdate
+chmod +x $WORK/usr/lib/MailScanner/wrapper/*-wrapper
+chmod +x $WORK/usr/lib/MailScanner/init/*
 
 # Build the MailScanner-version.tar.gz archive
 cd /tmp

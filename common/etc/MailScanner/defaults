@@ -127,7 +127,7 @@ ms_core=/usr/share/MailScanner
 
 # The MailScanner lib directory
 #
-ms_lib=/var/lib/MailScanner
+ms_lib=/usr/lib/MailScanner
 
 
 ## Files

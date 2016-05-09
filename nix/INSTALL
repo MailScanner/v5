@@ -33,7 +33,7 @@ and at a minimum set run_mailscanner=1 for the daemon to start.
 The main configuration file for MailScanner's engine. You will also need to customize this file.
 
 
-/var/lib/MailScanner/init/ms-init
+/usr/lib/MailScanner/init/ms-init
 
 This is the initialization script for MailScanner. This is the script you would symlink to control
 MailScanner using start/stop/restart/reload/kill. 
