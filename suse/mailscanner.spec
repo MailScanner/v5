@@ -272,16 +272,16 @@ fi
 SAVEDIR="$HOME/ms_upgrade/saved.$$";
 
 if [ -d '/usr/lib/MailScanner/MailScanner/CustomFunctions' ]; then
-	mkdir -p $SAVEDIR/usr/lib/MailScanner/MailScanner/CustomFunctions
-	cp -f /usr/lib/MailScanner/MailScanner/CustomFunctions/* $SAVEDIR/usr/lib/MailScanner/MailScanner/CustomFunctions
+	mkdir -p ${SAVEDIR}/usr/lib/MailScanner/MailScanner/CustomFunctions
+	cp -f /usr/lib/MailScanner/MailScanner/CustomFunctions/* ${SAVEDIR}/usr/lib/MailScanner/MailScanner/CustomFunctions
 	if [ -d "/usr/lib/MailScanner/MailScanner" ]; then
 		rm -rf /usr/lib/MailScanner/MailScanner
 	fi
 fi
 
 if [ -d '/etc/MailScanner/CustomFunctions' ]; then
-	mkdir -p $SAVEDIR/etc/MailScanner/CustomFunctions
-	cp -f /etc/MailScanner/CustomFunctions/* $SAVEDIR/etc/MailScanner/CustomFunctions
+	mkdir -p ${SAVEDIR}/etc/MailScanner/CustomFunctions
+	cp -f /etc/MailScanner/CustomFunctions/* ${SAVEDIR}/etc/MailScanner/CustomFunctions
 	rm -rf /etc/MailScanner/CustomFunctions
 fi
 
@@ -290,15 +290,19 @@ if [ -L '/etc/MailScanner/CustomFunctions' ]; then
 fi
 
 if [ -f '/etc/MailScanner/CustomConfig.pm' ]; then
-	mkdir -p $SAVEDIR/etc/MailScanner
-	cp -f /etc/MailScanner/CustomConfig.pm $SAVEDIR/etc/MailScanner/
+	mkdir -p ${SAVEDIR}/etc/MailScanner
+	cp -f /etc/MailScanner/CustomConfig.pm ${SAVEDIR}/etc/MailScanner/
 	rm -f /etc/MailScanner/CustomConfig.pm
 fi
 
 if [ -d '/etc/MailScanner/reports' ]; then
-	mkdir -p $SAVEDIR/etc/MailScanner/reports
-	cp -rf /etc/MailScanner/reports/* $SAVEDIR/etc/MailScanner/reports
+	mkdir -p ${SAVEDIR}/etc/MailScanner/reports
+	cp -rf /etc/MailScanner/reports/* ${SAVEDIR}/etc/MailScanner/reports
 	rm -rf /etc/MailScanner/reports
+fi
+
+if [ -d '/usr/share/MailScanner/MailScanner' ]; then
+	rm -rf /usr/share/MailScanner/MailScanner
 fi
 
 exit 0
