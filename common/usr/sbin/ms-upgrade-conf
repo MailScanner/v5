@@ -74,7 +74,7 @@ EOU
 Usage:
 
 cd /usr/share/MailScanner/reports/en
-upgrade_languages_conf languages.conf languages.conf.rpmnew > languages.new
+ms-upgrade-conf languages.conf languages.conf.rpmnew > languages.new
 mv -f languages.conf languages.old
 mv -f languages.new  languages.conf
 
@@ -331,11 +331,10 @@ Notes
 I would advise you to check on any parameters which are different between
 the default new conf file and the conf file you just created, so that you
 find any parameters whose default values have changed.
-If you ran this with a command like this
-  upgrade_$filescore $filedot $filedot.rpmnew > $filenew
-then you should do
+
   diff -w $filedot.rpmnew $filenew
-and check for any differences in values you have not changed yourself.
+
+to check for any differences in values you have not changed yourself.
 
 EOL
 sleep(5);

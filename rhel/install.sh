@@ -361,7 +361,7 @@ fi
 # back up their stuff
 SAVEDIR="$HOME/ms_upgrade/saved.$$";
 
-if [ -d "/usr/lib/MailScanner" ]; then
+if [ -d "/usr/lib/MailScanner/MailScanner/CustomFunctions" ]; then
 	mkdir -p $SAVEDIR/usr/lib/MailScanner/MailScanner/CustomFunctions
 	cp -f /usr/lib/MailScanner/MailScanner/CustomFunctions/* $SAVEDIR/usr/lib/MailScanner/MailScanner/CustomFunctions
 	clear
@@ -369,6 +369,9 @@ if [ -d "/usr/lib/MailScanner" ]; then
 	echo "I have copied /usr/lib/MailScanner/MailScanner/CustomFunctions/* to";
 	echo "$SAVEDIR/usr/lib/MailScanner/MailScanner/CustomFunctions";
 	echo;
+	if [ -d "/usr/lib/MailScanner/MailScanner" ]; then
+		rm -rf /usr/lib/MailScanner/MailScanner
+	fi
 	timewait 3;
 fi
 
@@ -380,10 +383,11 @@ if [ -d "/etc/MailScanner/CustomFunctions" ]; then
 	echo "I have copied /etc/MailScanner/CustomFunctions/* to";
 	echo "$SAVEDIR/etc/MailScanner/CustomFunctions";
 	echo;
+	rm -rf /etc/MailScanner/CustomFunctions
 	timewait 3;
 fi
 
-if [ -f "/etc/MailScanner/CustomFunctions" ]; then
+if [ -L "/etc/MailScanner/CustomFunctions" ]; then
 	rm -f /etc/MailScanner/CustomFunctions
 fi
 
@@ -395,6 +399,7 @@ if [ -f "/etc/MailScanner/CustomConfig.pm" ]; then
 	echo "I have copied /etc/MailScanner/CustomConfig.pm to";
 	echo "$SAVEDIR/etc/MailScanner/CustomConfig.pm";
 	echo;
+	rm -f /etc/MailScanner/CustomConfig.pm
 	timewait 3;
 fi
 
