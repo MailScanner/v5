@@ -240,7 +240,7 @@ fi
 
 # allow supplementary groups
 CAVOLD='^#AllowSupplementaryGroups.*';
-CAVNEW='AllowSupplementaryGroups yes';
+CAVNEW='AllowSupplementaryGroups true';
 if [ -f '/etc/clamav/clamd.conf' ]; then
 	sed -i "s/${CAVOLD}/${CAVNEW}/g" /etc/clamav/clamd.conf
 fi
