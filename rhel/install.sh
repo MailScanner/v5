@@ -203,6 +203,7 @@ if [ $EPEL == 1 ]; then
 
 else
 	# user did not select EPEL so clamav is not available via yum
+	CAV=0
 	CAVOPTION=
 fi
 
