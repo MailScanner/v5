@@ -437,12 +437,6 @@ if [ -f '/etc/freshclam.conf' ]; then
 	fi
 fi
 
-# postfix fix
-if [ -f '/etc/postfix/master.cf' ]; then
-	sed -i "s/pickup    unix/pickup    fifo/g" /etc/postfix/master.cf
-	sed -i "s/qmgr      unix/qmgr      fifo/g" /etc/postfix/master.cf
-fi
-
 # save the old MailScanner.conf
 if [ -f '/etc/MailScanner/MailScanner.conf' ]; then
 	cp /etc/MailScanner/MailScanner.conf /etc/MailScanner/MailScanner.conf.$$

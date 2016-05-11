@@ -666,12 +666,6 @@ done
 # will pause if a perl module was missing
 timewait $PMODWAIT
 
-# postfix fix
-if [ -f '/etc/postfix/master.cf' ]; then
-	sed -i "s/pickup    unix/pickup    fifo/g" /etc/postfix/master.cf
-	sed -i "s/qmgr      unix/qmgr      fifo/g" /etc/postfix/master.cf
-fi
-
 # fix the clamav wrapper if the user does not exist
 if [ -f '/etc/freshclam.conf' ]; then
 	if id -u clam >/dev/null 2>&1; then
