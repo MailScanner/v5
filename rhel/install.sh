@@ -827,6 +827,9 @@ else
 		fi
 	fi
 	
+	/usr/sbin/ms-update-safe-sites > /dev/null 2>&1
+	/usr/sbin/ms-update-bad-sites > /dev/null 2>&1
+	
 	echo;
 	echo '----------------------------------------------------------';
 	echo 'Installation Complete'; echo;
