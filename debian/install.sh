@@ -454,6 +454,9 @@ if [ $? != 0 ]; then
 	echo 'user specific configuration.';
 	echo;
 else
+	SAVEDIR="$HOME/ms_upgrade/saved.$$";
+	mkdir -p $SAVEDIR
+	
 	if [ $AUTOUPGRADE == 1 ]; then
 		echo "Upgrading /etc/MailScanner/MailScanner.conf";
 		echo;
@@ -469,6 +472,8 @@ else
 		fi
 
 	fi
+	
+	mv -f /etc/Mailscanner/MailScanner.conf.* ${SAVEDIR}/etc/MailScanner > /dev/null 2>&1
 	
 	# create ramdisk
 	if [ $RAMDISK == 1 ]; then

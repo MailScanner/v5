@@ -358,6 +358,40 @@ else
     SELMODE=0
 fi
 
+# ask if the user wants to add a ramdisk
+clear
+echo;
+echo "Do you want to create a RAMDISK?"; echo;
+echo "This will create a mount in /etc/fstab that attaches the processing"; 
+echo "directory /var/spool/MailScanner/incoming to a RAMDISK, which greatly"; 
+echo "increases processing speed at the cost of the reservation of some of";
+echo "the system RAM. The size depends on the number of MailScanner children,";
+echo "the number of messages per batch, and incoming email volume."
+echo;
+echo "Specify a size in MB or leave blank for none.";
+echo;
+echo "Suggestions:";
+echo "		None		0";
+echo "		Small		256";
+echo "		Medium		512";
+echo " 		Large 		1024 or 2048";
+echo " 		Enterprise	4096 or 8192";
+echo;
+echo "Example: 1024"; echo;
+read -r -p "Specify a RAMDISK size? [0] : " RAMDISKSIZE
+
+if [[ $RAMDISKSIZE =~ ^[0-9]+$ ]]; then
+	if [ $RAMDISKSIZE != 0 ]; then
+		# user wants ramdisk
+		RAMDISK=1
+	else
+		RAMDISK=0
+	fi
+else
+	# no ramdisk
+	RAMDISK=0
+fi
+
 # base system packages
 BASEPACKAGES="binutils gcc glibc-devel libaio make man-pages man-pages-overrides patch rpm tar time unzip which zip libtool-ltdl perl curl wget openssl openssl-devel bzip2-devel";
 
@@ -769,6 +803,29 @@ else
 	fi
 	
 	mv -f /etc/Mailscanner/MailScanner.conf.* ${SAVEDIR}/etc/MailScanner > /dev/null 2>&1
+	
+	# create ramdisk
+	if [ $RAMDISK == 1 ]; then
+		if [ -d '/var/spool/MailScanner/incoming' ]; then
+			echo "Creating the ramdisk ...";
+			echo;
+			DISK="/var/spool/MailScanner/incoming";
+			FSTYPE=$(df -P -T ${DISK}|tail -n +2 | awk '{print $2}')
+
+			if [ $FSTYPE != tmpfs ]; then
+				mount -t tmpfs -o size=${RAMDISKSIZE}M tmpfs ${DISK}
+				echo "tmpfs ${DISK} tmpfs rw,size=${RAMDISKSIZE}M 0 0" >> /etc/fstab
+				echo "Enabling ramdisk sync ...";
+				if [ -f '/etc/MailScanner/defaults' ]; then
+					OLD="^#ramdisk_sync=1";
+					NEW="ramdisk_sync=1";
+					sed -i "s/${OLD}/${NEW}/g" /etc/MailScanner/defaults
+				fi
+			else
+				echo "${DISK} is already a RAMDISK!"; echo;
+			fi
+		fi
+	fi
 	
 	echo;
 	echo '----------------------------------------------------------';
