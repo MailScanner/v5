@@ -16,72 +16,8 @@ set -e
 # for details, see http://www.debian.org/doc/debian-policy/ or
 # the debian-policy package
 
-
-# handle old files and updates
-if [ -f "/etc/MailScanner/MailScanner.conf" ]; then
-
-	# create if missing
-	[ -d "/etc/MailScanner/conf.d" ] || mkdir -p /etc/MailScanner/conf.d
-			
-	# /usr/lib/MailScanner
-	if [ -d "/var/lib/MailScanner" ]; then
-		rm -rf /var/lib/MailScanner
-	fi
-
-	# /etc/MailScanner/CustomFunctions
-	if [ -d "/etc/MailScanner/CustomFunctions" -a ! -L "/etc/MailScanner/CustomFunctions" ]; then
-		mkdir -p /usr/share/MailScanner/perl/custom/
-		cp -rf /etc/MailScanner/CustomFunctions/* /usr/share/MailScanner/perl/custom/
-		rm -rf /etc/MailScanner/CustomFunctions
-	fi
-
-	# /etc/MailScanner/custom
-	if [ -d "/etc/MailScanner/custom" -a ! -L "/etc/MailScanner/custom" ]; then
-		mkdir -p /usr/share/MailScanner/perl/custom/
-		cp -rf /etc/MailScanner/custom/* /usr/share/MailScanner/perl/custom/
-		rm -rf /etc/MailScanner/custom
-	fi
-	
-	# /etc/MailScanner/custom symlink
-	if [ -L "/etc/MailScanner/custom" ]; then
-		rm -f /etc/MailScanner/custom
-	fi
-
-	# /etc/MailScanner/Custom
-	if [ -d "/etc/MailScanner/Custom" -a ! -L "/etc/MailScanner/Custom" ]; then
-		mkdir -p /usr/share/MailScanner/perl/custom/
-		cp -rf /etc/MailScanner/Custom/* /usr/share/MailScanner/perl/custom/
-		rm -rf /etc/MailScanner/Custom
-	fi
-
-	# /usr/share/MailScanner/MailScanner
-	if [ -d "/usr/share/MailScanner/MailScanner" ]; then
-		rm -rf /usr/share/MailScanner/MailScanner
-	fi
-
-	# /etc/MailScanner/autoupdate
-	if [ -d "/etc/MailScanner/autoupdate" ]; then
-		rm -rf /etc/MailScanner/autoupdate
-	fi
-
-	# /etc/MailScanner/wrapper
-	if [ -d "/etc/MailScanner/wrapper" ]; then
-		rm -rf /etc/MailScanner/wrapper
-	fi
-
-	# /usr/share/MailScanner/reports
-	if [ -d "/etc/MailScanner/reports" -a ! -L "/etc/MailScanner/reports" ]; then
-		mkdir -p /usr/share/MailScanner/reports/
-		cp -rf /etc/MailScanner/reports/* /usr/share/MailScanner/reports/
-		rm -rf /etc/MailScanner/reports/
-	fi
-	
-	# /etc/MailScanner/CustomConfig.pm
-	if [ -f "/etc/MailScanner/CustomConfig.pm" -a ! -L "/etc/MailScanner/CustomConfig.pm" ]; then
-		cp -uf /etc/MailScanner/CustomConfig.pm /usr/share/MailScanner/perl/MailScanner/CustomConfig.pm
-		rm -f /etc/MailScanner/CustomConfig.pm
-	fi
-fi
+# back up their stuff
+SAVEDIR="$HOME/ms_upgrade/saved.$$";
 
 # remove old symlink if present
 if [ -L '/etc/init.d/mailscanner' ]; then
@@ -107,4 +43,72 @@ if [ -f '/etc/init.d/MailScanner' ]; then
 	rm -f /etc/init.d/MailScanner
 fi
 
+if [ -f "/etc/default/mailscanner" ]; then
+	mkdir -p ${SAVEDIR}/etc/default
+	cp -f /etc/default/mailscanner ${SAVEDIR}/etc/default/mailscanner
+	rm -f /etc/default/mailscanner
+fi
+
+if [ -f "/etc/default/MailScanner" ]; then
+	mkdir -p ${SAVEDIR}/etc/default
+	cp -f /etc/default/MailScanner ${SAVEDIR}/etc/default/MailScanner
+	rm -f /etc/default/MailScanner
+fi
+
+if [ -d "/usr/lib/MailScanner/MailScanner/CustomFunctions" ]; then
+	mkdir -p ${SAVEDIR}/usr/lib/MailScanner/MailScanner/CustomFunctions
+	cp -f /usr/lib/MailScanner/MailScanner/CustomFunctions/* $SAVEDIR/usr/lib/MailScanner/MailScanner/CustomFunctions
+	rm -rf /usr/lib/MailScanner
+fi
+
+if [ -d "/etc/MailScanner/CustomFunctions" ]; then
+	mkdir -p ${SAVEDIR}/etc/MailScanner/CustomFunctions
+	cp -f /etc/MailScanner/CustomFunctions/* $SAVEDIR/etc/MailScanner/CustomFunctions
+	rm -rf /etc/MailScanner/CustomFunctions
+fi
+
+if [ -d "/etc/MailScanner/Custom" ]; then
+	mkdir -p ${SAVEDIR}/etc/MailScanner/Custom
+	cp -f /etc/MailScanner/Custom/* $SAVEDIR/etc/MailScanner/Custom
+	rm -rf /etc/MailScanner/Custom
+fi
+
+if [ -f "/etc/MailScanner/CustomConfig.pm" ]; then
+	mkdir -p ${SAVEDIR}/etc/MailScanner
+	cp -f /etc/MailScanner/CustomConfig.pm $SAVEDIR/etc/MailScanner/
+	rm -f /etc/MailScanner/CustomConfig.pm
+fi
+
+if [ -d "/etc/MailScanner/reports" ]; then
+	mkdir -p ${SAVEDIR}/etc/MailScanner/reports
+	cp -pr /etc/MailScanner/reports $SAVEDIR/etc/MailScanner/reports
+	rm -rf /etc/MailScanner/reports
+fi
+
+if [ -d "/etc/MailScanner/custom" ]; then
+	rm -rf /etc/MailScanner/custom
+fi
+
+if [ -d "/etc/MailScanner/wrapper" ]; then
+	rm -rf /etc/MailScanner/wrapper
+fi
+
+if [ -d "/etc/MailScanner/autoupdate" ]; then
+	rm -rf /etc/MailScanner/autoupdate
+fi
+
+# /usr/share/MailScanner/MailScanner
+if [ -d "/usr/share/MailScanner/MailScanner" ]; then
+	rm -rf /usr/share/MailScanner/MailScanner
+fi
+
+# /usr/lib/MailScanner
+if [ -d "/var/lib/MailScanner" ]; then
+	rm -rf /var/lib/MailScanner
+fi
+	
+# /etc/MailScanner/custom symlink
+if [ -L "/etc/MailScanner/custom" ]; then
+	rm -f /etc/MailScanner/custom
+fi	
 exit 0

@@ -246,26 +246,83 @@ rm -rf ${RPM_BUILD_ROOT}
 
 # remove old symlink if present
 if [ -L '/etc/init.d/mailscanner' ]; then
-	chkconfig --del mailscanner
+	chkconfig --del mailscanner >/dev/null 2>&1
 	rm -f /etc/init.d/mailscanner
 fi
 
 # remove old file if present
 if [ -f '/etc/init.d/mailscanner' ]; then
-	chkconfig --del mailscanner
+	chkconfig --del mailscanner >/dev/null 2>&1
 	rm -f /etc/init.d/mailscanner
 fi
 
 # remove old symlink if present
 if [ -L '/etc/init.d/MailScanner' ]; then
-	chkconfig --del MailScanner
+	chkconfig --del MailScanner >/dev/null 2>&1
 	rm -f /etc/init.d/MailScanner
 fi
 
 # remove old file if present
 if [ -f '/etc/init.d/MailScanner' ]; then
-	chkconfig --del MailScanner
+	chkconfig --del MailScanner >/dev/null 2>&1
 	rm -f /etc/init.d/MailScanner
+fi
+
+# back up their stuff
+SAVEDIR="$HOME/ms_upgrade/saved.$$";
+
+if [ -d "/usr/lib/MailScanner/MailScanner/CustomFunctions" ]; then
+	mkdir -p $SAVEDIR/usr/lib/MailScanner/MailScanner/CustomFunctions
+	cp -f /usr/lib/MailScanner/MailScanner/CustomFunctions/* $SAVEDIR/usr/lib/MailScanner/MailScanner/CustomFunctions
+	clear
+	echo;
+	echo "I have copied /usr/lib/MailScanner/MailScanner/CustomFunctions/* to";
+	echo "$SAVEDIR/usr/lib/MailScanner/MailScanner/CustomFunctions";
+	echo;
+	if [ -d "/usr/lib/MailScanner/MailScanner" ]; then
+		rm -rf /usr/lib/MailScanner/MailScanner
+	fi
+	timewait 3;
+fi
+
+if [ -d "/etc/MailScanner/CustomFunctions" ]; then
+	mkdir -p $SAVEDIR/etc/MailScanner/CustomFunctions
+	cp -f /etc/MailScanner/CustomFunctions/* $SAVEDIR/etc/MailScanner/CustomFunctions
+	clear
+	echo;
+	echo "I have copied /etc/MailScanner/CustomFunctions/* to";
+	echo "$SAVEDIR/etc/MailScanner/CustomFunctions";
+	echo;
+	rm -rf /etc/MailScanner/CustomFunctions
+	timewait 3;
+fi
+
+if [ -L "/etc/MailScanner/CustomFunctions" ]; then
+	rm -f /etc/MailScanner/CustomFunctions
+fi
+
+if [ -f "/etc/MailScanner/CustomConfig.pm" ]; then
+	mkdir -p $SAVEDIR/etc/MailScanner
+	cp -f /etc/MailScanner/CustomConfig.pm $SAVEDIR/etc/MailScanner/
+	clear
+	echo;
+	echo "I have copied /etc/MailScanner/CustomConfig.pm to";
+	echo "$SAVEDIR/etc/MailScanner/CustomConfig.pm";
+	echo;
+	rm -f /etc/MailScanner/CustomConfig.pm
+	timewait 3;
+fi
+
+if [ -d "/etc/MailScanner/reports" ]; then
+	mkdir -p $SAVEDIR/etc/MailScanner/reports
+	cp -f /etc/MailScanner/reports/* $SAVEDIR/etc/MailScanner/reports
+	clear
+	echo;
+	echo "I have copied /etc/MailScanner/reports/* to";
+	echo "$SAVEDIR/etc/MailScanner/reports";
+	echo;
+	rm -rf /etc/MailScanner/reports
+	timewait 3;
 fi
 
 exit 0

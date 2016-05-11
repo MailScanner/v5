@@ -358,51 +358,6 @@ else
     SELMODE=0
 fi
 
-# back up their stuff
-SAVEDIR="$HOME/ms_upgrade/saved.$$";
-
-if [ -d "/usr/lib/MailScanner/MailScanner/CustomFunctions" ]; then
-	mkdir -p $SAVEDIR/usr/lib/MailScanner/MailScanner/CustomFunctions
-	cp -f /usr/lib/MailScanner/MailScanner/CustomFunctions/* $SAVEDIR/usr/lib/MailScanner/MailScanner/CustomFunctions
-	clear
-	echo;
-	echo "I have copied /usr/lib/MailScanner/MailScanner/CustomFunctions/* to";
-	echo "$SAVEDIR/usr/lib/MailScanner/MailScanner/CustomFunctions";
-	echo;
-	if [ -d "/usr/lib/MailScanner/MailScanner" ]; then
-		rm -rf /usr/lib/MailScanner/MailScanner
-	fi
-	timewait 3;
-fi
-
-if [ -d "/etc/MailScanner/CustomFunctions" ]; then
-	mkdir -p $SAVEDIR/etc/MailScanner/CustomFunctions
-	cp -f /etc/MailScanner/CustomFunctions* $SAVEDIR/etc/MailScanner/CustomFunctions
-	clear
-	echo;
-	echo "I have copied /etc/MailScanner/CustomFunctions/* to";
-	echo "$SAVEDIR/etc/MailScanner/CustomFunctions";
-	echo;
-	rm -rf /etc/MailScanner/CustomFunctions
-	timewait 3;
-fi
-
-if [ -L "/etc/MailScanner/CustomFunctions" ]; then
-	rm -f /etc/MailScanner/CustomFunctions
-fi
-
-if [ -f "/etc/MailScanner/CustomConfig.pm" ]; then
-	mkdir -p $SAVEDIR/etc/MailScanner
-	cp -f /etc/MailScanner/CustomConfig.pm $SAVEDIR/etc/MailScanner/
-	clear
-	echo;
-	echo "I have copied /etc/MailScanner/CustomConfig.pm to";
-	echo "$SAVEDIR/etc/MailScanner/CustomConfig.pm";
-	echo;
-	rm -f /etc/MailScanner/CustomConfig.pm
-	timewait 3;
-fi
-
 # base system packages
 BASEPACKAGES="binutils gcc glibc-devel libaio make man-pages man-pages-overrides patch rpm tar time unzip which zip libtool-ltdl perl curl wget openssl openssl-devel bzip2-devel";
 

@@ -223,42 +223,6 @@ if [ $CPANOPTION != 1 ]; then
 	fi
 fi
 
-# back up their stuff
-SAVEDIR="$HOME/ms_upgrade/saved.$$";
-
-if [ -d "/usr/lib/MailScanner" ]; then
-	mkdir -p $SAVEDIR/usr/lib/MailScanner/MailScanner/CustomFunctions
-	cp -f /usr/lib/MailScanner/MailScanner/CustomFunctions/* $SAVEDIR/usr/lib/MailScanner/MailScanner/CustomFunctions
-	clear
-	echo;
-	echo "I have copied /usr/lib/MailScanner/MailScanner/CustomFunctions/* to";
-	echo "$SAVEDIR/usr/lib/MailScanner/MailScanner/CustomFunctions";
-	echo;
-	timewait 3;
-fi
-
-if [ -d "/etc/MailScanner/CustomFunctions" ]; then
-	mkdir -p $SAVEDIR/etc/MailScanner/CustomFunctions
-	cp -f /etc/MailScanner/CustomFunctions* $SAVEDIR/etc/MailScanner/CustomFunctions
-	clear
-	echo;
-	echo "I have copied /etc/MailScanner/CustomFunctions/* to";
-	echo "$SAVEDIR/etc/MailScanner/CustomFunctions";
-	echo;
-	timewait 3;
-fi
-
-if [ -f "/etc/MailScanner/CustomConfig.pm" ]; then
-	mkdir -p $SAVEDIR/etc/MailScanner
-	cp -f /etc/MailScanner/CustomConfig.pm $SAVEDIR/etc/MailScanner/
-	clear
-	echo;
-	echo "I have copied /etc/MailScanner/CustomConfig.pm to";
-	echo "$SAVEDIR/etc/MailScanner/CustomConfig.pm";
-	echo;
-	timewait 3;
-fi
-
 # base system packages
 BASEPACKAGES="binutils gcc glibc-devel libaio1 patch make man-pages patch rpm tar time unzip which zip libtool perl curl wget openssl libopenssl-devel bzip2 tnef unrar razor-agents";
 

@@ -134,6 +134,9 @@ if [ ! -L '/etc/init.d/mailscanner' ]; then
 	ln -s /usr/lib/MailScanner/init/ms-init /etc/init.d/mailscanner
 fi
 
+# create if missing
+[ -d "/etc/MailScanner/conf.d" ] || mkdir -p /etc/MailScanner/conf.d
+
 # fix the clamav wrapper if the user does not exist
 if [ -d '/etc/clamav' ]; then
 
