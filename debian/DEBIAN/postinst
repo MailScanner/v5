@@ -138,25 +138,21 @@ fi
 
 # remove old symlink if present
 if [ -L '/etc/init.d/mailscanner' ]; then
-	update-rc.d mailscanner remove
 	rm -f /etc/init.d/mailscanner
 fi
 
 # remove old file if present
 if [ -f '/etc/init.d/mailscanner' ]; then
-	update-rc.d mailscanner remove
 	rm -f /etc/init.d/mailscanner
 fi
 
 # remove old symlink if present
 if [ -L '/etc/init.d/MailScanner' ]; then
-	update-rc.d MailScanner remove
 	rm -f /etc/init.d/MailScanner
 fi
 
 # remove old file if present
 if [ -f '/etc/init.d/MailScanner' ]; then
-	update-rc.d MailScanner remove
 	rm -f /etc/init.d/MailScanner
 fi
 
