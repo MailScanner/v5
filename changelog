@@ -1,3 +1,15 @@
+05/13/2016 Changes in    v5.0.0-9
+==================================
+- RHEL installer correction: creation of /etc/mail/spamassassin/mailscanner.cf
+- start levels 80 20 set in Debian and RHEL
+- ms-sa-update corrected
+- errant removal of /usr/lib/MailScanner corrected
+- added checks to remove init.d scripts or links pre-install
+- added remove to update-rc.d and chkconfig pre-install
+- added add to update-rc.d and chkconfig post-install
+- corrected missing variable in RHEL install.sh script
+- installers refined and updated
+
 04/30/2016 Changes in    v5.0.0-1
 ==================================
 - New Release
