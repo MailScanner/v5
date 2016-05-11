@@ -297,7 +297,7 @@ fi
 
 if [ -d '/etc/MailScanner/reports' ]; then
 	mkdir -p $SAVEDIR/etc/MailScanner/reports
-	cp -f /etc/MailScanner/reports/* $SAVEDIR/etc/MailScanner/reports
+	cp -rf /etc/MailScanner/reports/* $SAVEDIR/etc/MailScanner/reports
 	rm -rf /etc/MailScanner/reports
 fi
 
