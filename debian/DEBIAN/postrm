@@ -22,4 +22,12 @@ if [ -f '/etc/init.d/MailScanner' ]; then
 	rm -f /etc/init.d/MailScanner
 fi
 
+if [ -L '/etc/MailScanner/reports' ]; then
+	rm -f /etc/MailScanner/reports
+fi
+
+if [ -L '/etc/MailScanner/custom' ]; then
+	rm -f /etc/MailScanner/custom
+fi
+
 exit 0
