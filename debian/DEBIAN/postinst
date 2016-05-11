@@ -84,9 +84,13 @@ fi
 install -d -omail -gmtagroup -m0775 /var/spool/MailScanner/incoming
 install -d -omail -gmtagroup -m0775 /var/spool/MailScanner/quarantine
 
+if [ -d '/etc/MailScanner/custom' -o -L '/etc/MailScanner/custom' ]; then
+	rm -f /etc/MailScanner/custom
+fi
+
 # softlink for custom functions
 if [ -d '/usr/share/MailScanner/perl/custom' -a ! -L '/etc/MailScanner/custom' ]; then
-	ln -s /usr/share/MailScanner/perl/custom/ /etc/MailScanner/custom
+	ln -s /usr/share/MailScanner/perl/custom /etc/MailScanner/custom
 fi
 
 # softlink for reports
@@ -122,6 +126,10 @@ fi
 
 if [ -L '/etc/mail/spamassassin/MailScanner.cf' ]; then
 	rm -f /etc/mail/spamassassin/MailScanner.cf
+fi
+
+if [ -f '/etc/MailScanner/spam.assassin.prefs.conf' ]; then
+	mv -f /etc/MailScanner/spam.assassin.prefs.conf /etc/MailScanner/spamassassin.conf
 fi
 
 # create symlink for spamasassin
@@ -236,6 +244,6 @@ if [ -f '/etc/postfix/master.cf' ]; then
 	sed -i "s/qmgr      unix/qmgr      fifo/g" /etc/postfix/master.cf
 fi
 		
-update-rc.d mailscanner 80 20 
+update-rc.d mailscanner defaults 80 20 
 
 exit 0

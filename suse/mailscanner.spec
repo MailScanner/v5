@@ -376,6 +376,10 @@ if [ ! -d '/var/spool/MailScanner/quarantine' ]; then
 	mkdir -p /var/spool/MailScanner/quarantine
 fi
 
+if [ -f '/etc/MailScanner/spam.assassin.prefs.conf' ]; then
+	mv -f /etc/MailScanner/spam.assassin.prefs.conf /etc/MailScanner/spamassassin.conf
+fi
+
 # create symlink for spamasassin
 if [ -d '/etc/spamassassin' -a ! -L '/etc/mail/spamassassin/MailScanner.cf' -a -f '/etc/MailScanner/spamassassin.conf' -a ! -f '/etc/mail/spamassassin/MailScanner.cf' ]; then
 	ln -s /etc/MailScanner/spamassassin.conf /etc/mail/spamassassin/MailScanner.cf 
