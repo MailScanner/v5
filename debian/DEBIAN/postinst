@@ -180,32 +180,7 @@ if [ -d '/etc/clamav' ]; then
 		sed -i "s/${DISTROCAVGRP}/${CAVGRP}/g" /usr/lib/MailScanner/wrapper/clamav-wrapper
 	fi
 	
-	if [ -f '/etc/apparmor.d/usr.sbin.clamd' ]; then
-			
-		# add to include for clamd
-		if [ -f '/etc/apparmor.d/local/usr.sbin.clamd' ]; then
-			DEFAULTAPPARMOR='#include <local\/usr.sbin.clamd>';
-			APPARMORFIX=' include local\/usr.sbin.clamd';
 
-			# enable include directory
-			sed -i "s/${DEFAULTAPPARMOR}/${APPARMORFIX}/g" /etc/apparmor.d/usr.sbin.clamd
-		
-			grep -c '/var/spool/MailScanner/incoming/\*\* krw,' /etc/apparmor.d/local/usr.sbin.clamd
-			RETVAL="$?"
-			
-			if [ $RETVAL -ne "0" ]; then
-				echo '/var/spool/MailScanner/incoming/** krw,' >> /etc/apparmor.d/local/usr.sbin.clamd
-			fi
-			
-			grep -c '/var/spool/MailScanner/incoming/** ix,' /etc/apparmor.d/local/usr.sbin.clamd
-			RETVAL="$?"
-			
-			if [ $RETVAL -ne "0" ]; then
-				echo '/var/spool/MailScanner/incoming/** ix,' >> /etc/apparmor.d/local/usr.sbin.clamd
-			fi
-			
-		fi
-	fi
 
 	# fix old style clamav Monitors if preset in old mailscanner.conf
 	CAVOLD='^Monitors for ClamAV Updates.*';
