@@ -376,7 +376,7 @@ if [ -f '/etc/MailScanner/spam.assassin.prefs.conf' ]; then
 fi
 
 # create symlink for spamasassin
-if [ -d '/etc/spamassassin' -a ! -L '/etc/mail/spamassassin/MailScanner.cf' -a -f '/etc/MailScanner/spamassassin.conf' -a ! -f '/etc/mail/spamassassin/MailScanner.cf' ]; then
+if [ -d '/etc/mail/spamassassin' -a ! -L '/etc/mail/spamassassin/MailScanner.cf' -a -f '/etc/MailScanner/spamassassin.conf' -a ! -f '/etc/mail/spamassassin/MailScanner.cf' ]; then
 	ln -s /etc/MailScanner/spamassassin.conf /etc/mail/spamassassin/MailScanner.cf 
 fi
 

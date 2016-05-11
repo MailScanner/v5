@@ -380,8 +380,21 @@ if [ -f '/etc/MailScanner/spam.assassin.prefs.conf' ]; then
 	mv -f /etc/MailScanner/spam.assassin.prefs.conf /etc/MailScanner/spamassassin.conf
 fi
 
+# remove old link if present
+if [ -L '/etc/mail/spamassassin/mailscanner.cf' ]; then
+	rm -f /etc/mail/spamassassin/mailscanner.cf
+fi
+
+if [ -L '/etc/mail/spamassassin/MailScanner.cf' ]; then
+	rm -f /etc/mail/spamassassin/MailScanner.cf
+fi
+
+if [ -f '/etc/MailScanner/spam.assassin.prefs.conf' ]; then
+	mv -f /etc/MailScanner/spam.assassin.prefs.conf /etc/MailScanner/spamassassin.conf
+fi
+
 # create symlink for spamasassin
-if [ -d '/etc/spamassassin' -a ! -L '/etc/mail/spamassassin/MailScanner.cf' -a -f '/etc/MailScanner/spamassassin.conf' -a ! -f '/etc/mail/spamassassin/MailScanner.cf' ]; then
+if [ -d '/etc/mail/spamassassin' -a ! -L '/etc/mail/spamassassin/MailScanner.cf' -a -f '/etc/MailScanner/spamassassin.conf' -a ! -f '/etc/mail/spamassassin/MailScanner.cf' ]; then
 	ln -s /etc/MailScanner/spamassassin.conf /etc/mail/spamassassin/MailScanner.cf 
 fi
 
