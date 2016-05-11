@@ -406,13 +406,28 @@ if [ -d '/usr/share/MailScanner/reports' -a ! -L '/etc/MailScanner/reports' ]; t
 	ln -s /usr/share/MailScanner/reports /etc/MailScanner/reports
 fi
 
-# remove init.d symlink if exists
-if [ -L /etc/init.d/MailScanner ]; then
-	rm -f /etc/init.d/MailScanner
+# remove old symlink if present
+if [ -L '/etc/init.d/mailscanner' ]; then
+	rm -f /etc/init.d/mailscanner
+	chkconfig --del mailscanner
 fi
 
-if [ -L /etc/init.d/mailscanner ]; then
+# remove old file if present
+if [ -f '/etc/init.d/mailscanner' ]; then
 	rm -f /etc/init.d/mailscanner
+	chkconfig --del mailscanner
+fi
+
+# remove old symlink if present
+if [ -L '/etc/init.d/MailScanner' ]; then
+	rm -f /etc/init.d/MailScanner
+	chkconfig --del MailScanner
+fi
+
+# remove old file if present
+if [ -f '/etc/init.d/MailScanner' ]; then
+	rm -f /etc/init.d/MailScanner
+	chkconfig --del MailScanner
 fi
 
 # create init.d symlink
@@ -449,8 +464,8 @@ exit 0
 
 %postun
 # delete old ms files if this is an upgrade
-if [ -d "/usr/lib/MailScanner" ]; then
-	rm -rf /usr/lib/MailScanner
+if [ -d "/var/lib/MailScanner" ]; then
+	rm -rf /var/lib/MailScanner
 fi
 exit 0
 

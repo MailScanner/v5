@@ -313,13 +313,33 @@ if [ ! -d "/var/spool/MailScanner/quarantine" ]; then
 	mkdir -p /var/spool/MailScanner/quarantine
 fi
 
-# remove old link if present
-if [ -L '/etc/mail/spamassassin/mailscanner.cf' ]; then
-	rm -f /etc/mail/spamassassin/mailscanner.cf
+# remove old symlink if present
+if [ -L '/etc/init.d/mailscanner' ]; then
+	rm -f /etc/init.d/mailscanner
+	chkconfig --del mailscanner
 fi
 
-if [ -L '/etc/mail/spamassassin/MailScanner.cf' ]; then
-	rm -f /etc/mail/spamassassin/MailScanner.cf
+# remove old file if present
+if [ -f '/etc/init.d/mailscanner' ]; then
+	rm -f /etc/init.d/mailscanner
+	chkconfig --del mailscanner
+fi
+
+# remove old symlink if present
+if [ -L '/etc/init.d/MailScanner' ]; then
+	rm -f /etc/init.d/MailScanner
+	chkconfig --del MailScanner
+fi
+
+# remove old file if present
+if [ -f '/etc/init.d/MailScanner' ]; then
+	rm -f /etc/init.d/MailScanner
+	chkconfig --del MailScanner
+fi
+
+# create init.d symlink
+if [ -d '/etc/init.d' -a ! -L '/etc/init.d/mailscanner' -a -f '/usr/lib/MailScanner/init/ms-init' ]; then
+	ln -s /usr/lib/MailScanner/init/ms-init /etc/init.d/mailscanner
 fi
 
 # create symlink for spamasassin
@@ -420,11 +440,6 @@ if [ -d '/usr/share/MailScanner/reports' -a ! -L '/etc/MailScanner/reports' ]; t
 	ln -s /usr/share/MailScanner/reports /etc/MailScanner/reports
 fi
 
-# create init.d symlink
-if [ -d '/etc/init.d' -a ! -L '/etc/init.d/mailscanner' -a -f '/usr/lib/MailScanner/init/ms-init' ]; then
-	ln -s /usr/lib/MailScanner/init/ms-init /etc/init.d/mailscanner
-fi
-
 # Sort out the rc.d directories
 chkconfig --add mailscanner
 
@@ -454,8 +469,8 @@ exit 0
 
 %postun
 # delete old ms files if this is an upgrade
-if [ -d "/usr/lib/MailScanner" ]; then
-	rm -rf /usr/lib/MailScanner
+if [ -d "/var/lib/MailScanner" ]; then
+	rm -rf /var/lib/MailScanner
 fi
 exit 0
 
