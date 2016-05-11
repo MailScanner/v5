@@ -24,8 +24,8 @@ if [ -f "/etc/MailScanner/MailScanner.conf" ]; then
 	[ -d "/etc/MailScanner/conf.d" ] || mkdir -p /etc/MailScanner/conf.d
 			
 	# /usr/lib/MailScanner
-	if [ -d "/usr/lib/MailScanner" ]; then
-		rm -rf /usr/lib/MailScanner
+	if [ -d "/var/lib/MailScanner" ]; then
+		rm -rf /var/lib/MailScanner
 	fi
 
 	# /etc/MailScanner/CustomFunctions
@@ -81,6 +81,30 @@ if [ -f "/etc/MailScanner/MailScanner.conf" ]; then
 		cp -uf /etc/MailScanner/CustomConfig.pm /usr/share/MailScanner/perl/MailScanner/CustomConfig.pm
 		rm -f /etc/MailScanner/CustomConfig.pm
 	fi
+fi
+
+# remove old symlink if present
+if [ -L '/etc/init.d/mailscanner' ]; then
+	update-rc.d mailscanner remove
+	rm -f /etc/init.d/mailscanner
+fi
+
+# remove old file if present
+if [ -f '/etc/init.d/mailscanner' ]; then
+	update-rc.d mailscanner remove
+	rm -f /etc/init.d/mailscanner
+fi
+
+# remove old symlink if present
+if [ -L '/etc/init.d/MailScanner' ]; then
+	update-rc.d MailScanner remove
+	rm -f /etc/init.d/MailScanner
+fi
+
+# remove old file if present
+if [ -f '/etc/init.d/MailScanner' ]; then
+	update-rc.d MailScanner remove
+	rm -f /etc/init.d/MailScanner
 fi
 
 exit 0

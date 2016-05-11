@@ -244,6 +244,32 @@ rm -rf ${RPM_BUILD_ROOT}
 
 %pre
 
+# remove old symlink if present
+if [ -L '/etc/init.d/mailscanner' ]; then
+	chkconfig --del mailscanner
+	rm -f /etc/init.d/mailscanner
+fi
+
+# remove old file if present
+if [ -f '/etc/init.d/mailscanner' ]; then
+	chkconfig --del mailscanner
+	rm -f /etc/init.d/mailscanner
+fi
+
+# remove old symlink if present
+if [ -L '/etc/init.d/MailScanner' ]; then
+	chkconfig --del MailScanner
+	rm -f /etc/init.d/MailScanner
+fi
+
+# remove old file if present
+if [ -f '/etc/init.d/MailScanner' ]; then
+	chkconfig --del MailScanner
+	rm -f /etc/init.d/MailScanner
+fi
+
+exit 0
+
 %post
 
 # set the correct sock for suse systems
@@ -311,35 +337,6 @@ fi
 
 if [ ! -d "/var/spool/MailScanner/quarantine" ]; then
 	mkdir -p /var/spool/MailScanner/quarantine
-fi
-
-# remove old symlink if present
-if [ -L '/etc/init.d/mailscanner' ]; then
-	rm -f /etc/init.d/mailscanner
-	chkconfig --del mailscanner
-fi
-
-# remove old file if present
-if [ -f '/etc/init.d/mailscanner' ]; then
-	rm -f /etc/init.d/mailscanner
-	chkconfig --del mailscanner
-fi
-
-# remove old symlink if present
-if [ -L '/etc/init.d/MailScanner' ]; then
-	rm -f /etc/init.d/MailScanner
-	chkconfig --del MailScanner
-fi
-
-# remove old file if present
-if [ -f '/etc/init.d/MailScanner' ]; then
-	rm -f /etc/init.d/MailScanner
-	chkconfig --del MailScanner
-fi
-
-# create init.d symlink
-if [ -d '/etc/init.d' -a ! -L '/etc/init.d/mailscanner' -a -f '/usr/lib/MailScanner/init/ms-init' ]; then
-	ln -s /usr/lib/MailScanner/init/ms-init /etc/init.d/mailscanner
 fi
 
 # create symlink for spamasassin
@@ -438,6 +435,11 @@ fi
 # softlink for custom reports
 if [ -d '/usr/share/MailScanner/reports' -a ! -L '/etc/MailScanner/reports' ]; then
 	ln -s /usr/share/MailScanner/reports /etc/MailScanner/reports
+fi
+
+# create init.d symlink
+if [ -d '/etc/init.d' -a ! -L '/etc/init.d/mailscanner' -a -f '/usr/lib/MailScanner/init/ms-init' ]; then
+	ln -s /usr/lib/MailScanner/init/ms-init /etc/init.d/mailscanner
 fi
 
 # Sort out the rc.d directories

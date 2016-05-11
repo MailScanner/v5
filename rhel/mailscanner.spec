@@ -244,6 +244,32 @@ rm -rf ${RPM_BUILD_ROOT}
 
 %pre
 
+# remove old symlink if present
+if [ -L '/etc/init.d/mailscanner' ]; then
+	chkconfig --del mailscanner
+	rm -f /etc/init.d/mailscanner
+fi
+
+# remove old file if present
+if [ -f '/etc/init.d/mailscanner' ]; then
+	chkconfig --del mailscanner
+	rm -f /etc/init.d/mailscanner
+fi
+
+# remove old symlink if present
+if [ -L '/etc/init.d/MailScanner' ]; then
+	chkconfig --del MailScanner
+	rm -f /etc/init.d/MailScanner
+fi
+
+# remove old file if present
+if [ -f '/etc/init.d/MailScanner' ]; then
+	chkconfig --del MailScanner
+	rm -f /etc/init.d/MailScanner
+fi
+
+exit 0
+ 
 %post
 
 # allow supplementary groups
@@ -406,30 +432,6 @@ if [ -d '/usr/share/MailScanner/reports' -a ! -L '/etc/MailScanner/reports' ]; t
 	ln -s /usr/share/MailScanner/reports /etc/MailScanner/reports
 fi
 
-# remove old symlink if present
-if [ -L '/etc/init.d/mailscanner' ]; then
-	rm -f /etc/init.d/mailscanner
-	chkconfig --del mailscanner
-fi
-
-# remove old file if present
-if [ -f '/etc/init.d/mailscanner' ]; then
-	rm -f /etc/init.d/mailscanner
-	chkconfig --del mailscanner
-fi
-
-# remove old symlink if present
-if [ -L '/etc/init.d/MailScanner' ]; then
-	rm -f /etc/init.d/MailScanner
-	chkconfig --del MailScanner
-fi
-
-# remove old file if present
-if [ -f '/etc/init.d/MailScanner' ]; then
-	rm -f /etc/init.d/MailScanner
-	chkconfig --del MailScanner
-fi
-
 # create init.d symlink
 if [ -d '/etc/init.d' -a ! -L '/etc/init.d/mailscanner' -a -f '/usr/lib/MailScanner/init/ms-init' ]; then
 	ln -s /usr/lib/MailScanner/init/ms-init /etc/init.d/mailscanner
@@ -452,6 +454,8 @@ echo    chkconfig mailscanner on
 echo    service mailscanner start
 echo
 echo
+
+exit 0 
 
 %preun
 if [ $1 = 0 ]; then
