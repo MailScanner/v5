@@ -745,11 +745,16 @@ if [ $? != 0 ]; then
 	echo 'user specific configuration.';
 	echo;
 else
+	SAVEDIR="$HOME/ms_upgrade/saved.$$";
+	mkdir -p $SAVEDIR
+	
 	if [ $AUTOUPGRADE == 1 ]; then
+		
+		
 		echo "Upgrading /etc/MailScanner/MailScanner.conf";
 		echo;
 		echo "Your old configuration file will be saved as:";
-		echo "/etc/MailScanner/MailScanner.conf.old.$$";
+		echo "${SAVEDIR}/etc/MailScanner/MailScanner.conf.old.$$";
 		echo;
 		timewait 1
 		
@@ -761,8 +766,9 @@ else
 		ms-upgrade-conf /etc/MailScanner/MailScanner.conf.$$ /etc/MailScanner/MailScanner.conf > /etc/MailScanner/MailScanner.new
 		mv -f /etc/MailScanner/MailScanner.conf /etc/MailScanner/MailScanner.conf.old.$$
 		mv -f /etc/MailScanner/MailScanner.new  /etc/MailScanner/MailScanner.conf
-
 	fi
+	
+	mv -f /etc/Mailscanner/MailScanner.conf.* ${SAVEDIR}/etc/MailScanner > /dev/null 2>&1
 	
 	echo;
 	echo '----------------------------------------------------------';
