@@ -57,26 +57,26 @@ if id -u mail >/dev/null 2>&1; then
 	usermod -a -G mtagroup mail >/dev/null 2>&1
 fi
 
-if [ ! -d "/var/spool/MailScanner/archive" ]; then
+if [ ! -d '/var/spool/MailScanner/archive' ]; then
 	mkdir -p /var/spool/MailScanner/archive
 fi
 
-if [ ! -d "/var/spool/MailScanner/incoming" ]; then
+if [ ! -d '/var/spool/MailScanner/incoming' ]; then
 	mkdir -p /var/spool/MailScanner/incoming
 fi
 
-if [ ! -d "/var/spool/MailScanner/quarantine" ]; then
+if [ ! -d '/var/spool/MailScanner/quarantine' ]; then
 	mkdir -p /var/spool/MailScanner/quarantine
 fi
 
-if [ -d "/var/spool/exim4.in" ]; then
+if [ -d '/var/spool/exim4.in' ]; then
 	install -d -oDebian-exim -gmtagroup -m0750 /var/spool/exim4.in
 	install -d -oDebian-exim -gmtagroup -m0750 /var/spool/exim4.in/db
 	install -d -oDebian-exim -gmtagroup -m0750 /var/spool/exim4.in/input
 	install -d -oDebian-exim -gmtagroup -m0750 /var/spool/exim4.in/msglog
 fi
 
-if [ ! -d "/var/spool/mqueue.in" ]; then
+if [ ! -d '/var/spool/mqueue.in' ]; then
 	perl -pi -e 's{Incoming Queue Dir = /var/spool/mqueue.in}{Incoming Queue Dir = /var/spool/mqueue}g;' /etc/MailScanner/MailScanner.conf
 fi
 
@@ -135,7 +135,7 @@ if [ ! -L '/etc/init.d/mailscanner' ]; then
 fi
 
 # create if missing
-[ -d "/etc/MailScanner/conf.d" ] || mkdir -p /etc/MailScanner/conf.d
+[ -d '/etc/MailScanner/conf.d' ] || mkdir -p /etc/MailScanner/conf.d
 
 # fix the clamav wrapper if the user does not exist
 if [ -d '/etc/clamav' ]; then
@@ -183,8 +183,20 @@ if [ -d '/etc/clamav' ]; then
 			# enable include directory
 			sed -i "s/${DEFAULTAPPARMOR}/${APPARMORFIX}/g" /etc/apparmor.d/usr.sbin.clamd
 		
-			echo '/var/spool/MailScanner/incoming/** krw,' >> /etc/apparmor.d/local/usr.sbin.clamd
-			echo '/var/spool/MailScanner/incoming/** ix,' >> /etc/apparmor.d/local/usr.sbin.clamd
+			grep '/vat/spool/MailScanner/incoming/\*\* krw,' /etc/apparmor.d/local/usr.sbin.clamd
+			RETVAL="$?"
+			
+			if [ $RETVAL -ne 0 ]; then
+				echo '/var/spool/MailScanner/incoming/** krw,' >> /etc/apparmor.d/local/usr.sbin.clamd
+			fi
+			
+			grep '/var/spool/MailScanner/incoming/** ix,' /etc/apparmor.d/local/usr.sbin.clamd
+			RETVAL="$?"
+			
+			if [ $RETVAL -ne 0 ]; then
+				echo '/var/spool/MailScanner/incoming/** ix,' >> /etc/apparmor.d/local/usr.sbin.clamd
+			fi
+			
 		fi
 	fi
 
@@ -219,7 +231,7 @@ if [ -f '/etc/clamav/clamd.conf' ]; then
 fi
 	
 # postfix fix
-if [ -f "/etc/postfix/master.cf" ]; then
+if [ -f '/etc/postfix/master.cf' ]; then
 	sed -i "s/pickup    unix/pickup    fifo/g" /etc/postfix/master.cf
 	sed -i "s/qmgr      unix/qmgr      fifo/g" /etc/postfix/master.cf
 fi
