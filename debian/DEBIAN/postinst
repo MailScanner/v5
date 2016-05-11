@@ -192,13 +192,13 @@ if [ -d '/etc/clamav' ]; then
 		
 			RETVAL=`grep -c '/var/spool/MailScanner/incoming/\*\* krw,' /etc/apparmor.d/local/usr.sbin.clamd`
 			
-			if [ $RETVAL -ne 0 ]; then
+			if [ "x$RETVAL" -ne "x0" ]; then
 				echo '/var/spool/MailScanner/incoming/** krw,' >> /etc/apparmor.d/local/usr.sbin.clamd
 			fi
 			
 			RETVAL=`grep -c '/var/spool/MailScanner/incoming/** ix,' /etc/apparmor.d/local/usr.sbin.clamd`
 			
-			if [ $RETVAL -ne 0 ]; then
+			if [ "x$RETVAL" -ne "x0" ]; then
 				echo '/var/spool/MailScanner/incoming/** ix,' >> /etc/apparmor.d/local/usr.sbin.clamd
 			fi
 			
