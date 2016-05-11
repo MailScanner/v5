@@ -190,14 +190,14 @@ if [ -d '/etc/clamav' ]; then
 			# enable include directory
 			sed -i "s/${DEFAULTAPPARMOR}/${APPARMORFIX}/g" /etc/apparmor.d/usr.sbin.clamd
 		
-			grep '/var/spool/MailScanner/incoming/\*\* krw,' /etc/apparmor.d/local/usr.sbin.clamd
+			grep -c '/var/spool/MailScanner/incoming/\*\* krw,' /etc/apparmor.d/local/usr.sbin.clamd
 			RETVAL="$?"
 			
 			if [ $RETVAL -ne "0" ]; then
 				echo '/var/spool/MailScanner/incoming/** krw,' >> /etc/apparmor.d/local/usr.sbin.clamd
 			fi
 			
-			grep '/var/spool/MailScanner/incoming/** ix,' /etc/apparmor.d/local/usr.sbin.clamd
+			grep -c '/var/spool/MailScanner/incoming/** ix,' /etc/apparmor.d/local/usr.sbin.clamd
 			RETVAL="$?"
 			
 			if [ $RETVAL -ne "0" ]; then
