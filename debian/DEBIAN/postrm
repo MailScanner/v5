@@ -10,4 +10,16 @@ if [ -L '/etc/init.d/mailscanner' ]; then
 	rm -f /etc/init.d/mailscanner
 fi
 
+if [ -L '/etc/init.d/MailScanner' ]; then
+	rm -f /etc/init.d/MailScanner
+fi
+
+if [ -f '/etc/init.d/mailscanner' ]; then
+	rm -f /etc/init.d/mailscanner
+fi
+
+if [ -f '/etc/init.d/MailScanner' ]; then
+	rm -f /etc/init.d/MailScanner
+fi
+
 exit 0

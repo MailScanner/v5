@@ -79,7 +79,6 @@ cp -rf $DEVBASEDIR/debian/DEBIAN/ $WORK
 perl -pi -e 's/DebianVersionHere/'$FULLMSVER'/;' $WORK/DEBIAN/control
 perl -pi -e 's/VersionNumberHere/'$MSVERSION'/;' $WORK/etc/MailScanner/MailScanner.conf
 perl -pi -e 's/VersionNumberHere/'$MSVERSION'/;' $WORK/usr/sbin/MailScanner
-perl -pi -e 's/VersionNumberHere/'$MSVERSION'/;' $WORK/DEBIAN/postinst
 
 # remove svn and git and mac stuff
 find $WORK -name '.svn' -exec rm -rf {} \;

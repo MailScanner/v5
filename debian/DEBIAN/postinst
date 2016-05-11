@@ -17,8 +17,6 @@ set -e
 # for details, see http://www.debian.org/doc/debian-policy/ or
 # the debian-policy package
 
-MSVERSION=VersionNumberHere
-
 # group for users to run under
 if ! getent group mtagroup >/dev/null 2>&1; then
 	groupadd -f mtagroup >/dev/null 2>&1
@@ -81,6 +79,7 @@ if [ ! -d '/var/spool/mqueue.in' ]; then
 fi
 
 # lock down some directory permissions
+install -d -omail -gmtagroup -m0775 /var/spool/MailScanner/archive
 install -d -omail -gmtagroup -m0775 /var/spool/MailScanner/incoming
 install -d -omail -gmtagroup -m0775 /var/spool/MailScanner/quarantine
 
@@ -194,14 +193,14 @@ if [ -d '/etc/clamav' ]; then
 			grep '/vat/spool/MailScanner/incoming/\*\* krw,' /etc/apparmor.d/local/usr.sbin.clamd
 			RETVAL="$?"
 			
-			if [ $RETVAL -ne 0 ]; then
+			if [ $RETVAL -ne "0" ]; then
 				echo '/var/spool/MailScanner/incoming/** krw,' >> /etc/apparmor.d/local/usr.sbin.clamd
 			fi
 			
 			grep '/var/spool/MailScanner/incoming/** ix,' /etc/apparmor.d/local/usr.sbin.clamd
 			RETVAL="$?"
 			
-			if [ $RETVAL -ne 0 ]; then
+			if [ $RETVAL -ne "0" ]; then
 				echo '/var/spool/MailScanner/incoming/** ix,' >> /etc/apparmor.d/local/usr.sbin.clamd
 			fi
 			
