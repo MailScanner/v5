@@ -461,7 +461,7 @@ else
 		echo "Upgrading /etc/MailScanner/MailScanner.conf";
 		echo;
 		echo "Your old configuration file will be saved as:";
-		echo "/etc/MailScanner/MailScanner.conf.old.$$";
+		echo "${SAVEDIR}/etc/MailScanner/MailScanner.conf.old.$$";
 		echo;
 		timewait 1
 		
@@ -511,10 +511,9 @@ else
 	echo 'See http://www.mailscanner.info for more information and  '
 	echo 'support via the MailScanner mailing list.'
 	echo;
-	echo 'NOTE! If this was an upgrade, edit /etc/MailScanner/defaults'
 	echo;
-	echo 'New Install: Set your preferences in /etc/MailScanner/MailScanner.conf'
-	echo 'and then edit /etc/MailScanner/defaults to enable';
+	echo 'Review: Set your preferences in /etc/MailScanner/MailScanner.conf'
+	echo 'and review /etc/MailScanner/defaults';
 	echo;
 fi 
 

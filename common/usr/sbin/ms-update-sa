@@ -53,7 +53,7 @@ fi
 if [ $UPDATESUCCESS = 0 -a $COMPILESUCCESS = 0 -o $UPDATESUCCESS = 1 ]; then
 	logger -i -p mail.notice "ms-update-sa: spamassassin signatures updated"
 	rm -f $LOGFILE
-	. /usr/lib/MailScanner/init/ms-init reload >>$LOGFILE 2>&1  		
+	/usr/lib/MailScanner/init/ms-init restart >>$LOGFILE 2>&1  		
 fi
 
 exit 0

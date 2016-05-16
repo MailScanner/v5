@@ -326,16 +326,6 @@ Read $ReadOldValue settings from old $oldfname
 Used $UsedOldValue settings from old $oldfname
 Used $UsedDefaultValue default settings from new $newfname
 
-Notes
------
-I would advise you to check on any parameters which are different between
-the default new conf file and the conf file you just created, so that you
-find any parameters whose default values have changed.
-
-  diff -w $filedot.rpmnew $filenew
-
-to check for any differences in values you have not changed yourself.
-
 EOL
 sleep(5);
 Afterwards();

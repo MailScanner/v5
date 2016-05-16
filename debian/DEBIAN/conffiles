@@ -1,3 +1,4 @@
+/etc/MailScanner/defaults
 /etc/MailScanner/MailScanner.conf
 /etc/MailScanner/archives.filename.rules.conf
 /etc/MailScanner/archives.filetype.rules.conf
