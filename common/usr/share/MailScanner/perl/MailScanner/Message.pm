@@ -7017,6 +7017,8 @@ sub DisarmHTMLEntity {
   if ($PipeReturn) {
     # It went badly wrong!
     # Overwrite the output file to kill it, and return the error.
+    # Log the fact and the exit status.
+    MailScanner::Log::WarnLog("HTML disarming died, status = $PipeReturn");
     $outfh = new FileHandle;
     unless ($outfh->open(">$newname")) {
       MailScanner::Log::WarnLog('Could not wipe deadly HTML file %s',
