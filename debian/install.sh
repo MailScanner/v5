@@ -421,7 +421,7 @@ timewait $PMODWAIT
 
 # save the old MailScanner.conf
 if [ -f '/etc/MailScanner/MailScanner.conf' ]; then
-	cp /etc/MailScanner/MailScanner.conf /etc/MailScanner/MailScanner.conf.$$
+	mv /etc/MailScanner/MailScanner.conf /etc/MailScanner/MailScanner.conf.old.$$
 fi
 
 # remove old versions
@@ -465,15 +465,14 @@ else
 		echo;
 		timewait 1
 		
-		if [ -f '/etc/MailScanner/MailScanner.conf' -a -f '/etc/MailScanner/MailScanner.conf.dpkg-dist' ]; then
-			ms-upgrade-conf /etc/MailScanner/MailScanner.conf /etc/MailScanner/MailScanner.conf.dpkg-dist > /etc/MailScanner/MailScanner.new
+		if [ -f /etc/MailScanner/MailScanner.conf.old.$$ -a -f '/etc/MailScanner/MailScanner.conf' ]; then
+			ms-upgrade-conf /etc/MailScanner/MailScanner.conf.$$ /etc/MailScanner/MailScanner.conf > /etc/MailScanner/MailScanner.new
 			mv -f /etc/MailScanner/MailScanner.conf /etc/MailScanner/MailScanner.conf.old.$$
 			mv -f /etc/MailScanner/MailScanner.new  /etc/MailScanner/MailScanner.conf
-		fi
+			mv -f /etc/MailScanner/MailScanner.conf.* ${SAVEDIR}/etc/MailScanner > /dev/null 2>&1
+		fi 
 
 	fi
-	
-	mv -f /etc/MailScanner/MailScanner.conf.* ${SAVEDIR}/etc/MailScanner > /dev/null 2>&1
 	
 	# create ramdisk
 	if [ $RAMDISK == 1 ]; then
