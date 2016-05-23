@@ -305,6 +305,10 @@ if [ -d '/usr/share/MailScanner/MailScanner' ]; then
 	rm -rf /usr/share/MailScanner/MailScanner
 fi
 
+if [ -f '/etc/MailScanner/MailScanner.conf' ]; then
+	cp /etc/MailScanner/MailScanner.conf /etc/MailScanner/MailScanner.conf.old.$$
+fi	
+
 exit 0
 
 %post
@@ -635,7 +639,7 @@ exit 0
 %config(noreplace) /etc/MailScanner/defaults
 %config(noreplace) /etc/MailScanner/filename.rules.conf
 %config(noreplace) /etc/MailScanner/filetype.rules.conf
-%config(noreplace) /etc/MailScanner/MailScanner.conf
+%attr(644,root,root) /etc/MailScanner/MailScanner.conf
 %attr(644,root,root) /etc/MailScanner/phishing.safe.sites.conf
 %attr(644,root,root) /etc/MailScanner/phishing.bad.sites.conf
 %attr(644,root,root) /etc/MailScanner/spam.lists.conf

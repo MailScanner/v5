@@ -421,7 +421,7 @@ timewait $PMODWAIT
 
 # save the old MailScanner.conf
 if [ -f '/etc/MailScanner/MailScanner.conf' ]; then
-	mv /etc/MailScanner/MailScanner.conf /etc/MailScanner/MailScanner.conf.old.$$
+	cp /etc/MailScanner/MailScanner.conf /etc/MailScanner/MailScanner.conf.save.$$
 fi
 
 # remove old versions
@@ -465,9 +465,8 @@ else
 		echo;
 		timewait 1
 		
-		if [ -f /etc/MailScanner/MailScanner.conf.old.$$ -a -f '/etc/MailScanner/MailScanner.conf' ]; then
-			ms-upgrade-conf /etc/MailScanner/MailScanner.conf.$$ /etc/MailScanner/MailScanner.conf > /etc/MailScanner/MailScanner.new
-			mv -f /etc/MailScanner/MailScanner.conf /etc/MailScanner/MailScanner.conf.old.$$
+		if [ -f /etc/MailScanner/MailScanner.conf.save.$$ -a -f '/etc/MailScanner/MailScanner.conf' ]; then
+			ms-upgrade-conf /etc/MailScanner/MailScanner.conf.save.$$ /etc/MailScanner/MailScanner.conf > /etc/MailScanner/MailScanner.new
 			mv -f /etc/MailScanner/MailScanner.new  /etc/MailScanner/MailScanner.conf
 			mv -f /etc/MailScanner/MailScanner.conf.* ${SAVEDIR}/etc/MailScanner > /dev/null 2>&1
 		fi 

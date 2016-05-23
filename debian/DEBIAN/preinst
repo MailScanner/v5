@@ -86,5 +86,9 @@ fi
 # /etc/MailScanner/custom symlink
 if [ -L '/etc/MailScanner/custom' ]; then
 	rm -f /etc/MailScanner/custom
+fi
+
+if [ -f '/etc/MailScanner/MailScanner.conf' ]; then
+	cp /etc/MailScanner/MailScanner.conf /etc/MailScanner/MailScanner.conf.old.$$
 fi	
 exit 0
