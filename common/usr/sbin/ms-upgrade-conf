@@ -90,11 +90,11 @@ EOLANG
 }
 
 sub Afterwards {
-  print STDERR "\nOnce you have checked that MailScanner.new contains what\n";
-  print STDERR "you want, you can then save your old one and move the new\n";
-  print STDERR "one into place, using commands like these:\n";
-  print STDERR "  mv -f $filedot $fileold\n";
-  print STDERR "  mv -f $filenew  $filedot\n";
+  #print STDERR "\nOnce you have checked that MailScanner.new contains what\n";
+  #print STDERR "you want, you can then save your old one and move the new\n";
+  #print STDERR "one into place, using commands like these:\n";
+  #print STDERR "  mv -f $filedot $fileold\n";
+  #print STDERR "  mv -f $filenew  $filedot\n";
 }
 
 
