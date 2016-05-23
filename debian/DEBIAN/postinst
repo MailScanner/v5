@@ -164,6 +164,13 @@ fi
 # create if missing
 [ -d '/etc/MailScanner/conf.d' ] || mkdir -p /etc/MailScanner/conf.d
 
+# upgrade the old config
+if [ -f /etc/MailScanner/MailScanner.conf.old.$$ -a -f /etc/MailScanner/MailScanner.conf ]; then
+	ms-upgrade-conf /etc/MailScanner/MailScanner.conf.old.$$ /etc/MailScanner/MailScanner.conf > /etc/MailScanner/MailScanner.new
+	mv -f /etc/MailScanner/MailScanner.new  /etc/MailScanner/MailScanner.conf
+	mv -f /etc/MailScanner/MailScanner.conf.* ${SAVEDIR}/etc/MailScanner > /dev/null 2>&1
+fi
+
 # fix the clamav wrapper if the user does not exist
 if [ -d '/etc/clamav' ]; then
 
