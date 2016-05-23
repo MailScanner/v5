@@ -306,7 +306,6 @@ if [ -d '/usr/share/MailScanner/MailScanner' ]; then
 fi
 
 if [ -f '/etc/MailScanner/MailScanner.conf' ]; then
-	mkdir -p ${SAVEDIR}/etc/MailScanner
 	cp -f /etc/MailScanner/MailScanner.conf /etc/MailScanner/MailScanner.conf.original
 fi	
 
@@ -412,6 +411,7 @@ if [ -f /etc/MailScanner/MailScanner.conf.original -a -f /etc/MailScanner/MailSc
 	ms-upgrade-conf /etc/MailScanner/MailScanner.conf.original /etc/MailScanner/MailScanner.conf.dist > /etc/MailScanner/MailScanner.conf
 	mkdir -p ${SAVEDIR}/etc/MailScanner
 	mv -f /etc/MailScanner/MailScanner.conf.* ${SAVEDIR}/etc/MailScanner > /dev/null 2>&1
+	cp -f /etc/MailScanner/MailScanner.conf ${SAVEDIR}/etc/MailScanner/MailScanner.new > /dev/null 2>&1
 fi
 
 # update web bug link

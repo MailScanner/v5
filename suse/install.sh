@@ -446,11 +446,6 @@ if [ -f '/etc/freshclam.conf' ]; then
 	fi
 fi
 
-# save the old MailScanner.conf
-if [ -f '/etc/MailScanner/MailScanner.conf' ]; then
-	mv /etc/MailScanner/MailScanner.conf /etc/MailScanner/MailScanner.conf.save.$$
-fi
-
 clear
 echo;
 echo "Installing the MailScanner RPM ... ";
