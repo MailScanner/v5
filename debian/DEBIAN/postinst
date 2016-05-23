@@ -17,6 +17,9 @@ set -e
 # for details, see http://www.debian.org/doc/debian-policy/ or
 # the debian-policy package
 
+# save directory
+SAVEDIR="$HOME/ms_upgrade/saved.$$";
+
 # group for users to run under
 if ! getent group mtagroup >/dev/null 2>&1; then
 	groupadd -f mtagroup >/dev/null 2>&1
