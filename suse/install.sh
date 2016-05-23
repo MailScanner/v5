@@ -525,9 +525,11 @@ else
 		CAVNEW='Monitors for ClamAV Updates = /usr/local/share/clamav/*.cld /usr/local/share/clamav/*.cvd /var/lib/clamav/*.inc/* /var/lib/clamav/*.?db /var/lib/clamav/*.cvd';
 		perl -pi -e 's/'$CAVOLD'/'$CAVNEW'/;' /etc/MailScanner/MailScanner.conf
 		
-		ms-upgrade-conf /etc/MailScanner/MailScanner.conf.$$ /etc/MailScanner/MailScanner.conf > /etc/MailScanner/MailScanner.new
-		mv -f /etc/MailScanner/MailScanner.conf /etc/MailScanner/MailScanner.conf.old.$$
-		mv -f /etc/MailScanner/MailScanner.new  /etc/MailScanner/MailScanner.conf
+		if [ -f '/etc/MailScanner/MailScanner.conf' -a -f '/etc/MailScanner/MailScanner.conf.rpmnew' ]; then
+			ms-upgrade-conf /etc/MailScanner/MailScanner.conf /etc/MailScanner/MailScanner.conf.rpmnew > /etc/MailScanner/MailScanner.new
+			mv -f /etc/MailScanner/MailScanner.conf /etc/MailScanner/MailScanner.conf.old.$$
+			mv -f /etc/MailScanner/MailScanner.new  /etc/MailScanner/MailScanner.conf
+		fi 
 	fi
 	
 	mv -f /etc/MailScanner/MailScanner.conf.* ${SAVEDIR}/etc/MailScanner > /dev/null 2>&1
