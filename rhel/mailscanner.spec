@@ -244,6 +244,9 @@ rm -rf ${RPM_BUILD_ROOT}
 
 %pre
 
+# back up their stuff
+SAVEDIR="$HOME/ms_upgrade/saved.$$";
+
 # remove old symlink if present
 if [ -L '/etc/init.d/mailscanner' ]; then
 	chkconfig --del mailscanner >/dev/null 2>&1
@@ -267,9 +270,6 @@ if [ -f '/etc/init.d/MailScanner' ]; then
 	chkconfig --del MailScanner >/dev/null 2>&1
 	rm -f /etc/init.d/MailScanner
 fi
-
-# back up their stuff
-SAVEDIR="$HOME/ms_upgrade/saved.$$";
 
 if [ -d '/usr/lib/MailScanner/MailScanner/CustomFunctions' ]; then
 	mkdir -p ${SAVEDIR}/usr/lib/MailScanner/MailScanner/CustomFunctions
@@ -306,12 +306,16 @@ if [ -d '/usr/share/MailScanner/MailScanner' ]; then
 fi
 
 if [ -f '/etc/MailScanner/MailScanner.conf' ]; then
-	cp /etc/MailScanner/MailScanner.conf /etc/MailScanner/MailScanner.conf.old.$$
+	mkdir -p ${SAVEDIR}/etc/MailScanner
+	cp -f /etc/MailScanner/MailScanner.conf /etc/MailScanner/MailScanner.conf.original
 fi	
 
 exit 0
  
 %post
+
+# back up their stuff
+SAVEDIR="$HOME/ms_upgrade/saved.$$";
 
 # allow supplementary groups
 CAVOLD='^#AllowSupplementaryGroups.*';
@@ -384,6 +388,35 @@ if [ -d '/etc/mail/spamassassin' -a ! -L '/etc/mail/spamassassin/MailScanner.cf'
 	ln -s /etc/MailScanner/spamassassin.conf /etc/mail/spamassassin/MailScanner.cf 
 fi
 
+# upgrade the old config
+if [ -f /etc/MailScanner/MailScanner.conf.original -a -f /etc/MailScanner/MailScanner.conf ]; then
+	cp -f /etc/MailScanner/MailScanner.conf /etc/MailScanner/MailScanner.conf.dist
+	ms-upgrade-conf /etc/MailScanner/MailScanner.conf.original /etc/MailScanner/MailScanner.conf.dist > /etc/MailScanner/MailScanner.conf
+	mkdir -p ${SAVEDIR}/etc/MailScanner
+	mv -f /etc/MailScanner/MailScanner.conf.* ${SAVEDIR}/etc/MailScanner > /dev/null 2>&1
+fi
+
+# update web bug link
+OLD="^Web Bug Replacement.*";
+NEW="Web Bug Replacement = https\:\/\/s3\.amazonaws\.com\/msv5\/images\/spacer\.gif";
+if [ -f '/etc/MailScanner/MailScanner.conf' ]; then
+	sed -i "s/${OLD}/${NEW}/g" /etc/MailScanner/MailScanner.conf
+fi
+
+# fix reports directory
+OLDTHING='\/etc\/MailScanner\/reports';
+NEWTHING='\/usr\/share\/MailScanner\/reports';
+if [ -f '/etc/MailScanner/MailScanner.conf' ]; then
+	sed -i "s/${OLDTHING}/${NEWTHING}/g" /etc/MailScanner/MailScanner.conf
+fi
+
+# fix custom functions directory
+OLDTHING='^Custom Functions Dir.*';
+NEWTHING='Custom Functions Dir = \/usr\/share\/MailScanner\/perl\/custom';
+if [ -f '/etc/MailScanner/MailScanner.conf' ]; then
+	sed -i "s/${OLDTHING}/${NEWTHING}/g" /etc/MailScanner/MailScanner.conf
+fi
+
 # fix the clamav wrapper if the user does not exist
 if [ -d '/etc/clamav' ]; then
 
@@ -437,34 +470,6 @@ fi
 if [ -f '/etc/postfix/master.cf' ]; then
 	sed -i "s/pickup    unix/pickup    fifo/g" /etc/postfix/master.cf
 	sed -i "s/qmgr      unix/qmgr      fifo/g" /etc/postfix/master.cf
-fi
-
-# update web bug link
-OLD="^Web Bug Replacement.*";
-NEW="Web Bug Replacement = https\:\/\/s3\.amazonaws\.com\/msv5\/images\/spacer\.gif";
-if [ -f '/etc/MailScanner/MailScanner.conf' ]; then
-	sed -i "s/${OLD}/${NEW}/g" /etc/MailScanner/MailScanner.conf
-fi
-
-# fix reports directory
-OLDTHING='\/etc\/MailScanner\/reports';
-NEWTHING='\/usr\/share\/MailScanner\/reports';
-if [ -f '/etc/MailScanner/MailScanner.conf' ]; then
-	sed -i "s/${OLDTHING}/${NEWTHING}/g" /etc/MailScanner/MailScanner.conf
-fi
-
-# fix custom functions directory
-OLDTHING='\/usr\/share\/MailScanner\/MailScanner\/CustomFunctions';
-NEWTHING='\/usr\/share\/MailScanner\/perl\/custom';
-if [ -f '/etc/MailScanner/MailScanner.conf' ]; then
-	sed -i "s/${OLDTHING}/${NEWTHING}/g" /etc/MailScanner/MailScanner.conf
-fi
-
-# we need to ensure that the old spam list names do not get used
-OLD="^Spam List = .*";
-NEW="Spam List = # see the new spam.lists.conf for options";
-if [ -f '/etc/MailScanner/MailScanner.conf' ]; then
-	sed -i "s/${OLD}/${NEW}/g" /etc/MailScanner/MailScanner.conf
 fi
 
 # softlink for custom functions

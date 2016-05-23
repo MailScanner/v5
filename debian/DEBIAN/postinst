@@ -100,27 +100,6 @@ if [ -d '/usr/share/MailScanner/reports' -a ! -L '/etc/MailScanner/reports' ]; t
 	ln -s /usr/share/MailScanner/reports /etc/MailScanner/reports
 fi
 
-# update web bug link
-OLD="^Web Bug Replacement.*";
-NEW="Web Bug Replacement = https\:\/\/s3\.amazonaws\.com\/msv5\/images\/spacer\.gif";
-if [ -f '/etc/MailScanner/MailScanner.conf' ]; then
-	sed -i "s/${OLD}/${NEW}/g" /etc/MailScanner/MailScanner.conf
-fi
-
-# fix reports directory
-OLDTHING='\/etc\/MailScanner\/reports';
-NEWTHING='\/usr\/share\/MailScanner\/reports';
-if [ -f '/etc/MailScanner/MailScanner.conf' ]; then
-	sed -i "s/${OLDTHING}/${NEWTHING}/g" /etc/MailScanner/MailScanner.conf
-fi
-
-# fix custom functions directory
-OLDTHING='^Custom Functions Dir.*';
-NEWTHING='Custom Functions Dir = \/usr\/share\/MailScanner\/perl\/custom';
-if [ -f '/etc/MailScanner/MailScanner.conf' ]; then
-	sed -i "s/${OLDTHING}/${NEWTHING}/g" /etc/MailScanner/MailScanner.conf
-fi
-
 # remove old link if present
 if [ -L '/etc/mail/spamassassin/mailscanner.cf' ]; then
 	rm -f /etc/mail/spamassassin/mailscanner.cf
@@ -168,11 +147,32 @@ fi
 [ -d '/etc/MailScanner/conf.d' ] || mkdir -p /etc/MailScanner/conf.d
 
 # upgrade the old config
-if [ -f /etc/MailScanner/MailScanner.conf.upgrade -a -f /etc/MailScanner/MailScanner.conf ]; then
-	ms-upgrade-conf /etc/MailScanner/MailScanner.conf.upgrade /etc/MailScanner/MailScanner.conf > /etc/MailScanner/MailScanner.conf.new
-	cp -f /etc/MailScanner/MailScanner.conf.new  /etc/MailScanner/MailScanner.conf
+if [ -f /etc/MailScanner/MailScanner.conf.original -a -f /etc/MailScanner/MailScanner.conf ]; then
+	cp -f /etc/MailScanner/MailScanner.conf /etc/MailScanner/MailScanner.conf.dist
+	ms-upgrade-conf /etc/MailScanner/MailScanner.conf.original /etc/MailScanner/MailScanner.conf.dist > /etc/MailScanner/MailScanner.conf
 	mkdir -p ${SAVEDIR}/etc/MailScanner
 	mv -f /etc/MailScanner/MailScanner.conf.* ${SAVEDIR}/etc/MailScanner > /dev/null 2>&1
+fi
+
+# update web bug link
+OLD="^Web Bug Replacement.*";
+NEW="Web Bug Replacement = https\:\/\/s3\.amazonaws\.com\/msv5\/images\/spacer\.gif";
+if [ -f '/etc/MailScanner/MailScanner.conf' ]; then
+	sed -i "s/${OLD}/${NEW}/g" /etc/MailScanner/MailScanner.conf
+fi
+
+# fix reports directory
+OLDTHING='\/etc\/MailScanner\/reports';
+NEWTHING='\/usr\/share\/MailScanner\/reports';
+if [ -f '/etc/MailScanner/MailScanner.conf' ]; then
+	sed -i "s/${OLDTHING}/${NEWTHING}/g" /etc/MailScanner/MailScanner.conf
+fi
+
+# fix custom functions directory
+OLDTHING='^Custom Functions Dir.*';
+NEWTHING='Custom Functions Dir = \/usr\/share\/MailScanner\/perl\/custom';
+if [ -f '/etc/MailScanner/MailScanner.conf' ]; then
+	sed -i "s/${OLDTHING}/${NEWTHING}/g" /etc/MailScanner/MailScanner.conf
 fi
 
 # fix the clamav wrapper if the user does not exist

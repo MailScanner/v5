@@ -55,39 +55,14 @@ echo "This will INSTALL or UPGRADE the required software for MailScanner on SuSE
 echo "via the zypper package manager. Tested distributions are openSUSE 13.2 and associated";
 echo "variants. Internet connectivity is required for this installation script to execute."; 
 echo;
+echo "WARNING - Make a backup of any custom configuration files if upgrading - WARNING";
+echo;
 echo "You may press CTRL + C at any time to abort the installation. Note that you may see";
 echo "some errors during the perl module installation. You may safely ignore errors regarding";
 echo "failed tests if you opt to use CPAN. You may also ignore 'No package available' notices";
 echo "during the zypper installation of packages."; echo;
 echo "When you are ready to continue, press return ... ";
 read foobar
-
-# if already installed, offer to upgrade the mailscanner.conf
-AUTOUPGRADE=0
-if [ -f '/etc/MailScanner/MailScanner.conf' ]; then
-	clear
-	echo;
-	echo "Automatically upgrade MailScanner.conf?"; echo;
-	echo "Based on a system analysis, I think you are performing an upgrade. Would you like to";
-	echo "automatically upgrade /etc/MailScanner/MailScanner.conf to the new version? If you ";
-	echo "elect not to upgrade it automatically, you will need to manually run the upgrade";
-	echo "script after installation. If this in fact a new installation and not an upgrade, you";
-	echo "can just enter 'N' or 'no' to ignore this.";
-	echo;
-	echo "Recommended: Y (yes)"; echo;
-	read -r -p "Auto upgrade MailScanner.conf? [n/Y] : " response
-	
-	if [[ $response =~ ^([yY][eE][sS]|[yY])$ ]]; then
-		# user wants to auto upgrade mailscanner.conf
-		AUTOUPGRADE=1
-	elif [ -z $response ]; then    
-		# user wants to auto upgrade mailscanner.conf
-		AUTOUPGRADE=1
-    else
-    	# no auto upgrade
-    	AUTOUPGRADE=0
-    fi
-fi
 
 # ask if the user wants an mta installed
 clear
@@ -476,17 +451,6 @@ if [ -f '/etc/MailScanner/MailScanner.conf' ]; then
 	mv /etc/MailScanner/MailScanner.conf /etc/MailScanner/MailScanner.conf.save.$$
 fi
 
-# remove old versions
-if [ -d /etc/MailScanner ]; then
-	rpm -q mailscanner > /dev/null 2>&1
-
-	RETVAL="$?"
-
-	if [ $RETVAL -eq 0 ]; then
-		rpm -e mailscanner
-	fi
-fi
-
 clear
 echo;
 echo "Installing the MailScanner RPM ... ";
@@ -509,31 +473,6 @@ if [ $? != 0 ]; then
 	echo 'user specific configuration.';
 	echo;
 else
-	SAVEDIR="$HOME/ms_upgrade/saved.$$";
-	mkdir -p ${SAVEDIR}/etc/MailScanner
-	
-	if [ $AUTOUPGRADE == 1 ]; then
-		echo "Upgrading /etc/MailScanner/MailScanner.conf";
-		echo;
-		echo "Your old configuration file will be saved as:";
-		echo "${SAVEDIR}/etc/MailScanner/MailScanner.conf.old.$$";
-		echo;
-		timewait 1
-		
-		# fix old style clamav Monitors if preset in old mailscanner.conf
-		CAVOLD='Monitors for ClamAV Updates = /usr/local/share/clamav/*.cld /usr/local/share/clamav/*.cvd';
-		CAVNEW='Monitors for ClamAV Updates = /usr/local/share/clamav/*.cld /usr/local/share/clamav/*.cvd /var/lib/clamav/*.inc/* /var/lib/clamav/*.?db /var/lib/clamav/*.cvd';
-		perl -pi -e 's/'$CAVOLD'/'$CAVNEW'/;' /etc/MailScanner/MailScanner.conf
-		
-		if [ -f /etc/MailScanner/MailScanner.conf.save.$$ -a -f '/etc/MailScanner/MailScanner.conf' ]; then
-			ms-upgrade-conf /etc/MailScanner/MailScanner.conf.save.$$ /etc/MailScanner/MailScanner.conf > /etc/MailScanner/MailScanner.new
-			mv -f /etc/MailScanner/MailScanner.new  /etc/MailScanner/MailScanner.conf
-			mv -f /etc/MailScanner/MailScanner.conf.* ${SAVEDIR}/etc/MailScanner > /dev/null 2>&1
-		fi 
-	fi
-	
-	
-	
 	# create ramdisk
 	if [ $RAMDISK == 1 ]; then
 		if [ -d '/var/spool/MailScanner/incoming' ]; then

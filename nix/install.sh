@@ -191,6 +191,10 @@ clear
 echo;
 echo "Installing the MailScanner files ... ";
 
+if [ -f '/etc/MailScanner/MailScanner.conf' ]; then
+	cp -f /etc/MailScanner/MailScanner.conf /etc/MailScanner/MailScanner.conf.original.$$
+fi
+
 if [ -f './etc/MailScanner/MailScanner.conf' ]; then
 	cp -fr ./etc /
 	cp -fr ./usr /

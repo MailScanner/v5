@@ -47,7 +47,7 @@ echo "This will INSTALL or UPGRADE the required software for MailScanner on Debi
 echo "via the Apt package manager. Supported distributions are Debian and associated variants";
 echo "such as Ubuntu. Internet connectivity is required for this installation script to execute."; 
 echo;
-echo "	WARNING - Make a backup of any custom configuration files if upgrading - WARNING";
+echo "WARNING - Make a backup of any custom configuration files if upgrading - WARNING";
 echo;
 echo "You may press CTRL + C at any time to abort the installation. Note that you may see";
 echo "some errors during the perl module installation. You may safely ignore errors regarding";
@@ -55,35 +55,9 @@ echo "failed tests for optional packages."; echo;
 echo "When you are ready to continue, press return ... ";
 read foobar
 
-# if already installed, offer to upgrade the mailscanner.conf
-AUTOUPGRADE=0
+# install or upgrade
 if [ -f '/etc/MailScanner/MailScanner.conf' ]; then
-	clear
-	echo;
-	echo "Automatically upgrade MailScanner.conf?"; echo;
-	echo "Based on a system analysis, I think you are performing an upgrade. Would you like to";
-	echo "automatically upgrade /etc/MailScanner/MailScanner.conf to the new version? If you ";
-	echo "elect not to upgrade it automatically, you will need to manually run the upgrade";
-	echo "script after installation. If this in fact a new installation and not an upgrade, you";
-	echo "can just enter 'N' or 'no' to ignore this.";
-	echo;
-	echo "Recommended: Y (yes)"; echo;
-	read -r -p "Auto upgrade MailScanner.conf? [n/Y] : " response
-	
-	if [[ $response =~ ^([yY][eE][sS]|[yY])$ ]]; then
-		# user wants to auto upgrade mailscanner.conf
-		AUTOUPGRADE=1
-	elif [ -z $response ]; then    
-		# user wants to auto upgrade mailscanner.conf
-		AUTOUPGRADE=1
-    else
-    	# no auto upgrade
-    	AUTOUPGRADE=0
-    fi
-    
-    # set this to automatically answer conf files questions
     CONFFILES="--force-confold"
-   
 else
 	# new install
 	CONFFILES=
@@ -453,26 +427,7 @@ if [ $? != 0 ]; then
 	echo 'common issue is that missing modules were installed in a ';
 	echo 'user specific configuration.';
 	echo;
-else
-	SAVEDIR="$HOME/ms_upgrade/saved.$$";
-	mkdir -p ${SAVEDIR}/etc/MailScanner
-	
-	if [ $AUTOUPGRADE == 1 ]; then
-		echo "Upgrading /etc/MailScanner/MailScanner.conf";
-		echo;
-		echo "Your old configuration file will be saved as:";
-		echo "${SAVEDIR}/etc/MailScanner/MailScanner.conf.old.$$";
-		echo;
-		timewait 1
-		
-		if [ -f /etc/MailScanner/MailScanner.conf.save.$$ -a -f '/etc/MailScanner/MailScanner.conf' ]; then
-			ms-upgrade-conf /etc/MailScanner/MailScanner.conf.save.$$ /etc/MailScanner/MailScanner.conf > /etc/MailScanner/MailScanner.new
-			mv -f /etc/MailScanner/MailScanner.new  /etc/MailScanner/MailScanner.conf
-			mv -f /etc/MailScanner/MailScanner.conf.* ${SAVEDIR}/etc/MailScanner > /dev/null 2>&1
-		fi 
-
-	fi
-	
+else	
 	# create ramdisk
 	if [ $RAMDISK == 1 ]; then
 		if [ -d '/var/spool/MailScanner/incoming' ]; then
