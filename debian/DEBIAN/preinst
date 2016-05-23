@@ -89,6 +89,7 @@ if [ -L '/etc/MailScanner/custom' ]; then
 fi
 
 if [ -f '/etc/MailScanner/MailScanner.conf' ]; then
-	cp /etc/MailScanner/MailScanner.conf /etc/MailScanner/MailScanner.conf.upgrade
+	mkdir -p ${SAVEDIR}/etc/MailScanner
+	cp -f /etc/MailScanner/MailScanner.conf /etc/MailScanner/MailScanner.conf.upgrade
 fi	
 exit 0
