@@ -165,9 +165,10 @@ fi
 [ -d '/etc/MailScanner/conf.d' ] || mkdir -p /etc/MailScanner/conf.d
 
 # upgrade the old config
-if [ -f /etc/MailScanner/MailScanner.conf.old.$$ -a -f /etc/MailScanner/MailScanner.conf ]; then
-	ms-upgrade-conf /etc/MailScanner/MailScanner.conf.old.$$ /etc/MailScanner/MailScanner.conf > /etc/MailScanner/MailScanner.new
+if [ -f /etc/MailScanner/MailScanner.conf.upgrade -a -f /etc/MailScanner/MailScanner.conf ]; then
+	ms-upgrade-conf /etc/MailScanner/MailScanner.conf.upgrade /etc/MailScanner/MailScanner.conf > /etc/MailScanner/MailScanner.new
 	mv -f /etc/MailScanner/MailScanner.new  /etc/MailScanner/MailScanner.conf
+	mkdir -p ${SAVEDIR}/etc/MailScanner
 	mv -f /etc/MailScanner/MailScanner.conf.* ${SAVEDIR}/etc/MailScanner > /dev/null 2>&1
 fi
 

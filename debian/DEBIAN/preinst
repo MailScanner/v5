@@ -18,6 +18,7 @@ set -e
 
 # back up their stuff
 SAVEDIR="$HOME/ms_upgrade/saved.$$";
+export SAVEDIR
 
 if [ -f '/etc/default/mailscanner' ]; then
 	mkdir -p ${SAVEDIR}/etc/default
@@ -89,6 +90,6 @@ if [ -L '/etc/MailScanner/custom' ]; then
 fi
 
 if [ -f '/etc/MailScanner/MailScanner.conf' ]; then
-	cp /etc/MailScanner/MailScanner.conf /etc/MailScanner/MailScanner.conf.old.$$
+	cp /etc/MailScanner/MailScanner.conf /etc/MailScanner/MailScanner.conf.upgrade
 fi	
 exit 0
