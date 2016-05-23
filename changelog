@@ -1,3 +1,7 @@
+05/23/2016 Changes in    v5.0.1-2
+==================================
+- fixed install.sh for ms-upgrade-conf
+
 05/22/2016 Changes in    v5.0.1-1
 ==================================
 - added logging of failed HTML disarms to Message.pm
