@@ -465,8 +465,8 @@ else
 		echo;
 		timewait 1
 		
-		if [ -f '/etc/MailScanner/MailScanner.conf' ]; then
-			ms-upgrade-conf /etc/MailScanner/MailScanner.conf.$$ /etc/MailScanner/MailScanner.conf > /etc/MailScanner/MailScanner.new
+		if [ -f '/etc/MailScanner/MailScanner.conf' -a -f '/etc/MailScanner/MailScanner.conf.dpkg-dist' ]; then
+			ms-upgrade-conf /etc/MailScanner/MailScanner.conf /etc/MailScanner/MailScanner.conf.dpkg-dist > /etc/MailScanner/MailScanner.new
 			mv -f /etc/MailScanner/MailScanner.conf /etc/MailScanner/MailScanner.conf.old.$$
 			mv -f /etc/MailScanner/MailScanner.new  /etc/MailScanner/MailScanner.conf
 		fi
