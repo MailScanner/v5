@@ -373,7 +373,7 @@ MTA			sendmail
 ProcDBName		/var/spool/MailScanner/incoming/Processing.db
 QuarantineUser
 QuarantineGroup
-QuarantinePerms		0600
+QuarantinePerms		0660
 RunAsUser		0
 RunAsGroup		0
 SACache			/var/spool/MailScanner/incoming/SpamAssassin.cache.db
@@ -400,7 +400,7 @@ UnrarCommand		/usr/bin/unrar
 VirusScanners		auto  # Space-separated list
 WorkUser
 WorkGroup
-WorkPerms		0600
+WorkPerms		0660
 DBDSN
 DBUsername
 DBPassword

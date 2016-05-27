@@ -110,7 +110,7 @@ sub new {
   # Now to work out the new umask
   # Default is 0600 for files, which gives 0700 for directories
   my($perms, $dirumask, $fileumask);
-  $perms = MailScanner::Config::Value('workperms') || '0600';
+  $perms = MailScanner::Config::Value('workperms') || '0660';
   $perms = sprintf "0%lo", $perms unless $perms =~ /^0/; # Make it octal
   $dirumask = $perms;
   $dirumask =~ s/[1-7]/$&|1/ge; # If they want r or w give them x too

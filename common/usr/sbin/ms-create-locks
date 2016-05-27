@@ -78,7 +78,7 @@ chmod 0755, $locksdirname unless $locksdirname =~ /^\/tmp/;
 chown -1, $ldgid, $locksdirname;
 # Set perms and ownership of /v/s/M/i/Locks/*.lock to
 # -rw------- run-as-user run-as-group
-chmod 0600, @locknames;
+chmod 0660, @locknames;
 chown $lduid, $ldgid, @locknames;
 
 exit 0;

@@ -2534,7 +2534,7 @@ sub Explode {
     chown $workarea->{uid}, $workarea->{gid}, @tmplist if @tmplist;
   }
   # JKF 20100528 Now set the perms on all the extracted files
-  my $workperms = MailScanner::Config::Value('workperms') || '0600';
+  my $workperms = MailScanner::Config::Value('workperms') || '0660';
   # Make it octal with a leading zero if necessary
   $workperms = sprintf "0%lo", $workperms unless $workperms =~ /^0/;
   $workperms = oct($workperms); # and back to decimal for chmod
@@ -3430,7 +3430,7 @@ sub UnpackZip {
 
     # Untaint member's attributes.
     # Fix to use workperms in preference by Rick Cooper rcooper@dwford.com
-    my $workperms = MailScanner::Config::Value('workperms') || '0600';
+    my $workperms = MailScanner::Config::Value('workperms') || '0660';
     # Make it octal with a leading zero if necessary by Curu Wong prinbra@gmail.com
     $workperms = sprintf("0%lo", $workperms) unless $workperms =~ /^0/;
     $workperms = oct($workperms); # and back to decimal for chmod
