@@ -1,3 +1,8 @@
+05/23/2016 Changes in    v5.0.2-1
+==================================
+- updated chmod permissions from 0600 to 0660 on work files to address
+  permission issues with clamd reading header files
+
 05/23/2016 Changes in    v5.0.1-2
 ==================================
 - fixed install.sh for ms-upgrade-conf
