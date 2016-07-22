@@ -5193,9 +5193,9 @@ sub DeliverUnmodifiedBody {
         #print STDERR "end\n";
         $global::MS->{mta}->AppendHeader($this, 'Subject:', $phishingtag, ' ');
         $subjectchanged = 1;
-      } elsif ($where =~ /start|1/ && !$global::MS->{mta}->TextStartsHeader($this, 'Subject:', $disarmtag)) {
+      } elsif ($where =~ /start|1/ && !$global::MS->{mta}->TextStartsHeader($this, 'Subject:', $phishingtag)) {
         #print STDERR "start\n";
-        $global::MS->{mta}->PrependHeader($this, 'Subject:', $disarmtag, ' ');
+        $global::MS->{mta}->PrependHeader($this, 'Subject:', $phishingtag, ' ');
         $subjectchanged = 1;
       }
     #}
