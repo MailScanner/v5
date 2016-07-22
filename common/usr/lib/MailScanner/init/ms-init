@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # This script provides MailScanner daemon initialization across
 # multiple Unices. 
@@ -354,11 +354,11 @@ case "$1" in
 	# make sure the correct permissions are set
 	echo "$NAME starting ... "
 	do_perms
-	sleep 1
+	sleep 1	
 	do_start
 	
 	STARTRETVAL="$?"
-	
+		
 	if [ $STARTRETVAL -eq 0 ]; then
 		[ "$VERBOSE" != no ] && logger -i -p mail.notice "$NAME started"
 		PID=$(head -n 1 $PIDFILE)
@@ -374,6 +374,7 @@ case "$1" in
   	[ "$VERBOSE" != no ] && logger -i -p mail.notice "Stopping $NAME "
 	
 	do_stop
+	
 	RETVAL="$?"
 	
 	# error in do_stop - this should never trigger
@@ -452,17 +453,35 @@ case "$1" in
   restart)
   	echo "Restarting $NAME ..."
 	[ "$VERBOSE" != no ] && logger -i -p mail.notice "Restarting $NAME "
-	do_stop
-	sleep 3
-	do_start
 	
-	STARTRETVAL="$?"
+	do_stop
+	
+	s='-\|/';
+	x=0
+	i=0
+	while [ "$x" -lt 300 -a -f $PIDFILE ]; do
+	   x=$((x+1));
+	   i=$(( (i+1) %4 ));
+	   printf "\r${s:$i:1}";
+	   sleep .1;
+	done
+
+	if [ ! -f $PIDFILE ] ; then
+		do_start
+		STARTRETVAL="$?"
+	fi
 	
 	if [ $STARTRETVAL -eq 0 ]; then
-		[ "$VERBOSE" != no ] && logger -i -p mail.notice "$NAME restarted"
-		PID=$(head -n 1 $PIDFILE)
-		echo "$NAME restarted with process id $PID"
-		exit 0
+		if [ -f $PIDFILE ] ; then
+			[ "$VERBOSE" != no ] && logger -i -p mail.notice "$NAME restarted"
+			PID=$(head -n 1 $PIDFILE)
+			echo "$NAME restarted with process id $PID"
+			exit 0
+		else
+			logger -i -p mail.notice "$NAME failed to start"
+			echo "$NAME failed to start ... doh!"
+			exit 1
+		fi
 	else
 		logger -i -p mail.notice "$NAME failed to start"
 		echo "$NAME failed to start ... doh!"
@@ -476,16 +495,32 @@ case "$1" in
   	echo "Reloading $NAME ..."
 	[ "$VERBOSE" != no ] && logger -i -p mail.notice "Reloading $NAME "
 	do_stop
-	sleep 3
+	
+	s='-\|/';
+	x=0
+	i=0
+	while [ "$x" -lt 300 -a -f $PIDFILE ]; do
+	   x=$((x+1));
+	   i=$(( (i+1) %4 ));
+	   printf "\r${s:$i:1}";
+	   sleep .1;
+	done
+	
 	do_start
 	
 	STARTRETVAL="$?"
 	
 	if [ $STARTRETVAL -eq 0 ]; then
-		[ "$VERBOSE" != no ] && logger -i -p mail.notice "$NAME reloaded"
-		PID=$(head -n 1 $PIDFILE)
-		echo "$NAME reloaded with process id $PID"
-		exit 0
+		if [ -f $PIDFILE ] ; then
+			[ "$VERBOSE" != no ] && logger -i -p mail.notice "$NAME restarted"
+			PID=$(head -n 1 $PIDFILE)
+			echo "$NAME restarted with process id $PID"
+			exit 0
+		else
+			logger -i -p mail.notice "$NAME failed to start"
+			echo "$NAME failed to start ... doh!"
+			exit 1
+		fi
 	else
 		logger -i -p mail.notice "$NAME failed to start"
 		echo "$NAME failed to start ... doh!"
