@@ -56,7 +56,7 @@ $Claminuse       = 0;
 # So we can kill virus scanners when we are HUPped
 $ScannerPID = 0;
 my $scannerlist = "";
-
+  
 #
 # Virus scanner definitions table
 #
@@ -196,7 +196,7 @@ my %Scanners = (
    "avastd"		=> {
     Name		=> 'AvastDaemon',
     Lock		=> 'avastdBusy.lock',
-    CommonOptions	=> '-b -f -s ' . $AvastSocket,
+    CommonOptions	=> '-b -f -s ',
     DisinfectOptions	=> '',
     ScanOptions		=> '',
     InitParser		=> \&InitAvastdParser,
@@ -1955,9 +1955,6 @@ sub ClamdScan {
   my $Socket = MailScanner::Config::Value('clamdsocket');
   my $line = '';
   my $sock;
-  
-  # avast socket
-  my $AvastSocket = MailScanner::Config::Value('avastdsocket');
 
   # If we did not receive a socket file name then we run in TCP mode
 
