@@ -345,16 +345,6 @@ Archive Mail = /var/spool/MailScanner/archive',
  This can also be the filename of a ruleset.',
     'value' => ' %org-name%-Attachment-Warning.txt',
   ),
-  'avastdsocket' => 
-  array (
-    'external' => 'avastdsocket',
-    'type' => 'other',
-    'ruleset' => 'all',
-    'default' => '/var/run/avast/scan.sock',
-    'name' => 'Avastd Socket',
-    'desc' => '',
-    'value' => ' /var/run/avast/scan.sock',
-  ),
   'clamavmaxratio' => 
   array (
     'external' => 'clamavmodulemaximumcompressionratio',
@@ -3446,7 +3436,6 @@ TNEF Expander  = internal',
  vexira    from www.centralcommand.com
  symscanengine from www.symantec.com (Symantec Scan Engine, not CSS)
  avast     from www.avast.com
- avastd    avast daemon
  esets     from www.eset.com
  vba32     from www.anti-virus.by/en/
  generic   One you wrote: edit the generic-wrapper and generic-autoupdate

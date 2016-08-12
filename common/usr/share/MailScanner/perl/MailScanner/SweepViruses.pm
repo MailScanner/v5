@@ -193,17 +193,6 @@ my %Scanners = (
     SupportScanning	=> $S_SUPPORTED,
     SupportDisinfect	=> $S_SUPPORTED,
   },
-   "avastd"		=> {
-    Name		=> 'AvastDaemon',
-    Lock		=> 'avastdBusy.lock',
-    CommonOptions	=> '-b -f -s ',
-    DisinfectOptions	=> '',
-    ScanOptions		=> '',
-    InitParser		=> \&InitAvastdParser,
-    ProcessOutput	=> \&ProcessAvastdOutput,
-    SupportScanning	=> $S_SUPPORTED,
-    SupportDisinfect	=> $S_SUPPORTED,
-  },
 );
 
 # Initialise the Sophos SAVI library if we are using it.
@@ -1145,11 +1134,6 @@ sub InitAvastParser {
   ;
 }
 
-# Initialise any state variables the Avastd output parser uses
-sub InitAvastdParser {
-  ;
-}
-
 # These functions must be called with, in order:
 # * The line of output from the scanner
 # * The MessageBatch object the reports are written to
@@ -1781,48 +1765,6 @@ sub ProcessAvastOutput {
 
   MailScanner::Log::InfoLog("%s", $logout);
   #print STDERR "Dot, id, part = \"$dot\", \"$id\", \"$part\"\n";
-  $infection = $Name . ': ' . $infection if $Name;
-  $infections->{"$id"}{"$part"} .= $infection . "\n";
-  $types->{"$id"}{"$part"} .= "v";
-  #print STDERR "Infection = $infection\n";
-  return 1;
-}
-
-sub ProcessAvastdOutput {
-  my($line, $infections, $types, $BaseDir, $Name) = @_;
-
-
-  chomp $line;
-  #MailScanner::Log::InfoLog("Avastd said \"$line\"");
-
-  # Extract the infection report. Return 0 if it's not there or is OK.
-  return 0 unless $line =~ /\t\[([^[]+)\](\t(.*))?$/;
-  my $result = $1;
-  my $infection = $3;
-  return 0 if $result eq '+';
-  my $logout = $line;
-  MailScanner::Log::WarnLog("Avastd scanner found new response type \"%s\", report this to mailscanner\@ecs.soton.ac.uk immediately!", $result) if $result ne 'L';
-
-  # Avast prints the whole path as opposed to
-  # ./messages/part so make it the same
-  $line =~ s/^$BaseDir//;
-
-  #my $logout = $line;
-  #$logout =~ s/%/%%/g;
-  #$logout =~ s/\s{20,}/ /g;
-  #$logout =~ s/^\///;
-  #MailScanner::Log::InfoLog("%s found %s", $Name, $logout);
-
-  # note: '$dot' does not become '.'
-  # This removes the "Archived" bit off the front if present, too :)
-  $line =~ s/\t\[[^[]+\]\t.*$//; # Trim the virus report off the end
-  my ($dot, $id, $part, @rest) = split(/\//, $line);
-  #print STDERR "Dot, id, part = \"$dot\", \"$id\", \"$part\"\n";
-  my $notype = substr($part,1);
-  $logout =~ s/\Q$part\E/$notype/;
-  $infection =~ s/\Q$part\E/$notype/;
-
-  MailScanner::Log::InfoLog("%s", $logout);
   $infection = $Name . ': ' . $infection if $Name;
   $infections->{"$id"}{"$part"} .= $infection . "\n";
   $types->{"$id"}{"$part"} .= "v";
