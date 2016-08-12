@@ -563,6 +563,8 @@ exit 0
 
 %attr(755,root,root) /usr/lib/MailScanner/init/ms-init
 
+%attr(755,root,root) /usr/lib/MailScanner/wrapper/avast-wrapper
+%attr(755,root,root) /usr/lib/MailScanner/wrapper/avastd-wrapper
 %attr(755,root,root) /usr/lib/MailScanner/wrapper/avg-autoupdate
 %attr(755,root,root) /usr/lib/MailScanner/wrapper/avg-wrapper
 %attr(755,root,root) /usr/lib/MailScanner/wrapper/bitdefender-autoupdate
