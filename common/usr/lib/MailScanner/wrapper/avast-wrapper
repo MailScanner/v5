@@ -26,14 +26,13 @@
 #      https://www.mailscanner.info
 #
 #
-
 PackageDir=$1
 shift
-prog=bin/avast
+Prog=scan
 
 if [ "x$1" = "x-IsItInstalled" ]; then
-  [ -x ${PackageDir}/$prog ] && exit 0
+  [ -x ${PackageDir}/$Prog ] && exit 0
   exit 1
 fi
 
-exec ${PackageDir}/$prog "$@"
+exec ${PackageDir}/$Prog "$@"

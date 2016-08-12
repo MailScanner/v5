@@ -659,6 +659,7 @@ ArchiveMail
 AttachZipIgnore			.zip .rar .gz .tgz .mpg .mpe .mpeg .mp3 .rpm
 ClamdLockFile
 ClamdSocket 127.0.0.1
+AvastdSocket /var/run/avast/scan.sock
 FilenameRules		
 FiletypeRules		
 isareply
