@@ -3436,8 +3436,7 @@ TNEF Expander  = internal',
  vexira    from www.centralcommand.com
  symscanengine from www.symantec.com (Symantec Scan Engine, not CSS)
  avast     from www.avast.com
- avastd    (also from www.avast.com and relies on avastd to be configured
-           [read \'man avastd.conf\'] and running)
+ avastd    avast daemon
  esets     from www.eset.com
  vba32     from www.anti-virus.by/en/
  generic   One you wrote: edit the generic-wrapper and generic-autoupdate

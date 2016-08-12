@@ -225,6 +225,8 @@ while read f
 do
   install usr/lib/MailScanner/wrapper/$f ${RPM_BUILD_ROOT}/usr/lib/MailScanner/wrapper
 done << EOF
+avast-wrapper
+avastd-wrapper
 avg-autoupdate
 avg-wrapper
 bitdefender-wrapper

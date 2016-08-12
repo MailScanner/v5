@@ -1,10 +1,11 @@
 
-07/21/2016 Changes in    v5.0.3-1
+08/12/2016 Changes in    v5.0.3-1
 ==================================
 - updated init script to include a time-wait during process reloads
 and restarts
 - updated Message.pm to correctly prepend phishing notices in email
 subject
+- added avast virus scanner support
 
 05/23/2016 Changes in    v5.0.2-1
 ==================================

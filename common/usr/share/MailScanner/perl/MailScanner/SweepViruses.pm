@@ -182,6 +182,28 @@ my %Scanners = (
     SupportScanning	=> $S_NONE,
     SupportDisinfect	=> $S_NONE,
   },
+  "avast"		=> {
+    Name		=> 'Avast',
+    Lock		=> 'avastBusy.lock',
+    CommonOptions	=> '-n -t=A',
+    DisinfectOptions	=> '-p=3',
+    ScanOptions		=> '',
+    InitParser		=> \&InitAvastParser,
+    ProcessOutput	=> \&ProcessAvastOutput,
+    SupportScanning	=> $S_SUPPORTED,
+    SupportDisinfect	=> $S_SUPPORTED,
+  },
+   "avastd"		=> {
+    Name		=> 'AvastDaemon',
+    Lock		=> 'avastdBusy.lock',
+    CommonOptions	=> '-n -t=A',
+    DisinfectOptions	=> '-p=3',
+    ScanOptions		=> '',
+    InitParser		=> \&InitAvastParser,
+    ProcessOutput	=> \&ProcessAvastOutput,
+    SupportScanning	=> $S_SUPPORTED,
+    SupportDisinfect	=> $S_SUPPORTED,
+  },
 );
 
 # Initialise the Sophos SAVI library if we are using it.
@@ -1115,6 +1137,16 @@ sub InitBitdefenderParser {
 
 # Initialise any state variables the AVG output parser uses
 sub InitAvgParser {
+  ;
+}
+
+# Initialise any state variables the Avast output parser uses
+sub InitAvastParser {
+  ;
+}
+
+# Initialise any state variables the Avastd output parser uses
+sub InitAvastdParser {
   ;
 }
 
