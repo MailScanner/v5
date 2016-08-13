@@ -185,7 +185,7 @@ my %Scanners = (
   "avast"		=> {
     Name		=> 'Avast',
     Lock		=> 'avastBusy.lock',
-    CommonOptions	=> '-b -f',
+    CommonOptions	=> '-b -f -a',
     DisinfectOptions	=> '',
     ScanOptions		=> '',
     InitParser		=> \&InitAvastParser,
@@ -992,10 +992,6 @@ sub ClamAVModule {
   $dir->close;
 }
 
-
-
-
-
 # Use the Sophos SAVI library (already initialised) to scan the contents of
 # a directory. Outputs in a very simple format that ProcessSophosSAVIOutput()
 # expects. 3 output fields separated by ":: ".
@@ -1732,44 +1728,29 @@ sub ProcessAvgOutput {
 }
 
 sub ProcessAvastOutput {
+  use File::Basename;  
   my($line, $infections, $types, $BaseDir, $Name) = @_;
-
-
+  my($logout, $keyword, $virusname, $filename, $path);
+  my($id, $part, @rest, $report);
+  
   chomp $line;
-  #MailScanner::Log::InfoLog("Avast said \"$line\"");
-
-  # Extract the infection report. Return 0 if it's not there or is OK.
-  return 0 unless $line =~ /\t\[(.+)\]$/;
-  my $infection = $1;
-  return 0 if $infection =~ /^OK$/i;
-  my $logout = $line;
-
-  # Avast prints the whole path as opposed to
-  # ./messages/part so make it the same
-  $line =~ s/^Archived\s//i;
-  $line =~ s/^$BaseDir//;
-
-  #my $logout = $line;
-  #$logout =~ s/%/%%/g;
-  #$logout =~ s/\s{20,}/ /g;
-  #$logout =~ s/^\///;
-  #MailScanner::Log::InfoLog("%s found %s", $Name, $logout);
-
-  # note: '$dot' does not become '.'
-  # This removes the "Archived" bit off the front if present, too :)
-  $line =~ s/\t\[.+\]$//; # Trim the virus report off the end
-  my ($dot, $id, $part, @rest) = split(/\//, $line);
-  my $notype = substr($part,1);
-  $logout =~ s/\Q$part\E/$notype/;
-  $infection =~ s/\Q$part\E/$notype/;
-
-  MailScanner::Log::InfoLog("%s", $logout);
-  #print STDERR "Dot, id, part = \"$dot\", \"$id\", \"$part\"\n";
-  $infection = $Name . ': ' . $infection if $Name;
-  $infections->{"$id"}{"$part"} .= $infection . "\n";
-  $types->{"$id"}{"$part"} .= "v";
-  #print STDERR "Infection = $infection\n";
+  
+  # informational [OK]
+  return 0 if $line =~ m/\[OK\]/i;
+  
+  # password protected
+  return 0 if $line =~ m/password protected/i;
+  
+  $logout = $line;
+  ($path, $virusname) = split(/\s/, $line, 2);
+  $filename = basename($path);
+  MailScanner::Log::InfoLog("Avast::INFECTED::$virusname");
+  
+  $report = $Name . ': ' if $Name;
+  $infections->{"$filename"}{""} .= "$report $filename was infected by $virusname\n";
+  $types->{"$filename"}{""} .= "v"; # it's a real virus
   return 1;
+
 }
 
 # Generate a list of all the virus scanners that are installed. It may
