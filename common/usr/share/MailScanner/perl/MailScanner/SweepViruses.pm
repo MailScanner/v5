@@ -193,6 +193,17 @@ my %Scanners = (
     SupportScanning	=> $S_SUPPORTED,
     SupportDisinfect	=> $S_SUPPORTED,
   },
+  "esets"		=> {
+    Name		=> 'esets',
+    Lock		=> 'esetsBusy.lock',
+    CommonOptions	=> '',
+    DisinfectOptions	=> '',
+    ScanOptions		=> '',
+    InitParser		=> \&InitEsetsParser,
+    ProcessOutput	=> \&ProcessEsetsOutput,
+    SupportScanning	=> $S_SUPPORTED,
+    SupportDisinfect	=> $S_SUPPORTED,
+  },
 );
 
 # Initialise the Sophos SAVI library if we are using it.
@@ -278,7 +289,6 @@ sub InitialiseClam {
   #MailScanner::Log::WarnLog("\"Allow Password-Protected Archives\" should be set to just yes or no when using clamavmodule virus scanner")
   #  unless MailScanner::Config::IsSimpleValue('allowpasszips');
 }
-
 
 sub InitialiseSAVI {
   # Initialise Sophos SAVI library
@@ -430,8 +440,6 @@ sub ClamUpgraded {
   # No update detected
   return 0;
 }
-
-
 
 # Constructor.
 sub new {
@@ -1130,6 +1138,11 @@ sub InitAvastParser {
   ;
 }
 
+# Initialise any state variables the esets output parser uses
+sub InitEsetsParser {
+  ;
+}
+
 # These functions must be called with, in order:
 # * The line of output from the scanner
 # * The MessageBatch object the reports are written to
@@ -1728,6 +1741,32 @@ sub ProcessAvgOutput {
 }
 
 sub ProcessAvastOutput {
+  use File::Basename;  
+  my($line, $infections, $types, $BaseDir, $Name) = @_;
+  my($logout, $keyword, $virusname, $filename, $path);
+  my($id, $part, @rest, $report);
+  
+  chomp $line;
+  
+  # informational [OK]
+  return 0 if $line =~ m/\[OK\]/i;
+  
+  # password protected
+  return 0 if $line =~ m/password protected/i;
+  
+  $logout = $line;
+  ($path, $virusname) = split(/\s/, $line, 2);
+  $filename = basename($path);
+  MailScanner::Log::InfoLog("Avast::INFECTED::$virusname");
+  
+  $report = $Name . ': ' if $Name;
+  $infections->{"$filename"}{""} .= "$report $filename was infected by $virusname\n";
+  $types->{"$filename"}{""} .= "v"; # it's a real virus
+  return 1;
+
+}
+
+sub ProcessEsetsOutput {
   use File::Basename;  
   my($line, $infections, $types, $BaseDir, $Name) = @_;
   my($logout, $keyword, $virusname, $filename, $path);

@@ -58,6 +58,10 @@ if id -u mail >/dev/null 2>&1; then
 	usermod -a -G mtagroup mail >/dev/null 2>&1
 fi
 
+if id -u avast >/dev/null 2>&1; then
+	usermod -a -G mtagroup avast >/dev/null 2>&1
+fi
+
 if [ ! -d '/var/spool/MailScanner/archive' ]; then
 	mkdir -p /var/spool/MailScanner/archive
 fi

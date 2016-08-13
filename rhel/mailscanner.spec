@@ -232,6 +232,7 @@ bitdefender-wrapper
 bitdefender-autoupdate
 clamav-autoupdate
 clamav-wrapper
+esets-wrapper
 f-secure-wrapper
 f-secure-autoupdate
 generic-autoupdate
@@ -357,6 +358,10 @@ fi
 
 if id -u mail >/dev/null 2>&1; then
 	usermod -a -G mtagroup mail >/dev/null 2>&1
+fi
+
+if id -u avast >/dev/null 2>&1; then
+	usermod -a -G mtagroup avast >/dev/null 2>&1
 fi
 
 if [ ! -d '/var/spool/MailScanner/archive' ]; then
@@ -569,6 +574,7 @@ exit 0
 %attr(755,root,root) /usr/lib/MailScanner/wrapper/bitdefender-wrapper
 %attr(755,root,root) /usr/lib/MailScanner/wrapper/clamav-autoupdate
 %attr(755,root,root) /usr/lib/MailScanner/wrapper/clamav-wrapper
+%attr(755,root,root) /usr/lib/MailScanner/wrapper/esets-wrapper
 %attr(755,root,root) /usr/lib/MailScanner/wrapper/f-secure-autoupdate
 %attr(755,root,root) /usr/lib/MailScanner/wrapper/f-secure-wrapper
 %attr(755,root,root) /usr/lib/MailScanner/wrapper/generic-autoupdate

@@ -6,6 +6,7 @@ and restarts
 - updated Message.pm to correctly prepend phishing notices in email
 subject
 - added avast virus scanner support
+- added esets virus scanner support
 
 05/23/2016 Changes in    v5.0.2-1
 ==================================
