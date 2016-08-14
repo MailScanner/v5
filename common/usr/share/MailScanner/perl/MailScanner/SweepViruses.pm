@@ -133,8 +133,8 @@ my %Scanners = (
     CommonOptions       => '',
     DisinfectOptions    => '',
     ScanOptions         => '',
-    InitParser          => \&InitClamAVModParser,
-    ProcessOutput       => \&ProcessClamAVModOutput,
+    InitParser          => \&InitClamdParser,
+    ProcessOutput       => \&ProcessClamdOutput,
     SupportScanning     => $S_SUPPORTED,
     SupportDisinfect    => $S_NONE,
   },
@@ -1079,6 +1079,10 @@ sub InitSophosParser {
   ;
 }
 
+sub InitClamdParser {
+  ;
+}
+
 # Initialise any state variables the F-Secure output parser uses
 my ($fsecure_InHeader, $fsecure_Version, %fsecure_Seen);
 sub InitFSecureParser {
@@ -1167,6 +1171,66 @@ sub InitEsetsParser {
 
 
 sub ProcessClamAVModOutput {
+  my($line, $infections, $types, $BaseDir, $Name, $spaminfre) = @_;
+  my($logout, $keyword, $virusname, $filename);
+  my($dot, $id, $part, @rest, $report);
+
+  chomp $line;
+  $logout = $line;
+  $logout =~ s/\s{20,}/ /g;
+  #$logout =~ s/%/%%/g;
+
+  #print STDERR "Output is \"$logout\"\n";
+  ($keyword, $virusname, $filename) = split(/:: /, $line, 3);
+  # Remove any rogue spaces in virus names!
+  # Thanks to Alvaro Marin <alvaro@hostalia.com> for this.
+  $virusname =~ s/\s+//g;
+
+  if ($keyword =~ /^error/i && $logout !~ /rar module failure/i) {
+    MailScanner::Log::InfoLog("%s::%s", $Name, $logout);
+    return 1;
+  } elsif ($keyword =~ /^info/i || $logout =~ /rar module failure/i) {
+    return 0;
+  } elsif ($keyword =~ /^clean/i) {
+    return 0;
+  } else {
+    # Must be an infection report
+    ($dot, $id, $part, @rest) = split(/\//, $filename);
+    my $notype = substr($part,1);
+    $logout =~ s/\Q$part\E/$notype/;
+
+    MailScanner::Log::InfoLog("%s::%s", $Name, $logout)
+      unless $ClamAVAlreadyLogged{"$id"} && $part eq '';
+    $ClamAVAlreadyLogged{"$id"} = 1;
+
+    #print STDERR "virus = \"$virusname\" re = \"$spaminfre\"\n";
+    if ($virusname =~ /$spaminfre/) {
+      # It's spam found as an infection
+      # This is for clamavmodule and clamd
+      # Use "u" to signify virus reports that are really spam
+      # 20090730
+      return "0 $id $virusname";
+    }
+
+    # Only log the whole message if no attachment has been logged
+    #print STDERR "Part = \"$part\"\n";
+    #print STDERR "Logged(\"$id\") = \"" . $ClamAVAlreadyLogged{"$id"} . "\"\n";
+
+    $report = $Name . ': ' if $Name;
+    if ($part eq '') {
+      # No part ==> entire message is infected.
+      $infections->{"$id"}{""}
+        .= "$report message was infected: $virusname\n";
+    } else {
+      $infections->{"$id"}{"$part"}
+        .= "$report$notype was infected: $virusname\n";
+    }
+    $types->{"$id"}{"$part"} .= 'v'; # it's a real virus
+    return 1;
+  }
+}
+
+sub ProcessClamdOutput {
   my($line, $infections, $types, $BaseDir, $Name, $spaminfre) = @_;
   my($logout, $keyword, $virusname, $filename);
   my($dot, $id, $part, @rest, $report);
@@ -1742,54 +1806,66 @@ sub ProcessAvgOutput {
 
 sub ProcessAvastOutput {
   use File::Basename;  
-  my($line, $infections, $types, $BaseDir, $Name) = @_;
-  my($logout, $keyword, $virusname, $filename, $path);
-  my($id, $part, @rest, $report);
   
+  my($line, $infections, $types, $BaseDir, $Name) = @_; 
   chomp $line;
   
   # informational [OK]
   return 0 if $line =~ m/\[OK\]/i;
   
   # password protected
-  return 0 if $line =~ m/password protected/i;
+  return 0 if $line =~ m/protected/i;
   
-  $logout = $line;
-  ($path, $virusname) = split(/\s/, $line, 2);
-  $filename = basename($path);
-  MailScanner::Log::InfoLog("Avast::INFECTED::$virusname");
+  # remove tabs
+  $line =~ s/\t/ /g;
   
-  $report = $Name . ': ' if $Name;
-  $infections->{"$filename"}{""} .= "$report $filename was infected by $virusname\n";
-  $types->{"$filename"}{""} .= "v"; # it's a real virus
+  # break file from virus report
+  my ($path, $threat) = split(/\s/, $line,2);
+  
+  # avast adds full path to the file name
+  $path =~ s/^$BaseDir//;
+  
+  my ($dot, $id, $part, @rest) = split(/\//, $path);
+  my $file = substr($part,1); 
+  my $report = "Avast: found $threat in $file";
+  
+  $infections->{"$id"}{"$part"} .= $report . "\n";
+  $types->{"$id"}{"$part"} .= "v"; # it's a real virus
+  MailScanner::Log::InfoLog("Avast::INFECTED::$threat");
   return 1;
-
 }
 
 sub ProcessEsetsOutput {
-  use File::Basename;  
-  my($line, $infections, $types, $BaseDir, $Name) = @_;
-  my($logout, $keyword, $virusname, $filename, $path);
-  my($id, $part, @rest, $report);
+  use File::Basename;
   
+  my ($line, $infections, $types, $BaseDir, $Name) = @_;
   chomp $line;
   
-  # informational [OK]
-  return 0 if $line =~ m/\[OK\]/i;
+  # return if line does not had threat
+  return 0 if $line !~ m/threat/i;
   
   # password protected
-  return 0 if $line =~ m/password protected/i;
+  return 0 if $line =~ m/protected/i;
   
-  $logout = $line;
-  ($path, $virusname) = split(/\s/, $line, 2);
-  $filename = basename($path);
-  MailScanner::Log::InfoLog("Avast::INFECTED::$virusname");
+  my ($a, $b, $c, $d) = split(/,/, $line);
+  my ($filename) = $a =~ m/\"(.*)\"/; 
+  my ($threat) = $b =~ m/\"(.*)\"/; 
+  my ($action) = $c =~ m/\"(.*)\"/; 
+  my ($info) = $d =~ m/\"(.*)\"/; 
   
-  $report = $Name . ': ' if $Name;
-  $infections->{"$filename"}{""} .= "$report $filename was infected by $virusname\n";
-  $types->{"$filename"}{""} .= "v"; # it's a real virus
+  my ($dot, $id, $part, @rest) = split(/\//, $filename);
+  my $file = substr($part,1);
+  
+  if($info == ''){ $info = 'none'; }
+   
+  my $report = "Esets: found $threat in $file \n";
+     $report .= "Esets Actions: $action \n";
+     $report .= "Esets Additional Info: $info \n";
+  
+  $infections->{"$id"}{"$part"} .= $report . "\n";
+  $types->{"$id"}{"$part"} .= "v"; # it's a real virus
+  MailScanner::Log::InfoLog("Esets::INFECTED::$threat");
   return 1;
-
 }
 
 # Generate a list of all the virus scanners that are installed. It may

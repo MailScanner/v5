@@ -3415,8 +3415,7 @@ TNEF Expander  = internal',
  etrust    from http://www3.ca.com/Solutions/Product.asp?ID=156
  inoculate from www.cai.com/products/inoculateit.htm
  inoculan  from ftp.ca.com/pub/getbbs/linux.eng/inoctar.LINUX.Z
- nod32     for No32 before version 1.99 from www.nod32.com
- nod32-1.99 for Nod32 1.99 and later, from www.nod32.com
+ esets     from www.esets.com
  f-secure  from www.f-secure.com
  f-prot    from www.f-prot.com
  f-prot-6  for F-Prot version 6 or later, from www.f-prot.com

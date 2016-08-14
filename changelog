@@ -1,12 +1,13 @@
-
-08/12/2016 Changes in    v5.0.3-1
+08/14/2016 Changes in    v5.0.3-7
 ==================================
-- updated init script to include a time-wait during process reloads
-and restarts
+- updated init script to include a time-wait for pid files during 
+  process reloads and restarts
 - updated Message.pm to correctly prepend phishing notices in email
-subject
+  subject
 - added avast virus scanner support
 - added esets virus scanner support
+- added new function InitClamdParser to SweepViruses.pm 
+- added new function ProcessClamdOutput to SweepViruses.pm 
 
 05/23/2016 Changes in    v5.0.2-1
 ==================================
