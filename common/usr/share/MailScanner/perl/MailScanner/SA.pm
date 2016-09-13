@@ -165,7 +165,8 @@ sub initialise {
       unshift @INC, "$val/lib/perl5/site_perl/$perl_vers";
     }
     # Now we have the path built, try to find the SpamAssassin modules
-    unless (eval "require Mail::SpamAssassin") {
+    my $required_sa_class = 'Mail::SpamAssassin';
+    unless (eval "require $required_sa_class") {
       MailScanner::Log::WarnLog("You want to use SpamAssassin but have not installed it.");
       MailScanner::Log::WarnLog("I will run without SpamAssassin for now, you will not detect much spam until you install SpamAssassin.");
       $SpamAssassinInstalled = 0;
