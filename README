@@ -18,7 +18,7 @@
 #	Release: 	https://www.mailscanner.info/downloads
 #	Github: 	https://github.com/MailScanner/v5
 # 	Manual: 	https://s3.amazonaws.com/msv5/docs/ms-admin-guide.pdf
-# 	Support: 	http://lists.mailscanner.info/listinfo/mailscanner
+# 	Support: 	http://lists.mailscanner.info/mailman/listinfo/mailscanner
 #
 #	Install:
 #		tar -xvzf MailScanner-5.x.x-x.distro.tar.gz
