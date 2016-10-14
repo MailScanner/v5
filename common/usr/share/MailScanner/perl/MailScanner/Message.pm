@@ -4516,6 +4516,9 @@ sub ConstructWarning {
 #    $report =~ s/$pattern//gm;
 #  }
 
+  # add recipients
+  my $to = join ', ', @{$this->{to}};
+
   open($textfh, $reportname)
     or MailScanner::Log::WarnLog("Cannot open message file %s, %s",
                                  $reportname, $!);
