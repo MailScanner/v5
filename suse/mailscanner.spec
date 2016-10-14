@@ -308,7 +308,8 @@ if [ -d '/usr/share/MailScanner/MailScanner' ]; then
 fi
 
 if [ -f '/etc/MailScanner/MailScanner.conf' ]; then
-	cp -f /etc/MailScanner/MailScanner.conf /etc/MailScanner/MailScanner.conf.original
+	mkdir -p ${SAVEDIR}/etc/MailScanner
+	cp -f /etc/MailScanner/MailScanner.conf ${SAVEDIR}/etc/MailScanner/MailScanner.conf.original
 fi	
 
 exit 0
