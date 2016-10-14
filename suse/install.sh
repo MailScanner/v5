@@ -238,7 +238,7 @@ BASEPACKAGES="binutils gcc glibc-devel libaio1 patch make man-pages patch rpm ta
 # Packages available in the suse base 13.2. If the user elects not to use EPEL or if the 
 # package is not available for their distro release it will be ignored during the install.
 #
-MOREPACKAGES="perl-Archive-Zip perl-Convert-BinHex perl-Convert-TNEF perl-DBD-SQLite perl-DBI perl-Digest-HMAC perl-Digest-SHA1 perl-ExtUtils-MakeMaker perl-File-ShareDir-Install perl-File-Temp perl-Filesys-Df perl-Getopt-Long-Descriptive perl-IO-stringy perl-HTML-Parser perl-HTML-Tagset perl-Inline perl-Mail-DKIM perl-Mail-SPF perl-MailTools perl-MIME-tools perl-Net-CIDR-Set perl-Net-DNS perl-Net-IP perl-OLE-Storage_Lite perl-Scalar-List-Utils perl-razor-agents perl-Sys-Hostname-Long perl-Sys-SigAction perl-Test-Pod perl-TimeDate perl-URI re2c ";
+MOREPACKAGES="perl-Archive-Zip perl-Convert-BinHex perl-Convert-TNEF perl-DBD-SQLite perl-DBI perl-Digest-HMAC perl-Digest-SHA1 perl-ExtUtils-MakeMaker perl-File-ShareDir-Install perl-File-Temp perl-Filesys-Df perl-Getopt-Long-Descriptive perl-IO-stringy perl-HTML-Parser perl-HTML-Tagset perl-Inline perl-Mail-DKIM perl-Mail-SPF perl-MailTools perl-MIME-tools perl-Net-CIDR-Set perl-Net-DNS perl-Net-IP perl-OLE-Storage_Lite perl-Scalar-List-Utils perl-razor-agents perl-Sys-Hostname-Long perl-Sys-SigAction perl-Test-Pod perl-TimeDate perl-URI re2c perl-Encode-Detect perl-LDAP perl-IO-Compress-Bzip2";
 
 # the array of perl modules needed
 ARMOD=();
@@ -391,7 +391,7 @@ do
 	perldoc -l $i >/dev/null 2>&1
 	if [ $? != 0 ]; then
 		echo "$i is missing. Trying to install via Zypper ..."; echo;
-		THING="'perl($i)'";
+		THING="perl($i)";
 		$ZYPPER --non-interactive install $THING
 	fi
 done
