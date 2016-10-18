@@ -481,7 +481,7 @@ else
 				echo "tmpfs ${DISK} tmpfs rw,size=${RAMDISKSIZE}M 0 0" >> /etc/fstab
 				echo "Enabling ramdisk sync ...";
 				if [ -f '/etc/MailScanner/defaults' ]; then
-					OLD="^#ramdisk_sync=1";
+					OLD="^ramdisk_sync=0";
 					NEW="ramdisk_sync=1";
 					sed -i "s/${OLD}/${NEW}/g" /etc/MailScanner/defaults
 				fi
