@@ -147,19 +147,17 @@ read -r -p "Install missing Perl modules via CPAN? [n/Y] : " response
 if [[ $response =~ ^([yY][eE][sS]|[yY])$ ]]; then
     # user wants to use CPAN for missing modules
 	CPANOPTION=1
-	
-	# rpm install will fail if the modules were not installed via RPM
-	# so i am setting the --nodeps flag here since the user elected to 
+
+	# ignore dependency issue since the user elected to
 	# use CPAN to remediate the modules
-	NODEPS='--nodeps';
-elif [ -z $response ]; then 
+	NODEPS='--force-depends';
+elif [ -z $response ]; then
 	 # user wants to use CPAN for missing modules
 	CPANOPTION=1
-	
-	# rpm install will fail if the modules were not installed via RPM
-	# so i am setting the --nodeps flag here since the user elected to 
+
+	# ignore dependency issue since the user elected to
 	# use CPAN to remediate the modules
-	NODEPS='--nodeps';
+	NODEPS='--force-depends';
 else
     # user does not want to use CPAN
     CPANOPTION=0
