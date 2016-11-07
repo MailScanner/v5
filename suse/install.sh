@@ -31,7 +31,7 @@ if [ $(whoami) != "root" ]; then
 	exit 192
 fi
 
-# bail if yum is not installed
+# bail if zipper is not installed
 if [ ! -x '/usr/bin/zypper' ]; then
 	clear
 	echo;
@@ -144,19 +144,9 @@ read -r -p "Install missing Perl modules via CPAN? [n/Y] : " response
 if [[ $response =~ ^([yY][eE][sS]|[yY])$ ]]; then
     # user wants to use CPAN for missing modules
 	CPANOPTION=1
-	
-	# rpm install will fail if the modules were not installed via RPM
-	# so i am setting the --nodeps flag here since the user elected to 
-	# use CPAN to remediate the modules
-	NODEPS='--nodeps';
-elif [ -z $response ]; then 
+elif [ -z $response ]; then
 	 # user wants to use CPAN for missing modules
 	CPANOPTION=1
-	
-	# rpm install will fail if the modules were not installed via RPM
-	# so i am setting the --nodeps flag here since the user elected to 
-	# use CPAN to remediate the modules
-	NODEPS='--nodeps';
 else
     # user does not want to use CPAN
     CPANOPTION=0
@@ -174,28 +164,6 @@ else
 	# don't install if not using CPAN
 	CAV=0
 	SA=0
-fi
-
-# ask if the user wants to ignore dependencies. they are automatically ignored
-# if the user elected the CPAN option as explained above
-if [ $CPANOPTION != 1 ]; then
-	clear
-	echo;
-	echo "Do you want to ignore MailScanner dependencies?"; echo;
-	echo "This will force install the MailScanner RPM package regardless of missing"; 
-	echo "dependencies. It is highly recommended that you DO NOT do this unless you"; 
-	echo "are debugging.";
-	echo;
-	echo "Recommended: N (no)"; echo;
-	read -r -p "Ignore MailScanner dependencies (nodeps)? [y/N] : " response
-
-	if [[ $response =~ ^([yY][eE][sS]|[yY])$ ]]; then
-		# user wants to ignore deps
-		NODEPS='--nodeps'
-	else
-		# requiring deps
-		NODEPS=
-	fi
 fi
 
 # ask if the user wants to add a ramdisk
@@ -453,7 +421,7 @@ echo "Installing the MailScanner RPM ... ";
 # using --force option to reinstall the rpm if the same version is
 # already installed. this will not overwrite configuration files
 # as they are protected in the rpm spec file
-$RPM -Uvh $NODEPS MailScanner*noarch.rpm
+$RPM -Uvh MailScanner*noarch.rpm
 
 if [ $? != 0 ]; then
 	echo;
