@@ -238,19 +238,9 @@ read -r -p "Install missing Perl modules via CPAN? [n/Y] : " response
 if [[ $response =~ ^([yY][eE][sS]|[yY])$ ]]; then
     # user wants to use CPAN for missing modules
 	CPANOPTION=1
-	
-	# rpm install will fail if the modules were not installed via RPM
-	# so i am setting the --nodeps flag here since the user elected to 
-	# use CPAN to remediate the modules
-	NODEPS='--nodeps';
-elif [ -z $response ]; then 
+elif [ -z $response ]; then
 	 # user wants to use CPAN for missing modules
 	CPANOPTION=1
-	
-	# rpm install will fail if the modules were not installed via RPM
-	# so i am setting the --nodeps flag here since the user elected to 
-	# use CPAN to remediate the modules
-	NODEPS='--nodeps';
 else
     # user does not want to use CPAN
     CPANOPTION=0
@@ -281,28 +271,6 @@ if [ $RHEL == 7 ]; then
 	else
 		# user does not want to use RPM
 		DFOPTION=0
-	fi
-fi
-
-# ask if the user wants to ignore dependencies. they are automatically ignored
-# if the user elected the CPAN option as explained above
-if [ $CPANOPTION != 1 ]; then
-	clear
-	echo;
-	echo "Do you want to ignore MailScanner dependencies?"; echo;
-	echo "This will force install the MailScanner RPM package regardless of missing"; 
-	echo "dependencies. It is highly recommended that you DO NOT do this unless you"; 
-	echo "are debugging.";
-	echo;
-	echo "Recommended: N (no)"; echo;
-	read -r -p "Ignore MailScanner dependencies (nodeps)? [y/N] : " response
-
-	if [[ $response =~ ^([yY][eE][sS]|[yY])$ ]]; then
-		# user wants to ignore deps
-		NODEPS='--nodeps --force'
-	else
-		# requiring deps
-		NODEPS=
 	fi
 fi
 
@@ -721,7 +689,7 @@ echo;
 echo "Installing the MailScanner RPM ... ";
 
 # install the mailscanner rpm
-$RPM -Uvh --force $NODEPS MailScanner*noarch.rpm
+$RPM -Uvh --force MailScanner*noarch.rpm
 
 if [ $? != 0 ]; then
 	echo;
