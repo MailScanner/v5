@@ -497,7 +497,7 @@ if [ $CPANOPTION == 1 ]; then
 		mkdir -p /root/.cpan/CPAN
 		cd /root/.cpan/CPAN
 		$CURL -O https://s3.amazonaws.com/msv5/CPAN/MyConfig.pm
-		cd $THISCURRPMDIR
+		cd "$THISCURRPMDIR"
 		timewait 1
 	fi
 fi
@@ -550,7 +550,7 @@ if [ $TNEFOPTION == 1 ]; then
 		
 		# back to where i started
 		rm -f tnef-1.4.12*
-		cd $THISCURRPMDIR
+		cd "$THISCURRPMDIR"
 	fi
 fi
 
@@ -588,7 +588,7 @@ if [ $UNRAROPTION == 1 ]; then
 		
 		# back to where i started
 		rm -f unrar-5.0.3*
-		cd $THISCURRPMDIR
+		cd "$THISCURRPMDIR"
 	fi
 fi
 
@@ -620,7 +620,7 @@ if [ $DFOPTION == 1 ]; then
 	fi
 	
 	# go back to where i started
-	cd $THISCURRPMDIR
+	cd "$THISCURRPMDIR"
 fi
 
 # fix the stupid line in /etc/freshclam.conf that disables freshclam 
@@ -714,7 +714,7 @@ if [ $SELMODE == 1 ]; then
 fi
 
 # make sure in starting directory
-cd $THISCURRPMDIR
+cd "$THISCURRPMDIR"
 
 clear
 echo;
