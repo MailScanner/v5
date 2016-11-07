@@ -84,16 +84,24 @@ if [[ $response =~ ^([nN][oO])$ ]]; then
     MTAOPTION=
 elif [ -z $response ]; then    
 	# sendmail default
-    MTAOPTION="sendmail";
+    if [ "$(grep ^7 /etc/debian_version)" ]; then
+        MTAOPTION="sendmail sendmail-bin";
+    else
+        MTAOPTION="sendmail";
+    fi
 elif [ $response == 1 ]; then    
 	# sendmail 
-    MTAOPTION="sendmail";    
+    if [ "$(grep ^7 /etc/debian_version)" ]; then
+        MTAOPTION="sendmail sendmail-bin";
+    else
+        MTAOPTION="sendmail";
+    fi
 elif [ $response == 2 ]; then    
-	# sendmail 
+	# sendmail
     MTAOPTION="postfix";
 elif [ $response == 3 ]; then    
-	# sendmail 
-    MTAOPTION="exim4-base";        
+	# sendmail
+    MTAOPTION="exim4-base";
 else
 	MTAOPTION=
 fi
@@ -309,7 +317,7 @@ done
 
 # install this separate in case it conflicts
 if [ "x$MTAOPTION" != "x" ]; then
-	$APTGET -yf install $MTAOPTION
+	$APTGET -yf install "$MTAOPTION"
 fi
 
 # fix the stupid line in /etc/freshclam.conf that disables freshclam 
