@@ -499,7 +499,7 @@ case "$1" in
 		logger -i -p mail.notice "$NAME failed to start"
 		echo "$NAME failed to start ... doh!"
 		kill $(ps axww | grep '[M]ailScanner': | awk '{print $1}') > /dev/null 2>&1
-		sleep 5
+		sleep 2
 		exit 1
 	fi
 	
@@ -539,7 +539,7 @@ case "$1" in
 		logger -i -p mail.notice "$NAME failed to start"
 		echo "$NAME failed to start ... doh!"
 		kill $(ps axww | grep '[M]ailScanner': | awk '{print $1}') > /dev/null 2>&1
-		sleep 5
+		sleep 2
 		exit 1
 	fi
 	
@@ -548,7 +548,7 @@ case "$1" in
   kill)
 	[ "$VERBOSE" != no ] && logger -i -p mail.notice "Killing $NAME "
 	echo "Killing $NAME and children ... mwa ha ha ha!"
-	kill -9 $(ps axww | grep [M]ailScanner: | awk '{print $1}') > /dev/null 2>&1
+	kill -9 $(ps axww | grep '[M]ailScanner': | awk '{print $1}') > /dev/null 2>&1
 	# wait until they're gone.
 	while (ps axww | grep -q '[M]ailScanner'); do
 	    sleep 1
