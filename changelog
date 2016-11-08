@@ -1,7 +1,7 @@
 11/07/2016 Changes in    v5.0.4-1
 ==================================
 - support for Postfix long queue IDs
-- updated install scripts
+- updated RHEL/Debian/SuSE install scripts
 - updated cron job scripts
 - updated init script
 - changed Debian upstart from 80/20 to 80/80

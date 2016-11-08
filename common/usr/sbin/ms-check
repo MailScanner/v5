@@ -73,7 +73,7 @@ if [ -f $PIDFILE ] ; then
 	# get the PID
 	PID=$(head -n 1 $PIDFILE)
 	# check to see if running and belongs to mailscanner
-	ps wwp $PID|grep -iq [M]ailScanner > /dev/null 2>&1
+	ps wwp $PID|grep -iq '[M]ailScanner' > /dev/null 2>&1
 
 	# get the return
 	RETVAL="$?"
@@ -100,8 +100,11 @@ else
 	fi
 	
 	# kill any rogue processes
-	kill -15 $(ps axww | grep [M]ailScanner | awk '{print $1}') > /dev/null 2>&1
-	
+	kill -15 $(ps axww | grep '[M]ailScanner' | awk '{print $1}') > /dev/null 2>&1
+	# wait until they're gone.
+	while (ps axww | grep -q '[M]ailScanner'); do
+	    sleep 1
+	done
 
 	# log the start
 	[ "$VERBOSE" != no ] && logger -i -p mail.notice "ms-check: starting mailscanner"
