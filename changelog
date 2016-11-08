@@ -1,4 +1,4 @@
-11/07/2016 Changes in    v5.0.4-1
+11/07/2016 Changes in    v5.0.4-2
 ==================================
 - support for Postfix long queue IDs
 - updated RHEL/Debian/SuSE install scripts
@@ -8,7 +8,8 @@
 - updated RHEL packages in install.sh
 - updated SuSE packages in install.sh
 - Postfix double scan during custom fix
- 
+- fixed ms-init and ms-check
+- fixed ramdisk portion of install scripts
 
 08/14/2016 Changes in    v5.0.3-7
 ==================================
