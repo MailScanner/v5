@@ -80,15 +80,60 @@ sub new {
   $this->{hdname} = $mta->HDFileName($id);
   $this->{tname} = $mta->TFileName($id);
 
+  #
+  # Alvaro Marin alvaro@hostalia.com - 2016/08/25
+  #
+  # Long queue IDs and hash queue support
+  #
+  my $long_queue_id=0;
+  my $hex=$this->{hdname};
+  if ( ($this->{hdname} =~ /[A-Za-z0-9]{15}$/) && ($MailScanner::SMDiskStore::HashDirDepth > 0)) {
+   # long queue id
+   $long_queue_id=1;
+   # With long queue IDs, when hash queues is enabled, the directory hierarchy
+   # is not generated with first characters of the ID (as with short queue IDs):
+   # we have to get the 4 characters that represent the microseconds and then:
+   # reverse them + decode from base 52 + convert to hexadecimal
+   my $msecs=reverse substr $this->{hdname},6,4;
+   my $total=0;
+   my $count=0;
+   my %BASE52_CHARACTERS = (0 => "0",1 => "1",2 => "2",3 => "3",4 => "4",5 => "5",6 => "6",7 => "7",8 => "8",9 => "9",
+                                10 => "B",11 => "C",12 => "D",13 => "F",14 => "G",15 => "H",16 => "J",17 => "K",18 => "L",
+                                19 => "M",20 => "N",21 => "P",22 => "Q",23 => "R",24 => "S",25 => "T",26 => "V",27 => "W",
+                                28 => "X",29 => "Y",30 => "Z",31 => "b",32 => "c",33 => "d",34 => "f",35 => "g",36 => "h",
+                                37 => "j",38 => "k",39 => "l",40 => "m",41 => "n",42 => "p",43 => "q",44 => "r",45 => "s",
+                                46 => "t",47 => "v",48 => "w",49 => "x",50 => "y",51 => "z");
+    # To avoid using external modules...reverse the hash
+    my %rBASE52_CHARACTERS = reverse %BASE52_CHARACTERS;
+    for my $c (split //, $msecs) {
+        my $index = $rBASE52_CHARACTERS{$c};
+              $total+=$index * (52**$count);
+              $count++;
+    }
+    $hex = sprintf("%05X", $total); # 5 chars...from Postfix's code!
+    #print STDERR "Microseconds of ".$this->{hdname}.":$msecs -> HEX: $hex\n";
+  }
   if ($MailScanner::SMDiskStore::HashDirDepth == 2) {
-    $this->{hdname} =~ /^(.)(.)(.*)$/;
-    $this->{hdpath} = "$dir/$1/$2/" . $this->{hdname};
-  } elsif ($MailScanner::SMDiskStore::HashDirDepth == 1) {
-    $this->{hdname} =~ /^(.)(.*)$/;
-    $this->{hdpath} = "$dir/$1/" . $this->{hdname};
-  } elsif ($MailScanner::SMDiskStore::HashDirDepth == 0) {
-    $this->{hdname} =~ /^(.*)$/;
-    $this->{hdpath} = "$dir/" . $this->{hdname};
+    if ($long_queue_id){
+	$hex =~ /^(.)(.)(.*)$/;
+	$this->{hdpath} = "$dir/$1/$2/" . $this->{hdname};
+    } else {
+	$this->{hdname} =~ /^(.)(.)(.*)$/;
+	$this->{hdpath} = "$dir/$1/$2/" . $this->{hdname};
+   }
+  }
+  elsif ($MailScanner::SMDiskStore::HashDirDepth == 1) {
+    if ($long_queue_id){
+	$hex =~ /^(.)(.*)$/;
+	$this->{hdpath} = "$dir/$1/" . $this->{hdname};
+    } else {
+	$this->{hdname} =~ /^(.)(.*)$/;
+	$this->{hdpath} = "$dir/$1/" . $this->{hdname};
+    }
+  }
+  elsif ($MailScanner::SMDiskStore::HashDirDepth == 0) {
+	$this->{hdname} =~ /^(.*)$/;
+	$this->{hdpath} = "$dir/" . $this->{hdname};
   }
   #print STDERR "Created new message object at " . $this->{hdpath} . "\n";
 

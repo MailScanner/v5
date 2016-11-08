@@ -267,6 +267,6 @@ if [ -f '/etc/postfix/master.cf' ]; then
 	sed -i "s/qmgr      unix/qmgr      fifo/g" /etc/postfix/master.cf
 fi
 		
-update-rc.d mailscanner defaults 80 20 
+update-rc.d mailscanner defaults 80 80
 
 exit 0

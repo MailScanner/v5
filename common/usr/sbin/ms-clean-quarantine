@@ -23,7 +23,7 @@ else
 fi
 
 # die if does not exist
-if [ ! -d $QUARDIR ]; then
+if [ ! -d "$QUARDIR" ]; then
 	logger -i -p mail.notice "ERROR: ms-clean-quarantine - quarantine directory not found"
 	echo "Aborted: cannot find quarantine directory. Check the /etc/MailScanner/MailScanner.conf file"
 	echo "'Quarantine Dir' setting."
@@ -32,7 +32,7 @@ fi
 
 # if not disabled
 if [ $q_days -gt 0 ]; then
-	if [ -d $QUARDIR ]; then
+	if [ -d "$QUARDIR" ]; then
 		cd $QUARDIR
 		logger -i -p mail.notice "ms-clean-quarantine: cleaning quarantine older than $q_days days"	
 		find . -type f -mtime +$q_days -exec rm -f {} \; >/dev/null 2>&1

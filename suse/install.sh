@@ -233,7 +233,7 @@ else
 fi
 
 # base system packages
-BASEPACKAGES="binutils gcc glibc-devel libaio1 patch make man-pages patch rpm tar time unzip which zip libtool perl curl wget openssl libopenssl-devel bzip2 tnef unrar razor-agents";
+BASEPACKAGES="binutils gcc glibc-devel libaio1 make man-pages patch rpm tar time unzip which zip libtool perl curl wget openssl libopenssl-devel bzip2 tnef unrar razor-agents";
 
 # Packages available in the suse base 13.2. If the user elects not to use EPEL or if the 
 # package is not available for their distro release it will be ignored during the install.

@@ -455,11 +455,11 @@ case "$1" in
 	[ "$VERBOSE" != no ] && logger -i -p mail.notice "Restarting $NAME "
 	
 	do_stop
-	
+
 	s='-\|/';
 	x=0
 	i=0
-	while [ "$x" -lt 300 -a -f $PIDFILE ]; do
+	while [ "$x" -lt 400 -a -f $PIDFILE ]; do
 	   x=$((x+1));
 	   i=$(( (i+1) %4 ));
 	   printf "\r${s:$i:1}";
@@ -486,6 +486,7 @@ case "$1" in
 		logger -i -p mail.notice "$NAME failed to start"
 		echo "$NAME failed to start ... doh!"
 		kill $(ps axww | grep [M]ailScanner: | awk '{print $1}') > /dev/null 2>&1
+		sleep 5
 		exit 1
 	fi
 	
@@ -499,7 +500,7 @@ case "$1" in
 	s='-\|/';
 	x=0
 	i=0
-	while [ "$x" -lt 300 -a -f $PIDFILE ]; do
+	while [ "$x" -lt 400 -a -f $PIDFILE ]; do
 	   x=$((x+1));
 	   i=$(( (i+1) %4 ));
 	   printf "\r${s:$i:1}";
@@ -525,6 +526,7 @@ case "$1" in
 		logger -i -p mail.notice "$NAME failed to start"
 		echo "$NAME failed to start ... doh!"
 		kill $(ps axww | grep [M]ailScanner: | awk '{print $1}') > /dev/null 2>&1
+		sleep 5
 		exit 1
 	fi
 	

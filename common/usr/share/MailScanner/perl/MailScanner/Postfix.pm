@@ -249,12 +249,108 @@ sub new {
     $file = sprintf("%05X%lX", int(rand 1000000)+1, (stat($file))[1]);
     #print STDERR "New Filename is $file\n";
 
+    #
+    # Alvaro Marin alvaro@hostalia.com - 2016/08/25
+    # 
+    # Support for Postfix's long queue IDs format (enable_long_queue_ids).
+    # The name of the file created in the outgoing queue will be the queue ID. 
+    # We'll generate it like Postfix does. From src/global/mail_queue.h :
+    #
+    # The long non-repeating queue ID is encoded in an alphabet of 10 digits,
+    # 21 upper-case characters, and 21 or fewer lower-case characters. The
+    # alphabet is made "safe" by removing all the vowels (AEIOUaeiou). The ID
+    # is the concatenation of:
+    #
+    # - the time in seconds (base 52 encoded, six or more chars),
+    # 
+    # - the time in microseconds (base 52 encoded, exactly four chars),
+    # 
+    # - the 'z' character to separate the time and inode information,
+    #
+    # - the inode number (base 51 encoded so that it contains no 'z').
+    #
+    #
+    # We don't know if Postfix has long queue IDs enabled so we must check it 
+    # using the temporaly filename:
+    # Short queue IDs: /var/spool/postfix/incoming/temp-14793-6773D15E4E9.A3F46
+    # Long queue IDs: /var/spool/postfix/incoming/temp-17735-3sK9pc0mftzJX5P.A38B9
+    #
+    my $long_queue_id=0;
+    my $hex;
+    if ( ($file =~ /\-[A-Za-z0-9]{15}\.[A-Za-z0-9]{5}$/) && ($MailScanner::SMDiskStore::HashDirDepth > 0) ) {
+        # Long queue IDs
+        $long_queue_id=1;
+        use Time::HiRes qw( gettimeofday );
+        my ($seconds, $microseconds) = gettimeofday;
+        my $microseconds_aux=$microseconds;
+        my @BASE52_CHARACTERS = ("0","1","2","3","4","5","6","7","8","9",
+                                "B","C","D","F","G","H","J","K","L","M",
+                                "N","P","Q","R","S","T","V","W","X","Y",
+                                "Z","b","c","d","f","g","h","j","k","l",
+                                "m","n","p","q","r","s","t","v","w","x","y","z");
+        my $encoded;
+        my $file_out;
+        my $count=0;
+        while ( ($seconds > 0) && ($count < 6)) {
+                $encoded.=$BASE52_CHARACTERS[$seconds%52];
+                $seconds/=52;
+                $count++;
+        }
+        $file_out=reverse $encoded;
+        $encoded='';
+        $count=0;
+        while ( ($microseconds > 0) && ($count < 4)) {
+                $encoded.=$BASE52_CHARACTERS[$microseconds%52];
+                $microseconds/=52;
+                $count++;
+        }
+        $file_out.=reverse $encoded;
+
+        $file_out.="z";
+
+        my $inode=(stat("$file"))[1];
+        $encoded='';
+        $count=0;
+        while ( ($inode > 0) && ($count < 4)) {
+                $encoded.=$BASE52_CHARACTERS[$inode%51];
+                $inode/=51;
+                $count++;
+        }
+        $file=$file_out.reverse $encoded;
+        # We need this for later use...
+        $hex = sprintf("%05X", $microseconds_aux);
+        #print STDERR "long_queue_id: New Filename is $file\n";
+    }
+    else {
+        # Short queue IDs
+        # Bad hash key $file = sprintf("%05X%lX", time % 1000000, (stat($file))[1]);
+        # Add 1 so the number is never zero (defensive programming)
+        $file = sprintf("%05X%lX", int(rand 1000000)+1, (stat($file))[1]);
+        #print STDERR "New Filename is $file\n";
+    }
+
     if ($MailScanner::SMDiskStore::HashDirDepth == 2) {
-      $file =~ /^(.)(.)/;
-      return ($dir,$1,$2,$file);
+        if ($long_queue_id){
+                # hash queues with long queue IDs
+                $hex =~ /^(.)(.)/;
+                return ($dir,$1,$2,$file);
+        }
+        else {
+                # hash queues with short queue IDs
+                $file =~ /^(.)(.)/;
+                return ($dir,$1,$2,$file);
+        }
     } elsif ($MailScanner::SMDiskStore::HashDirDepth == 1) {
-      $file =~ /^(.)/;
-      return ($dir,$1,$file);
+        if ($long_queue_id){
+                # hash queues with long queue IDs
+                $hex =~ /^(.)/;
+                return ($dir,$1,$file);
+        }
+        else {
+                # hash queues with short queue IDs
+                $file =~ /^(.)/;
+                return ($dir,$1,$file);
+        }
     } elsif ($MailScanner::SMDiskStore::HashDirDepth == 0) {
       return ($dir,$file);
     } else {
