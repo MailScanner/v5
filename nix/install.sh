@@ -159,9 +159,6 @@ clear; echo;
 echo "Checking Perl Modules ... "; echo;
 timewait 2
 
-# used to trigger a wait if something this missing
-PMODWAIT=0
-
 for i in "${ARMOD[@]}"
 do
 	perldoc -l $i >/dev/null 2>&1

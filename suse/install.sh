@@ -358,7 +358,7 @@ if [ $CPANOPTION == 1 ]; then
 		mkdir -p /root/.cpan/CPAN
 		cd /root/.cpan/CPAN
 		$CURL -O https://s3.amazonaws.com/msv5/CPAN/MyConfig.pm
-		cd $"THISCURRPMDIR"
+		cd "$THISCURRPMDIR"
 		timewait 1
 	fi
 fi
@@ -418,7 +418,7 @@ done
 timewait $PMODWAIT
 
 # go to where i started
-cd $"THISCURRPMDIR"
+cd "$THISCURRPMDIR"
 
 # fix the clamav wrapper if the user does not exist
 if [ -f '/etc/freshclam.conf' ]; then
