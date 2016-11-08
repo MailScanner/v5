@@ -123,7 +123,7 @@ timewait 1
 CURL=`which curl`
 
 # check for curl
-if [ ! -x $CURL ]; then
+if [ ! -x "$CURL" ]; then
 	clear
 	echo;
 	echo "The curl command cannot be found. Please install this to continue";
@@ -140,8 +140,8 @@ if [ $CPANOPTION == 1 ]; then
 		echo "CPAN config missing. Creating one ..."; echo;
 		mkdir -p /root/.cpan/CPAN
 		cd /root/.cpan/CPAN
-		$CURL -O https://s3.amazonaws.com/msv5/CPAN/MyConfig.pm
-		cd $THISCURRPMDIR
+		"$CURL" -O https://s3.amazonaws.com/msv5/CPAN/MyConfig.pm
+		cd "$THISCURRPMDIR"
 		timewait 1
 	fi
 fi
@@ -185,7 +185,7 @@ if [ -f "/etc/postfix/master.cf" ]; then
 fi
 
 # make sure in starting directory
-cd $THISCURRPMDIR
+cd "$THISCURRPMDIR"
 
 clear
 echo;
