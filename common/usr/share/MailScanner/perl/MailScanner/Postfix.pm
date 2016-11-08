@@ -1942,9 +1942,14 @@ sub FindHashDirDepth {
         #print STDERR "Added $id to batch\n";
         $batchempty = 0;
 
-        if (MailScanner::Config::Value("scanmail", $newmessage) =~ /[12]/ ||
-            MailScanner::Config::Value("virusscan", $newmessage) =~ /1/ ||
-            MailScanner::Config::Value("dangerscan", $newmessage) =~ /1/) {
+        #if (MailScanner::Config::Value("scanmail", $newmessage) =~ /[12]/ ||
+        #    MailScanner::Config::Value("virusscan", $newmessage) =~ /1/ ||
+        #    MailScanner::Config::Value("dangerscan", $newmessage) =~ /1/) {
+        #
+        # alvarosplit fix
+        if ($newmessage->{"scanmail"} =~ /[12]/ ||
+			$newmessage->{"virusscan"} =~ /1/ ||
+			$newmessage->{"dangerscan"} =~ /1/) {
           $newmessage->NeedsScanning(1);
           $DirtyMsgs++;
           $DirtyBytes += $newmessage->{size};

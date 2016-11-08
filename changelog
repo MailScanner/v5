@@ -7,6 +7,7 @@
 - changed Debian upstart from 80/20 to 80/80
 - updated RHEL packages in install.sh
 - updated SuSE packages in install.sh
+- Postfix double scan during custom fix
  
 
 08/14/2016 Changes in    v5.0.3-7
