@@ -721,6 +721,17 @@ echo;
 echo "Installing the MailScanner RPM ... ";
 
 # install the mailscanner rpm
+# Pass #1 -- without scripts (bypasses prior pre and post uninstall scripts in older versions of mailscanner)
+$RPM -Uvh --force --noscripts $NODEPS MailScanner*noarch.rpm
+# Move rpmsaves around so that scripts can find them
+if [[ -e /etc/MailScanner/MailScanner.conf.rpmsave ]]; then 
+    mv /etc/MailScanner/MailScanner.conf /etc/MailScanner/MailScanner.conf.rpmnew
+    mv /etc/MailScanner/MailScanner.conf.rpmsave /etc/MailScanner/MailScanner.conf
+fi
+if [[ -e /etc/MailScanner/spam.assassin.prefs.conf.rpmsave ]]; then
+    mv /etc/MailScanner/spam.assassin.prefs.conf.rpmsave /etc/MailScanner/spam.assassin.prefs.conf
+fi
+# Pass #2 -- with scripts
 $RPM -Uvh --force $NODEPS MailScanner*noarch.rpm
 
 if [ $? != 0 ]; then
