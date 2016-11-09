@@ -84,10 +84,10 @@ if [[ $response =~ ^([nN][oO])$ ]]; then
     MTAOPTION=
 elif [ -z $response ]; then    
 	# sendmail default
-    MTAOPTION="sendmail";
+    MTAOPTION="sendmail sendmail-bin";
 elif [ $response == 1 ]; then    
 	# sendmail 
-    MTAOPTION="sendmail";
+    MTAOPTION="sendmail sendmail-bin";
 elif [ $response == 2 ]; then    
 	# sendmail
     MTAOPTION="postfix";
@@ -142,14 +142,14 @@ if [[ $response =~ ^([yY][eE][sS]|[yY])$ ]]; then
 
 	# ignore dependency issue since the user elected to
 	# use CPAN to remediate the modules
-	NODEPS='--ignore-missing';
+	NODEPS='--force-depends';
 elif [ -z $response ]; then
 	 # user wants to use CPAN for missing modules
 	CPANOPTION=1
 
 	# ignore dependency issue since the user elected to
 	# use CPAN to remediate the modules
-	NODEPS='--ignore-missing';
+	NODEPS='--force-depends';
 else
     # user does not want to use CPAN
     CPANOPTION=0
@@ -169,7 +169,7 @@ read -r -p "Ignore MailScanner dependencies (nodeps)? [y/N] : " response
 
 if [[ $response =~ ^([yY][eE][sS]|[yY])$ ]]; then
 	# user wants to ignore deps
-	NODEPS='--ignore-missing'
+	NODEPS='--force-depends'
 else
 	# requiring deps
 	NODEPS=
