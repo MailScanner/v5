@@ -1,4 +1,4 @@
-11/07/2016 Changes in    v5.0.4-2
+11/10/2016 Changes in    v5.0.4-3
 ==================================
 - support for Postfix long queue IDs
 - updated RHEL/Debian/SuSE install scripts
