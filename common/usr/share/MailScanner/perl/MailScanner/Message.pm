@@ -3140,7 +3140,7 @@ sub UnpackRar {
         $Stuff = $what;
         $Stuff =~ s/^\s+|\s+$//g;
         chomp($Stuff);
-        my ($RAttrib,$RSize,$RPacked,$RRatio,$RDate,$RTime,$RCrc,$RName) = split /\s+/, $Stuff;
+        my ($RAttrib,$RSize,$RPacked,$RRatio,$RDate,$RTime,$RCrc,$RName) = split /\s+/, $Stuff, 8;
         $memb .= "$RName\n";
         $Stuff = '';
       }
