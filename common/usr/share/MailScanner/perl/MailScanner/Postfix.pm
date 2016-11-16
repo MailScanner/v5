@@ -246,7 +246,7 @@ sub new {
 
     # Bad hash key $file = sprintf("%05X%lX", time % 1000000, (stat($file))[1]);
     # Add 1 so the number is never zero (defensive programming)
-    $file = sprintf("%05X%lX", int(rand 1000000)+1, (stat($file))[1]);
+    #$file = sprintf("%05X%lX", int(rand 1000000)+1, (stat($file))[1]);
     #print STDERR "New Filename is $file\n";
 
     #
@@ -277,7 +277,7 @@ sub new {
     #
     my $long_queue_id=0;
     my $hex;
-    if ( ($file =~ /\-[A-Za-z0-9]{15}\.[A-Za-z0-9]{5}$/) && ($MailScanner::SMDiskStore::HashDirDepth > 0) ) {
+    if ($file =~ /\-[A-Za-z0-9]{15}\.[A-Za-z0-9]{5}$/) {
         # Long queue IDs
         $long_queue_id=1;
         use Time::HiRes qw( gettimeofday );

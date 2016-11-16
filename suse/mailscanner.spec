@@ -1094,6 +1094,9 @@ exit 0
 
 
 %changelog
+* Thu Nov 10 2016 Jerry Benton <mailscanner@mailborder.com>
+- see https://github.com/MailScanner/v5/blob/master/changelog
+
 * Sun Apr 30 2016 Jerry Benton <mailscanner@mailborder.com>
 - v5 initial release
 
