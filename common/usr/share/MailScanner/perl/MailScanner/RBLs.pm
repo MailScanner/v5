@@ -32,8 +32,8 @@ use strict 'refs';
 no strict 'subs';    # Allow bare words for parameter %'s
 
 use POSIX qw(:signal_h);    # For Solaris 9 SIG bug workaround
-use IO qw(Pipe);
-
+#use IO qw(Pipe);
+use IO::Pipe;
 use vars qw($VERSION);
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:

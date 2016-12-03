@@ -10,6 +10,7 @@
 - Postfix double scan during custom fix
 - fixed ms-init and ms-check
 - fixed ramdisk portion of install scripts
+- fixed perl module declarations
 
 08/14/2016 Changes in    v5.0.3-7
 ==================================

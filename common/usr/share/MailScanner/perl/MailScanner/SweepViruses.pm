@@ -31,6 +31,8 @@ use POSIX;
 use DirHandle;
 use IO::Socket::INET;
 use IO::Socket::UNIX;
+use IO::Pipe;
+use IO::File;
 
 use vars qw($VERSION $ScannerPID);
 
