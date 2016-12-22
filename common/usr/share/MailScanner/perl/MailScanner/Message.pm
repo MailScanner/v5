@@ -3109,64 +3109,55 @@ sub UnpackRar {
   } elsif ($UnrarVersion >= 5.0 && $UnrarVersion < 6.0) {
     # This part lists the archive contents and makes the list of
     # file names within. "This is a list verbose option"
-    $memb = SafePipe("$unrar v -p- '$explodeinto/$zipname' 2>&1",
-                   $PipeTimeOut);
+    $memb = SafePipe("$unrar vt -idcp -p- '$explodeinto/$zipname' 2>&1",
+                      $PipeTimeOut);
 
-    $Stuff = "";
-    $BeginInfo = 0;
-    $EndInfo = 0;
+    # SafePipe timed out
+    return 1 if $memb =~ /COMMAND_TIMED_OUT$/si;
+
+    # clean spaces
+    $memb =~ s/^\s+$//mg;
+    $memb =~ s/^\s+|\s+$//g;
     $memb =~ s/\r//gs;
-    my @test = split /\n/, $memb;
-    $memb = '';
 
-    # Have to parse the output from the 'v' command and parse the information
-    # between the ----------------------------- lines
+    # in vt mode, files are separated by empty lines
+    my @test = split /\n\n/, $memb;
+
+    my $ArchiveInfo = shift @test;
+
+    # not a RAR file, fail to extract
+    return 1 if $ArchiveInfo =~ /^\s*No files to extract\s*$/mi;
+
+    # Test whole RAR encryption
+    if ($ArchiveInfo =~ /encrypted headers|password is incorrect/i) {
+      MailScanner::Log::WarnLog("Password Protected RAR Found");
+      return "password" if !$allowpasswords;
+    } elsif ($insistpasswords) {
+      MailScanner::Log::WarnLog("Non-Password Protected RAR Found");
+      return "nonpassword";
+    };
+
+    # Have to parse the output from the 'vt' command
     foreach $what (@test) {
-      # If we haven't hit any ------- lines at all, and we are prompted for
-      # a password, then the whole archive is password-protected.
-      unless ($BeginInfo || $EndInfo) {
-        if ($what =~ /^Encrypted file:/i && !$allowpasswords) {
-          MailScanner::Log::WarnLog("Password Protected RAR Found");
-          return "password";
-        }
+      $what =~ s/^\s+|\s+$//mg;
+
+      # compatibility with "unrar vta"
+      last if $what =~ /^Service: EOF$/i;
+
+      # Test single RAR encryption
+      if ($what =~ /^Flags:.*encrypted/m) {
+        MailScanner::Log::WarnLog("Password Protected RAR Found");
+        return "password" if !$allowpasswords;
+      } elsif ($insistpasswords) {
+        MailScanner::Log::WarnLog("Non-Password Protected RAR Found");
+        return "nonpassword";
       }
 
-      # Have we already hit the beginng and now find another ------ string?
-      # If so then we are at the end
-      $EndInfo = 1 if $what =~ /^-/ && $BeginInfo;
-  
-      # if we are after the begning but haven't reached the end,
-      # then process this line
-      if ($BeginInfo && !$EndInfo) {
-        # Parse Line
-        $Stuff = $what;
-        $Stuff =~ s/^\s+|\s+$//g;
-        chomp($Stuff);
-        my ($RAttrib,$RSize,$RPacked,$RRatio,$RDate,$RTime,$RCrc,$RName) = split /\s+/, $Stuff, 8;
-        $memb .= "$RName\n";
-        $Stuff = '';
-      }
-      # If we have a line full of ---- and $BeginInfo is not set then
-      # we are at the first and we need to set $BeginInfo so next pass
-      # begins processing file information
-      if ($what =~ /^-/ && ! $BeginInfo) {
-        $BeginInfo = 1;
-      }
+      $what =~ /^Name\: *(.*)\s*$/mi;
+      push @members, $1 if defined($1)
     }
-
-    # Remove returns from the output string, exit if the archive is empty
-    # or the output is empty
-
-    $memb =~ s/\r//gs;
-    return 1 if $memb ne '' &&
-                $memb =~ /(No files to extract|^COMMAND_TIMED_OUT$)/si;
-
-    return 0 if $memb eq ''; # JKF If no members it probably wasn't a Rar self-ext
     #MailScanner::Log::DebugLog("Unrar : Archive Testing Completed On : %s",
-    #                           $memb);
-
-    @members = split /\n/, $memb;  
-
+    #                           join(', ', @members));
   }
 
   $fh = new FileHandle;
