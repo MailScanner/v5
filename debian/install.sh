@@ -8,18 +8,113 @@
 #
 # Written by:
 # Jerry Benton < mailscanner@mailborder.com >
-# 26 APR 2016
+# Manuel Dalla Lana < endelwar@aregar.it >
+# 10 JAN 2017
 
 # clear the screen. yay!
 clear
 
-# where i started for RPM install
+# unattended install: command line parameter parsing
+parsedCommands=0;
+while [ $# -gt 0 ]; do
+    case "$1" in
+        --MTA=*)
+            case ${1#*=} in
+            "sendmail")  arg_MTA="sendmail"; ((parsedCommands++));;
+            "postfix")   arg_MTA="postfix"; ((parsedCommands++));;
+            "exim")      arg_MTA="exim4-base"; ((parsedCommands++));;
+            "none")      arg_MTA=; ((parsedCommands++));;
+            *)
+                printf "Error: Invalid value for MTA: select one of 'sendmail', 'postfix', 'exim' or 'none'.\n"
+                exit 1
+            esac
+        ;;
+
+        --installClamav=*)
+            if [[ ${1#*=} =~ ^([yY])$ ]]; then
+                arg_installClamav=1;
+                ((parsedCommands++));
+            elif [[ ${1#*=} =~ ^([nN])$ ]]; then
+                arg_installClamav=0;
+                ((parsedCommands++));
+            else
+                printf "Error: Invalid value for installClamav: only Y or N values are accepted.\n"
+                exit 1
+            fi
+        ;;
+
+        --installCPAN=*)
+            if [[ ${1#*=} =~ ^([yY])$ ]]; then
+                arg_installCPAN=1;
+                ((parsedCommands++));
+            elif [[ ${1#*=} =~ ^([nN])$ ]]; then
+                arg_installCPAN=0;
+                ((parsedCommands++));
+            else
+                printf "Error: Invalid value for installCPAN: only Y or N values are accepted.\n"
+                exit 1
+            fi
+        ;;
+
+        --ignoreDeps=*)
+            if [[ ${1#*=} =~ ^([yY])$ ]]; then
+                arg_ignoreDeps=1;
+                ((parsedCommands++));
+            elif [[ ${1#*=} =~ ^([nN])$ ]]; then
+                arg_ignoreDeps=0;
+                ((parsedCommands++));
+            else
+                printf "Error: Invalid value for ignoreDeps: only Y or N values are accepted.\n"
+                exit 1
+            fi
+	    ;;
+
+        --ramdiskSize=*)
+            if [[ ${1#*=} =~ ^-?[0-9]+$ ]]; then
+                arg_ramdiskSize="${1#*=}";
+                ((parsedCommands++));
+            else
+                printf "Error: Invalid value for ramdiskSize: only integer values are accepted.\n"
+                exit 1
+            fi
+        ;;
+
+        --help)
+            printf "MailScanner Installation for Debian Based Systems\n\n"
+            printf "Usage: %s [--MTA=sendmail|postfix|exim|none] [--installClamav=Y|N] [--installCPAN=Y|N] [--ignoreDeps=Y|N] [--ramdiskSize=value] [--saPostmaster=value]\n\n" "$0"
+            printf -- "--MTA=value           Select the Mail Transfer Agent (MTA) to be installed            (sendmail|postfix|exim|none)\n"
+            printf    "                      Recommended: sendmail\n\n"
+            printf -- "--installClamav=Y|N   Install or update Clam AV during installation                   (Y or N)\n"
+            printf    "                      Recommended: Y (yes)\n\n"
+            printf -- "--installCPAN=Y|N     Install missing perl modules via CPAN                           (Y or N)\n"
+            printf    "                      Recommended: Y (yes)\n\n"
+            printf -- "--ignoreDeps=Y|N      Force .deb package install regardless of missing dependencies   (Y or N)\n"
+            printf    "                      Recommended: N (no)\n\n"
+            printf -- "--ramdiskSize=value   Create a RAMDISK for incoming spool directory                   (integer value or 0 for none)\n"
+            printf    "                      Suggestions:\n";
+            printf    "                      None         0\n";
+            printf    "                      Small        256\n";
+            printf    "                      Medium       512\n";
+            printf    "                      Large        1024 or 2048\n";
+            printf    "                      Enterprise   4096 or 8192\n";
+            exit 0
+        ;;
+
+        *)
+            printf "Error: Invalid argument \"%s\".\n\n" "$1"
+            printf "See help with %s --help\n" "$0"
+            exit 1
+    esac
+    shift
+done
+
+# where i started for DEB install
 THISCURRPMDIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 
 # Function used to Wait for n seconds
 timewait () {
 	DELAY=$1
-	sleep $DELAY
+	sleep ${DELAY}
 }
 
 # Check for root user
@@ -52,8 +147,10 @@ echo;
 echo "You may press CTRL + C at any time to abort the installation. Note that you may see";
 echo "some errors during the perl module installation. You may safely ignore errors regarding";
 echo "failed tests for optional packages."; echo;
-echo "When you are ready to continue, press return ... ";
-read foobar
+if [ "$parsedCommands" -eq 0 ]; then
+    echo "When you are ready to continue, press return ... ";
+    read foobar
+fi
 
 # install or upgrade
 if [ -f '/etc/MailScanner/MailScanner.conf' ]; then
@@ -77,25 +174,29 @@ echo "3 - exim";
 echo "N - Do not install";
 echo;
 echo "Recommended: 1 (sendmail)"; echo;
-read -r -p "Install an MTA? [1] : " response
-
-if [[ $response =~ ^([nN][oO])$ ]]; then
-    # do not install
-    MTAOPTION=
-elif [ -z $response ]; then    
-	# sendmail default
-    MTAOPTION="sendmail sendmail-bin";
-elif [ $response == 1 ]; then    
-	# sendmail 
-    MTAOPTION="sendmail sendmail-bin";
-elif [ $response == 2 ]; then    
-	# sendmail
-    MTAOPTION="postfix";
-elif [ $response == 3 ]; then    
-	# sendmail
-    MTAOPTION="exim4-base";
+if [ -z "${arg_MTA+x}" ]; then
+    MTAOPTION=${arg_MTA};
 else
-	MTAOPTION=
+    read -r -p "Install an MTA? [1] : " response
+
+    if [[ $response =~ ^([nN][oO])$ ]]; then
+        # do not install
+        MTAOPTION=
+    elif [ -z $response ]; then
+        # sendmail default
+        MTAOPTION="sendmail sendmail-bin";
+    elif [ $response == 1 ]; then
+        # sendmail
+        MTAOPTION="sendmail sendmail-bin";
+    elif [ $response == 2 ]; then
+        # sendmail
+        MTAOPTION="postfix";
+    elif [ $response == 3 ]; then
+        # sendmail
+        MTAOPTION="exim4-base";
+    else
+        MTAOPTION=
+    fi
 fi
 
 # clamav
@@ -109,21 +210,29 @@ echo "Even if you already have Clam AV installed you should select this option s
 echo "will know to check the clamav-wrapper and make corrections if required.";
 echo;
 echo "Recommended: Y (yes)"; echo;
-read -r -p "Install or update Clam AV? [n/Y] : " response
+if [ -z "${arg_installClamav+x}" ]; then
+    read -r -p "Install or update Clam AV? [n/Y] : " response
 
-if [[ $response =~ ^([yY][eE][sS]|[yY])$ ]]; then
-	# user wants clam av installed
-	# some of these options may result in a 'no package available' on
-	# some distributions, but that is ok
-	CAV=1
-	CAVOPTION="clamav-daemon libclamav-client-perl";
-elif [ -z $response ]; then  
-	CAV=1
-	CAVOPTION="clamav-daemon libclamav-client-perl";
+    if [[ $response =~ ^([yY][eE][sS]|[yY])$ ]]; then
+        # user wants clam av installed
+        # some of these options may result in a 'no package available' on
+        # some distributions, but that is ok
+        CAV=1
+        CAVOPTION="clamav-daemon libclamav-client-perl";
+    elif [ -z $response ]; then
+        CAV=1
+        CAVOPTION="clamav-daemon libclamav-client-perl";
+    else
+        # user does not want clam av
+        CAV=0
+        CAVOPTION=
+    fi
 else
-	# user does not want clam av
-	CAV=0
-	CAVOPTION=
+    CAV=${arg_installClamav}
+    CAVOPTION=
+    if [ ${CAV} -eq 1 ]; then
+        CAVOPTION="clamav-daemon libclamav-client-perl";
+    fi
 fi
 
 # ask if the user wants missing modules installed via CPAN
@@ -134,25 +243,29 @@ echo "I will attempt to install Perl modules via apt, but some may not be unavai
 echo "installation process. Missing modules will likely cause MailScanner to malfunction.";
 echo;
 echo "Recommended: Y (yes)"; echo;
-read -r -p "Install missing Perl modules via CPAN? [n/Y] : " response
+if [ -z "${arg_installCPAN+x}" ]; then
+    read -r -p "Install missing Perl modules via CPAN? [n/Y] : " response
 
-if [[ $response =~ ^([yY][eE][sS]|[yY])$ ]]; then
-    # user wants to use CPAN for missing modules
-	CPANOPTION=1
+    if [[ $response =~ ^([yY][eE][sS]|[yY])$ ]]; then
+        # user wants to use CPAN for missing modules
+        CPANOPTION=1
 
-	# ignore dependency issue since the user elected to
-	# use CPAN to remediate the modules
-	NODEPS='--force-depends';
-elif [ -z $response ]; then
-	 # user wants to use CPAN for missing modules
-	CPANOPTION=1
+        # ignore dependency issue since the user elected to
+	    # use CPAN to remediate the modules
+	    NODEPS='--force-depends';
+    elif [ -z $response ]; then
+        # user wants to use CPAN for missing modules
+        CPANOPTION=1
 
-	# ignore dependency issue since the user elected to
-	# use CPAN to remediate the modules
-	NODEPS='--force-depends';
+        # ignore dependency issue since the user elected to
+	    # use CPAN to remediate the modules
+	    NODEPS='--force-depends';
+    else
+        # user does not want to use CPAN
+        CPANOPTION=0
+    fi
 else
-    # user does not want to use CPAN
-    CPANOPTION=0
+    CPANOPTION=${arg_installCPAN}
 fi
 
 # ask if the user wants to ignore dependencies. they are automatically ignored
@@ -160,8 +273,8 @@ fi
 clear
 echo;
 echo "Do you want to ignore MailScanner dependencies?"; echo;
-echo "This will force install the MailScanner .deb package regardless of missing"; 
-echo "dependencies. It is highly recommended that you DO NOT do this unless you"; 
+echo "This will force install the MailScanner .deb package regardless of missing";
+echo "dependencies. It is highly recommended that you DO NOT do this unless you";
 echo "are debugging.";
 echo;
 echo "Recommended: N (no)"; echo;
@@ -195,18 +308,28 @@ echo " 		Large 		1024 or 2048";
 echo " 		Enterprise	4096 or 8192";
 echo;
 echo "Example: 1024"; echo;
-read -r -p "Specify a RAMDISK size? [0] : " RAMDISKSIZE
+if [ -z "${arg_ramdiskSize+x}" ]; then
+    read -r -p "Specify a RAMDISK size? [0] : " RAMDISKSIZE
 
-if [[ $RAMDISKSIZE =~ ^[0-9]+$ ]]; then
-	if [ $RAMDISKSIZE != 0 ]; then
-		# user wants ramdisk
-		RAMDISK=1
-	else
-		RAMDISK=0
-	fi
+    if [[ $RAMDISKSIZE =~ ^[0-9]+$ ]]; then
+        if [ $RAMDISKSIZE != 0 ]; then
+            # user wants ramdisk
+            RAMDISK=1
+        else
+            RAMDISK=0
+        fi
+    else
+        # no ramdisk
+        RAMDISK=0
+    fi
 else
-	# no ramdisk
-	RAMDISK=0
+    if [ ${arg_ramdiskSize} -eq 0 ]; then
+        # no ramdisk
+        RAMDISK=0;
+    else
+        RAMDISK=1;
+        RAMDISKSIZE=${arg_ramdiskSize};
+    fi
 fi
 
 # base system packages
@@ -229,7 +352,10 @@ BASEPACKAGES+=('unzip');			BASEPACKAGES+=('libnet-ldap-perl');				BASEPACKAGES+=
 BASEPACKAGES+=('openssl');			BASEPACKAGES+=('libmail-dkim-perl');			BASEPACKAGES+=('libhtml-tokeparser-simple-perl');
 BASEPACKAGES+=('perl');				BASEPACKAGES+=('libbusiness-isbn-data-perl');	BASEPACKAGES+=('libnet-dns-resolver-programmable-perl');
 
-	
+if [ "$parsedCommands" -gt 0 ]; then
+    BASEPACKAGES+=('cpanminus');
+fi
+
 # install these from array above in case one of the 
 # packages produce an error
 #
@@ -259,26 +385,28 @@ ARMOD+=('Pod::Simple');			ARMOD+=('POSIX');				ARMOD+=('Scalar::Util');
 ARMOD+=('Socket');				ARMOD+=('Storable');			ARMOD+=('Test::Harness');
 ARMOD+=('Test::Pod');			ARMOD+=('Test::Simple');		ARMOD+=('Time::HiRes');
 ARMOD+=('Time::localtime');		ARMOD+=('Sys::Hostname::Long');	ARMOD+=('Sys::SigAction');
-ARMOD+=('Sys::Syslog');			ARMOD+=('Env');					
-ARMOD+=('Mail::SpamAssassin');
+ARMOD+=('Sys::Syslog');			ARMOD+=('Env');
+
+MODSA='Mail::SpamAssassin';
 
 # not required but nice to have
-ARMOD+=('bignum');				
-ARMOD+=('Data::Dump');			ARMOD+=('DB_File');				ARMOD+=('DBD::SQLite');
-ARMOD+=('DBI');					ARMOD+=('Digest');				ARMOD+=('Encode::Detect');
-ARMOD+=('Error');				ARMOD+=('ExtUtils::CBuilder');	ARMOD+=('ExtUtils::ParseXS');
-ARMOD+=('Getopt::Long');		ARMOD+=('Inline');				ARMOD+=('IO::String');
-ARMOD+=('IO::Zlib');			ARMOD+=('IP::Country');			ARMOD+=('Mail::SPF');
-ARMOD+=('Mail::SPF::Query');	ARMOD+=('Module::Build');		ARMOD+=('Net::CIDR::Lite');
-ARMOD+=('Net::DNS');			ARMOD+=('Net::LDAP');			ARMOD+=('Net::DNS::Resolver::Programmable');
-ARMOD+=('NetAddr::IP');			ARMOD+=('Parse::RecDescent');	ARMOD+=('Test::Harness');
-ARMOD+=('Test::Manifest');		ARMOD+=('Text::Balanced');		ARMOD+=('URI');
-ARMOD+=('version');				ARMOD+=('IO::Compress::Bzip2');
+ARMODAFTERSA=();
+ARMODAFTERSA+=('bignum');
+ARMODAFTERSA+=('Data::Dump');		ARMODAFTERSA+=('DB_File');				ARMODAFTERSA+=('DBD::SQLite');
+ARMODAFTERSA+=('DBI');				ARMODAFTERSA+=('Digest');				ARMODAFTERSA+=('Encode::Detect');
+ARMODAFTERSA+=('Error');			ARMODAFTERSA+=('ExtUtils::CBuilder');	ARMODAFTERSA+=('ExtUtils::ParseXS');
+ARMODAFTERSA+=('Getopt::Long');		ARMODAFTERSA+=('Inline');				ARMODAFTERSA+=('IO::String');
+ARMODAFTERSA+=('IO::Zlib');			ARMODAFTERSA+=('IP::Country');			ARMODAFTERSA+=('Mail::SPF');
+ARMODAFTERSA+=('Mail::SPF::Query');	ARMODAFTERSA+=('Module::Build');		ARMODAFTERSA+=('Net::CIDR::Lite');
+ARMODAFTERSA+=('Net::DNS');			ARMODAFTERSA+=('Net::LDAP');			ARMODAFTERSA+=('Net::DNS::Resolver::Programmable');
+ARMODAFTERSA+=('NetAddr::IP');		ARMODAFTERSA+=('Parse::RecDescent');	ARMODAFTERSA+=('Test::Harness');
+ARMODAFTERSA+=('Test::Manifest');	ARMODAFTERSA+=('Text::Balanced');		ARMODAFTERSA+=('URI');
+ARMODAFTERSA+=('version');			ARMODAFTERSA+=('IO::Compress::Bzip2');
 
 # additional spamassassin plugins
-ARMOD+=('Mail::SpamAssassin::Plugin::Rule2XSBody');
-ARMOD+=('Mail::SpamAssassin::Plugin::DCC');
-ARMOD+=('Mail::SpamAssassin::Plugin::Pyzor');
+ARMODAFTERSA+=('Mail::SpamAssassin::Plugin::Rule2XSBody');
+ARMODAFTERSA+=('Mail::SpamAssassin::Plugin::DCC');
+ARMODAFTERSA+=('Mail::SpamAssassin::Plugin::Pyzor');
 
 
 # logging starts here
@@ -361,42 +489,70 @@ timewait 2
 PMODWAIT=0
 
 # remediate
-if [ $CPANOPTION == 1 ]; then
-for i in "${ARMOD[@]}"
-do
-	perldoc -l $i >/dev/null 2>&1
+if [ ${CPANOPTION} == 1 ]; then
+    #Install pre SpamAssassin modules
+    for i in "${ARMOD[@]}"
+    do
+        perldoc -l ${i} >/dev/null 2>&1
+	    if [ $? != 0 ]; then
+            clear
+            echo "${i} is missing. Installing via CPAN ..."; echo;
+            timewait 1
+            perl -MCPAN -e "CPAN::Shell->force(qw(install ${i} ));"
+        fi
+    done
+
+    #Install SpamaAssassin, use standard cpan in normail install, or App::cpanminus in unattended install
+    perldoc -l ${MODSA} >/dev/null 2>&1
 	if [ $? != 0 ]; then
-		clear
-		echo "$i is missing. Installing via CPAN ..."; echo;
-		timewait 1
-		perl -MCPAN -e "CPAN::Shell->force(qw(install $i ));"
-	fi
-done
+        clear
+        echo "${MODSA} is missing. Installing via CPAN ..."; echo;
+        timewait 1
+        if [ "$parsedCommands" -eq 0 ]; then
+            perl -MCPAN -e "CPAN::Shell->force(qw(install ${MODSA} ));"
+        else
+            cpanm --no-interactive ${MODSA}
+        fi
+    fi
+
+    #Install post SpamAssassin modules
+    for i in "${ARMODAFTERSA[@]}"
+    do
+        perldoc -l ${i} >/dev/null 2>&1
+	    if [ $? != 0 ]; then
+            clear
+            echo "${i} is missing. Installing via CPAN ..."; echo;
+            timewait 1
+            perl -MCPAN -e "CPAN::Shell->force(qw(install ${i} ));"
+        fi
+    done
+
 fi
 
 # check and notify of any missing modules
-for i in "${ARMOD[@]}"
+ARMODALL=("${ARMOD[@]}" "${MODSA}" "${ARMODAFTERSA[@]}")
+for i in "${ARMODALL[@]}"
 do
-	perldoc -l $i >/dev/null 2>&1
+	perldoc -l ${i} >/dev/null 2>&1
 	if [ $? != 0 ]; then
 
 		echo "WARNING: $i is missing.";
 		PMODWAIT=5
 
 	else
-		echo "$i => OK";
+		echo "${i} => OK";
 	fi
 done
 
 # will pause if a perl module was missing
-timewait $PMODWAIT
+timewait ${PMODWAIT}
 
 clear
 echo;
 echo "Installing the MailScanner .deb package ... ";
 
 # install the mailscanner package
-dpkg -i $CONFFILES $NODEPS "$THISCURRPMDIR"/MailScanner-*-noarch.deb
+dpkg -i ${CONFFILES} ${NODEPS} "${THISCURRPMDIR}"/MailScanner-*-noarch.deb
 
 if [ $? != 0 ]; then
 	echo;
