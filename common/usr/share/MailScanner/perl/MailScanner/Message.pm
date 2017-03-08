@@ -4597,7 +4597,11 @@ sub SignWarningMessage {
     $warning = $this->ReadVirusWarning('inlinehtmlwarning');
     #$warning = quotemeta $warning; # Must leave HTML tags alone!
     foreach $line (@body) {
-      $line =~ s/\<html\>/$&$warning/i;
+      # html tags can have extra attributes.  In a case where the <html> tag
+      # has attributes and is closed on a subsequent line, the warning will
+      # actually be in the tag, but it's malformed in any case because it
+      # precedes any <head> and <body> tags and clients seem to render it OK.
+      $line =~ s/\<html( [^>]*)?(\>|$)/$&$warning/i;
       $io->print($line);
     }
   } else {
