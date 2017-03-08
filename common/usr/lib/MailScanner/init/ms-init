@@ -296,9 +296,6 @@ do_perms()
 	# set owner:group
 	chown ${RDUSER}:${RDGROUP} $WORKDIR
 	
-	# processing.db and spamassassin.cache.db
-	chmod 660 ${WORKDIR}/*.db
-	
 	# ramdisk
 	if [ -d $ramdisk_store ];then
 		chown ${RDUSER}:${RDGROUP} $ramdisk_store 

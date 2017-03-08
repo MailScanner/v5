@@ -277,21 +277,24 @@ sub new {
     #
     my $long_queue_id=0;
     my $hex;
-    if ($file =~ /\-[A-Za-z0-9]{15}\.[A-Za-z0-9]{5}$/) {
+    if ($file =~ /\-[A-Za-z0-9]{12,20}\.[A-Za-z0-9]{5}$/) {
+        my $file_orig=$file;
         # Long queue IDs
         $long_queue_id=1;
+        my $seconds=0;
+        my $microseconds=0;
         use Time::HiRes qw( gettimeofday );
-        my ($seconds, $microseconds) = gettimeofday;
-        my $microseconds_aux=$microseconds;
+        ($seconds, $microseconds) = gettimeofday;
+        my $microseconds_orig=$microseconds;
         my @BASE52_CHARACTERS = ("0","1","2","3","4","5","6","7","8","9",
                                 "B","C","D","F","G","H","J","K","L","M",
                                 "N","P","Q","R","S","T","V","W","X","Y",
                                 "Z","b","c","d","f","g","h","j","k","l",
                                 "m","n","p","q","r","s","t","v","w","x","y","z");
-        my $encoded;
+        my $encoded='';
         my $file_out;
         my $count=0;
-        while ( ($seconds > 0) && ($count < 6)) {
+        while ($count < 6) {
                 $encoded.=$BASE52_CHARACTERS[$seconds%52];
                 $seconds/=52;
                 $count++;
@@ -299,7 +302,7 @@ sub new {
         $file_out=reverse $encoded;
         $encoded='';
         $count=0;
-        while ( ($microseconds > 0) && ($count < 4)) {
+        while ($count < 4) {
                 $encoded.=$BASE52_CHARACTERS[$microseconds%52];
                 $microseconds/=52;
                 $count++;
@@ -311,15 +314,23 @@ sub new {
         my $inode=(stat("$file"))[1];
         $encoded='';
         $count=0;
-        while ( ($inode > 0) && ($count < 4)) {
+        while ($count < 4) {
                 $encoded.=$BASE52_CHARACTERS[$inode%51];
                 $inode/=51;
                 $count++;
         }
         $file=$file_out.reverse $encoded;
-        # We need this for later use...
-        $hex = sprintf("%05X", $microseconds_aux);
-        #print STDERR "long_queue_id: New Filename is $file\n";
+	# We need this for later use...
+	$hex = sprintf("%05X", $microseconds_orig);
+      	#print STDERR "long_queue_id: New Filename is $file\n";
+
+        # We check the generated ID...
+        if ($file !~ /[A-Za-z0-9]{12,20}/) {
+                # Something has gone wrong, back to short ID for safety
+                MailScanner::Log::WarnLog("ERROR generating long queue ID ($file), back to short ID ($file_orig)");
+                $file = sprintf("%05X%lX", int(rand 1000000)+1, (stat($file_orig))[1]);
+                $long_queue_id=0;
+        }
     }
     else {
         # Short queue IDs
@@ -330,27 +341,27 @@ sub new {
     }
 
     if ($MailScanner::SMDiskStore::HashDirDepth == 2) {
-        if ($long_queue_id){
-                # hash queues with long queue IDs
-                $hex =~ /^(.)(.)/;
-                return ($dir,$1,$2,$file);
-        }
-        else {
-                # hash queues with short queue IDs
-                $file =~ /^(.)(.)/;
-                return ($dir,$1,$2,$file);
-        }
+	if ($long_queue_id){
+		# hash queues with long queue IDs
+		$hex =~ /^(.)(.)/;
+		return ($dir,$1,$2,$file);
+	}
+	else {
+		# hash queues with short queue IDs
+		$file =~ /^(.)(.)/;
+		return ($dir,$1,$2,$file);
+	}
     } elsif ($MailScanner::SMDiskStore::HashDirDepth == 1) {
-        if ($long_queue_id){
-                # hash queues with long queue IDs
+	if ($long_queue_id){
+		# hash queues with long queue IDs
                 $hex =~ /^(.)/;
-                return ($dir,$1,$file);
-        }
-        else {
-                # hash queues with short queue IDs
-                $file =~ /^(.)/;
-                return ($dir,$1,$file);
-        }
+      		return ($dir,$1,$file);
+	}
+	else {
+		# hash queues with short queue IDs
+		$file =~ /^(.)/;
+		return ($dir,$1,$file);
+	}
     } elsif ($MailScanner::SMDiskStore::HashDirDepth == 0) {
       return ($dir,$file);
     } else {
