@@ -89,6 +89,7 @@ $VERSION = substr q$Revision: 5099 $, 10;
 # $isspam               set by IsSpam
 # $issaspam             set by IsSpam
 # $isrblspam            set by IsSpam
+# $rblspamreport      set by IsSpam
 # $ishigh               set by IsSpam
 # $sascore		set by IsSpam
 # $spamreport           set by IsSpam
@@ -722,6 +723,8 @@ sub IsSpam {
     # front of the spam report.
     $this->{isspam}    = 1 if $RBLsaysspam;
     $this->{isrblspam} = 1 if $RBLsaysspam;
+    $this->{rblspamreport} = "";
+    $this->{rblspamreport} = $rblspamheader if $RBLsaysspam;
     $this->{ishigh}    = 1 if $rblcounter >= $highrblthreshold;
   }
   # rblspamheader is useful start to spamreport if RBLsaysspam.
