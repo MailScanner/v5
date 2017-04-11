@@ -242,6 +242,9 @@ sub ScanBatch {
         # $attach does not contain the type indicator, it's the attachment fn.
         $attach =~ s/\$$/(\\\?=)\?\$/;
 
+        my $entity = undef;
+        $entity = $message->{file2entity}{$attach} if defined($message->{file2entity}{$attach});
+
         #
         # Implement simple all-matches rulesets for allowing and denying files
         #
@@ -265,6 +268,38 @@ sub ScanBatch {
             MailScanner::Log::InfoLog("Filename Checks: Allowing %s %s",
                                       $id, $notypesafename)
               if $LogNames;
+          }
+        }
+
+        # Handle always allowed special-cases
+        if (!$MatchFound && $entity && $entity->head) {
+          # Always allow multipart/* types since are not message leaf by definition, and default is
+          # to treat it like multipart/mixed. This is required since MIME Parser always create
+	  # *.txt files for multipart headers
+          if ($entity->head->mime_attr('content-type') =~ /\bmultipart\//i) {
+            $MatchFound = 1;
+          }
+
+          # Don't remove inlined and visible HTML and text, as this is not what
+          # the user probably want and the message will be processed by DisarmHTML anyway
+          if (
+            !$MatchFound
+            && $entity->head->mime_attr('content-type') =~ /text\/(html|plain)/i
+            && $entity->head->mime_attr('content-disposition') !~ /attachment/i
+          ) {
+            # make sure is a visible part of the body, as long as all ancestors are multipart
+            my $isvisiblebodypart = 1;
+            for (
+              my $parent = $message->{file2entity}{$entity};
+              $parent && $parent->head;
+              $parent = $message->{file2entity}{$entity}
+            ) {
+              if ($parent->head->mime_attr('content-type') !~ /^multipart\/*/i) {
+                $isvisiblebodypart = 0;
+                last;
+              }
+            }
+            $MatchFound = 1 if $isvisiblebodypart;
           }
         }
 
@@ -295,8 +330,6 @@ sub ScanBatch {
             $message->DeleteFile($safename);
           }
         }
-
-
 
         # Work through the attachment filename rules,
         # using the first rule that matches.
