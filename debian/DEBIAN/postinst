@@ -142,8 +142,16 @@ if [ -f '/etc/init.d/MailScanner' ]; then
 	rm -f /etc/init.d/MailScanner
 fi
 
+# remove old systemd file if present
+if [ -f '/lib/systemd/system/mailscanner.service' ]; then
+    rm -f /lib/systemd/system/mailscanner.service
+fi
+
+# Check for systemd
+if [ -d '/usr/lib/systemd' ]; then
+    cp /usr/lib/MailScanner/systemd/ms-systemd /lib/systemd/system/mailscanner.service
 # add symlink to init script
-if [ ! -L '/etc/init.d/mailscanner' ]; then
+elif [ ! -L '/etc/init.d/mailscanner' ]; then
 	ln -s /usr/lib/MailScanner/init/ms-init /etc/init.d/mailscanner
 fi
 
@@ -266,7 +274,11 @@ if [ -f '/etc/postfix/master.cf' ]; then
 	sed -i "s/pickup    unix/pickup    fifo/g" /etc/postfix/master.cf
 	sed -i "s/qmgr      unix/qmgr      fifo/g" /etc/postfix/master.cf
 fi
-		
-update-rc.d mailscanner defaults 80 80
+
+if [ -d '/usr/lib/systemd' ]; then
+    systemctl enable mailscanner.service
+else
+    update-rc.d mailscanner defaults 80 80
+fi
 
 exit 0

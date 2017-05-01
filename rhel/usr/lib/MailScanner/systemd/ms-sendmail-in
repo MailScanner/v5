@@ -1,0 +1,15 @@
+[Unit]
+Description=Sendmail Mail Transport Inbound Agent for MailScanner
+After=syslog.target network.target
+Conflicts=postfix.service exim.service sendmail.service sm-client.service
+Wants=ms-sendmail.service ms-sendmail-out.service
+BindsTo=ms-sendmail.service ms-sendmail-out.service
+
+[Service]
+Type=forking
+PIDFile=/run/sendmail.in.pid
+ExecStart=/usr/sbin/sendmail -bd -OPrivacyOptions=noetrn -ODeliveryMode=queueonly -OQueueDirectory=/var/spool/mqueue.in -OPidFile=/run/sendmail.in.pid
+
+[Install]
+WantedBy=multi-user.target
+Also=ms-sendmail.service ms-sendmail-out.service
