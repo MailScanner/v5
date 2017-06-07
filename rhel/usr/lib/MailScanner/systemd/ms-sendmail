@@ -1,0 +1,20 @@
+[Unit]
+Description=Sendmail Mail Transport Client for MailScanner
+After=syslog.target network.target
+Conflicts=postfix.service exim.service sendmail.service sm-client.service
+Wants=ms-sendmail-in.service ms-sendmail-out.service
+BindsTo=ms-sendmail-in.service ms-sendmail-out.service
+
+[Service]
+Type=forking
+PIDFile=/run/sm-client.pid
+Environment=SENDMAIL_OPTS=-q1h
+ExecStartPre=/bin/touch /run/sm-client.pid
+ExecStartPre=/bin/chown smmsp:smmsp /run/sm-client.pid
+ExecStartPre=-/sbin/restorecon /run/sm-client.pid
+ExecStartPre=-/etc/mail/make
+ExecStart=/usr/sbin/sendmail -L sm-msp-queue -Ac $SENDMAIL_OPTS
+
+[Install]
+WantedBy=multi-user.target
+Also=ms-sendmail-in.service ms-sendmail-out.service

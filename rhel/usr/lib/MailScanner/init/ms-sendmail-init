@@ -1,0 +1,194 @@
+#!/bin/bash
+#
+# mailscanner-sendmail   This shell script takes care of starting and stopping
+#                        the sendmail processes as needed by mailscanner
+#
+# chkconfig: 2345 79 30
+# description: start sendmail queues for mailscanner
+# processname: mailscanner-sendmail
+# pidfile: /var/run/sendmail.*.pid, /var/run/sm-client.pid
+
+### BEGIN INIT INFO
+# Provides:          sendmail mail-transport-agent
+# Required-Start:    $local_fs $remote_fs $syslog $named $network $time
+# Required-Stop:     $local_fs $remote_fs $syslog $named $network
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Sendmail Mail Transport Agent
+# Description:       sendmail is a Mail Transport agent
+### END INIT INFO
+
+# Source function library.
+. /etc/rc.d/init.d/functions
+
+# Source networking configuration.
+. /etc/sysconfig/network
+
+MTA=sendmail
+QUEUETIME=15m
+WORKDIR=/var/spool/MailScanner/incoming
+QUARDIR=/var/spool/MailScanner/quarantine
+INQDIR=/var/spool/mqueue.in
+RUNAS=root
+INPID=/var/run/sendmail.in.pid
+OUTPID=/var/run/sendmail.out.pid
+SMPID=/var/run/sm-client.pid
+MSPUSER=smmsp
+MSPGROUP=smmsp
+SENDMAIL=/usr/sbin/sendmail
+RESTART_DELAY=10
+
+export HOSTNAME
+export MTA
+export QUEUETIME
+export WORKDIR
+export QUARDIR
+export INQDIR
+export RUNAS
+export INPID
+export OUTPID
+export SMPID
+export MSPUSER
+export MSPGROUP
+export SENDMAIL
+export RESTART_DELAY
+
+# Check that networking is up.
+if [ -n ${NETWORKING} ]; then
+    [ ${NETWORKING} = "no" ] && exit 0
+fi
+
+[ -f $SENDMAIL ] || exit 0
+
+# Start both sendmail processes
+StartInSendmail() {
+      if [ $MTA = 'sendmail' ]; then
+        /usr/bin/newaliases > /dev/null 2>&1
+        if test -x /usr/bin/make -a -f /etc/mail/Makefile ; then
+            make -C /etc/mail -s
+        else
+            for i in virtusertable access domaintable mailertable ; do
+                if [ -f /etc/mail/$i ] ; then
+                    makemap hash /etc/mail/$i < /etc/mail/$i
+                fi
+            done
+        fi
+        $SENDMAIL -bd -OPrivacyOptions=noetrn \
+                      -ODeliveryMode=queueonly \
+                      -OQueueDirectory=$INQDIR \
+                      -OPidFile=$INPID 
+        # rhbz#200920
+        if [ ! -f $SMPID ]; then
+            touch $SMPID
+            chown $MSPUSER:$MSPGROUP $SMPID 2>/dev/null
+            if [ -x /usr/sbin/selinuxenabled ] && /usr/sbin/selinuxenabled; then
+                /sbin/restorecon $SMPID
+            fi
+        fi
+        $SENDMAIL -L sm-msp-queue -Ac -q15m -OPidFile=$SMPID 2>/dev/null
+        success
+        echo
+      else
+        failure
+        echo
+      fi
+}
+StartOutSendmail() {
+      if [ $MTA = 'sendmail' ]; then
+        $SENDMAIL $([ -n "$QUEUETIME" ] && echo -q$QUEUETIME) \
+                  -OPidFile=$OUTPID
+        success
+        echo
+      else
+        failure
+        echo
+      fi
+}
+
+RETVAL=0
+
+# See how we were called.
+case "$1" in
+  startin)
+    # Start just incoming sendmail
+    echo "Starting incoming $MTA only:"
+    echo -n '         incoming' $MTA': '
+    StartInSendmail
+    ;;
+  startout)
+    # Start just outgoing sendmail
+    echo "Starting outgoing $MTA only:"
+    echo -n '         outgoing' $MTA': '
+    StartOutSendmail
+    ;;
+  start)
+        [ -x /sbin/portrelease ] && /sbin/portrelease smtp &>/dev/null || :
+    # Start daemons.
+        echo 'Starting sendmail daemons:'
+        echo -n '         incoming' $MTA': '
+    StartInSendmail
+        echo -n '         outgoing' $MTA': '
+    StartOutSendmail
+    RETVAL=$?
+    [ $RETVAL -eq 0 ] && touch /var/lock/subsys/mailscanner-sendmail
+    ;;
+  stop)
+    # Stop daemons.
+        echo 'Stopping sendmail daemons:'
+    echo -n '         incoming' $MTA': '
+        if [ $MTA = "sendmail" ]; then
+          #killproc sendmail 2>/dev/null
+          [ -r $INPID ] && kill `head -1 $INPID` 2>/dev/null
+          [ -r /var/run/sm-client.pid ] && \
+          kill `head -1 /var/run/sm-client.pid` 2>/dev/null
+          success
+    else
+          failure
+          echo
+        fi
+    echo
+    echo -n '         outgoing' $MTA': '
+        if [ $MTA = "sendmail" ]; then
+          #killproc /usr/sbin/sendmail 2>/dev/null
+          [ -r $OUTPID ] && kill `head -1 $OUTPID` 2>/dev/null
+          success
+        else
+          failure
+          echo
+        fi
+    RETVAL=$?
+    echo
+    [ $RETVAL -eq 0 ] && rm -f /var/lock/subsys/mailscanner-sendmail
+    # Clear out the old incoming dirs
+    cd $WORKDIR && ls | egrep '^[0123456789]+$' | xargs /bin/rm -rf 2>/dev/null
+    ;;
+  status)
+        # Work out if sendmail daemons are running
+    echo    'Checking sendmail daemons:'
+    if [ $MTA = "sendmail" ]; then
+          # Now the incoming sendmail
+          echo -n '         incoming sendmail: '
+      alive=`ps axww | grep 'mqueue.i[n]' | awk '{ print $1 }' | head -1`
+      [ -r $INPID ] && pid=`head -1 $INPID` && alive=`ps ax | awk '{ print $1 }' | grep '^'$pid'$'`
+          if [ -z "$alive" ] ; then failure; else success; fi
+          echo
+          # Now the outgoing sendmail
+          echo -n '         outgoing sendmail: '
+      alive=
+      [ -r $OUTPID ] && pid=`head -1 $OUTPID` && alive=`ps ax | awk '{ print $1 }' | grep '^'$pid'$'`
+          if [ -z "$alive" ] ; then failure; else success; fi
+          echo
+        fi
+        ;;
+  restart)
+    $0 stop
+        sleep 1
+    $0 start
+    RETVAL=$?
+    ;;
+  *)
+    echo "Usage: service mailscanner-sendmail {start|stop|status|restart|restartms|reload|startin|startout|stopms}"
+    exit 1
+esac
+
+exit $RETVAL
