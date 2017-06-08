@@ -175,12 +175,6 @@ do
 	fi
 done
 
-# postfix fix
-if [ -f "/etc/postfix/master.cf" ]; then
-	sed -i "s/pickup    unix/pickup    fifo/g" /etc/postfix/master.cf
-	sed -i "s/qmgr      unix/qmgr      fifo/g" /etc/postfix/master.cf
-fi
-
 # make sure in starting directory
 cd "$THISCURRPMDIR"
 

@@ -2517,7 +2517,7 @@ sub Explode {
   my $df  = df($dir, 1024);
   if ($df) {
     my $freek = $df->{bavail};
-    if (defined($freek) && $freek<100 && $freek>=0) {
+    if (defined($freek) && $freek<10000 && $freek>=0) {
       MailScanner::Log::WarnLog("Message %s is too big for available disk space in %s, skipping it", $this->{id}, $dir);
       my @toclear = ( $this->{id} );
       $workarea->ClearIds(\@toclear); # Delete attachments we might have made
@@ -7697,11 +7697,11 @@ sub InPhishingWhitelist {
   return 1 if $MailScanner::Config::PhishingWhitelist{$linkurl};
 
   # Trim host. off the front of the hostname
-  while ($linkurl ne "" && $linkurl =~ s/^[^.]+\.//) {
+  #while ($linkurl ne "" && $linkurl =~ s/^[^.]+\.//) {
     # And replace it with *. then look it up
     #print STDERR "Looking up *.$linkurl\n";
-    return 1 if $MailScanner::Config::PhishingWhitelist{'*.' . $linkurl};
-  }
+  #  return 1 if $MailScanner::Config::PhishingWhitelist{'*.' . $linkurl};
+  #}
 
   return 0;
 }
@@ -7714,11 +7714,11 @@ sub InPhishingBlacklist {
   return 1 if $MailScanner::Config::PhishingBlacklist{$linkurl};
 
   # Trim host. off the front of the hostname
-  while ($linkurl ne "" && $linkurl =~ s/^[^.]+\.//) {
+  #while ($linkurl ne "" && $linkurl =~ s/^[^.]+\.//) {
     # And replace it with *. then look it up
     #print STDERR "Looking up *.$linkurl\n";
-    return 1 if $MailScanner::Config::PhishingBlacklist{'*.' . $linkurl};
-  }
+  #  return 1 if $MailScanner::Config::PhishingBlacklist{'*.' . $linkurl};
+  #}
 
   return 0;
 }

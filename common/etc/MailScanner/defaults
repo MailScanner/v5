@@ -1,10 +1,7 @@
-## MailScanner Run Options
+# MailScanner Run Options
 #
-# This file controls the system level behavior of MailScanner. The file
-# /etc/MailScanner/MailScanner.conf should also be reviewed before 
-# running MailScanner.
+# This file controls the system level behavior of MailScanner.
 #
-# This file is replaced during upgrades.
 
 
 # Enable MailScanner Daemon
@@ -154,12 +151,3 @@ ms_vs_conf=/etc/MailScanner/virus.scanners.conf
 # and should not be started automaticly
 #
 stopped_lockfile=/var/lock/subsys/MailScanner.off
-
-# RE2C
-#
-# re2c is required to compile spamassassin rules, which greatly increases the
-# speed of spamassassin. If the re2c executable is not present, the rules
-# simply will not be compiled. Compiling rules also requires the Rule2XSBody
-# plugin to be enabled in /etc/mail/spamassassin/v320.pre 
-#
-ms_re2c=/usr/bin/re2c

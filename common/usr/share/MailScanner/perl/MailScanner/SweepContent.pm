@@ -475,6 +475,7 @@ sub SearchHTMLBody {
     my $inobject    = 0;
     my $iframefound = 0;
     my $formfound   = 0;
+    my $script_check = 0;
     my $scriptfound = 0;
     my $webbugfound = 0;
     my $phishingfound = 0;
@@ -492,7 +493,9 @@ sub SearchHTMLBody {
       $formfound = 1 if /\<form/i;
 
       # Find the script tag start
-      $scriptfound = 1 if /\<script/i;
+      # $scriptfound = 1 if /\<script/i;
+      $script_check = 1 if /\<script/i;
+      $scriptfound = 1 if $script_check && !/application\/ld\+json/i;
 
       # Find the img tag start
       $webbugfound = 1 if /\<img/i;
