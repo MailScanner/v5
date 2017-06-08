@@ -94,6 +94,7 @@ $VERSION = substr q$Revision: 5099 $, 10;
 # $sascore		set by IsSpam
 # $spamreport           set by IsSpam
 # $sarules		set by IsSpam (ref to hash of rulenames hit)
+# $saruleaction		set by IsSpam (hash of triggered actions by rulename)
 # $mcpwhitelisted       set by IsMCP
 # $ismcp                set by IsMCP
 # $issamcp              set by IsMCP
@@ -1068,6 +1069,11 @@ sub HandleHamAndSpam {
         $action =~ s/\s+$//;
         next unless $action;
         #print STDERR "*sarule $looprule gave action $action\n";
+        if (defined($this->{saruleaction}{$looprule})) {
+          $this->{saruleaction}{$looprule} .= ','.$action;
+        } else {
+          $this->{saruleaction}{$looprule} = $action;
+        }
         MailScanner::Log::InfoLog("SpamAssassin Rule Actions: rule %s caused action %s in message %s", $looprule, $action, $this->{id}) if $logsaactions;
         if ($action !~ /^notify/ && $action =~ s/^no\w?\W*//) { # Anything started no, not not, etc.
           #

@@ -47,8 +47,8 @@ if [ ! -f $CONFIGDIR/phishing.bad.sites.custom ]; then
 	echo '#' >> $CONFIGDIR/phishing.bad.sites.custom
 fi
 
-curl --compressed -o $CONFIGDIR/phishing.bad.sites.conf.master $THEURL || \
-wget --no-check-certificate -O $CONFIGDIR/phishing.bad.sites.conf.master $THEURL || \
+curl --silent --compressed -o $CONFIGDIR/phishing.bad.sites.conf.master $THEURL || \
+wget --quiet --no-check-certificate -O $CONFIGDIR/phishing.bad.sites.conf.master $THEURL || \
 ( logger -p mail.warn -t update.bad.phishing.sites Cannot find wget or curl, update failed. ; echo Cannot find wget or curl to do phishing sites update. ; exit 1 )
 
 if [ -s phishing.bad.sites.conf.master ]; then

@@ -1,0 +1,19 @@
+[Unit]
+Description=LSB: MailScanner daemon
+Documentation=man:systemd-sysv-generator(8)
+SourcePath=/usr/lib/MailScanner/init/ms-init
+After=network-online.target remote-fs.target rsyslog.service
+
+[Service]
+Type=forking
+Restart=no
+TimeoutSec=1min
+IgnoreSIGPIPE=no
+KillMode=process
+GuessMainPID=no
+RemainAfterExit=yes
+ExecStart=/usr/lib/MailScanner/init/ms-init start
+ExecStop=/usr/lib/MailScanner/init/ms-init stop
+
+[Install]
+WantedBy=multi-user.target

@@ -219,10 +219,15 @@ do_stop()
 				rm -f /var/lock/subsys/MailScanner
 			fi    
 		
-		    # remove pid file
-		    if [ -f $PIDFILE ] ; then
-				rm -f $PIDFILE
-			fi
+		    	s='-\|/';
+			x=0
+			i=0
+			while [ "$x" -lt 400 -a -f $PIDFILE ]; do
+	   			x=$((x+1));
+	   			i=$(( (i+1) %4 ));
+	   			printf "\r${s:$i:1}";
+	   			sleep .1;
+			done
 			
 			# create stopped file
 			touch $stopped_lockfile

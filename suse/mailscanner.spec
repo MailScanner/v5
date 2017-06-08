@@ -53,7 +53,7 @@ mkdir -p ${RPM_BUILD_ROOT}/etc/MailScanner/{conf.d,rules,mcp}
 mkdir -p ${RPM_BUILD_ROOT}/etc/{cron.hourly,cron.daily}
 mkdir -p ${RPM_BUILD_ROOT}/usr/share/MailScanner/reports/{hu,de,se,ca,cy+en,pt_br,fr,es,en,cz,it,dk,nl,ro,sk}
 mkdir -p ${RPM_BUILD_ROOT}/usr/share/MailScanner/perl/{MailScanner,custom}
-mkdir -p ${RPM_BUILD_ROOT}/usr/{lib/MailScanner/wrapper,lib/MailScanner/init}
+mkdir -p ${RPM_BUILD_ROOT}/usr/{lib/MailScanner/wrapper,lib/MailScanner/init,lib/MailScanner/systemd}
 mkdir -p ${RPM_BUILD_ROOT}/var/spool/MailScanner/{archive,incoming,quarantine}
 
 ### etc
@@ -220,6 +220,7 @@ EOF
 ### usr/lib/MailScanner
 
 install usr/lib/MailScanner/init/ms-init ${RPM_BUILD_ROOT}/usr/lib/MailScanner/init/
+install usr/lib/MailScanner/systemd/ms-systemd ${RPM_BUILD_ROOT}/usr/lib/MailScanner/systemd/
 
 while read f 
 do
@@ -271,6 +272,12 @@ fi
 if [ -f '/etc/init.d/MailScanner' ]; then
 	chkconfig --del MailScanner >/dev/null 2>&1
 	rm -f /etc/init.d/MailScanner
+fi
+
+# remove systemd if present
+if [ -f '/usr/lib/systemd/system/mailscanner.service' ]; then
+    systemctl disable mailscanner.service
+    rm -f /usr/lib/systemd/system/mailscanner.service
 fi
 
 if [ -d '/usr/lib/MailScanner/MailScanner/CustomFunctions' ]; then
@@ -501,13 +508,15 @@ if [ -d '/usr/share/MailScanner/reports' -a ! -L '/etc/MailScanner/reports' ]; t
 	ln -s /usr/share/MailScanner/reports /etc/MailScanner/reports
 fi
 
+# Check for systemd
+if [ -d '/usr/lib/systemd' -a -f '/usr/lib/MailScanner/systemd/ms-systemd' ]; then
+    cp /usr/lib/MailScanner/systemd/ms-systemd /usr/lib/systemd/system/mailscanner.service
 # create init.d symlink
-if [ -d '/etc/init.d' -a ! -L '/etc/init.d/mailscanner' -a -f '/usr/lib/MailScanner/init/ms-init' ]; then
-	ln -s /usr/lib/MailScanner/init/ms-init /etc/init.d/mailscanner
+elif [ -d '/etc/init.d' -a ! -L '/etc/init.d/mailscanner' -a -f '/usr/lib/MailScanner/init/ms-init' ]; then
+    ln -s /usr/lib/MailScanner/init/ms-init /etc/init.d/mailscanner
+    # Sort out the rc.d directories
+    chkconfig --add mailscanner
 fi
-
-# Sort out the rc.d directories
-chkconfig --add mailscanner
 
 echo
 echo
@@ -519,8 +528,13 @@ echo
 echo
 echo To activate MailScanner run the following commands:
 echo
+echo    --SysV Init--
 echo    chkconfig mailscanner on
 echo    service mailscanner start
+echo
+echo    --Systemd--
+echo    systemctl enable mailscanner.service
+echo    systemctl start mailscanner.service
 echo
 echo
 
@@ -548,6 +562,7 @@ exit 0
 %attr(755,root,root) %dir /etc/MailScanner/conf.d
 %attr(755,root,root) %dir /usr/lib/MailScanner/wrapper
 %attr(755,root,root) %dir /usr/lib/MailScanner/init
+%attr(755,root,root) %dir /usr/lib/MailScanner/systemd
 %attr(755,root,root) %dir /var/spool/MailScanner/archive
 %attr(755,root,root) %dir /var/spool/MailScanner/incoming
 %attr(755,root,root) %dir /var/spool/MailScanner/quarantine
@@ -576,6 +591,7 @@ exit 0
 %attr(755,root,root) /usr/sbin/ms-upgrade-conf
 
 %attr(755,root,root) /usr/lib/MailScanner/init/ms-init
+%attr(755,root,root) /usr/lib/MailScanner/systemd/ms-systemd
 
 %attr(755,root,root) /usr/lib/MailScanner/wrapper/avast-wrapper
 %attr(755,root,root) /usr/lib/MailScanner/wrapper/avg-autoupdate
@@ -1088,6 +1104,9 @@ exit 0
 
 
 %changelog
+* Sun May 28 2017 Shawn Iverson <shawniverson@gmail.com>
+- mailscanner systemd support for SuSE Linux
+
 * Thu Nov 10 2016 Jerry Benton <mailscanner@mailborder.com>
 - see https://github.com/MailScanner/v5/blob/master/changelog
 
