@@ -3,7 +3,7 @@ To: $from
 Subject: ALERTE: =?ISO-8859-1?Q?pi=E8ces?= jointes suspectes
 X-%org-name%-MailScanner: generated
 
-Noter passerelle antivirus refuse d'envoyer certaines pièces jointes 
+Notre passerelle antivirus refuse d'envoyer certaines pièces jointes 
 du courriel que vous venez d'envoyer:
   À:     $to
   Sujet: $subject
