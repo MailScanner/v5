@@ -257,7 +257,7 @@ fi
 
 # set the correct lock file for debian systems
 CAVOLD='^Clamd Lock File.*';
-CAVNEW='Clamd Lock File = \/var\/run\/clamav\/clamd\.pid';
+CAVNEW='Clamd Lock File =';
 if [ -f '/etc/MailScanner/MailScanner.conf' ]; then
 	sed -i "s/${CAVOLD}/${CAVNEW}/g" /etc/MailScanner/MailScanner.conf
 fi
@@ -267,12 +267,6 @@ CAVOLD='^#AllowSupplementaryGroups.*';
 CAVNEW='AllowSupplementaryGroups true';
 if [ -f '/etc/clamav/clamd.conf' ]; then
 	sed -i "s/${CAVOLD}/${CAVNEW}/g" /etc/clamav/clamd.conf
-fi
-	
-# postfix fix
-if [ -f '/etc/postfix/master.cf' ]; then
-	sed -i "s/pickup    unix/pickup    fifo/g" /etc/postfix/master.cf
-	sed -i "s/qmgr      unix/qmgr      fifo/g" /etc/postfix/master.cf
 fi
 
 if [ -d '/usr/lib/systemd' ]; then

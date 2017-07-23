@@ -1,6 +1,22 @@
+04/08/2017 Changes in    v5.0.5-1
+==================================
+- updated SweepContent.pm to allow application/ld+json scripts 
+  when Allow Script Tags = no in Dangerous Content Scanning
+- Updated Postfix.pm and PFDiskStore.pm to use long queue IDs - issue #34
+- Updated Postfix.pm to work with both FIFO and UNIX pipes
+- rar fix to allow spaces in file names
+- removed some unneeded packages from ms-perl-check
+- fix for HTML tag is split across multiple lines - issue #43
+- unrar fix - issue #33
+- added rblspamreport to reports - issue #45
+- update logging for all spam actions taken - issue #36
+- increased free disk space check from 100k to 10m - issue #40
+- removed re2c conf item in defaults - not used
+- updated InPhishingWhitelist and InPhishingBlacklist to not check host.*
+  as it is incompatible with the current structure
+
 11/10/2016 Changes in    v5.0.4-4
 ==================================
-- support for Postfix long queue IDs
 - updated RHEL/Debian/SuSE install scripts
 - updated cron job scripts
 - updated init script

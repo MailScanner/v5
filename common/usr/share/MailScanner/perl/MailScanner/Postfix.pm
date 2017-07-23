@@ -33,6 +33,8 @@ use Encode;
 
 use vars qw($VERSION);
 
+use IO::Socket::UNIX;
+
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
 $VERSION = substr q$Revision: 5098 $, 10;
 
@@ -1365,7 +1367,6 @@ sub new {
     }
   }
 
-
   # Send an I down the FIFO to the Postfix queue manager, so that it reads
   # its incoming queue.
   # I am passed a hash of queues --> space-separated string of message ids
@@ -1377,18 +1378,25 @@ sub new {
     foreach $queue (keys %$queue2ids) {
       next unless $queue2ids->{$queue};
 
-      # Using the spool directory with the last element chopped off,
-      # find the public directory wth the qmgr FIFO in it. Send an I
-      # to that FIFO.
-      my $public = $queue;
-      $public =~ s/[^\/]+$/public/;
-      next unless $public; # Sanity checking!
-      my $fh = new FileHandle;
-      $fh->open(">$public/qmgr") or
-        MailScanner::Log::WarnLog("KickMessage failed as couldn't write to " .
-                                  "%s, %s", "$public/qmgr", $!);
-      print $fh "I";
-      $fh->close;
+      my $pf_dir = $queue;
+      $pf_dir =~ s/[^\/]+$/public/;
+      $pf_dir = $pf_dir.'/qmgr';
+
+      if(-S $pf_dir){
+      	# UNIX
+	  	my $fh = IO::Socket::UNIX->new( Type => SOCK_STREAM, Peer => $pf_dir, ) or
+		MailScanner::Log::WarnLog("KickMessage could not write to UNIX > $pf_dir");
+		print $fh "I";
+		close $fh;	
+	  }elsif(-p $pf_dir){
+	  	# FIFO
+		open(my $fh, '>', $pf_dir) or
+		MailScanner::Log::WarnLog("KickMessage could not write to FIFO > $pf_dir");
+		print $fh "I";
+		close $fh;
+	  }else{
+	  	MailScanner::Log::WarnLog("Unable to determine socket type (FIFO/UNIX) > $pf_dir");
+	  }
     }
     return 0;
   }
