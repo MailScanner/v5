@@ -268,11 +268,7 @@ CAVNEW='AllowSupplementaryGroups true';
 if [ -f '/etc/clamav/clamd.conf' ]; then
 	sed -i "s/${CAVOLD}/${CAVNEW}/g" /etc/clamav/clamd.conf
 fi
-<<<<<<< HEAD
-			
-update-rc.d mailscanner defaults 80 80
-=======
-	
+
 # postfix fix
 if [ -f '/etc/postfix/master.cf' ]; then
 	sed -i "s/pickup    unix/pickup    fifo/g" /etc/postfix/master.cf
@@ -284,6 +280,5 @@ if [ -d '/usr/lib/systemd' ]; then
 else
     update-rc.d mailscanner defaults 80 80
 fi
->>>>>>> origin/master
 
 exit 0
