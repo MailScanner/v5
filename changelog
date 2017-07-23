@@ -1,3 +1,16 @@
+07/16/2017 Changes in    v5.0.6-1
+==================================
+- Updated ms-update-bad-sites to quiet curl and wget
+- Updated ms-update-safe-sites to quiet curl and wget
+- Fix race condition in ms-init during restart
+- Add systemd support for ms-init using ms-systemd script
+- Add ms-sendmail-init script to correctly start sendmail
+  for mailscanner on init for RHEL based systems
+- Add ms-sendmail, ms-sendmail-in, and ms-sendmail-out systemd
+  support scripts on RHEL based systems
+- Update build scripts for systemd support
+- Other minor fixes
+
 04/08/2017 Changes in    v5.0.5-1
 ==================================
 - updated SweepContent.pm to allow application/ld+json scripts 
