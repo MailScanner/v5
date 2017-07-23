@@ -14,7 +14,7 @@
 - removed re2c conf item in defaults - not used
 - updated InPhishingWhitelist and InPhishingBlacklist to not check host.*
   as it is incompatible with the current structure
-   
+
 11/10/2016 Changes in    v5.0.4-4
 ==================================
 - updated RHEL/Debian/SuSE install scripts

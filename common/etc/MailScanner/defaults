@@ -2,8 +2,6 @@
 #
 # This file controls the system level behavior of MailScanner.
 #
-
-
 # Enable MailScanner Daemon
 #
 # Change this to 1 to allow the MailScanner daemon to run.

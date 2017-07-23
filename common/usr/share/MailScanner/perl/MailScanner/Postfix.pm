@@ -1377,11 +1377,11 @@ sub new {
     # Do a kick for every queue that contains some message ids
     foreach $queue (keys %$queue2ids) {
       next unless $queue2ids->{$queue};
-      
+
       my $pf_dir = $queue;
       $pf_dir =~ s/[^\/]+$/public/;
       $pf_dir = $pf_dir.'/qmgr';
-      
+
       if(-S $pf_dir){
       	# UNIX
 	  	my $fh = IO::Socket::UNIX->new( Type => SOCK_STREAM, Peer => $pf_dir, ) or
