@@ -312,28 +312,28 @@ case "$1" in
   start)
   	# check if a PID file exists
 	if [ -f $PIDFILE ] ; then
-		# get the PID
-		PID=$(head -n 1 $PIDFILE)
-		
-		# check to see if running and belongs to mailscanner
-		ps wwp $PID|grep -q '[M]ailScanner': > /dev/null 2>&1
-		
-		# get the return
-		RETVAL="$?"
-		
-		# if 0 it is already running
-		if [ $RETVAL -eq 0 ]; then
-				echo "$NAME is already running"
-				exit 0
-		else
-				[ "$VERBOSE" != no ] && logger -i -p mail.notice "Found a dead PID. Stopping all $NAME rogue processes ..."
-				kill -15 $(ps axww | grep '[M]ailScanner': | awk '{print $1}') > /dev/null 2>&1
-				# wait until they're gone.
-				while (ps axww | grep -q '[M]ailScanner'); do
-					sleep 1
-				done
-				rm -f $PIDFILE
-		fi
+			# get the PID
+			PID=$(head -n 1 $PIDFILE)
+			
+			# check to see if running and belongs to mailscanner
+			ps wwp $PID|grep -q '[M]ailScanner': > /dev/null 2>&1
+			
+			# get the return
+			RETVAL="$?"
+			
+			# if 0 it is already running
+			if [ $RETVAL -eq 0 ]; then
+					echo "$NAME is already running"
+					exit 0
+			else
+					[ "$VERBOSE" != no ] && logger -i -p mail.notice "Found a dead PID. Stopping all $NAME rogue processes ..."
+					kill -15 $(ps axww | grep '[M]ailScanner': | awk '{print $1}') > /dev/null 2>&1
+					# wait until they're gone.
+					while (ps axww | grep -q '[M]ailScanner'); do
+					    sleep 1
+					done
+					rm -f $PIDFILE
+			fi
 	fi
 	
 	# check the stop file and remove if present
@@ -436,29 +436,29 @@ case "$1" in
   status)
 	
 	if [ -f $PIDFILE ] ; then
-		# get the PID
-		PID=$(head -n 1 $PIDFILE)
-		
-		# check to see if running and belongs to mailscanner
-		ps wwp $PID|grep -q '[M]ailScanner': > /dev/null 2>&1
-		
-		# get the return
-		RETVAL="$?"
-		
-		# if 0 it is already running
-		if [ $RETVAL -eq 0 ]; then
-				echo "$NAME is running under process id $PID"
-				exit 0
-		else
-				[ "$VERBOSE" != no ] && logger -i -p mail.notice "Found a dead PID. Killing all $NAME rogue processes ..."
-				echo "$NAME had a dead PID. Any rogue processes were killed."
-				kill -15 $(ps axww | grep '[M]ailScanner': | awk '{print $1}') > /dev/null 2>&1
-				# wait until they're gone.
-				while (ps axww | grep -q '[M]ailScanner'); do
-					sleep 1
-				done
-				rm -f $PIDFILE
-		fi
+			# get the PID
+			PID=$(head -n 1 $PIDFILE)
+			
+			# check to see if running and belongs to mailscanner
+			ps wwp $PID|grep -q '[M]ailScanner': > /dev/null 2>&1
+			
+			# get the return
+			RETVAL="$?"
+			
+			# if 0 it is already running
+			if [ $RETVAL -eq 0 ]; then
+					echo "$NAME is running under process id $PID"
+					exit 0
+			else
+					[ "$VERBOSE" != no ] && logger -i -p mail.notice "Found a dead PID. Killing all $NAME rogue processes ..."
+					echo "$NAME had a dead PID. Any rogue processes were killed."
+					kill -15 $(ps axww | grep '[M]ailScanner': | awk '{print $1}') > /dev/null 2>&1
+					# wait until they're gone.
+					while (ps axww | grep -q '[M]ailScanner'); do
+					    sleep 1
+					done
+					rm -f $PIDFILE
+			fi
 	fi
 	
 	echo "$NAME is not running"
@@ -575,4 +575,3 @@ case "$1" in
 	exit 3
 	;;
 esac
-exit 0

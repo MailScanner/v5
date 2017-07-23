@@ -16,7 +16,7 @@ Vendor:      MailScanner Community
 Packager:    Jerry Benton <mailscanner@mailborder.com>
 URL:         http://www.mailscanner.info
 Requires:     perl >= 5.005
-Provides:	  perl(MailScanner), perl(MailScanner::Antiword), perl(MailScanner::BinHex), perl(MailScanner::Config), perl(MailScanner::ConfigSQL), perl(MailScanner::CustomConfig), perl(MailScanner::FileInto), perl(MailScanner::GenericSpam), perl(MailScanner::LinksDump), perl(MailScanner::Lock), perl(MailScanner::Log), perl(MailScanner::Mail), perl(MailScanner::MCP), perl(MailScanner::MCPMessage), perl(MailScanner::Message), perl(MailScanner::MessageBatch), perl(MailScanner::Quarantine), perl(MailScanner::Queue), perl(MailScanner::RBLs), perl(MailScanner::MCPMessage), perl(MailScanner::Message), perl(MailScanner::MCP), perl(MailScanner::SA), perl(MailScanner::Sendmail), perl(MailScanner::SMDiskStore), perl(MailScanner::SweepContent), perl(MailScanner::SweepOther), perl(MailScanner::SweepViruses), perl(MailScanner::TNEF), perl(MailScanner::Unzip), perl(MailScanner::WorkArea), perl(MIME::Parser::MailScanner)
+Provides:     perl(MailScanner), perl(MailScanner::Antiword), perl(MailScanner::BinHex), perl(MailScanner::Config), perl(MailScanner::ConfigSQL), perl(MailScanner::CustomConfig), perl(MailScanner::FileInto), perl(MailScanner::GenericSpam), perl(MailScanner::LinksDump), perl(MailScanner::Lock), perl(MailScanner::Log), perl(MailScanner::Mail), perl(MailScanner::MCP), perl(MailScanner::MCPMessage), perl(MailScanner::Message), perl(MailScanner::MessageBatch), perl(MailScanner::Quarantine), perl(MailScanner::Queue), perl(MailScanner::RBLs), perl(MailScanner::MCPMessage), perl(MailScanner::Message), perl(MailScanner::MCP), perl(MailScanner::SA), perl(MailScanner::Sendmail), perl(MailScanner::SMDiskStore), perl(MailScanner::SweepContent), perl(MailScanner::SweepOther), perl(MailScanner::SweepViruses), perl(MailScanner::TNEF), perl(MailScanner::Unzip), perl(MailScanner::WorkArea), perl(MIME::Parser::MailScanner)
 Source:      %{name}-%{version}.tgz
 BuildRoot:   %{_tmppath}/%{name}-root
 BuildArchitectures: noarch
@@ -26,18 +26,18 @@ Obsoletes: mailscanner
 
 %description
 MailScanner is a freely distributable email gateway virus scanner with
-malware, phishing, and spam detection. It supports Postfix, sendmail, 
-ZMailer, Qmail or Exim mail transport agents and numerous open source 
-and commercial virus scanning engines for virus scanning.  It will also 
-selectively filter the content of email messages to protect users from 
-offensive content such as pornographic spam. It also has features which 
+malware, phishing, and spam detection. It supports Postfix, sendmail,
+ZMailer, Qmail or Exim mail transport agents and numerous open source
+and commercial virus scanning engines for virus scanning.  It will also
+selectively filter the content of email messages to protect users from
+offensive content such as pornographic spam. It also has features which
 protect it against Denial Of Service attacks.
 
 After installation, you must install one of the supported open source or
 commercial antivirus packages if not installed using the MailScanner
 installation script.
 
-This has been tested on Red Hat Linux, but should work on other RPM 
+This has been tested on Red Hat Linux, but should work on other RPM
 based Linux distributions.
 
 %prep
@@ -53,7 +53,7 @@ mkdir -p ${RPM_BUILD_ROOT}/etc/MailScanner/{conf.d,rules,mcp}
 mkdir -p ${RPM_BUILD_ROOT}/etc/{cron.hourly,cron.daily}
 mkdir -p ${RPM_BUILD_ROOT}/usr/share/MailScanner/reports/{hu,de,se,ca,cy+en,pt_br,fr,es,en,cz,it,dk,nl,ro,sk}
 mkdir -p ${RPM_BUILD_ROOT}/usr/share/MailScanner/perl/{MailScanner,custom}
-mkdir -p ${RPM_BUILD_ROOT}/usr/{lib/MailScanner/wrapper,lib/MailScanner/init}
+mkdir -p ${RPM_BUILD_ROOT}/usr/{lib/MailScanner/wrapper,lib/MailScanner/init,lib/MailScanner/systemd}
 mkdir -p ${RPM_BUILD_ROOT}/var/spool/MailScanner/{archive,incoming,quarantine}
 
 ### etc
@@ -102,23 +102,23 @@ EOF
 
 ### usr/sbin
 
-install usr/sbin/MailScanner        				${RPM_BUILD_ROOT}/usr/sbin/MailScanner
-install usr/sbin/ms-check      						${RPM_BUILD_ROOT}/usr/sbin/ms-check
-install usr/sbin/ms-clean-quarantine				${RPM_BUILD_ROOT}/usr/sbin/ms-clean-quarantine
-install usr/sbin/ms-create-locks 					${RPM_BUILD_ROOT}/usr/sbin/ms-create-locks
-install usr/sbin/ms-cron            				${RPM_BUILD_ROOT}/usr/sbin/ms-cron
-install usr/sbin/ms-d2mbox             				${RPM_BUILD_ROOT}/usr/sbin/ms-d2mbox
-install usr/sbin/ms-df2mbox            				${RPM_BUILD_ROOT}/usr/sbin/ms-df2mbox
-install usr/sbin/ms-msg-alert 						${RPM_BUILD_ROOT}/usr/sbin/ms-msg-alert
-install usr/sbin/ms-peek         					${RPM_BUILD_ROOT}/usr/sbin/ms-peek
-install usr/sbin/ms-perl-check     					${RPM_BUILD_ROOT}/usr/sbin/ms-perl-check
-install usr/sbin/ms-sa-cache     					${RPM_BUILD_ROOT}/usr/sbin/ms-sa-cache
-install usr/sbin/ms-update-bad-emails 				${RPM_BUILD_ROOT}/usr/sbin/ms-update-bad-emails
-install usr/sbin/ms-update-bad-sites 				${RPM_BUILD_ROOT}/usr/sbin/ms-update-bad-sites
-install usr/sbin/ms-update-sa 						${RPM_BUILD_ROOT}/usr/sbin/ms-update-sa
-install usr/sbin/ms-update-safe-sites 				${RPM_BUILD_ROOT}/usr/sbin/ms-update-safe-sites
-install usr/sbin/ms-update-vs 						${RPM_BUILD_ROOT}/usr/sbin/ms-update-vs
-install usr/sbin/ms-upgrade-conf 					${RPM_BUILD_ROOT}/usr/sbin/ms-upgrade-conf
+install usr/sbin/MailScanner                        ${RPM_BUILD_ROOT}/usr/sbin/MailScanner
+install usr/sbin/ms-check                           ${RPM_BUILD_ROOT}/usr/sbin/ms-check
+install usr/sbin/ms-clean-quarantine                ${RPM_BUILD_ROOT}/usr/sbin/ms-clean-quarantine
+install usr/sbin/ms-create-locks                    ${RPM_BUILD_ROOT}/usr/sbin/ms-create-locks
+install usr/sbin/ms-cron                            ${RPM_BUILD_ROOT}/usr/sbin/ms-cron
+install usr/sbin/ms-d2mbox                          ${RPM_BUILD_ROOT}/usr/sbin/ms-d2mbox
+install usr/sbin/ms-df2mbox                         ${RPM_BUILD_ROOT}/usr/sbin/ms-df2mbox
+install usr/sbin/ms-msg-alert                       ${RPM_BUILD_ROOT}/usr/sbin/ms-msg-alert
+install usr/sbin/ms-peek                            ${RPM_BUILD_ROOT}/usr/sbin/ms-peek
+install usr/sbin/ms-perl-check                      ${RPM_BUILD_ROOT}/usr/sbin/ms-perl-check
+install usr/sbin/ms-sa-cache                        ${RPM_BUILD_ROOT}/usr/sbin/ms-sa-cache
+install usr/sbin/ms-update-bad-emails               ${RPM_BUILD_ROOT}/usr/sbin/ms-update-bad-emails
+install usr/sbin/ms-update-bad-sites                ${RPM_BUILD_ROOT}/usr/sbin/ms-update-bad-sites
+install usr/sbin/ms-update-sa                       ${RPM_BUILD_ROOT}/usr/sbin/ms-update-sa
+install usr/sbin/ms-update-safe-sites               ${RPM_BUILD_ROOT}/usr/sbin/ms-update-safe-sites
+install usr/sbin/ms-update-vs                       ${RPM_BUILD_ROOT}/usr/sbin/ms-update-vs
+install usr/sbin/ms-upgrade-conf                    ${RPM_BUILD_ROOT}/usr/sbin/ms-upgrade-conf
 
 
 ### usr/share/MailScanner
@@ -220,6 +220,17 @@ EOF
 ### usr/lib/MailScanner
 
 install usr/lib/MailScanner/init/ms-init ${RPM_BUILD_ROOT}/usr/lib/MailScanner/init/
+install usr/lib/MailScanner/init/ms-sendmail-init ${RPM_BUILD_ROOT}/usr/lib/MailScanner/init/
+
+while read f 
+do
+  install usr/lib/MailScanner/systemd/$f ${RPM_BUILD_ROOT}/usr/lib/MailScanner/systemd
+done << EOF
+ms-systemd
+ms-sendmail
+ms-sendmail-in
+ms-sendmail-out
+EOF
 
 while read f 
 do
@@ -251,66 +262,96 @@ SAVEDIR="$HOME/ms_upgrade/saved.$$";
 
 # remove old symlink if present
 if [ -L '/etc/init.d/mailscanner' ]; then
-	chkconfig --del mailscanner >/dev/null 2>&1
-	rm -f /etc/init.d/mailscanner
+    chkconfig --del mailscanner >/dev/null 2>&1
+    rm -f /etc/init.d/mailscanner
 fi
 
 # remove old file if present
 if [ -f '/etc/init.d/mailscanner' ]; then
-	chkconfig --del mailscanner >/dev/null 2>&1
-	rm -f /etc/init.d/mailscanner
+    chkconfig --del mailscanner >/dev/null 2>&1
+    rm -f /etc/init.d/mailscanner
 fi
 
 # remove old symlink if present
 if [ -L '/etc/init.d/MailScanner' ]; then
-	chkconfig --del MailScanner >/dev/null 2>&1
-	rm -f /etc/init.d/MailScanner
+    chkconfig --del MailScanner >/dev/null 2>&1
+    rm -f /etc/init.d/MailScanner
 fi
 
 # remove old file if present
 if [ -f '/etc/init.d/MailScanner' ]; then
-	chkconfig --del MailScanner >/dev/null 2>&1
-	rm -f /etc/init.d/MailScanner
+   chkconfig --del MailScanner >/dev/null 2>&1
+   rm -f /etc/init.d/MailScanner
+fi
+
+# remove old file if present
+if [ -f '/usr/lib/systemd/system/mailscanner' ]; then
+   systemctl disable mailscanner >/dev/null 2>&1
+   rm -f /usr/lib/systemd/system/mailscanner
+fi
+
+# remove old file if present
+if [ -f '/etc/init.d/ms-sendmail' ]; then
+   chkconfig --del ms-sendmail >/dev/null 2>&10
+   rm -f /etc/init.d/ms-sendmail
+fi
+
+# remove old file if present
+if [ -f '/usr/lib/systemd/system/ms-sendmail' ]; then
+   systemctl disable ms-sendmail >/dev/null 2>&1
+   rm -f /usr/lib/systemd/system/ms-sendmail
+fi
+
+# remove old file if present
+if [ -f '/usr/lib/systemd/system/ms-sendmail-in' ]; then
+   systemctl disable ms-sendmail-in >/dev/null 2>&1
+   rm -f /usr/lib/systemd/system/ms-sendmail-in
+fi
+
+# remove old file if present
+if [ -f '/usr/lib/systemd/system/ms-sendmail-out' ]; then
+   systemctl disable ms-sendmail-out >/dev/null 2>&1
+   rm -f /usr/lib/systemd/system/ms-sendmail-out
 fi
 
 if [ -d '/usr/lib/MailScanner/MailScanner/CustomFunctions' ]; then
-	mkdir -p ${SAVEDIR}/usr/lib/MailScanner/MailScanner/CustomFunctions
-	cp -f /usr/lib/MailScanner/MailScanner/CustomFunctions/* ${SAVEDIR}/usr/lib/MailScanner/MailScanner/CustomFunctions
-	if [ -d '/usr/lib/MailScanner/MailScanner' ]; then
-		rm -rf /usr/lib/MailScanner/MailScanner
-	fi
+    mkdir -p ${SAVEDIR}/usr/lib/MailScanner/MailScanner/CustomFunctions
+    cp -f /usr/lib/MailScanner/MailScanner/CustomFunctions/* ${SAVEDIR}/usr/lib/MailScanner/MailScanner/CustomFunctions
+    if [ -d '/usr/lib/MailScanner/MailScanner' ]; then
+        rm -rf /usr/lib/MailScanner/MailScanner
+    fi
 fi
 
 if [ -d '/etc/MailScanner/CustomFunctions' ]; then
-	mkdir -p ${SAVEDIR}/etc/MailScanner/CustomFunctions
-	cp -f /etc/MailScanner/CustomFunctions/* ${SAVEDIR}/etc/MailScanner/CustomFunctions
-	rm -rf /etc/MailScanner/CustomFunctions
+    mkdir -p ${SAVEDIR}/etc/MailScanner/CustomFunctions
+    cp -f /etc/MailScanner/CustomFunctions/* ${SAVEDIR}/etc/MailScanner/CustomFunctions
+    rm -rf /etc/MailScanner/CustomFunctions
 fi
 
 if [ -L '/etc/MailScanner/CustomFunctions' ]; then
-	rm -f /etc/MailScanner/CustomFunctions
+    rm -f /etc/MailScanner/CustomFunctions
 fi
 
 if [ -f '/etc/MailScanner/CustomConfig.pm' ]; then
-	mkdir -p ${SAVEDIR}/etc/MailScanner
-	cp -f /etc/MailScanner/CustomConfig.pm ${SAVEDIR}/etc/MailScanner/
-	rm -f /etc/MailScanner/CustomConfig.pm
+    mkdir -p ${SAVEDIR}/etc/MailScanner
+    cp -f /etc/MailScanner/CustomConfig.pm ${SAVEDIR}/etc/MailScanner/
+    rm -f /etc/MailScanner/CustomConfig.pm
 fi
 
 if [ -d '/etc/MailScanner/reports' ]; then
-	mkdir -p ${SAVEDIR}/etc/MailScanner/reports
-	cp -rf /etc/MailScanner/reports/* ${SAVEDIR}/etc/MailScanner/reports
-	rm -rf /etc/MailScanner/reports
+    mkdir -p ${SAVEDIR}/etc/MailScanner/reports
+    cp -rf /etc/MailScanner/reports/* ${SAVEDIR}/etc/MailScanner/reports
+    rm -rf /etc/MailScanner/reports
 fi
 
 if [ -d '/usr/share/MailScanner/MailScanner' ]; then
-	rm -rf /usr/share/MailScanner/MailScanner
+    rm -rf /usr/share/MailScanner/MailScanner
 fi
 
 if [ -f '/etc/MailScanner/MailScanner.conf' ]; then
-	mkdir -p ${SAVEDIR}/etc/MailScanner
-	cp -f /etc/MailScanner/MailScanner.conf ${SAVEDIR}/etc/MailScanner/MailScanner.conf.original
-fi	
+    mkdir -p ${SAVEDIR}/etc/MailScanner
+    cp -f /etc/MailScanner/MailScanner.conf ${SAVEDIR}/etc/MailScanner/MailScanner.conf.original
+fi
 
 exit 0
  
@@ -323,173 +364,201 @@ SAVEDIR="$HOME/ms_upgrade/saved.$$";
 CAVOLD='^#AllowSupplementaryGroups.*';
 CAVNEW='AllowSupplementaryGroups yes';
 if [ -f '/etc/clamd.conf' ]; then
-	sed -i "s/${CAVOLD}/${CAVNEW}/g" /etc/clamd.conf
+    sed -i "s/${CAVOLD}/${CAVNEW}/g" /etc/clamd.conf
 fi
 
 # group for users to run under
 if ! getent group mtagroup >/dev/null 2>&1; then
-	groupadd -f mtagroup >/dev/null 2>&1
+    groupadd -f mtagroup >/dev/null 2>&1
 fi
 
 # check for common users and add to the mtagroup
 if id -u clam >/dev/null 2>&1; then
-	usermod -a -G mtagroup clam >/dev/null 2>&1
+    usermod -a -G mtagroup clam >/dev/null 2>&1
 fi
 
 if id -u clamav >/dev/null 2>&1; then
-	usermod -a -G mtagroup clamav >/dev/null 2>&1
+    usermod -a -G mtagroup clamav >/dev/null 2>&1
 fi
 
 if id -u clamscan >/dev/null 2>&1; then
-	usermod -a -G mtagroup clamscan >/dev/null 2>&1
+    usermod -a -G mtagroup clamscan >/dev/null 2>&1
 fi
 
 if id -u vscan >/dev/null 2>&1; then
-	usermod -a -G mtagroup vscan >/dev/null 2>&1
+    usermod -a -G mtagroup vscan >/dev/null 2>&1
 fi
 
 if id -u sophosav >/dev/null 2>&1; then
-	usermod -a -G mtagroup sophosav >/dev/null 2>&1
+    usermod -a -G mtagroup sophosav >/dev/null 2>&1
 fi
 
 if id -u postfix >/dev/null 2>&1; then
-	usermod -a -G mtagroup postfix >/dev/null 2>&1
+    usermod -a -G mtagroup postfix >/dev/null 2>&1
 fi
 
 if id -u mail >/dev/null 2>&1; then
-	usermod -a -G mtagroup mail >/dev/null 2>&1
+    usermod -a -G mtagroup mail >/dev/null 2>&1
 fi
 
 if id -u avast >/dev/null 2>&1; then
-	usermod -a -G mtagroup avast >/dev/null 2>&1
+    usermod -a -G mtagroup avast >/dev/null 2>&1
 fi
 
 if [ ! -d '/var/spool/MailScanner/archive' ]; then
-	mkdir -p /var/spool/MailScanner/archive
+    mkdir -p /var/spool/MailScanner/archive
 fi
 
 if [ ! -d '/var/spool/MailScanner/incoming' ]; then
-	mkdir -p /var/spool/MailScanner/incoming
+    mkdir -p /var/spool/MailScanner/incoming
 fi
 
 if [ ! -d '/var/spool/MailScanner/quarantine' ]; then
-	mkdir -p /var/spool/MailScanner/quarantine
+    mkdir -p /var/spool/MailScanner/quarantine
 fi
 
 # remove old link if present
 if [ -L '/etc/mail/spamassassin/mailscanner.cf' ]; then
-	rm -f /etc/mail/spamassassin/mailscanner.cf
+    rm -f /etc/mail/spamassassin/mailscanner.cf
 fi
 
 if [ -L '/etc/mail/spamassassin/MailScanner.cf' ]; then
-	rm -f /etc/mail/spamassassin/MailScanner.cf
+    rm -f /etc/mail/spamassassin/MailScanner.cf
 fi
 
 if [ -f '/etc/MailScanner/spam.assassin.prefs.conf' ]; then
-	mv -f /etc/MailScanner/spam.assassin.prefs.conf /etc/MailScanner/spamassassin.conf
+    mv -f /etc/MailScanner/spam.assassin.prefs.conf /etc/MailScanner/spamassassin.conf
 fi
 
 # create symlink for spamasassin
 if [ -d '/etc/mail/spamassassin' -a ! -L '/etc/mail/spamassassin/MailScanner.cf' -a -f '/etc/MailScanner/spamassassin.conf' -a ! -f '/etc/mail/spamassassin/MailScanner.cf' ]; then
-	ln -s /etc/MailScanner/spamassassin.conf /etc/mail/spamassassin/MailScanner.cf 
+    ln -s /etc/MailScanner/spamassassin.conf /etc/mail/spamassassin/MailScanner.cf 
 fi
 
 # upgrade the old config
 if [ -f /etc/MailScanner/MailScanner.conf.original -a -f /etc/MailScanner/MailScanner.conf ]; then
-	cp -f /etc/MailScanner/MailScanner.conf /etc/MailScanner/MailScanner.conf.dist
-	ms-upgrade-conf /etc/MailScanner/MailScanner.conf.original /etc/MailScanner/MailScanner.conf.dist > /etc/MailScanner/MailScanner.conf
-	mkdir -p ${SAVEDIR}/etc/MailScanner
-	mv -f /etc/MailScanner/MailScanner.conf.* ${SAVEDIR}/etc/MailScanner > /dev/null 2>&1
-	cp -f /etc/MailScanner/MailScanner.conf ${SAVEDIR}/etc/MailScanner/MailScanner.new > /dev/null 2>&1
+    cp -f /etc/MailScanner/MailScanner.conf /etc/MailScanner/MailScanner.conf.dist
+    ms-upgrade-conf /etc/MailScanner/MailScanner.conf.original /etc/MailScanner/MailScanner.conf.dist > /etc/MailScanner/MailScanner.conf
+    mkdir -p ${SAVEDIR}/etc/MailScanner
+    mv -f /etc/MailScanner/MailScanner.conf.* ${SAVEDIR}/etc/MailScanner > /dev/null 2>&1
+    cp -f /etc/MailScanner/MailScanner.conf ${SAVEDIR}/etc/MailScanner/MailScanner.new > /dev/null 2>&1
 fi
 
 # update web bug link
 OLD="^Web Bug Replacement.*";
 NEW="Web Bug Replacement = https\:\/\/s3\.amazonaws\.com\/msv5\/images\/spacer\.gif";
 if [ -f '/etc/MailScanner/MailScanner.conf' ]; then
-	sed -i "s/${OLD}/${NEW}/g" /etc/MailScanner/MailScanner.conf
+    sed -i "s/${OLD}/${NEW}/g" /etc/MailScanner/MailScanner.conf
 fi
 
 # fix reports directory
 OLDTHING='\/etc\/MailScanner\/reports';
 NEWTHING='\/usr\/share\/MailScanner\/reports';
 if [ -f '/etc/MailScanner/MailScanner.conf' ]; then
-	sed -i "s/${OLDTHING}/${NEWTHING}/g" /etc/MailScanner/MailScanner.conf
+    sed -i "s/${OLDTHING}/${NEWTHING}/g" /etc/MailScanner/MailScanner.conf
 fi
 
 # fix custom functions directory
 OLDTHING='^Custom Functions Dir.*';
 NEWTHING='Custom Functions Dir = \/usr\/share\/MailScanner\/perl\/custom';
 if [ -f '/etc/MailScanner/MailScanner.conf' ]; then
-	sed -i "s/${OLDTHING}/${NEWTHING}/g" /etc/MailScanner/MailScanner.conf
+    sed -i "s/${OLDTHING}/${NEWTHING}/g" /etc/MailScanner/MailScanner.conf
 fi
 
 # fix the clamav wrapper if the user does not exist
 if [ -d '/etc/clamav' ]; then
 
-	DISTROCAVUSER='ClamUser="clamav"';
-	DISTROCAVGRP='ClamGroup="clamav"';
-	
-	# check for common users and add to the mtagroup
-	if id -u clam >/dev/null 2>&1; then
-		CAVUSR='ClamUser="clam"';
-	fi
+    DISTROCAVUSER='ClamUser="clamav"';
+    DISTROCAVGRP='ClamGroup="clamav"';
 
-	if id -u clamav >/dev/null 2>&1; then
-		CAVUSR='ClamUser="clamav"';
-	fi
-	
-	if id -u clamscan >/dev/null 2>&1; then
-		CAVUSR='ClamUser="clamscan"';
-	fi
-	
-	if id -u vscan >/dev/null 2>&1; then
-		CAVUSR='ClamUser="vscan"';
-	fi
+    # check for common users and add to the mtagroup
+    if id -u clam >/dev/null 2>&1; then
+        CAVUSR='ClamUser="clam"';
+    fi
 
-	if getent group clamav >/dev/null 2>&1; then
-		CAVGRP='ClamGroup="clamav"';
-	fi
+    if id -u clamav >/dev/null 2>&1; then
+        CAVUSR='ClamUser="clamav"';
+    fi
 
-	if getent group clam >/dev/null 2>&1; then
-		CAVGRP='ClamGroup="clam"';
-	fi
-	
-	if getent group clamscan >/dev/null 2>&1; then
-		CAVGRP='ClamGroup="clamscan"';
-	fi
-	
-	if [ -f '/usr/lib/MailScanner/wrapper/clamav-wrapper' ]; then
-		sed -i "s/${DISTROCAVUSER}/${CAVUSR}/g" /usr/lib/MailScanner/wrapper/clamav-wrapper
-		sed -i "s/${DISTROCAVGRP}/${CAVGRP}/g" /usr/lib/MailScanner/wrapper/clamav-wrapper
-	fi
-	
-	# fix old style clamav Monitors if preset in old mailscanner.conf
-	CAVOLD='^Monitors for ClamAV Updates.*';
-	CAVNEW='Monitors for ClamAV Updates = \/usr\/local\/share\/clamav\/\*\.cld \/usr\/local\/share\/clamav\/\*\.cvd \/var\/lib\/clamav\/\*\.inc\/\* \/var\/lib\/clamav\/\*\.\?db \/var\/lib\/clamav\/\*\.cvd';
-	if [ -f '/etc/MailScanner/MailScanner.conf' ]; then
-		sed -i "s/${CAVOLD}/${CAVNEW}/g" /etc/MailScanner/MailScanner.conf
-	fi
+    if id -u clamscan >/dev/null 2>&1; then
+        CAVUSR='ClamUser="clamscan"';
+    fi
 
+    if id -u vscan >/dev/null 2>&1; then
+        CAVUSR='ClamUser="vscan"';
+    fi
+
+    if getent group clamav >/dev/null 2>&1; then
+        CAVGRP='ClamGroup="clamav"';
+    fi
+
+    if getent group clam >/dev/null 2>&1; then
+        CAVGRP='ClamGroup="clam"';
+    fi
+
+    if getent group clamscan >/dev/null 2>&1; then
+        CAVGRP='ClamGroup="clamscan"';
+    fi
+
+    if [ -f '/usr/lib/MailScanner/wrapper/clamav-wrapper' ]; then
+        sed -i "s/${DISTROCAVUSER}/${CAVUSR}/g" /usr/lib/MailScanner/wrapper/clamav-wrapper
+        sed -i "s/${DISTROCAVGRP}/${CAVGRP}/g" /usr/lib/MailScanner/wrapper/clamav-wrapper
+    fi
+
+    # fix old style clamav Monitors if preset in old mailscanner.conf
+    CAVOLD='^Monitors for ClamAV Updates.*';
+    CAVNEW='Monitors for ClamAV Updates = \/usr\/local\/share\/clamav\/\*\.cld \/usr\/local\/share\/clamav\/\*\.cvd \/var\/lib\/clamav\/\*\.inc\/\* \/var\/lib\/clamav\/\*\.\?db \/var\/lib\/clamav\/\*\.cvd';
+    if [ -f '/etc/MailScanner/MailScanner.conf' ]; then
+        sed -i "s/${CAVOLD}/${CAVNEW}/g" /etc/MailScanner/MailScanner.conf
+    fi
+
+fi
+
+# postfix fix
+if [ -f '/etc/postfix/master.cf' ]; then
+    sed -i "s/pickup    unix/pickup    fifo/g" /etc/postfix/master.cf
+    sed -i "s/qmgr      unix/qmgr      fifo/g" /etc/postfix/master.cf
 fi
 
 # softlink for custom functions
 if [ -d '/usr/share/MailScanner/perl/custom' -a ! -L '/etc/MailScanner/custom' ]; then
-	ln -s /usr/share/MailScanner/perl/custom /etc/MailScanner/custom
+    ln -s /usr/share/MailScanner/perl/custom /etc/MailScanner/custom
 fi
 
 # softlink for custom reports
 if [ -d '/usr/share/MailScanner/reports' -a ! -L '/etc/MailScanner/reports' ]; then
-	ln -s /usr/share/MailScanner/reports /etc/MailScanner/reports
+    ln -s /usr/share/MailScanner/reports /etc/MailScanner/reports
 fi
 
-# create init.d symlink
-if [ -d '/etc/init.d' -a ! -L '/etc/init.d/mailscanner' -a -f '/usr/lib/MailScanner/init/ms-init' ]; then
-	ln -s /usr/lib/MailScanner/init/ms-init /etc/init.d/mailscanner
-fi
+# RHEL/CentOS7/Fedora >14
+if [ -d '/usr/lib/systemd' ]; then
+   # copy in systemd wrapper and sendmail services
+    if [ -d '/usr/lib/systemd/system' -a ! -e '/usr/lib/systemd/system/mailscanner' -a -f '/usr/lib/MailScanner/systemd/ms-systemd' ]; then
+        cp /usr/lib/MailScanner/systemd/ms-systemd /usr/lib/systemd/system/mailscanner.service
+    fi
+    if [ -d '/usr/lib/systemd/system' -a ! -e '/usr/lib/systemd/system/ms-sendmail' -a -f '/usr/lib/MailScanner/systemd/ms-sendmail' ]; then
+        cp /usr/lib/MailScanner/systemd/ms-sendmail /usr/lib/systemd/system/ms-sendmail.service
+    fi
+    if [ -d '/usr/lib/systemd/system' -a ! -e '/usr/lib/systemd/system/ms-sendmail-in' -a -f '/usr/lib/MailScanner/systemd/ms-sendmail-in' ]; then
+        cp /usr/lib/MailScanner/systemd/ms-sendmail-in /usr/lib/systemd/system/ms-sendmail-in.service
+    fi
+    if [ -d '/usr/lib/systemd/system' -a ! -e '/usr/lib/systemd/system/ms-sendmail-out' -a -f '/usr/lib/MailScanner/systemd/ms-sendmail-out' ]; then
+        cp /usr/lib/MailScanner/systemd/ms-sendmail-out /usr/lib/systemd/system/ms-sendmail-out.service
+    fi
+# RHEL/CentOS6/Fedora <15
+else
+    # create init.d symlink
+    if [ -d '/etc/init.d' -a ! -L '/etc/init.d/mailscanner' -a -f '/usr/lib/MailScanner/init/ms-init' ]; then
+        ln -s /usr/lib/MailScanner/init/ms-init /etc/init.d/mailscanner
+    fi
+    if [ -d '/etc/init.d' -a ! -L '/etc/init.d/ms-sendmail' -a -f '/usr/lib/MailScanner/init/ms-sendmail-init' ]; then
+        ln -s /usr/lib/MailScanner/init/ms-sendmail-init /etc/init.d/ms-sendmail
+    fi
 
-# Sort out the rc.d directories
-chkconfig --add mailscanner
+    # Sort out the rc.d directories
+    chkconfig --add mailscanner
+    chkconfig --add ms-sendmail   
+fi
 
 echo
 echo
@@ -501,9 +570,24 @@ echo
 echo
 echo To activate MailScanner run the following commands:
 echo
+echo    --SysV Init--
 echo    chkconfig mailscanner on
 echo    service mailscanner start
 echo
+echo    --Systemd--
+echo    systemctl enable mailscanner.service
+echo    systemctl start mailscanner.service
+echo
+echo To activate Sendmail for Mailscanner \(if in use\) run the following commands:
+echo
+echo    --SysV Init--
+echo    chkconfig ms-sendmail on
+echo    service ms-sendmail start
+echo
+echo    --Systemd--
+echo    systemctl enable ms-sendmail.service
+echo    systemctl start ms-sendmail.service
+
 echo
 
 exit 0 
@@ -511,16 +595,31 @@ exit 0
 %preun
 if [ $1 = 0 ]; then
     # We are being deleted, not upgraded
-    service mailscanner stop >/dev/null 2>&1
-    chkconfig mailscanner off
-    chkconfig --del mailscanner
+    if [ -d '/usr/lib/systemd' ]; then
+        systemctl stop mailscanner.service >/dev/null 2>&1
+        systemctl disable mailscanner.service
+        rm -f /usr/lib/systemd/system/mailscanner.service
+        systemctl stop ms-sendmail.service >/dev/null 2>&1
+        systemctl disable ms-sendmail.service >/dev/null 2>&1
+        rm -f /usr/lib/systemd/system/ms-sendmail.service
+        rm -f /usr/lib/systemd/system/ms-sendmail-in.service
+        rm -f /usr/lib/systemd/system/ms-sendmail-out.service
+    else
+        service mailscanner stop >/dev/null 2>&1
+        service ms-sendmail stop >/dev/null 2>&1
+        chkconfig mailscanner off
+        chkconfig ms-sendmail off
+        chkconfig --del mailscanner
+        rm -f /etc/init.d/mailscanner
+        chkconfig --del ms-sendmail
+        rm -f /etc/init.d/ms-sendmail
 fi
 exit 0
 
 %postun
 # delete old ms files if this is an upgrade
 if [ -d '/var/lib/MailScanner' ]; then
-	rm -rf /var/lib/MailScanner
+    rm -rf /var/lib/MailScanner
 fi
 exit 0
 
@@ -532,6 +631,7 @@ exit 0
 %attr(755,root,root) %dir /etc/MailScanner/conf.d
 %attr(755,root,root) %dir /usr/lib/MailScanner/wrapper
 %attr(755,root,root) %dir /usr/lib/MailScanner/init
+%attr(755,root,root) %dir /usr/lib/MailScanner/systemd
 %attr(755,root,root) %dir /var/spool/MailScanner/archive
 %attr(755,root,root) %dir /var/spool/MailScanner/incoming
 %attr(755,root,root) %dir /var/spool/MailScanner/quarantine
@@ -560,6 +660,11 @@ exit 0
 %attr(755,root,root) /usr/sbin/ms-upgrade-conf
 
 %attr(755,root,root) /usr/lib/MailScanner/init/ms-init
+%attr(755,root,root) /usr/lib/MailScanner/init/ms-sendmail-init
+%attr(755,root,root) /usr/lib/MailScanner/systemd/ms-systemd
+%attr(755,root,root) /usr/lib/MailScanner/systemd/ms-sendmail
+%attr(755,root,root) /usr/lib/MailScanner/systemd/ms-sendmail-in
+%attr(755,root,root) /usr/lib/MailScanner/systemd/ms-sendmail-out
 
 %attr(755,root,root) /usr/lib/MailScanner/wrapper/avast-wrapper
 %attr(755,root,root) /usr/lib/MailScanner/wrapper/avg-autoupdate
@@ -1072,6 +1177,9 @@ exit 0
 
 
 %changelog
+* Wed May 3 2017 Shawn Iverson <shawniverson@gmail.com>
+- Add RHEL/CentOS 7 systemd support for mailscanner and sendmail
+
 * Thu Nov 10 2016 Jerry Benton <mailscanner@mailborder.com>
 - see https://github.com/MailScanner/v5/blob/master/changelog
 

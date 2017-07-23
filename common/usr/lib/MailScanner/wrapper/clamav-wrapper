@@ -48,11 +48,11 @@ IWD=`${QUICKPEEK} IncomingWorkDir ${ms_conf}`
 ClamUser=`${QUICKPEEK} IncomingWorkUser ${ms_conf}`
 ClamGroup=`${QUICKPEEK} IncomingWorkGroup ${ms_conf}`
 
-if [ "x$ClamUser" = "x" ]; then
+if [ -z ${ClamUser} ]; then
 	ClamUser="clamav"
 fi
 
-if [ "x$ClamGroup" = "x" ]; then
+if [ -z ${ClamGroup} ]; then
 	ClamGroup="mtagroup"
 fi
 
