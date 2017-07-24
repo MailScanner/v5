@@ -148,7 +148,7 @@ if [ -f '/lib/systemd/system/mailscanner.service' ]; then
 fi
 
 # Check for systemd
-if [ -d '/usr/lib/systemd' ]; then
+if [ -f '/lib/systemd/systemd' -o -f '/usr/lib/systemd/systemd' ]; then
     cp /usr/lib/MailScanner/systemd/ms-systemd /lib/systemd/system/mailscanner.service
 # add symlink to init script
 elif [ ! -L '/etc/init.d/mailscanner' ]; then
@@ -269,7 +269,7 @@ if [ -f '/etc/clamav/clamd.conf' ]; then
 	sed -i "s/${CAVOLD}/${CAVNEW}/g" /etc/clamav/clamd.conf
 fi
 
-if [ -d '/usr/lib/systemd' ]; then
+if [ -f '/lib/systemd/systemd' -o -f '/usr/lib/systemd/systemd' ]; then
     systemctl enable mailscanner.service
 else
     update-rc.d mailscanner defaults 80 80
