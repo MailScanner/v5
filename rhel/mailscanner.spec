@@ -525,7 +525,7 @@ if [ -d '/usr/share/MailScanner/reports' -a ! -L '/etc/MailScanner/reports' ]; t
 fi
 
 # RHEL/CentOS7/Fedora >14
-if [ -d '/usr/lib/systemd' ]; then
+if [ -f '/lib/systemd/systemd' -o -f '/usr/lib/systemd/systemd' ]; then
    # copy in systemd wrapper and sendmail services
     if [ -d '/usr/lib/systemd/system' -a ! -e '/usr/lib/systemd/system/mailscanner' -a -f '/usr/lib/MailScanner/systemd/ms-systemd' ]; then
         cp /usr/lib/MailScanner/systemd/ms-systemd /usr/lib/systemd/system/mailscanner.service
@@ -589,7 +589,7 @@ exit 0
 %preun
 if [ $1 = 0 ]; then
     # We are being deleted, not upgraded
-    if [ -d '/usr/lib/systemd' ]; then
+    if [ -f '/lib/systemd/systemd' -o -f '/usr/lib/systemd/systemd' ]; then
         systemctl stop mailscanner.service >/dev/null 2>&1
         systemctl disable mailscanner.service
         rm -f /usr/lib/systemd/system/mailscanner.service
@@ -1171,6 +1171,9 @@ exit 0
 
 
 %changelog
+* Mon Jul 24 2017 Shawn Iverson <shawniverson@gmail.com>
+- Better detection of systemd
+
 * Wed May 3 2017 Shawn Iverson <shawniverson@gmail.com>
 - Add RHEL/CentOS 7 systemd support for mailscanner and sendmail
 

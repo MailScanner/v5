@@ -509,7 +509,7 @@ if [ -d '/usr/share/MailScanner/reports' -a ! -L '/etc/MailScanner/reports' ]; t
 fi
 
 # Check for systemd
-if [ -d '/usr/lib/systemd' -a -f '/usr/lib/MailScanner/systemd/ms-systemd' ]; then
+if [ -f '/lib/systemd/systemd' -o -f '/usr/lib/systemd/systemd' ]; then
     cp /usr/lib/MailScanner/systemd/ms-systemd /usr/lib/systemd/system/mailscanner.service
 # create init.d symlink
 elif [ -d '/etc/init.d' -a ! -L '/etc/init.d/mailscanner' -a -f '/usr/lib/MailScanner/init/ms-init' ]; then
@@ -1104,6 +1104,9 @@ exit 0
 
 
 %changelog
+* Mon Jul 24 2017 Shawn Iverson <shawniverson@gmail.com>
+- Better detection of systemd
+
 * Sun May 28 2017 Shawn Iverson <shawniverson@gmail.com>
 - mailscanner systemd support for SuSE Linux
 
