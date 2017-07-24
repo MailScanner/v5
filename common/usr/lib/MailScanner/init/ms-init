@@ -245,7 +245,7 @@ do_stop()
 		kill $(ps axww | grep '[M]ailScanner': | awk '{print $1}') > /dev/null 2>&1
 		
 		# wait until they're gone.
-		while (ps axww | grep -q '[M]ailScanner'); do
+		while (ps axww | grep -q '[M]ailScanner': ); do
 		    sleep 1
 		done
 		
@@ -329,7 +329,7 @@ case "$1" in
 				[ "$VERBOSE" != no ] && logger -i -p mail.notice "Found a dead PID. Stopping all $NAME rogue processes ..."
 				kill -15 $(ps axww | grep '[M]ailScanner': | awk '{print $1}') > /dev/null 2>&1
 				# wait until they're gone.
-				while (ps axww | grep -q '[M]ailScanner'); do
+				while (ps axww | grep -q '[M]ailScanner': ); do
 					sleep 1
 				done
 				rm -f $PIDFILE
@@ -454,7 +454,7 @@ case "$1" in
 				echo "$NAME had a dead PID. Any rogue processes were killed."
 				kill -15 $(ps axww | grep '[M]ailScanner': | awk '{print $1}') > /dev/null 2>&1
 				# wait until they're gone.
-				while (ps axww | grep -q '[M]ailScanner'); do
+				while (ps axww | grep -q '[M]ailScanner': ); do
 					sleep 1
 				done
 				rm -f $PIDFILE
