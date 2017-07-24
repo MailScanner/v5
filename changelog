@@ -1,3 +1,11 @@
+07/24/2017 Changes in    v5.0.6-2
+==================================
+- Bring Spam List documentation in line with current 
+  spam.lists.conf.
+- Fix typo in sender.filename.report.txt (fr)
+- Better systemd detection
+- Prevent ms-init from mistaking itself as a MailScanner process
+
 07/16/2017 Changes in    v5.0.6-1
 ==================================
 - Updated ms-update-bad-sites to quiet curl and wget
