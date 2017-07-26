@@ -307,7 +307,7 @@ done
 
 # install this separate in case it conflicts
 if [ "x$MTAOPTION" != "x" ]; then
-	$APTGET -yf install "$MTAOPTION"
+	$APTGET -yf install $MTAOPTION
 fi
 
 # fix the stupid line in /etc/freshclam.conf that disables freshclam 
