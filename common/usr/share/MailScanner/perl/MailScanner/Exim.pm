@@ -1111,7 +1111,10 @@ sub KickMessage {
     my $idlist = join(' ', @ThisBatch);
     $idlist .= ' &' if MailScanner::Config::Value('deliverinbackground');
     #print STDERR "About to do \"Sendmail2 -Mc $idlist\"\n";
-    system(MailScanner::Config::Value('sendmail2') . ' -Mc ' . $idlist);
+    # Change out of the current working directory that no longer exists
+    # before calling exim
+    system('cd ' . MailScanner::Config::Value('outqueuedir') . ' && ' . 
+        MailScanner::Config::Value('sendmail2') . ' -Mc ' . $idlist);
 
     #JJH # JJH's version
     #JJH if(MailScanner::Config::Value('deliverinbackground')) {
