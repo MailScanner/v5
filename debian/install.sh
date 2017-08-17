@@ -175,10 +175,7 @@ echo "N - Do not install";
 echo;
 echo "Recommended: 1 (sendmail)"; echo;
 if [ -z "${arg_MTA+x}" ]; then
-    MTAOPTION=${arg_MTA};
-else
     read -r -p "Install an MTA? [1] : " response
-
     if [[ $response =~ ^([nN][oO])$ ]]; then
         # do not install
         MTAOPTION=
@@ -196,7 +193,9 @@ else
         MTAOPTION="exim4-base";
     else
         MTAOPTION=
-    fi
+    fi    
+else
+    MTAOPTION=${arg_MTA};
 fi
 
 # clamav
