@@ -688,7 +688,7 @@ if [ -f '/etc/freshclam.conf' ]; then
 			perl -pi -e 's/'$OLDCAVGRP'/'$NEWCAVGRP'/;' /usr/lib/MailScanner/wrapper/clamav-wrapper
 		fi
 		
-		freshclam
+		freshclam 2>/dev/null
 	fi
 	
 	if [ -f '/etc/init.d/clamd' ]; then
@@ -770,8 +770,7 @@ else
 		fi
 	fi
 	
-	/usr/sbin/ms-update-safe-sites > /dev/null 2>&1
-	/usr/sbin/ms-update-bad-sites > /dev/null 2>&1
+	/usr/sbin/ms-update-phishing >/dev/null 2>&1
 	
 	echo;
 	echo '----------------------------------------------------------';

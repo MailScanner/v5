@@ -94,8 +94,7 @@ if [ $ACTION = DAILY ]; then
 	
 	# update phishing sites
 	if [ $ms_cron_ps = 1 ]; then
-		/usr/sbin/ms-update-safe-sites
-		/usr/sbin/ms-update-bad-sites
+		/usr/sbin/ms-update-phishing >/dev/null
 	fi
 	
 	# update ScamNailer phishing emails

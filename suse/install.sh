@@ -233,7 +233,7 @@ else
 fi
 
 # base system packages
-BASEPACKAGES="binutils gcc glibc-devel libaio1 make man-pages patch rpm tar time unzip which zip libtool perl curl wget openssl libopenssl-devel bzip2 tnef unrar razor-agents";
+BASEPACKAGES="binutils gcc glibc-devel libaio1 make man-pages patch rpm tar time unzip which zip libtool perl curl wget openssl libopenssl-devel bzip2 tnef unrar razor-agents libbz2-devel";
 
 # Packages available in the suse base 13.2. If the user elects not to use EPEL or if the 
 # package is not available for their distro release it will be ignored during the install.
@@ -309,11 +309,11 @@ echo;
 timewait 2
 
 # install base packages
-$ZYPPER --non-interactive install $BASEPACKAGES
+$ZYPPER --non-interactive --ignore-unknown install $BASEPACKAGES
 
 # install this separate in case it conflicts
 if [ "x$MTAOPTION" != "x" ]; then
-	$ZYPPER --non-interactive install $MTAOPTION
+	$ZYPPER --non-interactive --ignore-unknown install $MTAOPTION
 	if [ $MTAOPTION = "sendmail" ]; then
 		mkdir -p /var/spool/mqueue
 		mkdir -p /var/spool/mqueue.in
@@ -374,7 +374,8 @@ echo "Installing available Perl packages, Clam AV (if elected), and ";
 echo "Spamassassin (if elected) via zypper. You can safely ignore any";
 echo "subsequent warnings from zypper."; echo;
 timewait 3
-$ZYPPER --non-interactive install $MOREPACKAGES $CAVOPTION $SAOPTION
+
+$ZYPPER --non-interactive --ignore-unknown install $MOREPACKAGES $CAVOPTION $SAOPTION
 
 # now check for missing perl modules and install them via cpan
 # if the user elected to do so
@@ -392,7 +393,7 @@ do
 	if [ $? != 0 ]; then
 		echo "$i is missing. Trying to install via Zypper ..."; echo;
 		THING="perl($i)";
-		$ZYPPER --non-interactive install $THING
+		$ZYPPER --non-interactive --ignore-unknown install $THING
 	fi
 done
 
@@ -442,7 +443,7 @@ if [ -f '/etc/freshclam.conf' ]; then
 		
 		mkdir -p /var/run/clamav
 		chown vscan:vscan /var/run/clamav
-		freshclam
+		freshclam 2>/dev/null
 	fi
 fi
 
@@ -491,8 +492,7 @@ else
 		fi
 	fi
 	
-	/usr/sbin/ms-update-safe-sites > /dev/null 2>&1
-	/usr/sbin/ms-update-bad-sites > /dev/null 2>&1
+	/usr/sbin/ms-update-phishing > /dev/null 2>&1
 	
 	echo;
 	echo '----------------------------------------------------------';
