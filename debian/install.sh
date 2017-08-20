@@ -588,11 +588,10 @@ else
 		fi
 	fi
 		
-	/usr/sbin/ms-update-safe-sites > /dev/null 2>&1
-	/usr/sbin/ms-update-bad-sites > /dev/null 2>&1
+	/usr/sbin/ms-update-phishing >/dev/null 2>&1
 	
 	if [ -d '/etc/clamav' ]; then
-		/usr/bin/freshclam 
+		/usr/bin/freshclam 2>/dev/null
 	fi
 	
 	echo;

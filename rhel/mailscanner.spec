@@ -114,9 +114,8 @@ install usr/sbin/ms-peek                            ${RPM_BUILD_ROOT}/usr/sbin/m
 install usr/sbin/ms-perl-check                      ${RPM_BUILD_ROOT}/usr/sbin/ms-perl-check
 install usr/sbin/ms-sa-cache                        ${RPM_BUILD_ROOT}/usr/sbin/ms-sa-cache
 install usr/sbin/ms-update-bad-emails               ${RPM_BUILD_ROOT}/usr/sbin/ms-update-bad-emails
-install usr/sbin/ms-update-bad-sites                ${RPM_BUILD_ROOT}/usr/sbin/ms-update-bad-sites
+install usr/sbin/ms-update-phishing                 ${RPM_BUILD_ROOT}/usr/sbin/ms-update-phishing
 install usr/sbin/ms-update-sa                       ${RPM_BUILD_ROOT}/usr/sbin/ms-update-sa
-install usr/sbin/ms-update-safe-sites               ${RPM_BUILD_ROOT}/usr/sbin/ms-update-safe-sites
 install usr/sbin/ms-update-vs                       ${RPM_BUILD_ROOT}/usr/sbin/ms-update-vs
 install usr/sbin/ms-upgrade-conf                    ${RPM_BUILD_ROOT}/usr/sbin/ms-upgrade-conf
 
@@ -647,9 +646,8 @@ exit 0
 %attr(755,root,root) /usr/sbin/ms-perl-check
 %attr(755,root,root) /usr/sbin/ms-sa-cache
 %attr(755,root,root) /usr/sbin/ms-update-bad-emails
-%attr(755,root,root) /usr/sbin/ms-update-bad-sites
+%attr(755,root,root) /usr/sbin/ms-update-phishing
 %attr(755,root,root) /usr/sbin/ms-update-sa
-%attr(755,root,root) /usr/sbin/ms-update-safe-sites
 %attr(755,root,root) /usr/sbin/ms-update-vs
 %attr(755,root,root) /usr/sbin/ms-upgrade-conf
 
@@ -1171,6 +1169,9 @@ exit 0
 
 
 %changelog
+* Sat Aug 19 2017 Shawn Iverson <shawniverson@gmail.com>
+- ms-update-phishing
+
 * Mon Jul 24 2017 Shawn Iverson <shawniverson@gmail.com>
 - Better detection of systemd
 

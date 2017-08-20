@@ -1,8 +1,8 @@
 # Welcome to MailScanner!
 #
-# Current version: 5.0.6-2 release
+# Current version: 5.0.6-3 release
 #
-# Jerry Benton - 24 July 2017
+# Jerry Benton - 19 August 2017
 # <mailscanner@mailborder.com>
 #
 #
@@ -24,6 +24,10 @@
 #		tar -xvzf MailScanner-5.x.x-x.distro.tar.gz
 #		cd MailScanner-5.x.x-x
 #		./install.sh
+#
+#   Update:
+#       Same as install, but a reboot may be necessary
+#       for daemons to stop/start properly after updating
 #
 #	MTA Guides:
 #		sendmail - https://www.mailscanner.info/sendmail

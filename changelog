@@ -1,3 +1,15 @@
+07/24/2017 Changes in    v5.0.6-3
+==================================
+
+- New phishing sites update script
+- Unattended install options for debian build
+- Fix for exim queue processing
+- ms-init fixes
+- Fix debian not installing sendmail
+- Fix SuSE not installing packages via zypper
+- Suppress freshclam error output during install
+- Fix missing libbz2-devel package on suse builds
+
 07/24/2017 Changes in    v5.0.6-2
 ==================================
 - Bring Spam List documentation in line with current 

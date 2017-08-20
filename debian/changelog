@@ -1,5 +1,5 @@
-MailScanner (5.0.4-4) UNRELEASED; urgency=low
+MailScanner (5.0.6-3) stable; urgency=low
 
   * Maintenance release
 
- -- Jerry Benton <mailscanner@mailborder.com>  Thu, 10 November 2016 01:00:00 -0400
+ -- Jerry Benton <mailscanner@mailborder.com>  Sat, 19 August 2017 01:00:00 -0400
