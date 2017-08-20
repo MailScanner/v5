@@ -25,9 +25,9 @@
 #		cd MailScanner-5.x.x-x
 #		./install.sh
 #
-#   Update:
-#       Same as install, but a reboot may be necessary
-#       for daemons to stop/start properly after updating
+#	Update:
+#		Same as install, but a reboot may be necessary
+#		for daemons to stop/start properly after updating
 #
 #	MTA Guides:
 #		sendmail - https://www.mailscanner.info/sendmail
