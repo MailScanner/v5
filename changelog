@@ -9,6 +9,7 @@
 - Fix SuSE not installing packages via zypper
 - Suppress freshclam error output during install
 - Fix missing libbz2-devel package on suse builds
+- Fix MailScanner.conf not getting updated and merged
 
 07/24/2017 Changes in    v5.0.6-2
 ==================================
