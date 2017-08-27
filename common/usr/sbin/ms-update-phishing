@@ -3,7 +3,7 @@
 #   MailScanner - SMTP E-Mail Virus Scanner
 #   Copyright (C) 2002-2017  Julian Field, Thom van der Boon
 #
-#   $Id: update_bad_safe_phishing_sites 3982 2017-08-06 09:00:39Z sysjkf $
+#   $Id: update_bad_safe_phishing_sites 3982 2017-08-22 09:00:39Z sysjkf $
 #
 #   This program is free software; you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
@@ -28,6 +28,7 @@ CONFIGDIR='/etc/MailScanner';
 BADURL='http://phishing.mailscanner.info/phishing.bad.sites.conf';
 SAFEURL='http://phishing.mailscanner.info/phishing.safe.sites.conf';
 MSSTARTSCRIPT='/etc/init.d/mailscanner';
+MSSERVICENAME='mailscanner.service';
 
 PATH=/bin:/usr/bin:/sbin:/usr/sbin:/usr/etc:/usr/local/bin:/usr/sfw/bin
 export PATH
@@ -41,18 +42,46 @@ else
     exit 1
 fi
 
+ms_conf_files=( $(ls conf.d/.) )
+for conf_file in ${ms_conf_files[*]}
+do
+  if [ "${conf_file}" != "README" ]; then
+    SYSLOG=`/usr/sbin/ms-peek SyslogFacility conf.d/${conf_file}`
+    if [ "x$SYSLOG" != "x" ]; then
+      break
+    fi
+  fi
+done
+
+if [ "x$SYSLOG" == "x" ]; then
+  SYSLOG=`/usr/sbin/ms-peek SyslogFacility MailScanner.conf`
+fi
+
+if [ "x$SYSLOG" == "x" ]; then
+  SYSLOG="mail"
+fi
+
 # Load MailScanner Defaults
 if [ -f $CONFIGDIR/defaults ] ; then
   . $CONFIGDIR/defaults
 fi
 
+gotAnError=0
+
 if [ -z "$ms_cron_ps_restart" ]; then 
   echo 'ms_cron_ps_restart not found in defaults. Adding....'
   echo '' >> $CONFIGDIR/defaults
   echo '' >> $CONFIGDIR/defaults
-  echo '# restart mailscanner after update of phishing sites files. 0 = off, 1 = on' >> $CONFIGDIR/defaults
+  echo '# Restart MailScanner after Update Safe/Bad Phishing sites' >> $CONFIGDIR/defaults
+  echo '#' >> $CONFIGDIR/defaults
+  echo '# Restart MailScanner after update of the Safe/Bad Phishing sites files.' >> $CONFIGDIR/defaults
+  echo '# This is disabled by default.' >> $CONFIGDIR/defaults
+  echo '#' >> $CONFIGDIR/defaults
+  echo '# This is executed during the DAILY cron option.  0 = off, 1 = on' >> $CONFIGDIR/defaults
+  echo '#' >> $CONFIGDIR/defaults
+  echo '' >> $CONFIGDIR/defaults
   echo 'ms_cron_ps_restart=0' >> $CONFIGDIR/defaults
-  $ms_cron_ps_restart = 0;
+  ms_cron_ps_restart=0;
 fi
 
 # check for the custom config file and create if missing
@@ -60,16 +89,16 @@ if [ ! -f $CONFIGDIR/phishing.bad.sites.custom ]; then
 	echo '# Add your custom Phishing bad sites to the' > $CONFIGDIR/phishing.bad.sites.custom
 	echo '# phishing.bad.sites.custom file in your MailScanner' >> $CONFIGDIR/phishing.bad.sites.custom 
 	echo '# directory. Note that phishing.bad.sites.conf is' >> $CONFIGDIR/phishing.bad.sites.custom
-	echo '# overwritten when update_bad_phishing_sites is executed.' >> $CONFIGDIR/phishing.bad.sites.custom
+	echo '# overwritten when ms-update-phishing is executed.' >> $CONFIGDIR/phishing.bad.sites.custom
 	echo '#' >> $CONFIGDIR/phishing.bad.sites.custom
 fi
 
 # check for the custom config file and create if missing
 if [ ! -f $CONFIGDIR/phishing.safe.sites.custom ]; then
-	echo '# Add your custom Phishing bad sites to the' > $CONFIGDIR/phishing.safe.sites.custom
+	echo '# Add your custom Phishing safe sites to the' > $CONFIGDIR/phishing.safe.sites.custom
 	echo '# phishing.safe.sites.custom file in your MailScanner' >> $CONFIGDIR/phishing.safe.sites.custom 
 	echo '# directory. Note that phishing.safe.sites.conf is' >> $CONFIGDIR/phishing.safe.sites.custom
-	echo '# overwritten when update_bad_phishing_sites is executed.' >> $CONFIGDIR/phishing.safe.sites.custom
+	echo '# overwritten when ms-update-phishing is executed.' >> $CONFIGDIR/phishing.safe.sites.custom
 	echo '#' >> $CONFIGDIR/phishing.safe.sites.custom
 fi
 
@@ -81,7 +110,7 @@ else
     #echo 'Found wget'
     CURLORWGET='wget';
   else
-    logger -p mail.warn -t update.bad.phishing.sites Cannot find wget or curl, update failed. ; echo Cannot find wget or curl to do phishing sites update. ; exit 1
+    logger -p $SYSLOG.warn -t update.bad.phishing.sites Cannot find wget or curl, update failed. ; echo Cannot find wget or curl to do phishing sites update. ; exit 1
   fi
 fi
 
@@ -90,7 +119,7 @@ fi
 bad_updated=1;
 
 if [ $CURLORWGET = 'curl' ]; then
-  curl -S -A "msv5 Update Script v0.1.1" -z $CONFIGDIR/phishing.bad.sites.conf.master --compressed -o $CONFIGDIR/phishing.bad.sites.conf.master $BADURL &> /dev/null
+  curl -S -A "msv5 Update Script v0.2.0" -z $CONFIGDIR/phishing.bad.sites.conf.master --compressed -o $CONFIGDIR/phishing.bad.sites.conf.master $BADURL &> /dev/null
   if [ "$?" = "0" ]; then
     #echo Check or download phishing.bad.sites.conf.master completed OK.
     if [ -r $CONFIGDIR/phishing.bad.sites.conf.master.backup ]; then
@@ -102,6 +131,8 @@ if [ $CURLORWGET = 'curl' ]; then
         else
           #echo Check phishing.bad.sites.conf.master failed: It looks corrupt
           rm -f $CONFIGDIR/phishing.bad.sites.conf.master
+          logger -p $SYSLOG.warn -t update.bad.phishing.sites Downloaded bad phishing site master file is corrupt, update failed. ; echo "Downloaded bad phishing site master file is corrupt, removing it." ;
+          gotAnError=1
         fi
       else
         #echo Remote phishing.bad.sites.conf.master not newer than local copy.... everything OK
@@ -115,17 +146,18 @@ if [ $CURLORWGET = 'curl' ]; then
       else
         #echo Check phishing.bad.sites.conf.master failed: It looks corrupt
         rm -f $CONFIGDIR/phishing.bad.sites.conf.master
+        logger -p $SYSLOG.warn -t update.bad.phishing.sites Downloaded bad phishing site master file is corrupt, update failed. ; echo "Downloaded bad phishing site master file is corrupt, removing it." ;
+        gotAnError=1
       fi
     fi
   else
-    logger -p mail.warn -t update.bad.phishing.sites Updating using curl failed, trying wget. ; echo Updating using curl failed, trying wget. ; CURLORWGET = 'wget';
+    logger -p $SYSLOG.warn -t update.bad.phishing.sites Updating using curl failed, trying wget. ; echo Updating using curl failed, trying wget. ; CURLORWGET = 'wget';
   fi
 fi
 
-
 if [ $CURLORWGET = 'wget' ]; then
   echo Trying wget....
-  wget -q --user-agent="msv5 Update Script v0.1.1" --no-check-certificate -N $BADURL.master
+  wget -q --user-agent="msv5 Update Script v0.2.0" --no-check-certificate -N $BADURL.master
   if [ "$?" = "0" ]; then
     echo Check or download phishing.bad.sites.conf.master completed OK.
     if [ -r $CONFIGDIR/phishing.bad.sites.conf.master.backup ]; then
@@ -137,6 +169,8 @@ if [ $CURLORWGET = 'wget' ]; then
         else
           #echo Check phishing.bad.sites.conf.master failed: It looks corrupt
           rm -f $CONFIGDIR/phishing.bad.sites.conf.master
+          logger -p $SYSLOG.warn -t update.bad.phishing.sites Downloaded bad phishing site master file is corrupt, removing it. ; echo "Downloaded bad phishing site master file is corrupt, removing it." ;
+          gotAnError=1
         fi
       else
         #echo Remote phishing.bad.sites.conf.master not newer than local copy.... everything OK
@@ -150,11 +184,21 @@ if [ $CURLORWGET = 'wget' ]; then
       else
         #echo Check phishing.bad.sites.conf.master failed: It looks corrupt
         rm -f $CONFIGDIR/phishing.bad.sites.conf.master
+        logger -p $SYSLOG.warn -t update.bad.phishing.sites Downloaded bad phishing site master file is corrupt, removing it. ; echo "Downloaded bad phishing site master file is corrupt, removing it." ;
+        gotAnError=1
       fi
     fi
   else
-    logger -p mail.warn -t update.bad.phishing.sites Updating using curl and wget failed. ; echo Updating using curl and wget failed. ; exit 1;
+    rm -f $CONFIGDIR/phishing.bad.sites.conf.master
+    logger -p $SYSLOG.warn -t update.bad.phishing.sites The curl/wget download of the bad phishing site master file failed. Removing whatever was downloaded.; echo The curl/wget download of the bad phishing site master file failed. Removing whatever was downloaded.;
+    gotAnError=1
   fi
+fi
+
+bad_custom_time=$(stat -c %Y phishing.bad.sites.custom)
+bad_conf_time=$(stat -c %Y phishing.bad.sites.conf)
+if [ $bad_custom_time -ge $bad_conf_time ]; then
+  bad_updated=1
 fi
 
 if [ $bad_updated -ge 1 ]; then
@@ -166,9 +210,11 @@ if [ $bad_updated -ge 1 ]; then
     mv -f phishing.bad.sites.conf.new phishing.bad.sites.conf
     chmod a+r phishing.bad.sites.conf
     #echo Creation of fresh phishing.bad.sites.conf is OK
-    logger -p mail.info -t update.bad.phishing.sites Phishing bad sites list updated
+    logger -p $SYSLOG.info -t update.bad.phishing.sites Phishing bad sites list updated
   else
-    logger -p mail.info -t update.bad.phishing.sites Phishing bad sites list update failed!
+    logger -p $SYSLOG.info -t update.bad.phishing.sites The phishing bad sites master file does not exist or is not readable. Update failed! ; echo "The phishing bad sites master file does not exist or is not readable. Update failed!" ;
+    gotAnError=1
+    bad_updated=0
   fi
 fi
 
@@ -177,7 +223,7 @@ fi
 safe_updated=1;
 
 if [ $CURLORWGET = 'curl' ]; then
-  curl -S -A "msv5 Update Script v0.1.1" -z $CONFIGDIR/phishing.safe.sites.conf.master --compressed -o $CONFIGDIR/phishing.safe.sites.conf.master $SAFEURL &> /dev/null
+  curl -S -A "msv5 Update Script v0.2.0" -z $CONFIGDIR/phishing.safe.sites.conf.master --compressed -o $CONFIGDIR/phishing.safe.sites.conf.master $SAFEURL &> /dev/null
   if [ "$?" = "0" ]; then
     #echo Check or download phishing.safe.sites.conf.master completed OK.
     if [ -r $CONFIGDIR/phishing.safe.sites.conf.master.backup ]; then
@@ -189,6 +235,8 @@ if [ $CURLORWGET = 'curl' ]; then
         else
           #echo Check phishing.safe.sites.conf.master failed: It looks corrupt
           rm -f $CONFIGDIR/phishing.safe.sites.conf.master
+          logger -p $SYSLOG.warn -t update.safe.phishing.sites Downloaded safe phishing site master file is corrupt, update failed. ; echo "Downloaded safe phishing site master file is corrupt, removing it." ;
+          gotAnError=1
         fi
       else
         #echo Remote phishing.safe.sites.conf.master not newer than local copy.... everything OK
@@ -202,16 +250,18 @@ if [ $CURLORWGET = 'curl' ]; then
       else
         #echo Check phishing.safe.sites.conf.master failed: It looks corrupt
         rm -f $CONFIGDIR/phishing.safe.sites.conf.master
+        logger -p $SYSLOG.warn -t update.safe.phishing.sites Downloaded safe phishing site master file is corrupt, update failed. ; echo "Downloaded safe phishing site master file is corrupt, removing it." ;
+        gotAnError=1
       fi
     fi
   else
-    logger -p mail.warn -t update.safe.phishing.sites Updating using curl failed, trying wget. ; echo Updating using curl failed, trying wget. ; CURLORWGET = 'wget';
+    logger -p $SYSLOG.warn -t update.safe.phishing.sites Updating using curl failed, trying wget. ; echo Updating using curl failed, trying wget. ; CURLORWGET = 'wget';
   fi
 fi
 
 if [ $CURLORWGET = 'wget' ]; then
   echo Trying wget....
-  wget -q --user-agent="msv5 Update Script v0.1.1" --no-check-certificate -N $SAFEURL.master
+  wget -q --user-agent="msv5 Update Script v0.2.0" --no-check-certificate -N $SAFEURL.master
   if [ "$?" = "0" ]; then
     #echo Check or download phishing.safe.sites.conf.master completed OK.
     if [ -r $CONFIGDIR/phishing.safe.sites.conf.master.backup ]; then
@@ -223,6 +273,7 @@ if [ $CURLORWGET = 'wget' ]; then
         else
           #echo Check phishing.safe.sites.conf.master failed: It looks corrupt
           rm -f $CONFIGDIR/phishing.safe.sites.conf.master
+          logger -p $SYSLOG.warn -t update.safe.phishing.sites Downloaded safe phishing site master file is corrupt, removing it. ; echo "Downloaded safe phishing site master file is corrupt, removing it." ;
         fi
       else
         #echo Remote phishing.safe.sites.conf.master not newer than local copy.... everything OK
@@ -236,11 +287,21 @@ if [ $CURLORWGET = 'wget' ]; then
       else
         #echo Check phishing.safe.sites.conf.master failed: It looks corrupt
         rm -f $CONFIGDIR/phishing.safe.sites.conf.master
+        logger -p $SYSLOG.warn -t update.safe.phishing.sites Downloaded safe phishing site master file is corrupt, removing it. ; echo "Downloaded safe phishing site master file is corrupt, removing it." ;
+        gotAnError=1
       fi
     fi
   else
-    logger -p mail.warn -t update.safe.phishing.sites Updating using curl and wget failed. ; echo Updating using curl and wget failed. ; exit 1;
+    rm -f $CONFIGDIR/phishing.safe.sites.conf.master
+    logger -p $SYSLOG.warn -t update.safe.phishing.sites The curl/wget download of the safe phishing site master file failed. Removing whatever was downloaded.; echo The curl/wget download of the safe phishing site master file failed. Removing whatever was downloaded.;
+    gotAnError=1
   fi
+fi
+
+safe_custom_time=$(stat -c %Y phishing.safe.sites.custom)
+safe_conf_time=$(stat -c %Y phishing.safe.sites.conf)
+if [ $safe_custom_time -ge $safe_conf_time ]; then
+  safe_updated=1
 fi
 
 if [ $safe_updated -ge 1 ]; then
@@ -252,31 +313,49 @@ if [ $safe_updated -ge 1 ]; then
     mv -f phishing.safe.sites.conf.new phishing.safe.sites.conf
     chmod a+r phishing.safe.sites.conf
     #echo Creation of fresh phishing.safe.sites.conf is OK
-    logger -p mail.info -t update.safe.phishing.sites Phishing safe sites list updated
+    logger -p $SYSLOG.info -t update.safe.phishing.sites Phishing safe sites list updated
   else
-    logger -p mail.info -t update.safe.phishing.sites Phishing safe sites list update failed!
+    logger -p $SYSLOG.info -t update.safe.phishing.sites The phishing safe sites master file does not exist or is not readable. Update failed! ; echo "The phishing safe sites master file does not exist or is not readable. Update failed!" ;
+    gotAnError=1
+    safe_updated=0
   fi
 fi
  
 updated=$(($bad_updated + $safe_updated));
 
-if [ $updated -ge 1 ]; then
-  if [ "$ms_cron_ms_restart" = "1" ]; then
-    if [ ! -f /var/lock/subsys/MailScanner.off ]; then
-      #echo "MailScanner stopped manually. Not restarting...."
 
-      if [ -s $MSSTARTSCRIPT ]; then
-        $MSSTARTSCRIPT reload > /dev/null 2>&1
+if [ $updated -ge 1 ]; then
+  if [ "$ms_cron_ps_restart" = "1" ]; then
+    if [ ! -f /var/lock/subsys/MailScanner.off ]; then
+      logger -p $SYSLOG.info -t ms-update-phishing reload MailScanner....
+      if [ -d /etc/systemd ]; then
+        systemctl reload $MSSERVICENAME > /dev/null 2>&1
         if [ $? != 0 ] ; then
           #echo "MailScanner reload failed - Retrying..."
-          $MSSTARTSCRIPT reload
+          systemctl reload $MSSERVICENAME > /dev/null 2>&1
           if [ $? != 0 ] ; then
             #echo "Stopping MailScanner..."
-            $MSSTARTSCRIPT stop
+            systemctl stop $MSSERVICENAME
             #echo "Waiting for a minute..."
             perl -e "sleep 60;"
             #echo "Attemping to start MailScanner..."
-            $MSSTARTSCRIPT start
+            systemctl start $MSSERVICENAME
+          fi
+        fi
+      else
+        if [ -s $MSSTARTSCRIPT ]; then
+          $MSSTARTSCRIPT reload > /dev/null 2>&1
+          if [ $? != 0 ] ; then
+            #echo "MailScanner reload failed - Retrying..."
+            $MSSTARTSCRIPT reload
+            if [ $? != 0 ] ; then
+              #echo "Stopping MailScanner..."
+              $MSSTARTSCRIPT stop
+              #echo "Waiting for a minute..."
+              perl -e "sleep 60;"
+              #echo "Attemping to start MailScanner..."
+              $MSSTARTSCRIPT start
+            fi
           fi
         fi
       fi
@@ -284,4 +363,4 @@ if [ $updated -ge 1 ]; then
   fi
 fi
 
-exit 0
+exit ${gotAnError}

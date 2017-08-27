@@ -590,7 +590,7 @@ exit 0
 %attr(755,root,root) /usr/sbin/ms-upgrade-conf
 
 %attr(755,root,root) /usr/lib/MailScanner/init/ms-init
-%attr(755,root,root) /usr/lib/MailScanner/systemd/ms-systemd
+%attr(644,root,root) /usr/lib/MailScanner/systemd/ms-systemd
 
 %attr(755,root,root) /usr/lib/MailScanner/wrapper/avast-wrapper
 %attr(755,root,root) /usr/lib/MailScanner/wrapper/avg-autoupdate
@@ -1103,6 +1103,9 @@ exit 0
 
 
 %changelog
+* Sun Aug 27 2017 Shawn Iverson <shawniverson@gmail.com>
+- Remove execute bit on systemd script
+
 * Sat Aug 19 2017 Shawn Iverson <shawniverson@gmail.com>
 - ms-update-phishing
 

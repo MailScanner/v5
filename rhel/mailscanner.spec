@@ -575,10 +575,14 @@ echo
 echo To activate Sendmail for Mailscanner \(if in use\) run the following commands:
 echo
 echo    --SysV Init--
+echo    chkconfig sendmail off
+echo    chkconfig sm-client off
 echo    chkconfig ms-sendmail on
 echo    service ms-sendmail start
 echo
 echo    --Systemd--
+echo    systemctl disable sendmail.service
+echo    systemctl disable sm-client.service
 echo    systemctl enable ms-sendmail.service
 echo    systemctl start ms-sendmail.service
 
@@ -654,10 +658,10 @@ exit 0
 
 %attr(755,root,root) /usr/lib/MailScanner/init/ms-init
 %attr(755,root,root) /usr/lib/MailScanner/init/ms-sendmail-init
-%attr(755,root,root) /usr/lib/MailScanner/systemd/ms-systemd
-%attr(755,root,root) /usr/lib/MailScanner/systemd/ms-sendmail
-%attr(755,root,root) /usr/lib/MailScanner/systemd/ms-sendmail-in
-%attr(755,root,root) /usr/lib/MailScanner/systemd/ms-sendmail-out
+%attr(644,root,root) /usr/lib/MailScanner/systemd/ms-systemd
+%attr(644,root,root) /usr/lib/MailScanner/systemd/ms-sendmail
+%attr(644,root,root) /usr/lib/MailScanner/systemd/ms-sendmail-in
+%attr(644,root,root) /usr/lib/MailScanner/systemd/ms-sendmail-out
 
 %attr(755,root,root) /usr/lib/MailScanner/wrapper/avast-wrapper
 %attr(755,root,root) /usr/lib/MailScanner/wrapper/avg-autoupdate
@@ -1170,6 +1174,9 @@ exit 0
 
 
 %changelog
+* Sun Aug 27 2017 Shawn Iverson <shawniverson@gmail.com>
+- Remove execute bit on systemd scripts/update instructions
+
 * Sat Aug 19 2017 Shawn Iverson <shawniverson@gmail.com>
 - ms-update-phishing
 

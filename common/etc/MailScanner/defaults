@@ -149,3 +149,13 @@ ms_vs_conf=/etc/MailScanner/virus.scanners.conf
 # and should not be started automaticly
 #
 stopped_lockfile=/var/lock/subsys/MailScanner.off
+
+# Restart MailScanner after Update Safe/Bad Phishing sites
+#
+# Restart MailScanner after update of the Safe/Bad Phishing sites files.
+# This is disabled by default.
+#
+# This is executed during the DAILY cron option.  0 = off, 1 = on
+#
+
+ms_cron_ps_restart=0
