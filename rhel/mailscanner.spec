@@ -71,7 +71,7 @@ done << EOF
 mcp.spamassassin.conf
 EOF
 
-while read f 
+while read f
 do
   install etc/MailScanner/rules/$f ${RPM_BUILD_ROOT}/etc/MailScanner/rules
 done << EOF
@@ -82,7 +82,7 @@ README
 spam.whitelist.rules
 EOF
 
-while read f 
+while read f
 do
   install etc/MailScanner/$f ${RPM_BUILD_ROOT}/etc/MailScanner/
 done << EOF
@@ -291,7 +291,7 @@ fi
 
 # remove old file if present
 if [ -f '/etc/init.d/ms-sendmail' ]; then
-   chkconfig --del ms-sendmail >/dev/null 2>&10
+   chkconfig --del ms-sendmail >/dev/null 2>&1
    rm -f /etc/init.d/ms-sendmail
 fi
 
@@ -611,6 +611,7 @@ if [ $1 = 0 ]; then
         rm -f /etc/init.d/mailscanner
         chkconfig --del ms-sendmail
         rm -f /etc/init.d/ms-sendmail
+    fi
 fi
 exit 0
 
