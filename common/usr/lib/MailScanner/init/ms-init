@@ -589,6 +589,22 @@ case "$1" in
     [ "$VERBOSE" != no ] && logger -i -p mail.notice "Reloading $NAME "
     do_stop
 
+    RETVAL="$?"
+
+    # error in do_stop - this should never trigger
+    if [ $RETVAL -eq 3 ]; then
+        echo "There was a fatal error in restarting the daemon. Use the"
+        echo "'kill' option to force any running processes to stop and then start."
+        exit 1
+    fi
+
+    # mailscanner could not be stopped
+    if [ $RETVAL -eq 2 ]; then
+        echo "ERROR: Unable to restart $NAME"
+        echo "ERROR: Use the 'kill' option to force stop and then start."
+        exit 1
+    fi
+
     do_start
 
     STARTRETVAL="$?"
