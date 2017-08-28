@@ -1,3 +1,11 @@
+08/28/2017 Changes in    v5.0.6-4
+==================================
+- Fixes and enhancements for ms-update-phishing
+- Remove execute bit on systemd files
+- Return code check added for ms-init during service reload
+- Update documentation
+- Add ms_cron_ps_restart to /etc/MailScanner/defaults
+
 08/20/2017 Changes in    v5.0.6-3
 ==================================
 
