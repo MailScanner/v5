@@ -261,13 +261,11 @@ SAVEDIR="$HOME/ms_upgrade/saved.$$";
 
 # remove old symlink if present
 if [ -L '/etc/init.d/mailscanner' ]; then
-    chkconfig --del mailscanner >/dev/null 2>&1
     rm -f /etc/init.d/mailscanner
 fi
 
 # remove old file if present
 if [ -f '/etc/init.d/mailscanner' ]; then
-    chkconfig --del mailscanner >/dev/null 2>&1
     rm -f /etc/init.d/mailscanner
 fi
 
@@ -279,37 +277,32 @@ fi
 
 # remove old file if present
 if [ -f '/etc/init.d/MailScanner' ]; then
-   chkconfig --del MailScanner >/dev/null 2>&1
-   rm -f /etc/init.d/MailScanner
+    chkconfig --del MailScanner >/dev/null 2>&1
+    rm -f /etc/init.d/MailScanner
 fi
 
 # remove old file if present
 if [ -f '/usr/lib/systemd/system/mailscanner' ]; then
-   systemctl disable mailscanner >/dev/null 2>&1
    rm -f /usr/lib/systemd/system/mailscanner
 fi
 
 # remove old file if present
 if [ -f '/etc/init.d/ms-sendmail' ]; then
-   chkconfig --del ms-sendmail >/dev/null 2>&1
    rm -f /etc/init.d/ms-sendmail
 fi
 
 # remove old file if present
 if [ -f '/usr/lib/systemd/system/ms-sendmail' ]; then
-   systemctl disable ms-sendmail >/dev/null 2>&1
    rm -f /usr/lib/systemd/system/ms-sendmail
 fi
 
 # remove old file if present
 if [ -f '/usr/lib/systemd/system/ms-sendmail-in' ]; then
-   systemctl disable ms-sendmail-in >/dev/null 2>&1
    rm -f /usr/lib/systemd/system/ms-sendmail-in
 fi
 
 # remove old file if present
 if [ -f '/usr/lib/systemd/system/ms-sendmail-out' ]; then
-   systemctl disable ms-sendmail-out >/dev/null 2>&1
    rm -f /usr/lib/systemd/system/ms-sendmail-out
 fi
 
@@ -550,8 +543,16 @@ else
     fi
 
     # Sort out the rc.d directories
-    chkconfig --add mailscanner
-    chkconfig --add ms-sendmail   
+    chkconfig --list mailscanner >/dev/null 2>&1
+    if [ $? -ne 0 ]; then
+        chkconfig --add mailscanner
+        chkconfig mailscanner off
+    fi
+    chkconfig --list ms-sendmail >/dev/null 2>&1
+    if [ $? -ne 0 ]; then
+        chkconfig --add ms-sendmail
+        chkconfig ms-sendmail off
+    fi
 fi
 
 echo
@@ -633,7 +634,7 @@ exit 0
 %attr(755,root,root) %dir /usr/lib/MailScanner/systemd
 %attr(755,root,root) %dir /var/spool/MailScanner/archive
 %attr(755,root,root) %dir /var/spool/MailScanner/incoming
-%attr(755,root,root) %dir /var/spool/MailScanner/quarantine
+#%attr(755,root,root) %dir /var/spool/MailScanner/quarantine
 %attr(755,root,root) %dir /usr/share/MailScanner
 %attr(755,root,root) %dir /usr/share/MailScanner/perl
 %attr(755,root,root) %dir /usr/share/MailScanner/perl/custom
@@ -1175,6 +1176,9 @@ exit 0
 
 
 %changelog
+* Sun Sep 03 2017 Shawn Iverson <shawniverson@gmail.com>
+- Preserve quarantine perms and better init runlevel handling
+
 * Sun Aug 27 2017 Shawn Iverson <shawniverson@gmail.com>
 - Remove execute bit on systemd scripts/update instructions
 
