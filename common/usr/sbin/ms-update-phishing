@@ -42,20 +42,7 @@ else
     exit 1
 fi
 
-ms_conf_files=( $(ls conf.d/.) )
-for conf_file in ${ms_conf_files[*]}
-do
-  if [ "${conf_file}" != "README" ]; then
-    SYSLOG=`/usr/sbin/ms-peek SyslogFacility conf.d/${conf_file}`
-    if [ "x$SYSLOG" != "x" ]; then
-      break
-    fi
-  fi
-done
-
-if [ "x$SYSLOG" == "x" ]; then
-  SYSLOG=`/usr/sbin/ms-peek SyslogFacility MailScanner.conf`
-fi
+SYSLOG=`/usr/sbin/ms-peek SyslogFacility MailScanner.conf`
 
 if [ "x$SYSLOG" == "x" ]; then
   SYSLOG="mail"
