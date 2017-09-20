@@ -4782,8 +4782,8 @@ TNEF Expander  = internal',
  However, it does slightly slow SpamAssassin and so is disabled by default.
  Setting this to "yes" will have no effect without a small patch to the
  SpamAssassin code. You can fetch the patch for your version of SpamAssassin
- from "http://www.mailscanner.info/mcp.htmlpatches". That web page will
- explain in detail how to apply the patch.
+ from "https://web.archive.org/web/20150323143115/http://www.mailscanner.info/mcp.html#patches".
+ That web page will explain in detail how to apply the patch.
  This can also be the filename of a ruleset.',
     'value' => ' no',
   ),

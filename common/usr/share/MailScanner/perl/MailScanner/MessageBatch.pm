@@ -259,7 +259,7 @@ sub SpamChecks {
 
     # Tell SpamAssassin to apply rules to binary attachments
     # This relies on a patch to Util.pm in SpamAssassin, fetch the patch from
-    # http://www.mailscanner.info/mcp.html#patches
+    # https://web.archive.org/web/20150323143115/http://www.mailscanner.info/mcp.html#patches
     $MailScanner::MCP::SA_Decode_Binaries = 0;
     $MailScanner::MCP::SA_Decode_Binaries = 1
       if MailScanner::Config::Value('sadecodebins', $message) =~ /1/;
