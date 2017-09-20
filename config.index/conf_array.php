@@ -1724,10 +1724,10 @@ Ignored Web Bug Filenames = spacer pixel.gif pixel.png',
     'external' => 'mcpspamassassinprefsfile',
     'type' => 'file',
     'ruleset' => 'no',
-    'default' => '/etc/MailScanner/mcp/mcp.spam.assassin.prefs.conf',
+    'default' => '/etc/MailScanner/mcp/mcp.spamassassin.conf',
     'name' => 'MCP SpamAssassin Prefs File',
     'desc' => '',
-    'value' => ' %mcp-dir%/mcp.spam.assassin.prefs.conf',
+    'value' => ' %mcp-dir%/mcp.spamassassin.conf',
   ),
   'mcpspamassassintimeout' => 
   array (
