@@ -251,13 +251,11 @@ SAVEDIR="$HOME/ms_upgrade/saved.$$";
 
 # remove old symlink if present
 if [ -L '/etc/init.d/mailscanner' ]; then
-	chkconfig --del mailscanner >/dev/null 2>&1
 	rm -f /etc/init.d/mailscanner
 fi
 
 # remove old file if present
 if [ -f '/etc/init.d/mailscanner' ]; then
-	chkconfig --del mailscanner >/dev/null 2>&1
 	rm -f /etc/init.d/mailscanner
 fi
 
@@ -275,7 +273,6 @@ fi
 
 # remove systemd if present
 if [ -f '/usr/lib/systemd/system/mailscanner.service' ]; then
-    systemctl disable mailscanner.service
     rm -f /usr/lib/systemd/system/mailscanner.service
 fi
 
@@ -515,7 +512,11 @@ if [ -f '/lib/systemd/systemd' -o -f '/usr/lib/systemd/systemd' ]; then
 elif [ -d '/etc/init.d' -a ! -L '/etc/init.d/mailscanner' -a -f '/usr/lib/MailScanner/init/ms-init' ]; then
     ln -s /usr/lib/MailScanner/init/ms-init /etc/init.d/mailscanner
     # Sort out the rc.d directories
-    chkconfig --add mailscanner
+    chkconfig --list mailscanner >/dev/null 2>&1
+    if [ $? -ne 0 ]; then
+        chkconfig --add mailscanner
+        chkconfig mailscanner off
+    fi
 fi
 
 echo
@@ -565,7 +566,7 @@ exit 0
 %attr(755,root,root) %dir /usr/lib/MailScanner/systemd
 %attr(755,root,root) %dir /var/spool/MailScanner/archive
 %attr(755,root,root) %dir /var/spool/MailScanner/incoming
-%attr(755,root,root) %dir /var/spool/MailScanner/quarantine
+#%attr(755,root,root) %dir /var/spool/MailScanner/quarantine
 %attr(755,root,root) %dir /usr/share/MailScanner
 %attr(755,root,root) %dir /usr/share/MailScanner/perl
 %attr(755,root,root) %dir /usr/share/MailScanner/perl/custom
@@ -1103,6 +1104,9 @@ exit 0
 
 
 %changelog
+* Sun Sep 03 2017 Shawn Iverson <shawniverson@gmail.com>
+- Preserve quarantine perms and better init runlevel handling
+
 * Sun Aug 27 2017 Shawn Iverson <shawniverson@gmail.com>
 - Remove execute bit on systemd script
 
