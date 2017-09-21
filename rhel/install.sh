@@ -721,20 +721,38 @@ echo;
 echo "Installing the MailScanner RPM ... ";
 
 # install the mailscanner rpm
-# Pass #1 -- without scripts (bypasses prior pre and post uninstall scripts in older versions of mailscanner)
-$RPM -Uvh --force --noscripts $NODEPS MailScanner*noarch.rpm
-# Move rpmsaves around so that scripts can find them
-if [[ -e /etc/MailScanner/MailScanner.conf.rpmsave ]]; then 
-    mv /etc/MailScanner/MailScanner.conf /etc/MailScanner/MailScanner.conf.rpmnew
-    mv /etc/MailScanner/MailScanner.conf.rpmsave /etc/MailScanner/MailScanner.conf
-fi
-if [[ -e /etc/MailScanner/spam.assassin.prefs.conf.rpmsave ]]; then
-    mv /etc/MailScanner/spam.assassin.prefs.conf.rpmsave /etc/MailScanner/spam.assassin.prefs.conf
-fi
-# Pass #2 -- with scripts
-$RPM -Uvh --force $NODEPS MailScanner*noarch.rpm
 
-if [ $? != 0 ]; then
+ABORT=0
+# MailScanner version 4 will trigger an rpmsave during update
+# MailScanner version 5 will not due to need to drop in a new MailScanner.conf
+# during updating every time for comparison, so the following update process
+# will cause MailScanner.conf to get overwritten in v5 if it is not moved first
+mv /etc/MailScanner/MailScanner.conf /etc/MailScanner/MailScanner.conf.rpmsave >/dev/null 2>&1
+
+# Pass #1 -- without scripts (bypasses prior pre and post uninstall scripts in older versions of mailscanner)
+# This resolves two issues
+# One is the presence of faulty pre and post scripts in v4 packages
+# The second is the presence of a bug in earlier v5 packages during %post
+$RPM -Uvh --force --noscripts $NODEPS MailScanner*noarch.rpm
+if [ $? == 0 ]; then
+
+    # Move rpmsaves around so that scripts can find them
+    if [[ -e /etc/MailScanner/MailScanner.conf.rpmsave ]]; then 
+        mv /etc/MailScanner/MailScanner.conf /etc/MailScanner/MailScanner.conf.rpmnew
+        mv /etc/MailScanner/MailScanner.conf.rpmsave /etc/MailScanner/MailScanner.conf
+    fi
+    if [[ -e /etc/MailScanner/spam.assassin.prefs.conf.rpmsave ]]; then
+        mv /etc/MailScanner/spam.assassin.prefs.conf.rpmsave /etc/MailScanner/spam.assassin.prefs.conf
+    fi
+    
+    # Pass #2 -- with scripts
+    $RPM -Uvh --force $NODEPS MailScanner*noarch.rpm
+    [ $? != 0 ] && ABORT=1
+else
+    ABORT=1
+fi
+
+if [ $ABORT == 1 ]; then
 	echo;
 	echo '----------------------------------------------------------';
 	echo 'Installation Error'; echo;
