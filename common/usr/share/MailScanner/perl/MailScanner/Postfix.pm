@@ -279,7 +279,7 @@ sub new {
     #
     my $long_queue_id=0;
     my $hex;
-    if ($file =~ /\-[A-Za-z0-9]{12,20}\.[A-Za-z0-9]{5}$/) {
+    if ($file !~ /\-[A-F0-9]+\.[A-Za-z0-9]{5}$/) {
         my $file_orig=$file;
         # Long queue IDs
         $long_queue_id=1;

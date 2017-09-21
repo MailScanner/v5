@@ -86,7 +86,7 @@ sub new {
   #
   my $long_queue_id=0;
   my $hex=$this->{hdname}; 
-  if ($this->{hdname} =~ /[A-Za-z0-9]{12,20}$/) {
+  if ($this->{hdname} !~ /^[A-F0-9]+$/) {
    # long queue id
    $long_queue_id=1;
    # With long queue IDs, when hash queues is enabled, the directory hierarchy
