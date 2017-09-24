@@ -8,8 +8,11 @@
 #
 # Written by:
 # Jerry Benton < mailscanner@mailborder.com >
+# 29 APR 2016
+# Updated By:
 # Manuel Dalla Lana < endelwar@aregar.it >
-# 10 JAN 2017
+# Shawn Iverson < shawniverson@gmail.com >
+# 24 SEP 2017
 
 # clear the screen. yay!
 clear
@@ -67,7 +70,7 @@ while [ $# -gt 0 ]; do
                 printf "Error: Invalid value for ignoreDeps: only Y or N values are accepted.\n"
                 exit 1
             fi
-	    ;;
+        ;;
 
         --ramdiskSize=*)
             if [[ ${1#*=} =~ ^-?[0-9]+$ ]]; then
@@ -81,7 +84,7 @@ while [ $# -gt 0 ]; do
 
         --help)
             printf "MailScanner Installation for Debian Based Systems\n\n"
-            printf "Usage: %s [--MTA=sendmail|postfix|exim|none] [--installClamav=Y|N] [--installCPAN=Y|N] [--ignoreDeps=Y|N] [--ramdiskSize=value] [--saPostmaster=value]\n\n" "$0"
+            printf "Usage: %s [--MTA=sendmail|postfix|exim|none] [--installClamav=Y|N] [--installCPAN=Y|N] [--ignoreDeps=Y|N] [--ramdiskSize=value]\n\n" "$0"
             printf -- "--MTA=value           Select the Mail Transfer Agent (MTA) to be installed            (sendmail|postfix|exim|none)\n"
             printf    "                      Recommended: sendmail\n\n"
             printf -- "--installClamav=Y|N   Install or update Clam AV during installation                   (Y or N)\n"
@@ -113,27 +116,27 @@ THISCURRPMDIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 
 # Function used to Wait for n seconds
 timewait () {
-	DELAY=$1
-	sleep ${DELAY}
+    DELAY=$1
+    sleep ${DELAY}
 }
 
 # Check for root user
 if [ $(whoami) != "root" ]; then
-	clear
-	echo;
-	echo "Installer must be run as root. Aborting. Use 'su -' to switch to the root environment."; echo;
-	exit 192
+    clear
+    echo;
+    echo "Installer must be run as root. Aborting. Use 'su -' to switch to the root environment."; echo;
+    exit 192
 fi
 
 # bail if apt-get is not installed
 if [ ! -x '/usr/bin/apt-get' ]; then
-	clear
-	echo;
-	echo "apt-get package manager is not installed. You must install this before starting";
-	echo "the MailScanner installation process. Installation aborted."; echo;
-	exit 192
+    clear
+    echo;
+    echo "apt-get package manager is not installed. You must install this before starting";
+    echo "the MailScanner installation process. Installation aborted."; echo;
+    exit 192
 else
-	APTGET='/usr/bin/apt-get';
+    APTGET='/usr/bin/apt-get';
 fi
 
 # user info screen before the install process starts
@@ -156,8 +159,8 @@ fi
 if [ -f '/etc/MailScanner/MailScanner.conf' ]; then
     CONFFILES="--force-confold"
 else
-	# new install
-	CONFFILES=
+    # new install
+    CONFFILES=
 fi
 
 # ask if the user wants an mta installed
@@ -250,21 +253,24 @@ if [ -z "${arg_installCPAN+x}" ]; then
         CPANOPTION=1
 
         # ignore dependency issue since the user elected to
-	    # use CPAN to remediate the modules
-	    NODEPS='--force-depends';
+        # use CPAN to remediate the modules
+        NODEPS='--force-depends';
     elif [ -z $response ]; then
         # user wants to use CPAN for missing modules
         CPANOPTION=1
 
         # ignore dependency issue since the user elected to
-	    # use CPAN to remediate the modules
-	    NODEPS='--force-depends';
+        # use CPAN to remediate the modules
+        NODEPS='--force-depends';
     else
         # user does not want to use CPAN
         CPANOPTION=0
     fi
 else
     CPANOPTION=${arg_installCPAN}
+    if [ $CPANOPTION -eq 1 ]; then
+        NODEPS='--force-depends';
+    fi
 fi
 
 # ask if the user wants to ignore dependencies. they are automatically ignored
@@ -277,14 +283,22 @@ echo "dependencies. It is highly recommended that you DO NOT do this unless you"
 echo "are debugging.";
 echo;
 echo "Recommended: N (no)"; echo;
-read -r -p "Ignore MailScanner dependencies (nodeps)? [y/N] : " response
+if [ -z "${arg_ignoreDeps+x}" ]; then
+    read -r -p "Ignore MailScanner dependencies (nodeps)? [y/N] : " response
 
-if [[ $response =~ ^([yY][eE][sS]|[yY])$ ]]; then
-	# user wants to ignore deps
-	NODEPS='--force-depends'
+    if [[ $response =~ ^([yY][eE][sS]|[yY])$ ]]; then
+        # user wants to ignore deps
+        NODEPS='--force-depends'
+    else
+        # requiring deps
+        NODEPS=
+    fi
 else
-	# requiring deps
-	NODEPS=
+    if [ ${arg_ignoreDeps} -eq 1 ]; then
+        NODEPS='--force-depends'
+    else
+        NODEPS=
+    fi
 fi
 
 # ask if the user wants to add a ramdisk
@@ -429,54 +443,54 @@ $APTGET update
 
 for i in "${BASEPACKAGES[@]}"
 do
-	$APTGET -yf install $i	
+    $APTGET -yf install $i	
 done
 
 # install this separate in case it conflicts
 if [ "x$MTAOPTION" != "x" ]; then
-	$APTGET -yf install $MTAOPTION
+    $APTGET -yf install $MTAOPTION
 fi
 
 # fix the stupid line in /etc/freshclam.conf that disables freshclam 
 if [ $CAV == 1 ]; then
-	clear
-	echo;
-	echo "Installing Clam AV via apt ... "; echo;
-	timewait 3
-	$APTGET -y install $CAVOPTION
-	COUT='#Example';
-	if [ -f "/etc/freshclam.conf" ]; then
-		perl -pi -e 's/Example/'$COUT'/;' /etc/freshclam.conf
-	fi
+    clear
+    echo;
+    echo "Installing Clam AV via apt ... "; echo;
+    timewait 3
+    $APTGET -y install $CAVOPTION
+    COUT='#Example';
+    if [ -f "/etc/freshclam.conf" ]; then
+        perl -pi -e 's/Example/'$COUT'/;' /etc/freshclam.conf
+    fi
 fi
 
 # check for curl
 if [ ! -x /usr/bin/curl ]; then
-	clear
-	echo;
-	echo "The curl command cannot be found. I have already attempted to install this";
-	echo "package, but it is still not found. Please ensure that you have network access";
-	echo "to the internet and try running the installation again.";
-	echo;
-	exit 1
+    clear
+    echo;
+    echo "The curl command cannot be found. I have already attempted to install this";
+    echo "package, but it is still not found. Please ensure that you have network access";
+    echo "to the internet and try running the installation again.";
+    echo;
+    exit 1
 else
-	CURL='/usr/bin/curl';
+    CURL='/usr/bin/curl';
 fi
 
 # create the cpan config if there isn't one and the user
 # elected to use CPAN
 if [ $CPANOPTION == 1 ]; then
-	# user elected to use CPAN option
-	if [ ! -f '/root/.cpan/CPAN/MyConfig.pm' ]; then
-		echo;
-		echo "CPAN config missing. Creating one ..."; echo;
-		mkdir -p /root/.cpan/CPAN
-		cd /root/.cpan/CPAN
-		$CURL -O https://s3.amazonaws.com/msv5/CPAN/MyConfig.pm
-		cd $THISCURRPMDIR
-		timewait 1
-		perl -MCPAN -e 'my $c = "CPAN::HandleConfig"; $c->load(doit => 1, autoconfig => 1); $c->edit(prerequisites_policy => "follow"); $c->edit(build_requires_install_policy => "yes"); $c->commit'
-	fi
+    # user elected to use CPAN option
+    if [ ! -f '/root/.cpan/CPAN/MyConfig.pm' ]; then
+        echo;
+        echo "CPAN config missing. Creating one ..."; echo;
+        mkdir -p /root/.cpan/CPAN
+        cd /root/.cpan/CPAN
+        $CURL -O https://s3.amazonaws.com/msv5/CPAN/MyConfig.pm
+        cd $THISCURRPMDIR
+        timewait 1
+        perl -MCPAN -e 'my $c = "CPAN::HandleConfig"; $c->load(doit => 1, autoconfig => 1); $c->edit(prerequisites_policy => "follow"); $c->edit(build_requires_install_policy => "yes"); $c->commit'
+    fi
 fi
 
 # now check for missing perl modules and install them via cpan
@@ -487,27 +501,48 @@ timewait 2
 # used to trigger a wait if something this missing
 PMODWAIT=0
 
+# CPAN automation invoked?
+if [ -z "${arg_installCPAN+x}" ]; then
+    AUTOCPAN=0
+else
+    if [ $CPANOPTION -eq 1 ]; then
+        AUTOCPAN=1
+        # Install cpanminus
+        $APTGET  -y install cpanminus
+        if [ $? -ne 0 ]; then
+            echo "Error installing cpanminus, falling back to perl invocation method."
+            AUTOCPAN=0
+        fi
+    else
+        AUTOCPAN=0
+    fi
+fi
+
 # remediate
 if [ ${CPANOPTION} == 1 ]; then
     #Install pre SpamAssassin modules
     for i in "${ARMOD[@]}"
     do
         perldoc -l ${i} >/dev/null 2>&1
-	    if [ $? != 0 ]; then
+        if [ $? != 0 ]; then
             clear
             echo "${i} is missing. Installing via CPAN ..."; echo;
             timewait 1
-            perl -MCPAN -e "CPAN::Shell->force(qw(install ${i} ));"
+            if [ $AUTOCPAN -eq 0 ]; then
+                perl -MCPAN -e "CPAN::Shell->force(qw(install ${i} ));"
+            else
+                cpanm --force --no-interactive $i
+            fi
         fi
     done
 
     #Install SpamaAssassin, use standard cpan in normail install, or App::cpanminus in unattended install
     perldoc -l ${MODSA} >/dev/null 2>&1
-	if [ $? != 0 ]; then
+    if [ $? != 0 ]; then
         clear
         echo "${MODSA} is missing. Installing via CPAN ..."; echo;
         timewait 1
-        if [ "$parsedCommands" -eq 0 ]; then
+        if [ $AUTOCPAN -eq 0 ]; then
             perl -MCPAN -e "CPAN::Shell->force(qw(install ${MODSA} ));"
         else
             cpanm --no-interactive ${MODSA}
@@ -518,7 +553,7 @@ if [ ${CPANOPTION} == 1 ]; then
     for i in "${ARMODAFTERSA[@]}"
     do
         perldoc -l ${i} >/dev/null 2>&1
-	    if [ $? != 0 ]; then
+        if [ $? != 0 ]; then
             clear
             echo "${i} is missing. Installing via CPAN ..."; echo;
             timewait 1
@@ -532,15 +567,15 @@ fi
 ARMODALL=("${ARMOD[@]}" "${MODSA}" "${ARMODAFTERSA[@]}")
 for i in "${ARMODALL[@]}"
 do
-	perldoc -l ${i} >/dev/null 2>&1
-	if [ $? != 0 ]; then
+    perldoc -l ${i} >/dev/null 2>&1
+    if [ $? != 0 ]; then
 
-		echo "WARNING: $i is missing.";
-		PMODWAIT=5
+        echo "WARNING: $i is missing.";
+        PMODWAIT=5
 
-	else
-		echo "${i} => OK";
-	fi
+    else
+        echo "${i} => OK";
+    fi
 done
 
 # will pause if a perl module was missing
@@ -554,56 +589,56 @@ echo "Installing the MailScanner .deb package ... ";
 dpkg -i ${CONFFILES} ${NODEPS} "${THISCURRPMDIR}"/MailScanner-*-noarch.deb
 
 if [ $? != 0 ]; then
-	echo;
-	echo '----------------------------------------------------------';
-	echo 'Installation Error'; echo;
-	echo 'The MailScanner package failed to install. Address the required';
-	echo 'dependencies and run the installer again.';
-	echo;
-	echo 'Note that Perl modules need to be available system-wide. A';
-	echo 'common issue is that missing modules were installed in a ';
-	echo 'user specific configuration.';
-	echo;
-else	
-	# create ramdisk
-	if [ $RAMDISK == 1 ]; then
-		if [ -d '/var/spool/MailScanner/incoming' ]; then
-			echo "Creating the ramdisk ...";
-			echo;
-			DISK="/var/spool/MailScanner/incoming";
-			FSTYPE=$(df -P -T ${DISK}|tail -n +2 | awk '{print $2}')
+    echo;
+    echo '----------------------------------------------------------';
+    echo 'Installation Error'; echo;
+    echo 'The MailScanner package failed to install. Address the required';
+    echo 'dependencies and run the installer again.';
+    echo;
+    echo 'Note that Perl modules need to be available system-wide. A';
+    echo 'common issue is that missing modules were installed in a ';
+    echo 'user specific configuration.';
+    echo;
+else
+    # create ramdisk
+    if [ $RAMDISK == 1 ]; then
+        if [ -d '/var/spool/MailScanner/incoming' ]; then
+            echo "Creating the ramdisk ...";
+            echo;
+            DISK="/var/spool/MailScanner/incoming";
+            FSTYPE=$(df -P -T ${DISK}|tail -n +2 | awk '{print $2}')
 
-			if [ $FSTYPE != tmpfs ]; then
-				mount -t tmpfs -o size=${RAMDISKSIZE}M tmpfs ${DISK}
-				echo "tmpfs ${DISK} tmpfs rw,size=${RAMDISKSIZE}M 0 0" >> /etc/fstab
-				echo "Enabling ramdisk sync ...";
-				if [ -f '/etc/MailScanner/defaults' ]; then
-					OLD="^ramdisk_sync=0";
-					NEW="ramdisk_sync=1";
-					sed -i "s/${OLD}/${NEW}/g" /etc/MailScanner/defaults
-				fi
-			else
-				echo "${DISK} is already a RAMDISK!"; echo;
-			fi
-		fi
-	fi
-		
-	/usr/sbin/ms-update-phishing >/dev/null 2>&1
-	
-	if [ -d '/etc/clamav' ]; then
-		/usr/bin/freshclam 2>/dev/null
-	fi
-	
-	echo;
-	echo '----------------------------------------------------------';
-	echo 'Installation Complete'; echo;
-	echo 'See http://www.mailscanner.info for more information and  '
-	echo 'support via the MailScanner mailing list.'
-	echo;
-	echo;
-	echo 'Review: Set your preferences in /etc/MailScanner/MailScanner.conf'
-	echo 'and review /etc/MailScanner/defaults';
-	echo;
+            if [ $FSTYPE != tmpfs ]; then
+                mount -t tmpfs -o size=${RAMDISKSIZE}M tmpfs ${DISK}
+                echo "tmpfs ${DISK} tmpfs rw,size=${RAMDISKSIZE}M 0 0" >> /etc/fstab
+                echo "Enabling ramdisk sync ...";
+                if [ -f '/etc/MailScanner/defaults' ]; then
+                    OLD="^ramdisk_sync=0";
+                    NEW="ramdisk_sync=1";
+                    sed -i "s/${OLD}/${NEW}/g" /etc/MailScanner/defaults
+                fi
+            else
+                echo "${DISK} is already a RAMDISK!"; echo;
+            fi
+        fi
+    fi
+        
+    /usr/sbin/ms-update-phishing >/dev/null 2>&1
+    
+    if [ -d '/etc/clamav' ]; then
+        /usr/bin/freshclam 2>/dev/null
+    fi
+    
+    echo;
+    echo '----------------------------------------------------------';
+    echo 'Installation Complete'; echo;
+    echo 'See http://www.mailscanner.info for more information and  '
+    echo 'support via the MailScanner mailing list.'
+    echo;
+    echo;
+    echo 'Review: Set your preferences in /etc/MailScanner/MailScanner.conf'
+    echo 'and review /etc/MailScanner/defaults';
+    echo;
 fi 
 
 ) 2>&1 | tee mailscanner-install.log
