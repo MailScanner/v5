@@ -696,6 +696,10 @@ $YUM -y --skip-broken install $BASEPACKAGES $EPELOPTION
 # install this separate in case it conflicts
 if [ "x$MTAOPTION" != "x" ]; then
     $YUM -y install $MTAOPTION
+    if [ $? != 0 ]; then
+        echo "Error installing $MTAOPTION MTA"
+        echo "This usually means an MTA is already installed."
+    fi
     if [ $MTAOPTION = "sendmail" ]; then
         mkdir -p /var/spool/mqueue.in
     fi
