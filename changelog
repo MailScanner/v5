@@ -1,3 +1,14 @@
+09/29/2017 Changes in    v5.0.6-5
+==================================
+- Return result of mta installation
+- Automation flags for all major distros
+- Fix config filename to mcp.spamassassin.conf
+- Point broken links to wayback machine for mcp
+- Properly detect long queue IDs for postfix
+- Preserve MailScanner.conf during upgrade
+- Fix finding of configured SyslogFacility
+- Properly suppress removing ms-sendmail init output
+
 08/28/2017 Changes in    v5.0.6-4
 ==================================
 - Fixes and enhancements for ms-update-phishing
