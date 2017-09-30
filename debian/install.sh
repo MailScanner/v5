@@ -449,6 +449,10 @@ done
 # install this separate in case it conflicts
 if [ "x$MTAOPTION" != "x" ]; then
     $APTGET -yf install $MTAOPTION
+    if [ $? != 0 ]; then
+        echo "Error installing $MTAOPTION MTA"
+        echo "This usually means an MTA is already installed."
+    fi
 fi
 
 # fix the stupid line in /etc/freshclam.conf that disables freshclam 
