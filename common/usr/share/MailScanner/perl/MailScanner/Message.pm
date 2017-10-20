@@ -477,7 +477,7 @@ sub address2userdomain {
 
   if ($addr =~ /@/) {
     $user   =~ s/@[^@]*$//;
-    $domain =~ s/^[^@]*@//;
+    $domain =~ s/^.*@//;
   }
 
   return ($user, $domain);
