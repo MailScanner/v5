@@ -6,7 +6,7 @@ set -e
 # unregister the old startup script
 update-rc.d -f mailscanner remove
 
-if [ -d '/usr/lib/systemd' && -f '/lib/systemd/system/mailscanner.service' ]; then
+if [ -d '/usr/lib/systemd' ] && [ -f '/lib/systemd/system/mailscanner.service' ]; then
     systemctl disable mailscanner.service
     rm -f /lib/systemd/system/mailscanner.service
 fi
