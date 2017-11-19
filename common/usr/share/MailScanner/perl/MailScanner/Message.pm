@@ -3027,6 +3027,9 @@ sub UnpackRar {
   # Check version
   return 1 unless $UnrarVersion =~ /^\d+\.\d*$/ && ( $UnrarVersion >= 4.0 && $UnrarVersion < 6.0 );
 
+  # Escape spaces in filename
+  $zipname =~ s/\ /\\\ /g;
+
   # Unrar Version 4x file parse
   if ($UnrarVersion >= 4.0 && $UnrarVersion < 5.0) {
     #MailScanner::Log::WarnLog("UnPackRar Testing : %s", $zipname);
