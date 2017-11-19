@@ -2663,7 +2663,8 @@ sub ExplodePartAndArchives {
   my($size, $level, $ziperror, $tarerror, $silentviruses, $noisyviruses);
   my($allziperrors, $alltarerrors, $textlevel, $failisokay);
   my($linenum, $foundheader, $prevline, $line, $position, $prevpos, $nextpos);
-  my($cyclecounter, $rarerror, $create0files, $oleerror);
+  my($cyclecounter, $rarerror, $create0files, $oleerror, $sevenzerror);
+  my($filecommand, $PipeTimeOut, $memb, $use_unpacker);
 
   $dir = new DirHandle;
   $file = new FileHandle;
@@ -2672,6 +2673,7 @@ sub ExplodePartAndArchives {
   $cyclecounter = 0;
   $ziperror = 0;
   $tarerror = 0;
+  $sevenzerror = 0;
 
   # Do they only want encryption checking and nothing else?
   my $onlycheckencryption;
@@ -2806,6 +2808,28 @@ sub ExplodePartAndArchives {
       #$level++;
       next if $level > $maxlevels;
 
+      # Do a file (magic) on every file we run into and appoint an unpacker
+      $PipeTimeOut = MailScanner::Config::Value('filetimeout');
+      $filecommand = MailScanner::Config::Value('filecommand');
+      $use_unpacker = '';
+      if ($filecommand && -x $filecommand) { # check if we got support
+        $memb = SafePipe("$filecommand -b '$explodeinto/$part' 2>&1",
+                   $PipeTimeOut);
+
+        if ($memb =~ /ERROR/) {
+          MailScanner::Log::WarnLog("File magic error (%s)", $memb); 
+        } elsif ( ($memb =~ /^Zip archive/i) ) { # use zip unpacker
+          $use_unpacker = "zip";
+        } elsif ( ($memb =~ /^RAR archive/i) ) { # use (official) rar unpacker
+          $use_unpacker = "rar";
+        } elsif ( ($memb =~ /^(7-zip|arj|cpio|lha(.*)|xar|GNU tar|POSIX tar|ASCII cpio) archive/i) || # use 7zip unpacker
+          ($memb =~ /^(lzh|lzma|bzip2|gzip|xz) compressed/i) ||
+          ($memb =~ /^(RPM|Delta-RPM|Windows imaging|\# ISO|ISO)/i) ) { 
+          $use_unpacker = "7z";
+        }
+      }
+      #MailScanner::Log::WarnLog("Unpack-engine (%s) file (%s)", $use_unpacker, $part); 
+
       # Find all the zip files
       #print STDERR "Looking at $explodeinto/$part\n";
       #next if MailScanner::Config::Value('filecommand', $this) eq "";
@@ -2831,7 +2855,7 @@ sub ExplodePartAndArchives {
                   $failisokay;
       #print STDERR "Found a zip or rar file\n" ;
       $file->close, next unless MailScanner::Config::Value('findarchivesbycontent', $this) ||
-                  $part =~ /\.(tar\.g?z|taz|tgz|tz|gz|zip|exe|rar|uu|uue|doc|xls|ppt|dot|xlt|pps)$/i;
+                  $part =~ /\.(tar\.g?z|taz|tgz|tz|gz|zip|exe|rar|uu|uue|doc|docx|xls|xlsx|ppt|pptx|dot|dotx|xlt|xltx|pps|ppsx)$/i;
       $foundnewfiles = 1;
       #print STDERR "Unpacking $part at level $level\n";
 
@@ -2851,10 +2875,11 @@ sub ExplodePartAndArchives {
       $ziperror = $this->UnpackZip($part, $explodeinto, $allowpasswords,
                                    $insistpasswords,
                                    $onlycheckencryption, $create0files);
+      #MailScanner::Log::WarnLog("UnpackZip (%s) file (%s)", $ziperror, $part);
       #print STDERR "* * * * * * * Unpackzip $part returned $ziperror\n";
       # If unpacking as a zip failed, try it as a rar
       $rarerror = "";
-      if ($part =~ /\.rar$/i || $buffer eq "Rar!" or $buffer =~ /^MZ[P]?/) {
+      if ($part =~ /\.rar$/i || $use_unpacker eq "rar" || $buffer eq "Rar!" or $buffer =~ /^MZ[P]?/) {
         $rarerror = $this->UnpackRar($part, $explodeinto, $allowpasswords,
                                      $insistpasswords,
                                      $onlycheckencryption, $create0files);
@@ -2871,11 +2896,21 @@ sub ExplodePartAndArchives {
                                      $onlycheckencryption, $create0files);
       }
 
-      $tarerror = "";
-      $tarerror = 0 # $this->UnpackTar($part, $explodeinto, $allowpasswords)
-        if $ziperror || $part =~ /(tar\.g?z|tgz)$/i;
+      # $tarerror = "";
+      # $tarerror = 0 # $this->UnpackTar($part, $explodeinto, $allowpasswords)
+      #  if $ziperror || $part =~ /(tar\.g?z|tgz|gz)$/i;
       #print STDERR "In inner: \"$part\"\n";
-      if ($ziperror eq "nonpassword" || $rarerror eq "nonpassword") {
+      
+      if (
+        ($use_unpacker eq "7z") ||
+        ($part =~ /\.(001|7z|arj|bz2|bzip2|cab|cpio|deb|dmg|fat|gz|gzip|hfs|iso|jar|lha|lzh|lzma)$/) ||
+        ($part =~ /\.(ntfs|rpm|squashfs|swm|tar|taz|tbz|tbz2|tgz|tpz|txz|vhd|wim|xar|xz|z)$/) ) {
+          $sevenzerror = $this->Unpack7zip($part, $explodeinto, $allowpasswords,
+                                     $insistpasswords,
+                                     $onlycheckencryption, $create0files);
+      }
+
+      if ($ziperror eq "nonpassword" || $rarerror eq "nonpassword" || $sevenzerror eq "nonpassword") {
         # Trim off leading type indicator character for logging.
         my $f = substr($part,1);
         MailScanner::Log::WarnLog("Non-password-protected archive (%s) in %s",
@@ -2889,7 +2924,7 @@ sub ExplodePartAndArchives {
         $this->{cantdisinfect} = 1; # Don't even think about disinfecting this!
         $this->{silent}=1 if $silentviruses =~ / Zip-NonPassword | All-Viruses /i;
         $this->{noisy} =1 if $noisyviruses  =~ / Zip-NonPassword /i;
-      } elsif ($ziperror eq "password" || $rarerror eq "password") {
+      } elsif ($ziperror eq "password" || $rarerror eq "password" || $sevenzerror eq "password") {
         # Trim off leading type indicator character for logging.
         my $f = substr($part,1);
         MailScanner::Log::WarnLog("Password-protected archive (%s) in %s",
@@ -2903,7 +2938,7 @@ sub ExplodePartAndArchives {
         $this->{cantdisinfect} = 1; # Don't even think about disinfecting this!
         $this->{silent}=1 if $silentviruses =~ / Zip-Password | All-Viruses /i;
         $this->{noisy} =1 if $noisyviruses  =~ / Zip-Password /i;
-      } elsif ($ziperror && $tarerror && $rarerror && !$failisokay) {
+      } elsif ($ziperror && $rarerror && $sevenzerror && !$failisokay) {
         # Trim off leading type indicator character for logging.
         my $f = substr($part,1);
         MailScanner::Log::WarnLog("Unreadable archive (%s) in %s",
@@ -2994,6 +3029,216 @@ sub UnpackUUE {
   $out->close;
 }
 
+
+# Unpack a 7za file into the named directory.
+# Return 1 if an error occurred, else 0.
+# Return 0 on success.
+# Return "password" if a member was password-protected.
+# Very much like UnpackZip except it uses the external "7z" command.
+sub Unpack7zip {
+  my($this, $zipname, $explodeinto, $allowpasswords, $insistpasswords, $onlycheckencryption, $touchfiles) = @_;
+
+  my($zip, @members, $member, $name, $fh, $safename, $memb, $check, $junk,
+     $unzip, $unrar, $IsEncrypted, $PipeTimeOut, $PipeReturn,$NameTwo, $HasErrors,
+     $member2, $Stuff, $BeginInfo, $EndInfo, $ParseLine, $what, $nopathname);
+    
+  # Timeout value for unrar is currently the same as that of the file
+  # command + 20. Julian, when you add the filetimeout to the config file
+  # perhaps you should think about adding a maxcommandexecutetime setting
+  # as well
+  $PipeTimeOut = MailScanner::Config::Value('un7ziptimeout');
+  $unzip = MailScanner::Config::Value('un7zipcommand');
+  return 1 unless $unzip && -x $unzip;
+
+  #MailScanner::Log::WarnLog("7ZipUnpacker: %s", $zipname);
+
+  # This part lists the archive contents and makes the list of
+  # file names within. "This is a list verbose option"
+  #$memb = SafePipe("$unrar v -p- '$explodeinto/$zipname' 2>&1",
+  #                   $PipeTimeOut);
+  $memb = SafePipe("$unzip l '$explodeinto/$zipname' 2>&1",
+                   $PipeTimeOut);
+
+  if ($memb =~ /^error/i) {
+     MailScanner::Log::WarnLog("7ZipUnpacker: (%s)", $memb);
+     $HasErrors = 1;  
+  }
+  #MailScanner::Log::WarnLog("7z output: %s", $memb);
+
+  $junk = "";
+  $Stuff = "";
+  $BeginInfo = 0;
+  $EndInfo = 0;
+  $ParseLine = 1;
+  $memb =~ s/\r//gs;
+  my @test = split /\n/, $memb;
+  $memb = '';
+
+  # Have to parse the output from the 'v' command and parse the information
+  # between the ----------------------------- lines
+  foreach $what (@test) {
+    #print STDERR "Processing \"$what\"\n";
+    #MailScanner::Log::WarnLog("7z what: %s", $what);
+
+    # Have we already hit the beginng and now find another ------ string?
+    # If so then we are at the end
+    $EndInfo = 1 if $what =~ /-{18,}$/ && $BeginInfo;
+  
+    # if we are after the begning but haven't reached the end,
+    # then process this line
+    if ($BeginInfo && !$EndInfo) {
+      # MailScanner::Log::WarnLog("7z what: %s", $what);
+      # If we are on line one then it's the file name with full path
+      # otherwise we are on the info line containing the attributes
+      $what =~ s/ +/ /g;
+      my (@Zarray ) = split /\s/, $what;
+      my $Zname = pop @Zarray; # this is the most important value, other values are nice to have but this one we must have
+      my $Zdate = $Zarray[0];
+      my $Ztime = $Zarray[1];
+      my $Zattr = $Zarray[2];
+      #my $Zsize = $Zarray[3];
+      #my $ZCsize = $Zarray[4];
+
+      #MailScanner::Log::WarnLog("7z-members: [%s] [%s] [%s] [%s] [%s] [%s]", $Zdate, $Ztime, $Zattr, $Zsize, $ZCsize, $Zname);
+
+      $memb .= "$Zname\n" if $Zattr !~ /^d|^D/;
+    }
+
+    # If we have a line full of ---- and $BeginInfo is not set then
+    # we are at the first and we need to set $BeginInfo so next pass
+    # begins processing file information
+    if ($what =~ /-{18,}$/ && ! $BeginInfo) {
+      $BeginInfo = 1;
+    }
+  }
+
+
+  # Remove returns from the output string, exit if the archive is empty
+  # or the output is empty
+
+  $memb =~ s/\r//gs;
+  return 1 if $memb ne '' &&
+              $memb =~ /(No files to extract|^COMMAND_TIMED_OUT$)/si;
+
+  return 0 if $memb eq '';
+  #MailScanner::Log::DebugLog("Unrar : Archive Testing Completed On : %s",
+  #                           $memb);
+
+  @members = split /\n/, $memb;
+  $fh = new FileHandle;
+
+  foreach $member2 (@members) {
+    $IsEncrypted = 0;
+    $HasErrors = 0;
+    #MailScanner::Log::InfoLog("Checking member %s",$member2);
+    # Test the current file name to see if it's password protected
+    # and capture the output. If the command times out, then return
+
+    next if $member2 eq "";
+    $member = quotemeta $member2;
+    #print STDERR "Member is ***$member***\n";
+    #MailScanner::Log::WarnLog("Un7zip: member %s",$member );
+
+    $check = SafePipe(
+      "$unzip -y t '$explodeinto/$zipname' $member 2>&1",
+      $PipeTimeOut);
+    #print STDERR "Point 1\n";
+    return 1 if $check =~ /^COMMAND_TIMED_OUT$/;
+
+    # Check for any error with this file. Format is FileName - Error string
+    if ($check =~ /$member\s+-\s/i){
+      MailScanner::Log::WarnLog("Un7zip Error in file: %s -> %s",
+                                $zipname,$member);
+      $HasErrors = 1;
+    }
+
+    $check =~ s/\n/:/gsi;
+    #MailScanner::Log::WarnLog("Got : %s", $check);
+
+    # If we get the string Encrypted then we have found a password
+    # protected archive and we handle it the same as zips are handled
+
+    if ($check =~ /\bEnter password(.*)\bWrong password/s) {
+      $IsEncrypted = 1;
+      MailScanner::Log::WarnLog("Password Protected archive Found");
+      #print STDERR "Checking member " . $member . "\n";
+      #print STDERR "******** Encryption = " . $IsEncrypted . "\n";
+      return "password" if !$allowpasswords && $IsEncrypted;
+    } else {
+      if ($insistpasswords) {
+        MailScanner::Log::WarnLog("Non-Password Protected archive Found");
+        return "nonpassword";
+      }
+    }
+
+
+    # If they don't want to extract, but only check for encryption,
+    # then skip the rest of this as we don't actually want the files
+    # checked against the file name/type rules
+
+    next if $onlycheckencryption;
+
+    $name = $member2;
+    #print STDERR "UnPackRar : Making Safe Name from $name\n";
+
+    # There is no facility to change the output name for a rar file
+    # but we can rename rename the files inside the archive
+    # prefer to use $NameTwo because there is no path attached
+    # $safename is guaranteed not to exist, but NameTwo gives us the
+    # filename without any directory information, which we use later.
+    $nopathname = $name;
+    $nopathname =~ s/^.*\///;
+    $safename = $this->MakeNameSafe('r'.$nopathname,$explodeinto);
+    $NameTwo = $safename;
+    $NameTwo = $1 if $NameTwo =~ /([^\/]+)$/;
+    #MailScanner::Log::InfoLog("UnPackRar: Member : %s", $member);
+    #print STDERR "UnPackRar : Safe Name is $safename\n";
+
+    #MailScanner::Log::InfoLog("UnPackRar: SafeName : %s", $safename);
+    $this->{file2parent}{$name} = $zipname;
+    $this->{file2parent}{$safename} = $zipname;
+    $this->{file2safefile}{$name} = $safename;
+    $this->{safefile2file}{$safename} = $name;
+    #print STDERR "Archive member \"$name\" is now \"$safename\"\n";
+
+    #$this->{file2entity}{$name} = $this->{entity};
+    # JKF 20090505 Don't do this: $this->{file2safefile}{$name} = $zipname;
+    #$this->{safefile2file}{$safename} = $zipname;
+
+    $safename = "$explodeinto/$safename";
+
+    $PipeReturn = '';
+    $? = 0;
+    if (!$IsEncrypted && !$HasErrors) {
+      #print STDERR "Expanding ***$member***\ninto ***$NameTwo***\n";
+      $PipeReturn = SafePipe(
+                   "$unzip e -y -so '$explodeinto/$zipname' $member > \"$NameTwo\"",
+                   $PipeTimeOut);
+      unless ("$?" == 0 && $PipeReturn ne 'COMMAND_TIMED_OUT'){
+        # The rename operation failed!, so skip the extraction of a
+        # potentially bad file name.
+        # JKF Temporary testing code
+        #MailScanner::Log::WarnLog("UnPackRar: RC: %s PipeReturn : ",$?,$PipeReturn);
+        MailScanner::Log::WarnLog("7zipUnpacker: Could not rename or use " .
+            "safe name in Extract, NOT Unpacking file %s", $safename);
+        next;
+      }
+      #MailScanner::Log::InfoLog("7zipUnacker: Done...., got %d and %s for %s", $?, $PipeReturn, $safename);
+    }
+    #MailScanner::Log::WarnLog("RC = %s : Encrypt = %s : PipeReturn = %s",
+    #                          $?,$IsEncrypted,$PipeReturn );
+    unless ("$?" == 0 && !$HasErrors && !$IsEncrypted &&
+            $PipeReturn ne 'COMMAND_TIMED_OUT') {
+
+      # If we got an error, or this file is encrypted create a zero-length
+      # file so the filename tests will still work.
+      MailScanner::Log::WarnLog("7zipUnpacker : Encrypted Or Extract Error Creating" .
+                                " 0 length %s",$NameTwo);
+      $touchfiles && $fh->open(">$safename") && $fh->close();
+    }
+  }
+  return 0;
+}
 
 # Unpack a rar file into the named directory.
 # Return 1 if an error occurred, else 0.
