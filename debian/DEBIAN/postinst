@@ -150,6 +150,7 @@ fi
 # Check for systemd
 if [ -f '/lib/systemd/systemd' -o -f '/usr/lib/systemd/systemd' ]; then
     cp /usr/lib/MailScanner/systemd/ms-systemd /lib/systemd/system/mailscanner.service
+    chmod -x /lib/systemd/system/mailscanner.service
 # add symlink to init script
 elif [ ! -L '/etc/init.d/mailscanner' ]; then
 	ln -s /usr/lib/MailScanner/init/ms-init /etc/init.d/mailscanner
