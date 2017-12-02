@@ -24,6 +24,21 @@ clear
 parsedCommands=0;
 while [ $# -gt 0 ]; do
     case "$1" in
+         --update)
+            # Set update mode and move forward
+            arg_MTA="none";
+            arg_installClamav=0;
+            arg_installCPAN=1;
+            arg_ignoreDeps=0;
+            arg_ramdiskSize=0
+            arg_installEPEL=0;
+            arg_installTNEF=0;
+            arg_installUnrar=0;
+            arg_installDf=0;
+            arg_SELPermissive=0;
+            ((parsedCommands++));
+        ;;
+
         --MTA=*)
             case ${1#*=} in
             "sendmail")  arg_MTA="sendmail"; ((parsedCommands++));;
@@ -152,7 +167,18 @@ while [ $# -gt 0 ]; do
 
         --help)
             printf "MailScanner Installation for Red Hat Based Systems\n\n"
-            printf "Usage: %s [--MTA=sendmail|postfix|exim|none] [--installEPEL=Y|N] [--installClamav=Y|N] [--installTNEF=Y|N] [--installUnrar=Y|N] [--installCPAN=Y|N] [--installDf=Y|N] [--ignoreDeps=Y|N] [--SELPermissive=Y|N] [--ramdiskSize=value]\n\n" "$0"
+            printf "Usage: %s [--update] [--MTA=sendmail|postfix|exim|none] [--installEPEL=Y|N] [--installClamav=Y|N] [--installTNEF=Y|N] [--installUnrar=Y|N] [--installCPAN=Y|N] [--installDf=Y|N] [--ignoreDeps=Y|N] [--SELPermissive=Y|N] [--ramdiskSize=value]\n\n" "$0"
+            printf -- "--update              Perform an update on an existing install using the following options (can be overridden):"
+            printf -- "                        --MTA=none (assumed already installed)"
+            printf -- "                        --installEPEL=N (assumed already installed)"
+            printf -- "                        --installClamav=N (assumed already installed)"
+            printf -- "                        --installTNEF=N (assumed already installed)"
+            printf -- "                        --installUnrar=N (assumed already installed)"
+            printf -- "                        --installCPAN=Y"
+            printf -- "                        --installDf=N (assumed already installed)"
+            printf -- "                        --SELPermissive=N (assumed already configured)"
+            printf -- "                        --ignoreDeps=N"
+            printf -- "                        --ramdiskSize=0 (assumed already configured)"
             printf -- "--MTA=value           Select the Mail Transfer Agent (MTA) to be installed            (sendmail|postfix|exim|none)\n"
             printf    "                      Recommended: sendmail\n\n"
             printf -- "--installEPEL=Y|N     Install and use EPEL repository                                 (Y or N)\n"
