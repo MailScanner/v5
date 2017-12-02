@@ -630,7 +630,10 @@ else
     /usr/sbin/ms-update-phishing >/dev/null 2>&1
     
     if [ -d '/etc/clamav' ]; then
-        /usr/bin/freshclam 2>/dev/null
+        #Test if freshclam is already running
+        if [[ -z $(ps aux | grep "[f]reshclam") ]]; then
+            /usr/bin/freshclam 2>/dev/null
+        fi
     fi
     
     echo;
