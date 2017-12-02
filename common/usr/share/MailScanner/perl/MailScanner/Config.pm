@@ -319,6 +319,7 @@ sub Value {
       }
     }
     # Return the results if there were any, else the defaults
+    return join(",", @results) if @results and $name eq 'saactions';
     return join(" ", @results) if @results;
     return $Defaults{$name};
   }
