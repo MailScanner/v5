@@ -22,6 +22,16 @@ clear
 parsedCommands=0;
 while [ $# -gt 0 ]; do
     case "$1" in
+        --update)
+            # Select defaults and move forward
+            arg_MTA="none";
+            arg_installClamav=0;
+            arg_installCPAN=1;
+            arg_ignoreDeps=0;
+            arg_ramdiskSize=0
+            ((parsedCommands++));
+        ;;
+
         --MTA=*)
             case ${1#*=} in
             "sendmail")  arg_MTA="sendmail"; ((parsedCommands++));;
@@ -85,7 +95,13 @@ while [ $# -gt 0 ]; do
 
         --help)
             printf "MailScanner Installation for SuSE Based Systems\n\n"
-            printf "Usage: %s [--MTA=sendmail|postfix|exim|none] [--installClamav=Y|N] [--installCPAN=Y|N] [--ignoreDeps=Y|N] [--ramdiskSize=value]\n\n" "$0"
+            printf "Usage: %s [--update] [--MTA=sendmail|postfix|exim|none] [--installClamav=Y|N] [--installCPAN=Y|N] [--ignoreDeps=Y|N] [--ramdiskSize=value]\n\n" "$0"
+            printf -- "--update              Perform an update on an existing install using the following options (can be overridden):"
+            printf -- "                        --MTA=none (assumed already installed)"
+            printf -- "                        --installClamav=N (assumed already installed)"
+            printf -- "                        --installCPAN=Y"
+            printf -- "                        --ignoreDeps=N"
+            printf -- "                        --ramdiskSize=0 (assumed already configured)"
             printf -- "--MTA=value           Select the Mail Transfer Agent (MTA) to be installed            (sendmail|postfix|exim|none)\n"
             printf    "                      Recommended: sendmail\n\n"
             printf -- "--installClamav=Y|N   Install or update Clam AV during installation                   (Y or N)\n"
