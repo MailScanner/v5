@@ -342,6 +342,7 @@ MCPMaxSpamAssassinTimeouts	20
 MCPSpamAssassinTimeout		10
 TNEFTimeout			120
 UnrarTimeout			50
+Un7zipTimeout			50
 WhitelistMaxRecips		20
 # For Qmail users
 qmailhashdirectorynumber	23
@@ -397,6 +398,7 @@ MCPSpamAssassinDefaultRulesDir	/etc/MailScanner/mcp
 MCPSpamAssassinInstallPrefix	/etc/MailScanner/mcp
 TNEFExpander		/usr/bin/tnef --maxsize=100000000
 UnrarCommand		/usr/bin/unrar
+Un7zipCommand		/usr/bin/7z
 VirusScanners		auto  # Space-separated list
 WorkUser
 WorkGroup

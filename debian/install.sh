@@ -364,6 +364,7 @@ BASEPACKAGES+=('gzip');				BASEPACKAGES+=('libnetaddr-ip-perl');			BASEPACKAGES+
 BASEPACKAGES+=('unzip');			BASEPACKAGES+=('libnet-ldap-perl');				BASEPACKAGES+=('libsys-hostname-long-perl');
 BASEPACKAGES+=('openssl');			BASEPACKAGES+=('libmail-dkim-perl');			BASEPACKAGES+=('libhtml-tokeparser-simple-perl');
 BASEPACKAGES+=('perl');				BASEPACKAGES+=('libbusiness-isbn-data-perl');	BASEPACKAGES+=('libnet-dns-resolver-programmable-perl');
+BASEPACKAGES+=('p7zip-full');
 
 if [ "$parsedCommands" -gt 0 ]; then
     BASEPACKAGES+=('cpanminus');
