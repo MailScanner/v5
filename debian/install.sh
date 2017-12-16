@@ -566,7 +566,7 @@ if [ ${CPANOPTION} == 1 ]; then
         if [ $AUTOCPAN -eq 0 ]; then
             perl -MCPAN -e "CPAN::Shell->force(qw(install ${MODSA} ));"
         else
-            cpanm --no-interactive ${MODSA}
+            cpanm --no-interactive --force ${MODSA}
         fi
     fi
 
