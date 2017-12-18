@@ -47,6 +47,7 @@ use File::Temp;
 use MailScanner::FileInto;
 use IO::Pipe;
 use IO::File;
+#use Data::Dumper;
 
 # Install an extra MIME decoder for badly-header uue messages.
 install MIME::Decoder::UU 'uuencode';
