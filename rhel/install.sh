@@ -7,15 +7,15 @@
 #
 # Tested distributions:     CentOS 5,6,7
 #                           RHEL 6,7
-#                           Fedora 26
+#                           Fedora 26,27
 #
 # Written by:
 # Jerry Benton < mailscanner@mailborder.com >
 # 29 APR 2016
 # Updated by:
 # Manuel Dalla Lana < endelwar@aregar.it >
-# Shawn Iverson < shawniverson@gmail.com >
-# 24 SEP 2017
+# Shawn Iverson < shawniverson@efa-project.org >
+# 25 Dec 2017
 
 # clear the screen. yay!
 clear
@@ -28,6 +28,7 @@ while [ $# -gt 0 ]; do
             # Set update mode and move forward
             arg_MTA="none";
             arg_installClamav=0;
+            arg_configClamav=0;
             arg_installCPAN=1;
             arg_ignoreDeps=0;
             arg_ramdiskSize=0
@@ -60,6 +61,19 @@ while [ $# -gt 0 ]; do
                 ((parsedCommands++));
             else
                 printf "Error: Invalid value for installClamav: only Y or N values are accepted.\n"
+                exit 1
+            fi
+        ;;
+        
+        --configClamav=*)
+            if [[ ${1#*=} =~ ^([yY])$ ]]; then
+                arg_configClamav=1;
+                ((parsedCommands++));
+            elif [[ ${1#*=} =~ ^([nN])$ ]]; then
+                arg_configClamav=0;
+                ((parsedCommands++));
+            else
+                printf "Error: Invalid value for configClamav: only Y or N values are accepted.\n"
                 exit 1
             fi
         ;;
@@ -167,23 +181,26 @@ while [ $# -gt 0 ]; do
 
         --help)
             printf "MailScanner Installation for Red Hat Based Systems\n\n"
-            printf "Usage: %s [--update] [--MTA=sendmail|postfix|exim|none] [--installEPEL=Y|N] [--installClamav=Y|N] [--installTNEF=Y|N] [--installUnrar=Y|N] [--installCPAN=Y|N] [--installDf=Y|N] [--ignoreDeps=Y|N] [--SELPermissive=Y|N] [--ramdiskSize=value]\n\n" "$0"
-            printf -- "--update              Perform an update on an existing install using the following options (can be overridden):"
-            printf -- "                        --MTA=none (assumed already installed)"
-            printf -- "                        --installEPEL=N (assumed already installed)"
-            printf -- "                        --installClamav=N (assumed already installed)"
-            printf -- "                        --installTNEF=N (assumed already installed)"
-            printf -- "                        --installUnrar=N (assumed already installed)"
-            printf -- "                        --installCPAN=Y"
-            printf -- "                        --installDf=N (assumed already installed)"
-            printf -- "                        --SELPermissive=N (assumed already configured)"
-            printf -- "                        --ignoreDeps=N"
-            printf -- "                        --ramdiskSize=0 (assumed already configured)"
+            printf "Usage: %s [--update] [--MTA=sendmail|postfix|exim|none] [--installEPEL=Y|N] [--installClamav=Y|N] [--configClamav=Y|N] [--installTNEF=Y|N] [--installUnrar=Y|N] [--installCPAN=Y|N] [--installDf=Y|N] [--ignoreDeps=Y|N] [--SELPermissive=Y|N] [--ramdiskSize=value]\n\n" "$0"
+            printf -- "--update              Perform an update on an existing install using the following options (can be overridden):\n"
+            printf    "                        --MTA=none        (assumed already installed)\n"
+            printf    "                        --installEPEL=N   (assumed already installed)\n"
+            printf    "                        --installClamav=N (assumed already installed)\n"
+            printf    "                        --configClamav=N  (assumed already installed)\n"
+            printf    "                        --installTNEF=N   (assumed already installed)\n"
+            printf    "                        --installUnrar=N  (assumed already installed)\n"
+            printf    "                        --installCPAN=Y\n"
+            printf    "                        --installDf=N     (assumed already installed)\n"
+            printf    "                        --SELPermissive=N (assumed already configured)\n"
+            printf    "                        --ignoreDeps=N\n"
+            printf    "                        --ramdiskSize=0   (assumed already configured)\n\n"
             printf -- "--MTA=value           Select the Mail Transfer Agent (MTA) to be installed            (sendmail|postfix|exim|none)\n"
             printf    "                      Recommended: sendmail\n\n"
             printf -- "--installEPEL=Y|N     Install and use EPEL repository                                 (Y or N)\n"
             printf    "                      Recommended: Y (yes)\n\n"
             printf -- "--installClamav=Y|N   Install or update Clam AV during installation (requires EPEL)   (Y or N)\n"
+            printf    "                      Recommended: Y (yes)\n\n"
+            printf -- "--configClamav=Y|N    Configure Clam AV (CentOS 7 only)                               (Y or N)\n"
             printf    "                      Recommended: Y (yes)\n\n"
             printf -- "--installTNEF=Y|N     Install tnef via RPM                                            (Y or N)\n"
             printf    "                      Recommended: Y (yes)\n\n"
@@ -271,6 +288,9 @@ if [ -f /etc/fedora-release ]; then
     if grep -qs 'release 26' /etc/fedora-release ; then
         # Fedora 26
         FEDORA=26
+    elif grep -qs 'release 27' /etc/fedora-release ; then
+        # Fedora 27
+        FEDORA=27
     else
         # Unsupported release
         FEDORA=0
@@ -371,15 +391,12 @@ if [ -z $FEDORA ]; then
 fi
 
 # ask if the user wants Clam AV installed if they selected EPEL or if this is a Fedora Server
-if [ $EPEL == 1 || -n $FEDORA ]; then
+if [[ $EPEL -eq 1 || -n $FEDORA ]]; then
     clear
     echo;
     echo "Do you want to install or update Clam AV during this installation process?"; echo;
     echo "This package is recommended unless you plan on using a different virus scanner.";
     echo "Note that you may use more than one virus scanner at once with MailScanner.";
-    echo;
-    echo "Even if you already have Clam AV installed you should select this option so I";
-    echo "will know to check the clamav-wrapper and make corrections if required.";
     echo;
     echo "Recommended: Y (yes)"; echo;
     if [ -z "${arg_installClamav+x}" ]; then
@@ -390,10 +407,10 @@ if [ $EPEL == 1 || -n $FEDORA ]; then
             # some of these options may result in a 'no package available' on
             # some distributions, but that is ok
             CAV=1
-            CAVOPTION="clamav clamd clamav-update clamav-server";
+            CAVOPTION="clamav clamd clamav-update clamav-server clamav-devel";
         elif [ -z $response ]; then  
             CAV=1
-            CAVOPTION="clamav clamd clamav-update clamav-server";
+            CAVOPTION="clamav clamd clamav-update clamav-server clamav-devel";
         else
             # user does not want clam av
             CAV=0
@@ -403,13 +420,40 @@ if [ $EPEL == 1 || -n $FEDORA ]; then
         CAV=${arg_installClamav}
         CAVOPTION=
         if [ ${CAV} -eq 1 ]; then
-            CAVOPTION="clamav clamd clamav-update clamav-server";
+            CAVOPTION="clamav clamd clamav-update clamav-server clamav-devel";
         fi
     fi
 else
     # user did not select EPEL or is not on Fedora Server so clamav is not available via yum
     CAV=0
     CAVOPTION=
+fi
+
+# Check if clamav is being installed on CentOS 7 and ask if user wants to configure
+if [[ $RHEL -eq 7 && $CAV -eq 1 ]]; then
+    clear
+    echo;
+    echo "Do you want to configure clam AV during this installation process?"; echo;
+    echo;
+    echo "Choosing yes will install required configuration files and settings for";
+    echo "Clam AV to function out of the box on CentOS 7 installations";
+    echo;
+    echo "Recommended: Y (yes)"; echo;
+    if [ -z "${arg_configClamav+x}" ]; then
+        read -r -p "Configure Clam AV? [n/Y] : " response
+
+        if [[ $response =~ ^([yY][eE][sS]|[yY])$ ]]; then
+            # user wants clam av configured
+            CONFCAV=1
+        elif [ -z $response ]; then
+            CONFCAV=1
+        else
+            CONFCAV=0
+        fi
+    fi
+else
+    # Not CentOS/RHEL7 or Clam not being installed/updated
+    CONFCAV=0
 fi
 
 # ask if the user wants to install tnef by RPM if missing
@@ -904,6 +948,86 @@ if [ $CAV == 1 ]; then
     freshclam
 fi
 
+# Configure clamav if required
+if [ $CONFCAV -eq 1 ]; then
+    # Get clam version
+    clamav_version=$(rpm -q --queryformat=%{VERSION} clamav-server)
+    # Grab sample config if not present
+    if [ ! -f /etc/clamd.d/clamd.conf ]; then
+        cp /usr/share/doc/clamav-server-$clamav_version/clamd.conf /etc/clamd.d/clamd.conf
+    fi
+    # Enable config
+    sed -i '/^Example/ c\#Example' /etc/clamd.d/clamd.conf
+    # Create clam user if not present
+    id -u clam >/dev/null 2>&1
+    if [ $? -ne 0 ]; then
+        useradd -d /var/lib/clamav -c "Clam Anti Virus Checker" -G virusgroup,clamupdate -s /sbin/nologin -M clam
+    fi
+    # More config options
+    sed -i '/^User <USER>/ c\User clam' /etc/clamd.d/clamd.conf
+    sed -i '/#LocalSocket \/var\/run\/clamd.<SERVICE>\/clamd.sock/ c\LocalSocket /var/run/clamd.scan/clamd.sock' /etc/clamd.d/clamd.conf
+    sed -i '/#LogFile \/var\/log\/clamd.<SERVICE>/ c\LogFile /var/log/clamd.scan/scan.log' /etc/clamd.d/clamd.conf
+    # Log rotation if not present
+    if [ ! -f /etc/logrotate.d/clamd.logrotate ]; then
+        cp /usr/share/doc/clamav-server-$clamav_version/clamd.logrotate /etc/logrotate.d/
+    fi
+    # Filesystem/Permissions/SELinux
+    chown -R clam:clam /etc/clamd.d
+    mkdir -p /var/log/clamd.scan
+    chown -R clam:clam /var/log/clamd.scan
+    chcon -u system_u -r object_r -t antivirus_log_t /var/log/clamd.scan
+    mkdir -p /var/run/clamd.scan
+    chown -R clam:clam /var/run/clamd.scan
+    chcon -u system_u -r object_r -t antivirus_var_run_t /var/run/clamd.scan
+    echo "d /var/run/clamd.scan 0750 clam clam -" > /usr/lib/tmpfiles.d/clamd.conf
+    # sysconfig file
+    if [ ! -f /etc/sysconfig/clamd ]; then
+        cat > /etc/sysconfig/clamd << 'EOF'
+CLAMD_CONFIGFILE=/etc/clamd.d/clamd.conf
+CLAMD_SOCKET=/var/run/clamd.scan/clamd.sock
+#CLAMD_OPTIONS=
+EOF
+    fi
+
+    # Systemd services
+    if [ ! -f /usr/lib/systemd/system/clam.freshclam.service ]; then
+        cat > /usr/lib/systemd/system/clam.freshclam.service << 'EOF'
+[Unit]
+Description = freshclam scanner
+After = network.target
+
+[Service]
+Type = forking
+ExecStart = /usr/bin/freshclam -d -c 4
+Restart = on-failure
+PrivateTmp = true
+
+[Install]
+WantedBy=multi-user.target
+EOF
+    fi
+    
+    if [ ! -f /usr/lib/systemd/system/clam.scan.service ]; then
+        cat > /usr/lib/systemd/system/clam.scan.service << 'EOF'
+[Unit]
+Description = clamd scanner daemon
+After = syslog.target nss-lookup.target network.target
+
+[Service]
+Type = forking
+ExecStart = /usr/sbin/clamd -c /etc/clamd.d/clamd.conf
+Restart = on-failure
+PrivateTmp = true
+
+[Install]
+WantedBy=multi-user.target
+EOF
+    fi
+
+    systemctl enable clam.freshclam
+    systemctl enable clam.scan
+fi
+
 # now check for missing perl modules and install them via cpan
 # if the user elected to do so
 clear; echo;
@@ -967,29 +1091,6 @@ done
 # will pause if a perl module was missing
 timewait $PMODWAIT
 
-# fix the clamav wrapper if the user does not exist
-if [ -f '/etc/freshclam.conf' ]; then
-    if id -u clam >/dev/null 2>&1; then
-        #clam is being used instead of clamav
-        OLDCAVUSR='ClamUser="clamav"';
-        NEWCAVUSR='ClamUser="clam"'
-    
-        OLDCAVGRP='ClamGroup="clamav"';
-        NEWCAVGRP='ClamGroup="clam"';
-    
-        if [ -f '/usr/lib/MailScanner/wrapper/clamav-wrapper' ]; then
-            perl -pi -e 's/'$OLDCAVUSR'/'$NEWCAVUSR'/;' /usr/lib/MailScanner/wrapper/clamav-wrapper
-            perl -pi -e 's/'$OLDCAVGRP'/'$NEWCAVGRP'/;' /usr/lib/MailScanner/wrapper/clamav-wrapper
-        fi
-        
-        freshclam 2>/dev/null
-    fi
-    
-    if [ -f '/etc/init.d/clamd' ]; then
-        chkconfig clamd on
-    fi
-fi
-
 # selinux
 if [ $SELMODE == 1 ]; then
     OLDTHING='SELINUX=enforcing';
@@ -1006,6 +1107,12 @@ if [ $SELMODE == 1 ]; then
         read foobar
     fi
 fi
+
+# Freshclam
+if [ -f '/etc/init.d/clamd' ]; then
+    chkconfig clamd on
+fi
+freshclam 2>/dev/null
 
 # make sure in starting directory
 cd "$THISCURRPMDIR"
@@ -1083,6 +1190,19 @@ else
     fi
     
     /usr/sbin/ms-update-phishing >/dev/null 2>&1
+    
+    # fix the clamav wrapper if the user does not exist
+    if [ -f '/etc/freshclam.conf' ]; then
+        if id -u clam >/dev/null 2>&1; then
+            #clam is being used instead of clamav
+            OLDCAVUSR='ClamUser="clamav"';
+            NEWCAVUSR='ClamUser="clam"'
+
+            if [ -f '/usr/lib/MailScanner/wrapper/clamav-wrapper' ]; then
+                perl -pi -e 's/'$OLDCAVUSR'/'$NEWCAVUSR'/;' /usr/lib/MailScanner/wrapper/clamav-wrapper
+            fi
+        fi
+    fi
     
     echo;
     echo '----------------------------------------------------------';

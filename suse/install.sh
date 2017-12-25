@@ -96,12 +96,12 @@ while [ $# -gt 0 ]; do
         --help)
             printf "MailScanner Installation for SuSE Based Systems\n\n"
             printf "Usage: %s [--update] [--MTA=sendmail|postfix|exim|none] [--installClamav=Y|N] [--installCPAN=Y|N] [--ignoreDeps=Y|N] [--ramdiskSize=value]\n\n" "$0"
-            printf -- "--update              Perform an update on an existing install using the following options (can be overridden):"
-            printf -- "                        --MTA=none (assumed already installed)"
-            printf -- "                        --installClamav=N (assumed already installed)"
-            printf -- "                        --installCPAN=Y"
-            printf -- "                        --ignoreDeps=N"
-            printf -- "                        --ramdiskSize=0 (assumed already configured)"
+            printf -- "--update              Perform an update on an existing install using the following options (can be overridden):\n"
+            printf    "                        --MTA=none        (assumed already installed)\n"
+            printf    "                        --installClamav=N (assumed already installed)\n"
+            printf    "                        --installCPAN=Y\n"
+            printf    "                        --ignoreDeps=N\n"
+            printf    "                        --ramdiskSize=0   (assumed already configured)\n\n"
             printf -- "--MTA=value           Select the Mail Transfer Agent (MTA) to be installed            (sendmail|postfix|exim|none)\n"
             printf    "                      Recommended: sendmail\n\n"
             printf -- "--installClamav=Y|N   Install or update Clam AV during installation                   (Y or N)\n"
@@ -597,30 +597,12 @@ timewait $PMODWAIT
 # go to where i started
 cd "$THISCURRPMDIR"
 
-# fix the clamav wrapper if the user does not exist
-if [ -f '/etc/freshclam.conf' ]; then
-    if id -u vscan >/dev/null 2>&1; then
-        #clam is being used instead of clamav
-        OLDCAVUSR='ClamUser="clamav"';
-        NEWCAVUSR='ClamUser="vscan"'
-    
-        OLDCAVGRP='ClamGroup="clamav"';
-        NEWCAVGRP='ClamGroup="vscan"';
-    
-        perl -pi -e 's/'$OLDCAVUSR'/'$NEWCAVUSR'/;' /usr/share/MailScanner/clamav-wrapper
-        perl -pi -e 's/'$OLDCAVGRP'/'$NEWCAVGRP'/;' /usr/share/MailScanner/clamav-wrapper
-        
-        COUT='#Example';
-        perl -pi -e 's/Example/'$COUT'/;' /etc/freshclam.conf
-
-        if [ $CAV == 1 ]; then
-            systemctl enable clamd.service
-        fi
-        
-        mkdir -p /var/run/clamav
-        chown vscan:vscan /var/run/clamav
-        freshclam 2>/dev/null
-    fi
+# Freshclam
+if [ $CAV == 1 ]; then
+    COUT='#Example';
+    perl -pi -e 's/Example/'$COUT'/;' /etc/freshclam.conf
+    systemctl enable clamd.service
+    freshclam 2>/dev/null
 fi
 
 clear
@@ -669,6 +651,22 @@ else
     fi
     
     /usr/sbin/ms-update-phishing > /dev/null 2>&1
+    
+    # fix the clamav wrapper if the user does not exist
+    if [ -f '/etc/freshclam.conf' ]; then
+        if id -u vscan >/dev/null 2>&1; then
+            #vscan is being used instead of clamav
+            OLDCAVUSR='ClamUser="clamav"';
+            NEWCAVUSR='ClamUser="vscan"'
+
+            if [ -f '/usr/lib/MailScanner/wrapper/clamav-wrapper' ]; then
+                perl -pi -e 's/'$OLDCAVUSR'/'$NEWCAVUSR'/;' /usr/lib/MailScanner/wrapper/clamav-wrapper
+            fi
+
+            mkdir -p /var/run/clamav
+            chown vscan:vscan /var/run/clamav
+        fi
+    fi
     
     echo;
     echo '----------------------------------------------------------';
