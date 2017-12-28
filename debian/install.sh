@@ -665,6 +665,8 @@ else
     echo;
     echo;
     echo 'Review: Set your preferences in /etc/MailScanner/MailScanner.conf'
+    echo 'Debian supports the conf.d folder, adviced is to copy'
+    echo "/etc/MailScanner/MailScanner.conf to /etc/MailScanner/MailScanner.conf.d/01personal.conf'
     echo 'and review /etc/MailScanner/defaults';
     echo;
 fi 
