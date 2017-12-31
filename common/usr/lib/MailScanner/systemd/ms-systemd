@@ -2,7 +2,8 @@
 Description=LSB: MailScanner daemon
 Documentation=man:systemd-sysv-generator(8)
 SourcePath=/usr/lib/MailScanner/init/ms-init
-After=network-online.target remote-fs.target rsyslog.service
+After=network-online.target remote-fs.target rsyslog.service mariadb.service
+Wants=network-online.target mariadb.service
 
 [Service]
 Type=forking
@@ -14,6 +15,9 @@ GuessMainPID=no
 RemainAfterExit=yes
 ExecStart=/usr/lib/MailScanner/init/ms-init start
 ExecStop=/usr/lib/MailScanner/init/ms-init stop
+EnvironmentFile=-/etc/MailScanner/defaults
+ExecReload=/bin/kill -HUP $MAINPID
+PIDFile=/var/run/MailScanner.pid
 
 [Install]
 WantedBy=multi-user.target
