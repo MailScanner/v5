@@ -1,8 +1,8 @@
 # Welcome to MailScanner!
 #
-# Current version: 5.0.6-5 release
+# Current version: 5.0.7-1 release
 #
-# Jerry Benton - 29 September 2017
+# Jerry Benton - 25 December 2017
 # <mailscanner@mailborder.com>
 #
 #
@@ -20,10 +20,16 @@
 # 	Manual: 	https://s3.amazonaws.com/msv5/docs/ms-admin-guide.pdf
 # 	Support: 	http://lists.mailscanner.info/mailman/listinfo/mailscanner
 #
-#	Install/Update:
+#	Install
 #		tar -xvzf MailScanner-5.x.x-x.distro.tar.gz
 #		cd MailScanner-5.x.x-x
 #		./install.sh
+#		(reboot may be required)
+#
+#	Update
+#		tar -xvzf MailScanner-5.x.x-x.distro.tar.gz
+#		cd MailScanner-5.x.x-x
+#		./install.sh --update
 #		(reboot may be required)
 #
 #	MTA Guides:

@@ -221,7 +221,7 @@ EOF
 install usr/lib/MailScanner/init/ms-init ${RPM_BUILD_ROOT}/usr/lib/MailScanner/init/
 install usr/lib/MailScanner/init/ms-sendmail-init ${RPM_BUILD_ROOT}/usr/lib/MailScanner/init/
 
-while read f 
+while read f
 do
   install usr/lib/MailScanner/systemd/$f ${RPM_BUILD_ROOT}/usr/lib/MailScanner/systemd
 done << EOF
@@ -231,7 +231,7 @@ ms-sendmail-in
 ms-sendmail-out
 EOF
 
-while read f 
+while read f
 do
   install usr/lib/MailScanner/wrapper/$f ${RPM_BUILD_ROOT}/usr/lib/MailScanner/wrapper
 done << EOF

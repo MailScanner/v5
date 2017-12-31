@@ -1,3 +1,21 @@
+12/25/2017 Changes in    v5.0.7-1
+==================================
+- Fix parsing an email address into local-part and domain
+- Fix syntax in Debian/postrm
+- Escape space before passing to unrar extract
+- Add gz to unzipable files
+- Only run freshclam if it is not running yet (debian)
+- 7zip support
+- Remove execute flag on systemd service (debian)
+- Add update flag to install.sh
+- Fix configuration chaining for spamassassin rules actions
+- Add --force for cpanm
+- CentOS/RHEL 7 clamav configuration support
+- Fix broken clamav install prompt block
+- Include 2 perl modules for spammassassin from debian tree
+- Support for Fedora 27
+- Fix install.sh modifying clamav-wrapper before MailScanner is installed
+
 09/29/2017 Changes in    v5.0.6-5
 ==================================
 - Return result of mta installation
