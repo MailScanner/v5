@@ -15,6 +15,7 @@
 - Include 2 perl modules for spammassassin from debian tree
 - Support for Fedora 27
 - Fix install.sh modifying clamav-wrapper before MailScanner is installed
+- Add mariadb as a prerequisite service for mailscanner systemd unit
 
 09/29/2017 Changes in    v5.0.6-5
 ==================================
