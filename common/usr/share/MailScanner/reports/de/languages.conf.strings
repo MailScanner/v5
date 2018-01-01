@@ -78,7 +78,7 @@
 /* # Used in Postmaster notices */
 "NoticeVirusInfected" = "Virus erkannt";
 "NoticeFilenameInfected" = "Unerlaubten Dateinamen gefunden";
-"NoticeOtherInfected" = "Sonstige gef&ouml;hrliche Inhalte gefunden";
+"NoticeOtherInfected" = "Sonstige gef&auml;hrliche Inhalte gefunden";
 "NoticePasswordProtected" = "Passwort-gesch&uuml;tzte Archiv-Datei gefunden";
 "NoticeNonPasswordProtected" = "Non-password-protected Archive Detected";
 /* # NoticePrefix = The following e-mails were found to have */
