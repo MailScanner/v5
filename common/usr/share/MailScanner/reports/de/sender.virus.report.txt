@@ -10,8 +10,8 @@ Unser Virenscanner wurde durch eine Nachricht von Ihnen ausgelöst:
 Alle infizierten Teile der Nachricht ($filename)
 wurden entfernt.
 
-Diese Nachricht soll Sie nur warnen, dass Ihr Computer-System
-könnte virenverseucht sein und sollte untersucht werden.
+Diese Nachricht soll Sie nur warnen, dass Ihr Computer möglicherweise
+virenverseucht sein könnte und untersucht werden sollte.
 
 Zu Ihrer Information die Meldung des Virenscanners:
 Report: $report
