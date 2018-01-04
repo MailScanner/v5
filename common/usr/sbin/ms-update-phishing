@@ -138,7 +138,7 @@ if [ $CURLORWGET = 'curl' ]; then
       fi
     fi
   else
-    logger -p $SYSLOG.warn -t update.bad.phishing.sites Updating using curl failed, trying wget. ; echo Updating using curl failed, trying wget. ; CURLORWGET = 'wget';
+    logger -p $SYSLOG.warn -t update.bad.phishing.sites Updating using curl failed, trying wget. ; echo Updating using curl failed, trying wget. ; CURLORWGET='wget';
   fi
 fi
 
@@ -242,7 +242,7 @@ if [ $CURLORWGET = 'curl' ]; then
       fi
     fi
   else
-    logger -p $SYSLOG.warn -t update.safe.phishing.sites Updating using curl failed, trying wget. ; echo Updating using curl failed, trying wget. ; CURLORWGET = 'wget';
+    logger -p $SYSLOG.warn -t update.safe.phishing.sites Updating using curl failed, trying wget. ; echo Updating using curl failed, trying wget. ; CURLORWGET='wget';
   fi
 fi
 
