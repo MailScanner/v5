@@ -1,3 +1,10 @@
+01/18/2018 Changes in    v5.0.7-2
+==================================
+
+- Use mtagroup for tmpfiles.d clamd.scan (CentOS 7)
+- Remove spaces from CURLORWGET = 'wget'
+- Fix one typo and a bit of grammar in DE translations
+
 12/25/2017 Changes in    v5.0.7-1
 ==================================
 - Fix parsing an email address into local-part and domain

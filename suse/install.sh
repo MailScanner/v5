@@ -12,8 +12,8 @@
 # 3 MAY 2016
 # Updated by:
 # Manuel Dalla Lana < endelwar@aregar.it >
-# Shawn Iverson < shawniverson@gmail.com >
-# 24 SEP 2017
+# Shawn Iverson < shawniverson@efa-project.org >
+# 18 JAN 2018
 
 # clear the screen. yay!
 clear
