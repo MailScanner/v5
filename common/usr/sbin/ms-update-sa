@@ -1,13 +1,4 @@
-# Only delete the logfile if the update succeeded
-if [ $UPDATESUCCESS = 0 -a $COMPILESUCCESS = 0 -o $UPDATESUCCESS = 1 ]; then
-        logger -i -p mail.notice "ms-update-sa: spamassassin signatures updated"
-        rm -f $LOGFILE
-        if [ -d /run/systemd/system ]; then
-            systemctl -q is-active mailscanner && systemctl restart mailscanner || true
-        else
-            /usr/lib/MailScanner/init/ms-init restart >>$LOGFILE 2>&1 || true
-        fi
-fi#!/bin/sh
+#!/bin/sh
 
 # created:	Jerry Benton <mailscanner@mailborder.com>
 #			28 APR 2016
