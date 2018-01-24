@@ -381,7 +381,11 @@ BASEPACKAGES+=('unzip');			BASEPACKAGES+=('libnet-ldap-perl');				BASEPACKAGES+=
 BASEPACKAGES+=('openssl');			BASEPACKAGES+=('libmail-dkim-perl');			BASEPACKAGES+=('libhtml-tokeparser-simple-perl');
 BASEPACKAGES+=('perl');				BASEPACKAGES+=('libbusiness-isbn-data-perl');	BASEPACKAGES+=('libnet-dns-resolver-programmable-perl');
 BASEPACKAGES+=('p7zip-full');       BASEPACKAGES+=('libgeo-ip-perl');               BASEPACKAGES+=('libnet-patricia-perl');
-
+BASEPACKAGES+=('arj');              BASEPACKAGES+=('lhasa');                        BASEPACKAGES+=('bzip2');
+BASEPACKAGES+=('cabextract');       BASEPACKAGES+=('cpio');                         BASEPACKAGES+=('file');
+BASEPACKAGES+=('gzip');             BASEPACKAGES+=('nomarch');                      BASEPACKAGES+=('pax');
+BASEPACKAGES+=('rar');              BASEPACKAGES+=('unrar');                         BASEPACKAGES+=('unzip');
+BASEPACKAGES+=('zip');              BASEPACKAGES+=('zoo');
 if [ "$parsedCommands" -gt 0 ]; then
     BASEPACKAGES+=('cpanminus');
 fi
@@ -661,6 +665,8 @@ else
     echo;
     echo;
     echo 'Review: Set your preferences in /etc/MailScanner/MailScanner.conf'
+    echo 'Debian supports the conf.d folder, adviced is to copy'
+    echo "/etc/MailScanner/MailScanner.conf to /etc/MailScanner/MailScanner.conf.d/01personal.conf'
     echo 'and review /etc/MailScanner/defaults';
     echo;
 fi 
