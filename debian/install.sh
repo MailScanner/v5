@@ -329,24 +329,7 @@ echo "the number of messages per batch, and incoming email volume."
 echo;
 echo "Specify a size in MB or leave blank for none.";
 echo;
- 
-+BASEPACKAGES+=('arj');              BASEPACKAGES+=('lhasa');                        BASEPACKAGES+=('bzip2'); 
-
-
- 
-+BASEPACKAGES+=('cabextract');       BASEPACKAGES+=('cpio');                         BASEPACKAGES+=('file'); 
-
-
- 
-+BASEPACKAGES+=('gzip');             BASEPACKAGES+=('nomarch');                      BASEPACKAGES+=('pax'); 
-
-
- 
-+BASEPACKAGES+=('rar');              BASEPACKAGES+=('unrar');                         BASEPACKAGES+=('unzip'); 
-
-
- 
-+BASEPACKAGES+=('zip');              BASEPACKAGES+=('zoo'); echo "Suggestions:";
+echo "Suggestions:";
 echo "		None		0";
 echo "		Small		256";
 echo "		Medium		512";
@@ -398,11 +381,6 @@ BASEPACKAGES+=('unzip');			BASEPACKAGES+=('libnet-ldap-perl');				BASEPACKAGES+=
 BASEPACKAGES+=('openssl');			BASEPACKAGES+=('libmail-dkim-perl');			BASEPACKAGES+=('libhtml-tokeparser-simple-perl');
 BASEPACKAGES+=('perl');				BASEPACKAGES+=('libbusiness-isbn-data-perl');	BASEPACKAGES+=('libnet-dns-resolver-programmable-perl');
 BASEPACKAGES+=('p7zip-full');       BASEPACKAGES+=('libgeo-ip-perl');               BASEPACKAGES+=('libnet-patricia-perl');
-BASEPACKAGES+=('arj');              BASEPACKAGES+=('lhasa');                        BASEPACKAGES+=('bzip2'); 
-BASEPACKAGES+=('cabextract');       BASEPACKAGES+=('cpio');                         BASEPACKAGES+=('file'); 
-BASEPACKAGES+=('gzip');             BASEPACKAGES+=('nomarch');                      BASEPACKAGES+=('pax'); 
-BASEPACKAGES+=('rar');              BASEPACKAGES+=('unrar');                         BASEPACKAGES+=('unzip'); 
-BASEPACKAGES+=('zip');              BASEPACKAGES+=('zoo'); 
 
 if [ "$parsedCommands" -gt 0 ]; then
     BASEPACKAGES+=('cpanminus');
