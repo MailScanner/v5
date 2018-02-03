@@ -23,11 +23,17 @@
 #
 # 	Updated: 	Jerry Benton <mailscanner@mailborder.com>
 #				26 APR 2016
+#               Shawn Iverson <shawniverson@efa-project.org>
+#               3 FEB 2018
 
 use strict;
 no strict 'subs';
 use POSIX;
 require 5.005;
+
+# chdir to a known good working directory
+# Avoids permissions issues with current working directory
+chdir('/usr/share/MailScanner/perl');
 
 # Awkard BEGIN block so that we pick up MIME::Base64 from the right place!
 BEGIN {
