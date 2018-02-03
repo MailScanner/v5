@@ -316,32 +316,32 @@ if [ $updated -ge 1 ]; then
     if [ ! -f /var/lock/subsys/MailScanner.off ]; then
       logger -p $SYSLOG.info -t ms-update-phishing reload MailScanner....
       if [ -d /etc/systemd ]; then
-        systemctl reload $MSSERVICENAME > /dev/null 2>&1
+        systemctl reload $MSSERVICENAME >/dev/null 2>&1
         if [ $? != 0 ] ; then
           #echo "MailScanner reload failed - Retrying..."
-          systemctl reload $MSSERVICENAME > /dev/null 2>&1
+          systemctl reload $MSSERVICENAME >/dev/null 2>&1
           if [ $? != 0 ] ; then
             #echo "Stopping MailScanner..."
-            systemctl stop $MSSERVICENAME
+            systemctl stop $MSSERVICENAME >/dev/null 2>&1
             #echo "Waiting for a minute..."
             perl -e "sleep 60;"
             #echo "Attemping to start MailScanner..."
-            systemctl start $MSSERVICENAME
+            systemctl start $MSSERVICENAME >/dev/null 2>&1
           fi
         fi
       else
         if [ -s $MSSTARTSCRIPT ]; then
-          $MSSTARTSCRIPT reload > /dev/null 2>&1
+          $MSSTARTSCRIPT reload >/dev/null 2>&1
           if [ $? != 0 ] ; then
             #echo "MailScanner reload failed - Retrying..."
-            $MSSTARTSCRIPT reload
+            $MSSTARTSCRIPT reload >/dev/null 2>&1
             if [ $? != 0 ] ; then
               #echo "Stopping MailScanner..."
-              $MSSTARTSCRIPT stop
+              $MSSTARTSCRIPT stop >/dev/null 2>&1
               #echo "Waiting for a minute..."
               perl -e "sleep 60;"
               #echo "Attemping to start MailScanner..."
-              $MSSTARTSCRIPT start
+              $MSSTARTSCRIPT start >/dev/null 2>&1
             fi
           fi
         fi
