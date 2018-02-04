@@ -314,12 +314,12 @@ updated=$(($bad_updated + $safe_updated));
 if [ $updated -ge 1 ]; then
   if [ "$ms_cron_ps_restart" = "1" ]; then
     if [ ! -f /var/lock/subsys/MailScanner.off ]; then
-      logger -p $SYSLOG.info -t ms-update-phishing reload MailScanner....
+      logger -p $SYSLOG.info -t ms-update-phishing restart MailScanner....
       if [ -d /etc/systemd ]; then
-        systemctl reload $MSSERVICENAME >/dev/null 2>&1
+        systemctl restart $MSSERVICENAME >/dev/null 2>&1
         if [ $? != 0 ] ; then
           #echo "MailScanner reload failed - Retrying..."
-          systemctl reload $MSSERVICENAME >/dev/null 2>&1
+          systemctl restart $MSSERVICENAME >/dev/null 2>&1
           if [ $? != 0 ] ; then
             #echo "Stopping MailScanner..."
             systemctl stop $MSSERVICENAME >/dev/null 2>&1
@@ -331,10 +331,10 @@ if [ $updated -ge 1 ]; then
         fi
       else
         if [ -s $MSSTARTSCRIPT ]; then
-          $MSSTARTSCRIPT reload >/dev/null 2>&1
+          $MSSTARTSCRIPT restart >/dev/null 2>&1
           if [ $? != 0 ] ; then
             #echo "MailScanner reload failed - Retrying..."
-            $MSSTARTSCRIPT reload >/dev/null 2>&1
+            $MSSTARTSCRIPT restart >/dev/null 2>&1
             if [ $? != 0 ] ; then
               #echo "Stopping MailScanner..."
               $MSSTARTSCRIPT stop >/dev/null 2>&1

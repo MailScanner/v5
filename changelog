@@ -1,9 +1,16 @@
-01/18/2018 Changes in    v5.0.7-2
+02/03/2018 Changes in    v5.0.7-2
 ==================================
 
-- Use mtagroup for tmpfiles.d clamd.scan (CentOS 7)
+- Use mtagroup for tmpfiles.d clamd.scan (CentOS/RHEL 7)
 - Remove spaces from CURLORWGET = 'wget'
 - Fix one typo and a bit of grammar in DE translations
+- Fix ms-update-sa reload for systemd
+- Fix ms-update-bad-emails for systemd
+- Change current working directory on MailScanner invocation
+- Fix ms-update-phishing to suppress cron output
+- Remove support for systemd reload
+- Use /etc/tmpfiles.d for /var/run/clamd.scan configuration (CentOS/RHEL 7)
+- Update ms-update-phishing to use restart instead of reload
 
 12/25/2017 Changes in    v5.0.7-1
 ==================================
