@@ -33,19 +33,19 @@ fi
 
 if [ -d '/usr/lib/MailScanner/MailScanner/CustomFunctions' ]; then
 	mkdir -p ${SAVEDIR}/usr/lib/MailScanner/MailScanner/CustomFunctions
-	cp -f /usr/lib/MailScanner/MailScanner/CustomFunctions/* ${SAVEDIR}/usr/lib/MailScanner/MailScanner/CustomFunctions
+	cp -rf /usr/lib/MailScanner/MailScanner/CustomFunctions ${SAVEDIR}/usr/lib/MailScanner/MailScanner/
 	rm -rf /usr/lib/MailScanner
 fi
 
 if [ -d '/etc/MailScanner/CustomFunctions' ]; then
 	mkdir -p ${SAVEDIR}/etc/MailScanner/CustomFunctions
-	cp -f /etc/MailScanner/CustomFunctions/* ${SAVEDIR}/etc/MailScanner/CustomFunctions
+	cp -rf /etc/MailScanner/CustomFunctions ${SAVEDIR}/etc/MailScanner/
 	rm -rf /etc/MailScanner/CustomFunctions
 fi
 
 if [ -d '/etc/MailScanner/Custom' ]; then
 	mkdir -p ${SAVEDIR}/etc/MailScanner/Custom
-	cp -f /etc/MailScanner/Custom/* ${SAVEDIR}/etc/MailScanner/Custom
+	cp -rf /etc/MailScanner/Custom ${SAVEDIR}/etc/MailScanner/
 	rm -rf /etc/MailScanner/Custom
 fi
 
