@@ -3572,6 +3572,7 @@ sub SafePipe {
         $Str .= $_;
         #print STDERR "SafePipe : Processing line \"$_\"\n";
       }
+      close $Kid;
 
       #MailScanner::Log::DebugLog("SafePipe : Completed $Cmd");
       #print STDERR "SafePipe : Returned $PipeReturnCode\n";
