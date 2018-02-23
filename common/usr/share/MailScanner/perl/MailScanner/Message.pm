@@ -3189,6 +3189,8 @@ sub Unpack7zip {
     $nopathname = $name;
     $nopathname =~ s/^.*\///;
     $safename = $this->MakeNameSafe('r'.$nopathname,$explodeinto);
+    $safename =~ m|(.*)|;
+    $safename = $1;
     $NameTwo = $safename;
     $NameTwo = $1 if $NameTwo =~ /([^\/]+)$/;
     #MailScanner::Log::InfoLog("UnPackRar: Member : %s", $member);
