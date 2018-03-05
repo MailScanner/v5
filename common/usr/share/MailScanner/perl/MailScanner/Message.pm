@@ -3189,6 +3189,8 @@ sub Unpack7zip {
     $nopathname = $name;
     $nopathname =~ s/^.*\///;
     $safename = $this->MakeNameSafe('r'.$nopathname,$explodeinto);
+    $safename =~ m|(.*)|;
+    $safename = $1;
     $NameTwo = $safename;
     $NameTwo = $1 if $NameTwo =~ /([^\/]+)$/;
     #MailScanner::Log::InfoLog("UnPackRar: Member : %s", $member);
@@ -3570,6 +3572,7 @@ sub SafePipe {
         $Str .= $_;
         #print STDERR "SafePipe : Processing line \"$_\"\n";
       }
+      close $Kid;
 
       #MailScanner::Log::DebugLog("SafePipe : Completed $Cmd");
       #print STDERR "SafePipe : Returned $PipeReturnCode\n";
