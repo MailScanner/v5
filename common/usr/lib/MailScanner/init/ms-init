@@ -212,21 +212,22 @@ do_stop()
         # process killed
         if [ $RETVAL -eq 0 ]; then
         
+        # disable rotating sign when stopping.
             # wait until it is gone.
-            s='-\|/';
-            x=0
-            i=0
-            RETVAL=0
-            while [ "$x" -lt 600 -a "$RETVAL" -eq 0 ]; do
-                ps wwp $PID | grep -q '[M]ailScanner':  > /dev/null 2>&1
-                RETVAL="$?"
-                x=$((x+1));
-                i=$(( (i+1) %4 ))
-                printf "\r${s:$i:1}"
-                sleep .1
-            done
-            printf "\r"
-            echo " "
+            #s='-\|/';
+            #x=0
+            #i=0
+            #RETVAL=0
+            #while [ "$x" -lt 600 -a "$RETVAL" -eq 0 ]; do
+            #    ps wwp $PID | grep -q '[M]ailScanner':  > /dev/null 2>&1
+            #    RETVAL="$?"
+            #    x=$((x+1));
+            #    i=$(( (i+1) %4 ))
+            #    printf "\r${s:$i:1}"
+            #    sleep .1
+            #done
+            #printf "\r"
+            #echo " "
             
             # Check again
             ps wwp $PID|grep -q '[M]ailScanner': > /dev/null 2>&1
@@ -301,19 +302,19 @@ do_deadpid()
     [ "$VERBOSE" != no ] && logger -i -p mail.notice "Found a possible dead PID. Stopping all $NAME rogue processes ..."
     kill -15 $(ps axww | grep '[M]ailScanner': | awk '{print $1}') > /dev/null 2>&1
     # wait until they're gone.
-    s='-\|/';
-    x=0
-    i=0
-    RETVAL=0
-    while [ "$x" -lt 600 -a "$RETVAL" -eq 0 ]; do
-        ps axww | grep -q '[M]ailScanner':
-        RETVAL="$?"
-        x=$((x+1));
-        i=$(( (i+1) %4 ))
-        printf "\r${s:$i:1}"
-        sleep .1
-    done
-    printf "\r"
+    #s='-\|/';
+    #x=0
+    #i=0
+    #RETVAL=0
+    #while [ "$x" -lt 600 -a "$RETVAL" -eq 0 ]; do
+    #    ps axww | grep -q '[M]ailScanner':
+    #    RETVAL="$?"
+    #    x=$((x+1));
+    #    i=$(( (i+1) %4 ))
+    #    printf "\r${s:$i:1}"
+    #    sleep .1
+    #done
+    #printf "\r"
 
     # Check again
     if [ $(ps axww | grep -q '[M]ailScanner': ) ]; then
