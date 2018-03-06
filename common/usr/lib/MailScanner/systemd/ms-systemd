@@ -16,7 +16,6 @@ RemainAfterExit=yes
 ExecStart=/usr/lib/MailScanner/init/ms-init start
 ExecStop=/usr/lib/MailScanner/init/ms-init stop
 EnvironmentFile=-/etc/MailScanner/defaults
-ExecReload=no
 PIDFile=/var/run/MailScanner.pid
 
 [Install]
