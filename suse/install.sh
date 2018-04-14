@@ -667,7 +667,9 @@ else
             chown vscan:vscan /var/run/clamav
         fi
     fi
-    
+
+    ldconfig
+
     echo;
     echo '----------------------------------------------------------';
     echo 'Installation Complete'; echo;

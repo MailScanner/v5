@@ -1204,7 +1204,9 @@ else
             fi
         fi
     fi
-    
+
+    ldconfig
+
     echo;
     echo '----------------------------------------------------------';
     echo 'Installation Complete'; echo;
