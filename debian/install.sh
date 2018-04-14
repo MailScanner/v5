@@ -648,7 +648,7 @@ else
             fi
         fi
     fi
-        
+
     /usr/sbin/ms-update-phishing >/dev/null 2>&1
     
     if [ -d '/etc/clamav' ]; then
@@ -657,7 +657,9 @@ else
             /usr/bin/freshclam 2>/dev/null
         fi
     fi
-    
+
+    ldconfig
+
     echo;
     echo '----------------------------------------------------------';
     echo 'Installation Complete'; echo;
