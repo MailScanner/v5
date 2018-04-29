@@ -1,3 +1,13 @@
+04/29/2018 Changes in    v5.0.7-3
+==================================
+
+- Fix copy of CustomFunctions directory in debian install
+- Fix untaint of $safename var in unpack7zip
+- Respect process exit code of Message::SafePipe
+- Fix systemd file syntax in RHEL/CentOS
+- Remove rotating indication in ms-init
+- Add ldconfig to end of install.sh
+
 02/03/2018 Changes in    v5.0.7-2
 ==================================
 
