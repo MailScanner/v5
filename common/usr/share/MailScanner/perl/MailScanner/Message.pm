@@ -4196,7 +4196,7 @@ sub BuildFile2EntityAndEntity2File {
   # JKF 20090327 None of the others do, they represent the real attach name.
   $headfile = $entity->head->recommended_filename || $namewithouttype; # $path;
   #print STDERR "rec filename for \"$headfile\" is \"" . $entity->head->recommended_filename . "\"\n";
-  $headfile = MIME::WordDecoder::unmime($headfile);
+  $headfile = MIME::WordDecoder::mime_to_perl_string($headfile);
   #print STDERR "headfile is $headfile\n";
   if ($headfile) {
     # headfile does *NOT* have the type indicator character on it.
