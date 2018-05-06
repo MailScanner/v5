@@ -22,7 +22,7 @@ sub output_path {
     my $dir = $self->output_dir($head);
 
     ### Get the output filename, decoding into the local character set:
-    my $fname = unmime $head->recommended_filename;
+    my $fname = mime_to_perl_string $head->recommended_filename;
 
     ### Can we use it:
     if    (!defined($fname)) {

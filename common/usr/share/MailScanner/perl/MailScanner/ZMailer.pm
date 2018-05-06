@@ -373,9 +373,9 @@ sub ReadQf {
   # much better than the MIME-tools default handling.
   MIME::WordDecoder->default->handler('*' => \&MailScanner::Message::WordDecoderKeep7Bit);
   # Decode the ISO encoded Subject line
-  my $TmpSubject = MIME::WordDecoder::unmime($message->{subject});
+  my $TmpSubject = MIME::WordDecoder::mime_to_perl_string($message->{subject});
   if ($TmpSubject ne $message->{subject}) {
-    # The unmime function dealt with an encoded subject, as it did
+    # The mime_to_perl_string function dealt with an encoded subject, as it did
     # something. Allow up to 10 trailing spaces so that SweepContent
     # is more kind to us and doesn't go and replace the whole subject,
     # thinking that it is malicious. Total replacement and hence

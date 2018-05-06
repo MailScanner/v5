@@ -303,7 +303,7 @@ sub new {
     # Over-ride the default default character set handler so it does it
     # much better than the MIME-tools default handling.
     MIME::WordDecoder->default->handler('*' => \&MailScanner::Message::WordDecoderKeep7Bit);
-    $message->{subject} = MIME::WordDecoder::unmime($message->{subject});
+    $message->{subject} = MIME::WordDecoder::mime_to_perl_string($message->{subject});
 
     $message->{store}->DeleteUnlock();
     
