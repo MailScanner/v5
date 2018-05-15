@@ -692,14 +692,9 @@ sub AllMatchesValue {
   }
 
   # Return the concatenation of all the matching rules
-  my($results);
-  $results = join(" ", @matches);
-  #print STDERR "Result is \"$results\"\n";
-  return $results if @matches; # JKF $results ne "";
-  # Nothing matched, so return the default value
-  #print STDERR "Nothing matched, so returning default\n";
-  #return $Defaults{$name};
-  return "CoNfIgFoUnDnOtHiNg";
+  return "CoNfIgFoUnDnOtHiNg" unless @matches;
+  return join(",", @matches) if $name eq 'saactions';
+  return join(" ", @matches);
 }
 
 
