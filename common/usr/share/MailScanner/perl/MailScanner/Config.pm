@@ -564,7 +564,7 @@ sub AllMatchesValue {
       #print STDERR "Matches keys = " . join(" ",@matches) . "\n";
       while(($file, $text) = each %{$msg->{allreports}}) {
       #print STDERR "File is $file and text is $text\n";
-        push @matches, split(" ",$value) if $text =~ /$regexp/;
+        push @matches, $value if $text =~ /$regexp/;
       }
     } elsif ($direction =~ /b/) {
       # It's a text address-based rule
@@ -578,19 +578,19 @@ sub AllMatchesValue {
           $misses++,last unless $to =~ /$regexp/;
         }
       }
-      push @matches, split(" ",$value) if $misses == 0;
+      push @matches, $value if $misses == 0;
     } else {
       if ($direction =~ /f/) {
         # Match against the From address
-        push @matches, split(" ",$value) if $msg->{from} =~ /$regexp/;
+        push @matches, $value if $msg->{from} =~ /$regexp/;
       }
       if ($direction =~ /t/) {
         # Match against every To address
         if (defined $tooverride) {
-          push @matches, split(" ",$value) if $tooverride =~ /$regexp/;
+          push @matches, $value if $tooverride =~ /$regexp/;
         } else {
           foreach $to (@{$msg->{to}}) {
-            push @matches, split(" ",$value) if $to =~ /$regexp/;
+            push @matches, $value if $to =~ /$regexp/;
           }
         }
       }
@@ -603,7 +603,7 @@ sub AllMatchesValue {
       # Don't return anything unless we find a match.
       my($file, $text);
       while(($file, $text) = each %{$msg->{allreports}}) {
-        push @matches, split(" ",$value) if $text =~ /$regexp/;
+        push @matches, $value if $text =~ /$regexp/;
       }
     } elsif ($direction eq 'f') {
       # It's a numeric ip-number-based rule
@@ -611,10 +611,10 @@ sub AllMatchesValue {
       # Match against the SMTP Client IP address
       if ($regexp =~ /\d+\\\.\d+\\\.\d+\\\.\d+\)*$/) {
         # It's a complete IPv4 address so it's a total string match, not a re
-        push @matches, split(" ",$value) if $msg->{clientip} =~ /^$regexp$/;
+        push @matches, $value if $msg->{clientip} =~ /^$regexp$/;
       } else {
         # It's not a complete IPv4 address so substring match it
-        push @matches, split(" ",$value) if $msg->{clientip} =~ /$regexp/;
+        push @matches, $value if $msg->{clientip} =~ /$regexp/;
       }
     } else {
       # Don't know the target IP address
@@ -648,13 +648,13 @@ sub AllMatchesValue {
       #print STDERR "Matched!\n" if $fromname =~ /$regexp/i; # Initial test in case from=''
       # Initial test in case from=''
       if ($fromname =~ /$regexp/) {
-        push @matches, split(" ",$value);
+        push @matches, $value;
         #print STDERR "Initial test matched\n";
       } else {
         while ($fromname ne '' && $fromname ne '_SPOOFED_') {
           #print STDERR "Testing $fromname against $regexp\n";
           #print STDERR "Matches!\n" if $fromname =~ /$regexp/i;
-          push @matches, split(" ",$value) if $fromname =~ /$regexp/i;
+          push @matches, $value if $fromname =~ /$regexp/i;
           $fromname =~ s/^\.[^.]+//; # Knock off next word, could be last
         }
       }
@@ -671,7 +671,7 @@ sub AllMatchesValue {
       # Don't return anything unless we find a match.
       my($file, $text);
       while(($file, $text) = each %{$msg->{allreports}}) {
-        push @matches, split(" ",$value) if $text =~ /$regexp/;
+        push @matches, $value if $text =~ /$regexp/;
       }
     } elsif ($direction =~ /f/) {
       # Can only check these with From:, not To: addresses
@@ -679,7 +679,7 @@ sub AllMatchesValue {
       my(@cidr) = split(',', $regexp2);
       #print STDERR "Matching IP " . $msg->{clientip} .
       #             " against " . join(',',@cidr) . "\n";
-      push @matches, split(" ",$value)
+      push @matches, $value
         if Net::CIDR::cidrlookup($msg->{clientip}, @cidr);
     }
     if ($direction =~ /[tb]/) {
@@ -690,6 +690,10 @@ sub AllMatchesValue {
     }
 
   }
+
+  # Remove spacing and empty elements
+  map { s/^\s+|\s+$//g ; s/\s+/ /g } @matches;
+  @matches = grep /\S/, @matches;
 
   # Return the concatenation of all the matching rules
   return "CoNfIgFoUnDnOtHiNg" unless @matches;
