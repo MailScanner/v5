@@ -25,8 +25,8 @@
 #
 #CONFIGDIR='/opt/MailScanner/etc';
 CONFIGDIR='/etc/MailScanner';
-BADURL='http://phishing.mailscanner.info/phishing.bad.sites.conf';
-SAFEURL='http://phishing.mailscanner.info/phishing.safe.sites.conf';
+BADURL='http://phishing.mailscanner.info/phishing.bad.sites.conf.gz';
+SAFEURL='http://phishing.mailscanner.info/phishing.safe.sites.conf.gz';
 MSSTARTSCRIPT='/etc/init.d/mailscanner';
 MSSERVICENAME='mailscanner.service';
 
@@ -106,8 +106,9 @@ fi
 bad_updated=1;
 
 if [ $CURLORWGET = 'curl' ]; then
-  curl -S -A "msv5 Update Script v0.2.0" -z $CONFIGDIR/phishing.bad.sites.conf.master --compressed -o $CONFIGDIR/phishing.bad.sites.conf.master $BADURL &> /dev/null
+  curl -S -A "msv5 Update Script v0.2.0" -z $CONFIGDIR/phishing.bad.sites.conf.master.gz -o $CONFIGDIR/phishing.bad.sites.conf.master.gz $BADURL &> /dev/null
   if [ "$?" = "0" ]; then
+    gunzip -f $CONFIGDIR/phishing.bad.sites.conf.master.gz
     #echo Check or download phishing.bad.sites.conf.master completed OK.
     if [ -r $CONFIGDIR/phishing.bad.sites.conf.master.backup ]; then
       if [ $CONFIGDIR/phishing.bad.sites.conf.master -nt $CONFIGDIR/phishing.bad.sites.conf.master.backup ]; then
@@ -144,9 +145,10 @@ fi
 
 if [ $CURLORWGET = 'wget' ]; then
   echo Trying wget....
-  wget -q --user-agent="msv5 Update Script v0.2.0" --no-check-certificate -N $BADURL.master
+  wget -q --user-agent="msv5 Update Script v0.2.0" --no-check-certificate -N -O phishing.bad.sites.conf.master.gz $BADURL
   if [ "$?" = "0" ]; then
-    echo Check or download phishing.bad.sites.conf.master completed OK.
+    gunzip -f $CONFIGDIR/phishing.bad.sites.conf.master.gz
+    #echo Check or download phishing.bad.sites.conf.master completed OK.
     if [ -r $CONFIGDIR/phishing.bad.sites.conf.master.backup ]; then
       if [ $CONFIGDIR/phishing.bad.sites.conf.master -nt $CONFIGDIR/phishing.bad.sites.conf.master.backup ]; then
         filesize=$(wc -l < $CONFIGDIR/phishing.bad.sites.conf.master)
@@ -210,8 +212,9 @@ fi
 safe_updated=1;
 
 if [ $CURLORWGET = 'curl' ]; then
-  curl -S -A "msv5 Update Script v0.2.0" -z $CONFIGDIR/phishing.safe.sites.conf.master --compressed -o $CONFIGDIR/phishing.safe.sites.conf.master $SAFEURL &> /dev/null
+  curl -S -A "msv5 Update Script v0.2.0" -z $CONFIGDIR/phishing.safe.sites.conf.master.gz -o $CONFIGDIR/phishing.safe.sites.conf.master.gz $SAFEURL &> /dev/null
   if [ "$?" = "0" ]; then
+    gunzip -f $CONFIGDIR/phishing.safe.sites.conf.master.gz
     #echo Check or download phishing.safe.sites.conf.master completed OK.
     if [ -r $CONFIGDIR/phishing.safe.sites.conf.master.backup ]; then
       if [ $CONFIGDIR/phishing.safe.sites.conf.master -nt $CONFIGDIR/phishing.safe.sites.conf.master.backup ]; then
@@ -248,8 +251,9 @@ fi
 
 if [ $CURLORWGET = 'wget' ]; then
   echo Trying wget....
-  wget -q --user-agent="msv5 Update Script v0.2.0" --no-check-certificate -N $SAFEURL.master
+  wget -q --user-agent="msv5 Update Script v0.2.0" --no-check-certificate -N -O phishing.safe.sites.conf.master.gz $SAFEURL
   if [ "$?" = "0" ]; then
+    gunzip -f $CONFIGDIR/phishing.safe.sites.conf.master.gz
     #echo Check or download phishing.safe.sites.conf.master completed OK.
     if [ -r $CONFIGDIR/phishing.safe.sites.conf.master.backup ]; then
       if [ $CONFIGDIR/phishing.safe.sites.conf.master -nt $CONFIGDIR/phishing.safe.sites.conf.master.backup ]; then
