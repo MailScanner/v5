@@ -1,3 +1,10 @@
+06/16/2018 Changes in    v5.0.7-4
+==================================
+- Switch to gzipped phishing update files
+- Fix for no virus scanner defined
+- Fix configuration chaining for SA rules actions in rulesets
+- Fix mime decoding deprecation
+
 04/29/2018 Changes in    v5.0.7-3
 ==================================
 
