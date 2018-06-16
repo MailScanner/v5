@@ -7954,11 +7954,12 @@ sub InPhishingWhitelist {
   return 1 if $MailScanner::Config::PhishingWhitelist{$linkurl};
 
   # Trim host. off the front of the hostname
-  #while ($linkurl ne "" && $linkurl =~ s/^[^.]+\.//) {
+  # This is needed to process wildcards in the whitelist
+  while ($linkurl ne "" && $linkurl =~ s/^[^.]+\.//) {
     # And replace it with *. then look it up
     #print STDERR "Looking up *.$linkurl\n";
-  #  return 1 if $MailScanner::Config::PhishingWhitelist{'*.' . $linkurl};
-  #}
+    return 1 if $MailScanner::Config::PhishingWhitelist{'*.' . $linkurl};
+  }
 
   return 0;
 }
@@ -7971,11 +7972,12 @@ sub InPhishingBlacklist {
   return 1 if $MailScanner::Config::PhishingBlacklist{$linkurl};
 
   # Trim host. off the front of the hostname
-  #while ($linkurl ne "" && $linkurl =~ s/^[^.]+\.//) {
+  # This is needed to process wildcards in the blacklist
+  while ($linkurl ne "" && $linkurl =~ s/^[^.]+\.//) {
     # And replace it with *. then look it up
     #print STDERR "Looking up *.$linkurl\n";
-  #  return 1 if $MailScanner::Config::PhishingBlacklist{'*.' . $linkurl};
-  #}
+    return 1 if $MailScanner::Config::PhishingBlacklist{'*.' . $linkurl};
+  }
 
   return 0;
 }
