@@ -29,6 +29,7 @@ BADURL='http://phishing.mailscanner.info/phishing.bad.sites.conf.gz';
 SAFEURL='http://phishing.mailscanner.info/phishing.safe.sites.conf.gz';
 MSSTARTSCRIPT='/etc/init.d/mailscanner';
 MSSERVICENAME='mailscanner.service';
+DEBUG=0
 
 PATH=/bin:/usr/bin:/sbin:/usr/sbin:/usr/etc:/usr/local/bin:/usr/sfw/bin
 export PATH
@@ -89,19 +90,23 @@ if [ ! -f $CONFIGDIR/phishing.safe.sites.custom ]; then
 	echo '#' >> $CONFIGDIR/phishing.safe.sites.custom
 fi
 
+# Sanity check for regular config files, create if missing
+[ ! -f $CONFIGDIR/phishing.safe.sites.conf ] && touch $CONFIGDIR/phishing.safe.sites.conf
+[ ! -f $CONFIGDIR/phishing.bad.sites.conf ] && touch $CONFIGDIR/phishing.bad.sites.conf
+
 if hash curl 2>/dev/null; then
-  #echo 'Found curl'
+  [ $DEBUG -eq 1 ] && echo 'Found curl'
   CURLORWGET='curl';
 else
   if hash wget 2>/dev/null; then
-    #echo 'Found wget'
+    [ $DEBUG -eq 1 ] && echo 'Found wget'
     CURLORWGET='wget';
   else
     logger -p $SYSLOG.warn -t update.bad.phishing.sites Cannot find wget or curl, update failed. ; echo Cannot find wget or curl to do phishing sites update. ; exit 1
   fi
 fi
 
-#echo Trying to update phishing.bad.sites.conf.master....
+[ $DEBUG -eq 1 ] && echo Trying to update phishing.bad.sites.conf.master....
 
 bad_updated=1;
 
@@ -109,30 +114,30 @@ if [ $CURLORWGET = 'curl' ]; then
   curl -S -A "msv5 Update Script v0.2.0" -z $CONFIGDIR/phishing.bad.sites.conf.master.gz -o $CONFIGDIR/phishing.bad.sites.conf.master.gz $BADURL &> /dev/null
   if [ "$?" = "0" ]; then
     gunzip -f $CONFIGDIR/phishing.bad.sites.conf.master.gz
-    #echo Check or download phishing.bad.sites.conf.master completed OK.
+    [ $DEBUG -eq 1 ] && echo Check or download phishing.bad.sites.conf.master completed OK.
     if [ -r $CONFIGDIR/phishing.bad.sites.conf.master.backup ]; then
       if [ $CONFIGDIR/phishing.bad.sites.conf.master -nt $CONFIGDIR/phishing.bad.sites.conf.master.backup ]; then
   	    filesize=$(wc -l < $CONFIGDIR/phishing.bad.sites.conf.master)
         if [ $filesize -gt 1000 ]; then
-          #echo Download fresh phishing.bad.sites.conf.master succeeded, so make a backup
+          [ $DEBUG -eq 1 ] && echo Download fresh phishing.bad.sites.conf.master succeeded, so make a backup
           cp -f $CONFIGDIR/phishing.bad.sites.conf.master $CONFIGDIR/phishing.bad.sites.conf.master.backup
         else
-          #echo Check phishing.bad.sites.conf.master failed: It looks corrupt
+          [ $DEBUG -eq 1 ] && echo Check phishing.bad.sites.conf.master failed: It looks corrupt
           rm -f $CONFIGDIR/phishing.bad.sites.conf.master
           logger -p $SYSLOG.warn -t update.bad.phishing.sites Downloaded bad phishing site master file is corrupt, update failed. ; echo "Downloaded bad phishing site master file is corrupt, removing it." ;
           gotAnError=1
         fi
       else
-        #echo Remote phishing.bad.sites.conf.master not newer than local copy.... everything OK
+        [ $DEBUG -eq 1 ] && echo Remote phishing.bad.sites.conf.master not newer than local copy.... everything OK
         bad_updated=0
       fi
     else
       filesize=$(wc -l < $CONFIGDIR/phishing.bad.sites.conf.master)
       if [ $filesize -gt 1000 ]; then
-        #echo Download fresh phishing.bad.sites.conf.master succeeded, so make a backup
+        [ $DEBUG -eq 1 ] && echo Download fresh phishing.bad.sites.conf.master succeeded, so make a backup
         cp -f $CONFIGDIR/phishing.bad.sites.conf.master $CONFIGDIR/phishing.bad.sites.conf.master.backup
       else
-        #echo Check phishing.bad.sites.conf.master failed: It looks corrupt
+        [ $DEBUG -eq 1 ] && echo Check phishing.bad.sites.conf.master failed: It looks corrupt
         rm -f $CONFIGDIR/phishing.bad.sites.conf.master
         logger -p $SYSLOG.warn -t update.bad.phishing.sites Downloaded bad phishing site master file is corrupt, update failed. ; echo "Downloaded bad phishing site master file is corrupt, removing it." ;
         gotAnError=1
@@ -148,30 +153,30 @@ if [ $CURLORWGET = 'wget' ]; then
   wget -q --user-agent="msv5 Update Script v0.2.0" --no-check-certificate -N -O phishing.bad.sites.conf.master.gz $BADURL
   if [ "$?" = "0" ]; then
     gunzip -f $CONFIGDIR/phishing.bad.sites.conf.master.gz
-    #echo Check or download phishing.bad.sites.conf.master completed OK.
+    [ $DEBUG -eq 1 ] && echo Check or download phishing.bad.sites.conf.master completed OK.
     if [ -r $CONFIGDIR/phishing.bad.sites.conf.master.backup ]; then
       if [ $CONFIGDIR/phishing.bad.sites.conf.master -nt $CONFIGDIR/phishing.bad.sites.conf.master.backup ]; then
         filesize=$(wc -l < $CONFIGDIR/phishing.bad.sites.conf.master)
         if [ $filesize -gt 1000 ]; then
-          #echo Download fresh phishing.bad.sites.conf.master succeeded, so make a backup
+          [ $DEBUG -eq 1 ] && echo Download fresh phishing.bad.sites.conf.master succeeded, so make a backup
           cp -f $CONFIGDIR/phishing.bad.sites.conf.master $CONFIGDIR/phishing.bad.sites.conf.master.backup
         else
-          #echo Check phishing.bad.sites.conf.master failed: It looks corrupt
+          [ $DEBUG -eq 1 ] && echo Check phishing.bad.sites.conf.master failed: It looks corrupt
           rm -f $CONFIGDIR/phishing.bad.sites.conf.master
           logger -p $SYSLOG.warn -t update.bad.phishing.sites Downloaded bad phishing site master file is corrupt, removing it. ; echo "Downloaded bad phishing site master file is corrupt, removing it." ;
           gotAnError=1
         fi
       else
-        #echo Remote phishing.bad.sites.conf.master not newer than local copy.... everything OK
+        [ $DEBUG -eq 1 ] && echo Remote phishing.bad.sites.conf.master not newer than local copy.... everything OK
         bad_updated=0
       fi
     else
       filesize=$(wc -l < $CONFIGDIR/phishing.bad.sites.conf.master)
       if [ $filesize -gt 1000 ]; then
-        #echo Download fresh phishing.bad.sites.conf.master succeeded, so make a backup
+        [ $DEBUG -eq 1 ] && echo Download fresh phishing.bad.sites.conf.master succeeded, so make a backup
         cp -f $CONFIGDIR/phishing.bad.sites.conf.master $CONFIGDIR/phishing.bad.sites.conf.master.backup
       else
-        #echo Check phishing.bad.sites.conf.master failed: It looks corrupt
+        [ $DEBUG -eq 1 ] && echo Check phishing.bad.sites.conf.master failed: It looks corrupt
         rm -f $CONFIGDIR/phishing.bad.sites.conf.master
         logger -p $SYSLOG.warn -t update.bad.phishing.sites Downloaded bad phishing site master file is corrupt, removing it. ; echo "Downloaded bad phishing site master file is corrupt, removing it." ;
         gotAnError=1
@@ -192,13 +197,13 @@ fi
 
 if [ $bad_updated -ge 1 ]; then
   if [ -s phishing.bad.sites.conf.master ]; then
-    #echo Creating fresh phishing.bad.sites.conf....
+    [ $DEBUG -eq 1 ] && echo Creating fresh phishing.bad.sites.conf....
     cat phishing.bad.sites.custom phishing.bad.sites.conf.master | \
     uniq > phishing.bad.sites.conf.new
     rm -f phishing.bad.sites.conf
     mv -f phishing.bad.sites.conf.new phishing.bad.sites.conf
     chmod a+r phishing.bad.sites.conf
-    #echo Creation of fresh phishing.bad.sites.conf is OK
+    [ $DEBUG -eq 1 ] && echo Creation of fresh phishing.bad.sites.conf is OK
     logger -p $SYSLOG.info -t update.bad.phishing.sites Phishing bad sites list updated
   else
     logger -p $SYSLOG.info -t update.bad.phishing.sites The phishing bad sites master file does not exist or is not readable. Update failed! ; echo "The phishing bad sites master file does not exist or is not readable. Update failed!" ;
@@ -207,7 +212,7 @@ if [ $bad_updated -ge 1 ]; then
   fi
 fi
 
-#echo Trying to update phishing.safe.sites.conf.master....
+[ $DEBUG -eq 1 ] && echo Trying to update phishing.safe.sites.conf.master....
 
 safe_updated=1;
 
@@ -215,30 +220,30 @@ if [ $CURLORWGET = 'curl' ]; then
   curl -S -A "msv5 Update Script v0.2.0" -z $CONFIGDIR/phishing.safe.sites.conf.master.gz -o $CONFIGDIR/phishing.safe.sites.conf.master.gz $SAFEURL &> /dev/null
   if [ "$?" = "0" ]; then
     gunzip -f $CONFIGDIR/phishing.safe.sites.conf.master.gz
-    #echo Check or download phishing.safe.sites.conf.master completed OK.
+    [ $DEBUG -eq 1 ] && echo Check or download phishing.safe.sites.conf.master completed OK.
     if [ -r $CONFIGDIR/phishing.safe.sites.conf.master.backup ]; then
       if [ $CONFIGDIR/phishing.safe.sites.conf.master -nt $CONFIGDIR/phishing.safe.sites.conf.master.backup ]; then
   	    filesize=$(wc -l < $CONFIGDIR/phishing.safe.sites.conf.master)
         if [ $filesize -gt 500 ]; then
-          #echo Download fresh phishing.safe.sites.conf.master succeeded, so make a backup
+          [ $DEBUG -eq 1 ] && echo Download fresh phishing.safe.sites.conf.master succeeded, so make a backup
           cp -f $CONFIGDIR/phishing.safe.sites.conf.master $CONFIGDIR/phishing.safe.sites.conf.master.backup
         else
-          #echo Check phishing.safe.sites.conf.master failed: It looks corrupt
+          [ $DEBUG -eq 1 ] && echo Check phishing.safe.sites.conf.master failed: It looks corrupt
           rm -f $CONFIGDIR/phishing.safe.sites.conf.master
           logger -p $SYSLOG.warn -t update.safe.phishing.sites Downloaded safe phishing site master file is corrupt, update failed. ; echo "Downloaded safe phishing site master file is corrupt, removing it." ;
           gotAnError=1
         fi
       else
-        #echo Remote phishing.safe.sites.conf.master not newer than local copy.... everything OK
+        [ $DEBUG -eq 1 ] && echo Remote phishing.safe.sites.conf.master not newer than local copy.... everything OK
         safe_updated=0
       fi
     else
       filesize=$(wc -l < $CONFIGDIR/phishing.safe.sites.conf.master)
       if [ $filesize -gt 500 ]; then
-        #echo Download fresh phishing.safe.sites.conf.master succeeded, so make a backup
+        [ $DEBUG -eq 1 ] && echo Download fresh phishing.safe.sites.conf.master succeeded, so make a backup
         cp -f $CONFIGDIR/phishing.safe.sites.conf.master $CONFIGDIR/phishing.safe.sites.conf.master.backup
       else
-        #echo Check phishing.safe.sites.conf.master failed: It looks corrupt
+        [ $DEBUG -eq 1 ] && echo Check phishing.safe.sites.conf.master failed: It looks corrupt
         rm -f $CONFIGDIR/phishing.safe.sites.conf.master
         logger -p $SYSLOG.warn -t update.safe.phishing.sites Downloaded safe phishing site master file is corrupt, update failed. ; echo "Downloaded safe phishing site master file is corrupt, removing it." ;
         gotAnError=1
@@ -254,29 +259,29 @@ if [ $CURLORWGET = 'wget' ]; then
   wget -q --user-agent="msv5 Update Script v0.2.0" --no-check-certificate -N -O phishing.safe.sites.conf.master.gz $SAFEURL
   if [ "$?" = "0" ]; then
     gunzip -f $CONFIGDIR/phishing.safe.sites.conf.master.gz
-    #echo Check or download phishing.safe.sites.conf.master completed OK.
+    [ $DEBUG -eq 1 ] && echo Check or download phishing.safe.sites.conf.master completed OK.
     if [ -r $CONFIGDIR/phishing.safe.sites.conf.master.backup ]; then
       if [ $CONFIGDIR/phishing.safe.sites.conf.master -nt $CONFIGDIR/phishing.safe.sites.conf.master.backup ]; then
         filesize=$(wc -l < $CONFIGDIR/phishing.safe.sites.conf.master)
         if [ $filesize -gt 500 ]; then
-          #echo Download fresh phishing.safe.sites.conf.master succeeded, so make a backup
+          [ $DEBUG -eq 1 ] && echo Download fresh phishing.safe.sites.conf.master succeeded, so make a backup
           cp -f $CONFIGDIR/phishing.safe.sites.conf.master $CONFIGDIR/phishing.safe.sites.conf.master.backup
         else
-          #echo Check phishing.safe.sites.conf.master failed: It looks corrupt
+          [ $DEBUG -eq 1 ] && echo Check phishing.safe.sites.conf.master failed: It looks corrupt
           rm -f $CONFIGDIR/phishing.safe.sites.conf.master
           logger -p $SYSLOG.warn -t update.safe.phishing.sites Downloaded safe phishing site master file is corrupt, removing it. ; echo "Downloaded safe phishing site master file is corrupt, removing it." ;
         fi
       else
-        #echo Remote phishing.safe.sites.conf.master not newer than local copy.... everything OK
+        [ $DEBUG -eq 1 ] && echo Remote phishing.safe.sites.conf.master not newer than local copy.... everything OK
         safe_updated=0
       fi
     else
       filesize=$(wc -l < $CONFIGDIR/phishing.safe.sites.conf.master)
       if [ $filesize -gt 500 ]; then
-        #echo Download fresh phishing.safe.sites.conf.master succeeded, so make a backup
+        [ $DEBUG -eq 1 ] && echo Download fresh phishing.safe.sites.conf.master succeeded, so make a backup
         cp -f $CONFIGDIR/phishing.safe.sites.conf.master $CONFIGDIR/phishing.safe.sites.conf.master.backup
       else
-        #echo Check phishing.safe.sites.conf.master failed: It looks corrupt
+        [ $DEBUG -eq 1 ] && echo Check phishing.safe.sites.conf.master failed: It looks corrupt
         rm -f $CONFIGDIR/phishing.safe.sites.conf.master
         logger -p $SYSLOG.warn -t update.safe.phishing.sites Downloaded safe phishing site master file is corrupt, removing it. ; echo "Downloaded safe phishing site master file is corrupt, removing it." ;
         gotAnError=1
@@ -297,13 +302,13 @@ fi
 
 if [ $safe_updated -ge 1 ]; then
   if [ -s phishing.safe.sites.conf.master ]; then
-    #echo Creating fresh phishing.safe.sites.conf....
+    [ $DEBUG -eq 1 ] && echo Creating fresh phishing.safe.sites.conf....
     cat phishing.safe.sites.custom phishing.safe.sites.conf.master | \
     uniq > phishing.safe.sites.conf.new
     rm -f phishing.safe.sites.conf
     mv -f phishing.safe.sites.conf.new phishing.safe.sites.conf
     chmod a+r phishing.safe.sites.conf
-    #echo Creation of fresh phishing.safe.sites.conf is OK
+    [ $DEBUG -eq 1 ] && echo Creation of fresh phishing.safe.sites.conf is OK
     logger -p $SYSLOG.info -t update.safe.phishing.sites Phishing safe sites list updated
   else
     logger -p $SYSLOG.info -t update.safe.phishing.sites The phishing safe sites master file does not exist or is not readable. Update failed! ; echo "The phishing safe sites master file does not exist or is not readable. Update failed!" ;
@@ -322,14 +327,14 @@ if [ $updated -ge 1 ]; then
       if [ -d /etc/systemd ]; then
         systemctl restart $MSSERVICENAME >/dev/null 2>&1
         if [ $? != 0 ] ; then
-          #echo "MailScanner reload failed - Retrying..."
+          [ $DEBUG -eq 1 ] && echo "MailScanner reload failed - Retrying..."
           systemctl restart $MSSERVICENAME >/dev/null 2>&1
           if [ $? != 0 ] ; then
-            #echo "Stopping MailScanner..."
+            [ $DEBUG -eq 1 ] && echo "Stopping MailScanner..."
             systemctl stop $MSSERVICENAME >/dev/null 2>&1
-            #echo "Waiting for a minute..."
+            [ $DEBUG -eq 1 ] && echo "Waiting for a minute..."
             perl -e "sleep 60;"
-            #echo "Attemping to start MailScanner..."
+            [ $DEBUG -eq 1 ] && echo "Attemping to start MailScanner..."
             systemctl start $MSSERVICENAME >/dev/null 2>&1
           fi
         fi
@@ -337,14 +342,14 @@ if [ $updated -ge 1 ]; then
         if [ -s $MSSTARTSCRIPT ]; then
           $MSSTARTSCRIPT restart >/dev/null 2>&1
           if [ $? != 0 ] ; then
-            #echo "MailScanner reload failed - Retrying..."
+            [ $DEBUG -eq 1 ] && echo "MailScanner reload failed - Retrying..."
             $MSSTARTSCRIPT restart >/dev/null 2>&1
             if [ $? != 0 ] ; then
-              #echo "Stopping MailScanner..."
+              [ $DEBUG -eq 1 ] && echo "Stopping MailScanner..."
               $MSSTARTSCRIPT stop >/dev/null 2>&1
-              #echo "Waiting for a minute..."
+              [ $DEBUG -eq 1 ] && echo "Waiting for a minute..."
               perl -e "sleep 60;"
-              #echo "Attemping to start MailScanner..."
+              [ $DEBUG -eq 1 ] && echo "Attemping to start MailScanner..."
               $MSSTARTSCRIPT start >/dev/null 2>&1
             fi
           fi
