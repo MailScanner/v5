@@ -344,7 +344,6 @@ if [ -f '/etc/MailScanner/MailScanner.conf' ]; then
     mkdir -p ${SAVEDIR}/etc/MailScanner
     cp -f /etc/MailScanner/MailScanner.conf ${SAVEDIR}/etc/MailScanner/MailScanner.conf.original
     cp -f /etc/MailScanner/MailScanner.conf /etc/MailScanner/MailScanner.conf.original
-    rm -f /etc/MailScanner/MailScanner.conf
 fi
 
 exit 0
@@ -427,6 +426,12 @@ fi
 # create symlink for spamasassin
 if [ -d '/etc/mail/spamassassin' -a ! -L '/etc/mail/spamassassin/MailScanner.cf' -a -f '/etc/MailScanner/spamassassin.conf' -a ! -f '/etc/mail/spamassassin/MailScanner.cf' ]; then
     ln -s /etc/MailScanner/spamassassin.conf /etc/mail/spamassassin/MailScanner.cf 
+fi
+
+# check for rpmnew, if present, and move in place for upgrade
+if [ -f /etc/MailScanner/MailScanner.conf.rpmnew ]; then
+  cp -f /etc/MailScanner/MailScanner.conf.rpmnew /etc/MailScanner/MailScanner.conf
+  rm -f /etc/MailScanner/MailScanner.conf.rpmnew
 fi
 
 # upgrade the old config
