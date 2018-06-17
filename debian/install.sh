@@ -364,7 +364,7 @@ fi
 # base system packages
 BASEPACKAGES=();
 BASEPACKAGES+=('perl-doc');			BASEPACKAGES+=('libmailtools-perl');			BASEPACKAGES+=('re2c');
-BASEPACKAGES+=('curl');				BASEPACKAGES+=('libnet-cidr-lite-perl');
+BASEPACKAGES+=('curl');				BASEPACKAGES+=('libnet-cidr-lite-perl');        BASEPACKAGES+=('libmime-tools-perl');
 BASEPACKAGES+=('wget');				BASEPACKAGES+=('libtest-manifest-perl');		BASEPACKAGES+=('libnet-cidr-perl');
 BASEPACKAGES+=('tar');				BASEPACKAGES+=('libdata-dump-perl');			BASEPACKAGES+=('libsys-syslog-perl');
 BASEPACKAGES+=('binutils');			BASEPACKAGES+=('libbusiness-isbn-perl');		BASEPACKAGES+=('libio-stringy-perl');
