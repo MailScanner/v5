@@ -688,7 +688,7 @@ BASEPACKAGES="binutils gcc glibc-devel libaio make man-pages man-pages-overrides
 # package is not available for their distro release it
 # will be ignored during the install.
 #
-MOREPACKAGES="perl-Archive-Tar perl-Archive-Zip perl-Compress-Raw-Zlib perl-Compress-Zlib perl-Convert-BinHex perl-Convert-TNEF perl-CPAN perl-Data-Dump perl-DBD-SQLite perl-DBI perl-Digest-HMAC perl-Digest-SHA1 perl-Env perl-ExtUtils-MakeMaker perl-File-ShareDir-Install perl-File-Temp perl-Filesys-Df perl-Getopt-Long perl-IO-String perl-IO-stringy perl-HTML-Parser perl-HTML-Tagset perl-Inline perl-IO-Zlib perl-Mail-DKIM perl-Mail-IMAPClient perl-Mail-SPF perl-MailTools perl-Net-CIDR perl-Net-DNS perl-Net-DNS-Resolver-Programmable perl-Net-IP perl-OLE-Storage_Lite perl-Pod-Escapes perl-Pod-Simple perl-Scalar-List-Utils perl-Storable perl-Pod-Escapes perl-Pod-Simple perl-Razor-Agent perl-Sys-Hostname-Long perl-Sys-SigAction perl-Test-Manifest perl-Test-Pod perl-Time-HiRes perl-TimeDate perl-URI perl-YAML pyzor re2c unrar tnef perl-Encode-Detect perl-LDAP perl-IO-Compress-Bzip2 p7zip p7zip-plugins";
+MOREPACKAGES="perl-Archive-Tar perl-Archive-Zip perl-Compress-Raw-Zlib perl-Compress-Zlib perl-Convert-BinHex perl-CPAN perl-Data-Dump perl-DBD-SQLite perl-DBI perl-Digest-HMAC perl-Digest-SHA1 perl-Env perl-ExtUtils-MakeMaker perl-File-ShareDir-Install perl-File-Temp perl-Filesys-Df perl-Getopt-Long perl-IO-String perl-IO-stringy perl-HTML-Parser perl-HTML-Tagset perl-Inline perl-IO-Zlib perl-Mail-DKIM perl-Mail-IMAPClient perl-Mail-SPF perl-MailTools perl-Net-CIDR perl-Net-DNS perl-Net-DNS-Resolver-Programmable perl-MIME-tools perl-Convert-TNEF perl-Net-IP perl-OLE-Storage_Lite perl-Pod-Escapes perl-Pod-Simple perl-Scalar-List-Utils perl-Storable perl-Pod-Escapes perl-Pod-Simple perl-Razor-Agent perl-Sys-Hostname-Long perl-Sys-SigAction perl-Test-Manifest perl-Test-Pod perl-Time-HiRes perl-TimeDate perl-URI perl-YAML pyzor re2c unrar tnef perl-Encode-Detect perl-LDAP perl-IO-Compress-Bzip2 p7zip p7zip-plugins";
 
 # the array of perl modules needed
 ARMOD=();
@@ -1044,18 +1044,13 @@ PMODWAIT=0
 # using this trick
 for i in "${ARMOD[@]}"
 do
-    if [ $i != "MIME::Tools" ]; then
-      perldoc -l $i >/dev/null 2>&1
-      if [ $? != 0 ]; then
-          echo "$i is missing. Trying to install via Yum ..."; echo;
-          THING="perl($i)";
-          $YUM -y install $THING
-      fi
+    perldoc -l $i >/dev/null 2>&1
+    if [ $? != 0 ]; then
+        echo "$i is missing. Trying to install via Yum ..."; echo;
+        THING="perl($i)";
+        $YUM -y install $THING
     fi
 done
-
-# Remove potentially outdated stock MIME::Tools that may be installed and let CPAN handle it instead
-$RPM -e --nodeps perl-MIME-tools >/dev/null 2>&1
 
 # CPAN automation invoked?
 if [ -z "${arg_installCPAN+x}" ]; then
@@ -1096,6 +1091,10 @@ do
         echo "$i => OK";
     fi
 done
+
+# Install MIME::Tools from CPAN even though rpm is present
+# Fixes outdated MIME::Tools causing MailScanner to crash
+perl -MCPAN -e "CPAN::Shell->force(qw(install MIME::Tools));"
 
 # will pause if a perl module was missing
 timewait $PMODWAIT
