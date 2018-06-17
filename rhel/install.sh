@@ -1055,7 +1055,7 @@ do
 done
 
 # Remove potentially outdated stock MIME::Tools that may be installed and let CPAN handle it instead
-$RPM -e --nodeps perl-MIME-Tools >/dev/null 2>&1
+$RPM -e --nodeps perl-MIME-tools >/dev/null 2>&1
 
 # CPAN automation invoked?
 if [ -z "${arg_installCPAN+x}" ]; then
