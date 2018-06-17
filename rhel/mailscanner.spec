@@ -344,6 +344,7 @@ if [ -f '/etc/MailScanner/MailScanner.conf' ]; then
     mkdir -p ${SAVEDIR}/etc/MailScanner
     cp -f /etc/MailScanner/MailScanner.conf ${SAVEDIR}/etc/MailScanner/MailScanner.conf.original
     cp -f /etc/MailScanner/MailScanner.conf /etc/MailScanner/MailScanner.conf.original
+    rm -f /etc/MailScanner/MailScanner.conf
 fi
 
 exit 0
@@ -735,7 +736,7 @@ exit 0
 %config(noreplace) /etc/MailScanner/defaults
 %config(noreplace) /etc/MailScanner/filename.rules.conf
 %config(noreplace) /etc/MailScanner/filetype.rules.conf
-%attr(644,root,root) /etc/MailScanner/MailScanner.conf
+%config(noreplace) /etc/MailScanner/MailScanner.conf
 %attr(644,root,root) /etc/MailScanner/phishing.safe.sites.conf
 %attr(644,root,root) /etc/MailScanner/phishing.bad.sites.conf
 %attr(644,root,root) /etc/MailScanner/spam.lists.conf
