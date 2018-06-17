@@ -1177,6 +1177,9 @@ exit 0
 
 
 %changelog
+* Sun Jun 17 2018 Shawn Iverson <shawniverson@efa-project.org>
+- Preseve MailScanner.conf during uninstall of MailScanner
+
 * Sun Sep 03 2017 Shawn Iverson <shawniverson@gmail.com>
 - Preserve quarantine perms and better init runlevel handling
 
