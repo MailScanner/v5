@@ -389,7 +389,7 @@ BASEPACKAGES="binutils gcc glibc-devel libaio1 make man-pages patch rpm tar time
 # Packages available in the suse base 13.2. If the user elects not to use EPEL or if the 
 # package is not available for their distro release it will be ignored during the install.
 #
-MOREPACKAGES="perl-Archive-Zip perl-Convert-BinHex perl-Convert-TNEF perl-DBD-SQLite perl-DBI perl-Digest-HMAC perl-Digest-SHA1 perl-ExtUtils-MakeMaker perl-File-ShareDir-Install perl-File-Temp perl-Filesys-Df perl-Getopt-Long-Descriptive perl-IO-stringy perl-HTML-Parser perl-HTML-Tagset perl-Inline perl-Mail-DKIM perl-Mail-SPF perl-MailTools perl-Net-CIDR-Set perl-Net-DNS perl-Net-IP perl-OLE-Storage_Lite perl-Scalar-List-Utils perl-razor-agents perl-Sys-Hostname-Long perl-Sys-SigAction perl-Test-Pod perl-TimeDate perl-URI re2c perl-Encode-Detect perl-LDAP perl-IO-Compress-Bzip2 p7zip";
+MOREPACKAGES="perl-Archive-Zip perl-Convert-BinHex perl-Convert-TNEF perl-DBD-SQLite perl-DBI perl-MIME-tools perl-Digest-HMAC perl-Digest-SHA1 perl-ExtUtils-MakeMaker perl-File-ShareDir-Install perl-File-Temp perl-Filesys-Df perl-Getopt-Long-Descriptive perl-IO-stringy perl-HTML-Parser perl-HTML-Tagset perl-Inline perl-Mail-DKIM perl-Mail-SPF perl-MailTools perl-Net-CIDR-Set perl-Net-DNS perl-Net-IP perl-OLE-Storage_Lite perl-Scalar-List-Utils perl-razor-agents perl-Sys-Hostname-Long perl-Sys-SigAction perl-Test-Pod perl-TimeDate perl-URI re2c perl-Encode-Detect perl-LDAP perl-IO-Compress-Bzip2 p7zip";
 
 # the array of perl modules needed
 ARMOD=();
@@ -544,18 +544,13 @@ PMODWAIT=0
 # using this trick
 for i in "${ARMOD[@]}"
 do
-    if [ $i != "MIME::Tools" ]; then
-      perldoc -l $i >/dev/null 2>&1
-      if [ $? != 0 ]; then
-          echo "$i is missing. Trying to install via Zypper ..."; echo;
-          THING="perl($i)";
-          $ZYPPER --non-interactive --ignore-unknown install $THING
-      fi
+    perldoc -l $i >/dev/null 2>&1
+    if [ $? != 0 ]; then
+        echo "$i is missing. Trying to install via Zypper ..."; echo;
+        THING="perl($i)";
+        $ZYPPER --non-interactive --ignore-unknown install $THING
     fi
 done
-
-# Remove potentially outdated perl-MIME-Tools, if present, and update from CPAN instead
-$RPM -e --nodeps perl-MIME-Tools > /dev/null 2>&1
 
 # CPAN automation invoked?
 if [ -z "${arg_installCPAN+x}" ]; then
@@ -595,6 +590,10 @@ do
         echo "$i => OK";
     fi
 done
+
+# Install MIME::Tools from CPAN even though rpm is present
+# Fixes outdated MIME::Tools causing MailScanner to crash
+perl -MCPAN -e "CPAN::Shell->force(qw(install MIME::Tools));"
 
 # will pause if a perl module was missing
 timewait $PMODWAIT
