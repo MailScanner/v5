@@ -8,6 +8,7 @@
 - Update MIME::Tools using CPAN
 - Fix removal of MailScanner.conf if MailScanner is removed
 - Add support for Fedora 28
+- Add perl-LWP-Protocol-https (RHEL Variants)
 
 04/29/2018 Changes in    v5.0.7-3
 ==================================
