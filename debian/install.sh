@@ -12,7 +12,7 @@
 # Updated By:
 # Manuel Dalla Lana < endelwar@aregar.it >
 # Shawn Iverson < shawniverson@gmail.com >
-# 18 JAN 2018
+# 17 JUN 2018
 
 # clear the screen. yay!
 clear
@@ -364,7 +364,7 @@ fi
 # base system packages
 BASEPACKAGES=();
 BASEPACKAGES+=('perl-doc');			BASEPACKAGES+=('libmailtools-perl');			BASEPACKAGES+=('re2c');
-BASEPACKAGES+=('curl');				BASEPACKAGES+=('libnet-cidr-lite-perl');		BASEPACKAGES+=('libmime-tools-perl');
+BASEPACKAGES+=('curl');				BASEPACKAGES+=('libnet-cidr-lite-perl');
 BASEPACKAGES+=('wget');				BASEPACKAGES+=('libtest-manifest-perl');		BASEPACKAGES+=('libnet-cidr-perl');
 BASEPACKAGES+=('tar');				BASEPACKAGES+=('libdata-dump-perl');			BASEPACKAGES+=('libsys-syslog-perl');
 BASEPACKAGES+=('binutils');			BASEPACKAGES+=('libbusiness-isbn-perl');		BASEPACKAGES+=('libio-stringy-perl');
@@ -394,7 +394,7 @@ fi
 # install these from array above in case one of the 
 # packages produce an error
 #
-#"curl wget tar binutils libc6-dev gcc make patch gzip unzip openssl perl perl-doc libdbd-mysql-perl libconvert-tnef-perl libdbd-sqlite3-perl libfilesys-df-perl libmailtools-perl libmime-tools-perl libnet-cidr-perl libsys-syslog-perl libio-stringy-perl perl-modules libdbd-mysql-perl libencode-detect-perl unrar antiword libarchive-zip-perl libconfig-yaml-perl libole-storage-lite-perl libsys-sigaction-perl pyzor razor tnef libinline-perl libmail-imapclient-perl libtest-pod-coverage-perl libfile-sharedir-install-perl libmail-spf-perl libnetaddr-ip-perl libsys-hostname-long-perl libhtml-tokeparser-simple-perl libmail-dkim-perl libnet-ldap-perl libnet-dns-resolver-programmable-perl libnet-cidr-lite-perl libtest-manifest-perl libdata-dump-perl libbusiness-isbn-data-perl libbusiness-isbn-perl";
+#"curl wget tar binutils libc6-dev gcc make patch gzip unzip openssl perl perl-doc libdbd-mysql-perl libconvert-tnef-perl libdbd-sqlite3-perl libfilesys-df-perl libmailtools-perl libnet-cidr-perl libsys-syslog-perl libio-stringy-perl perl-modules libdbd-mysql-perl libencode-detect-perl unrar antiword libarchive-zip-perl libconfig-yaml-perl libole-storage-lite-perl libsys-sigaction-perl pyzor razor tnef libinline-perl libmail-imapclient-perl libtest-pod-coverage-perl libfile-sharedir-install-perl libmail-spf-perl libnetaddr-ip-perl libsys-hostname-long-perl libhtml-tokeparser-simple-perl libmail-dkim-perl libnet-ldap-perl libnet-dns-resolver-programmable-perl libnet-cidr-lite-perl libtest-manifest-perl libdata-dump-perl libbusiness-isbn-data-perl libbusiness-isbn-perl";
 
 # the array of perl modules needed
 ARMOD=();
@@ -465,7 +465,7 @@ $APTGET update
 
 for i in "${BASEPACKAGES[@]}"
 do
-    $APTGET -yf install $i	
+    $APTGET -yf install $i
 done
 
 # install this separate in case it conflicts
@@ -502,6 +502,9 @@ if [ ! -x /usr/bin/curl ]; then
 else
     CURL='/usr/bin/curl';
 fi
+
+# Remove potentially outdated MIME::Tools and install from CPAN
+dpkg -r --ignore-depends=libmime-tools-perl libmime-tools-perl >/dev/null 2>&1
 
 # create the cpan config if there isn't one and the user
 # elected to use CPAN
