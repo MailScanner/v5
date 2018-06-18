@@ -1092,9 +1092,17 @@ do
     fi
 done
 
-# Install MIME::Tools from CPAN even though rpm is present
-# Fixes outdated MIME::Tools causing MailScanner to crash
-perl -MCPAN -e "CPAN::Shell->force(qw(install MIME::Tools));"
+if [ $CPANOPTION -eq 1 ]; then
+  # Install MIME::Tools from CPAN even though rpm is present
+  # Fixes outdated MIME::Tools causing MailScanner to crash
+  clear
+  echo "Latest MIME::Tools is needed, Installing via CPAN ..."; echo;
+  timewait 1
+  perl -MCPAN -e "CPAN::Shell->force(qw(install MIME::Tools));"
+else
+  echo "WARNING: Outdated MIME::Tools may be present. You should fix this.";
+  PMODWAIT=5
+fi
 
 # will pause if a perl module was missing
 timewait $PMODWAIT
