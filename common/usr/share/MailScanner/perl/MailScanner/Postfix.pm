@@ -484,7 +484,9 @@ sub new {
         # Recipient address
         $recdata =~ s/^\<//;
         $recdata =~ s/\<$//;
+        # If recipient is empty only add metadata
         push @{$message->{to}}, lc($recdata);
+        next unless $recdata ne '';
         push @{$message->{metadata}}, "$rectype$recdata";
         $TOFound = 1;
         $ORIGFound = 1;
