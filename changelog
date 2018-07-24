@@ -1,3 +1,9 @@
+07/14/2018 Changes in    v5.0.7-5
+==================================
+- Remove space in "Clam AV" 
+- Support enable_original_recipient=no in postfix
+- Check CPANOPTION and add verbosity
+
 06/17/2018 Changes in    v5.0.7-4
 ==================================
 - Switch to gzipped phishing update files

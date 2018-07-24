@@ -104,7 +104,7 @@ while [ $# -gt 0 ]; do
             printf    "                        --ramdiskSize=0   (assumed already configured)\n\n"
             printf -- "--MTA=value           Select the Mail Transfer Agent (MTA) to be installed            (sendmail|postfix|exim|none)\n"
             printf    "                      Recommended: sendmail\n\n"
-            printf -- "--installClamav=Y|N   Install or update Clam AV during installation                   (Y or N)\n"
+            printf -- "--installClamav=Y|N   Install or update ClamAV during installation                   (Y or N)\n"
             printf    "                      Recommended: Y (yes)\n\n"
             printf -- "--installCPAN=Y|N     Install missing perl modules via CPAN                           (Y or N)\n"
             printf    "                      Recommended: Y (yes)\n\n"
@@ -221,16 +221,16 @@ fi
 # clamav
 clear
 echo;
-echo "Do you want to install or update Clam AV during this installation process?"; echo;
+echo "Do you want to install or update ClamAV during this installation process?"; echo;
 echo "This package is recommended unless you plan on using a different virus scanner.";
 echo "Note that you may use more than one virus scanner at once with MailScanner.";
 echo;
-echo "Even if you already have Clam AV installed you should select this option so I";
+echo "Even if you already have ClamAV installed you should select this option so I";
 echo "will know to check the clamav-wrapper and make corrections if required.";
 echo;
 echo "Recommended: Y (yes)"; echo;
 if [ -z "${arg_installClamav+x}" ]; then
-    read -r -p "Install or update Clam AV? [n/Y] : " response
+    read -r -p "Install or update ClamAV? [n/Y] : " response
     if [[ $response =~ ^([yY][eE][sS]|[yY])$ ]]; then
         # user wants clam av installed
         # some of these options may result in a 'no package available' on
@@ -525,7 +525,7 @@ fi
 # via cpan if the user elected to do so.
 clear
 echo;
-echo "Installing available Perl packages, Clam AV (if elected), and ";
+echo "Installing available Perl packages, ClamAV (if elected), and ";
 echo "Spamassassin (if elected) via zypper. You can safely ignore any";
 echo "subsequent warnings from zypper."; echo;
 timewait 3

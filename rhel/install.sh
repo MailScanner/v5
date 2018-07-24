@@ -198,9 +198,9 @@ while [ $# -gt 0 ]; do
             printf    "                      Recommended: sendmail\n\n"
             printf -- "--installEPEL=Y|N     Install and use EPEL repository                                 (Y or N)\n"
             printf    "                      Recommended: Y (yes)\n\n"
-            printf -- "--installClamav=Y|N   Install or update Clam AV during installation (requires EPEL)   (Y or N)\n"
+            printf -- "--installClamav=Y|N   Install or update ClamAV during installation (requires EPEL)   (Y or N)\n"
             printf    "                      Recommended: Y (yes)\n\n"
-            printf -- "--configClamav=Y|N    Configure Clam AV (CentOS 7 only)                               (Y or N)\n"
+            printf -- "--configClamav=Y|N    Configure ClamAV (CentOS 7 only)                               (Y or N)\n"
             printf    "                      Recommended: Y (yes)\n\n"
             printf -- "--installTNEF=Y|N     Install tnef via RPM                                            (Y or N)\n"
             printf    "                      Recommended: Y (yes)\n\n"
@@ -366,7 +366,7 @@ if [ -z $FEDORA ]; then
     echo;
     echo "Do you want to install EPEL? (Extra Packages for Enterprise Linux)"; echo;
     echo "Installing EPEL will make more yum packages available, such as extra perl modules"; 
-    echo "and Clam AV, which is recommended. This will also reduce the number of Perl modules";
+    echo "and ClamAV, which is recommended. This will also reduce the number of Perl modules";
     echo "installed via CPAN. Note that EPEL is considered a third party repository."; 
     echo;
     echo "Recommended: Y (yes)"; echo;
@@ -393,17 +393,17 @@ if [ -z $FEDORA ]; then
     fi
 fi
 
-# ask if the user wants Clam AV installed if they selected EPEL or if this is a Fedora Server
+# ask if the user wants ClamAV installed if they selected EPEL or if this is a Fedora Server
 if [[ $EPEL -eq 1 || -n $FEDORA ]]; then
     clear
     echo;
-    echo "Do you want to install or update Clam AV during this installation process?"; echo;
+    echo "Do you want to install or update ClamAV during this installation process?"; echo;
     echo "This package is recommended unless you plan on using a different virus scanner.";
     echo "Note that you may use more than one virus scanner at once with MailScanner.";
     echo;
     echo "Recommended: Y (yes)"; echo;
     if [ -z "${arg_installClamav+x}" ]; then
-        read -r -p "Install or update Clam AV? [n/Y] : " response
+        read -r -p "Install or update ClamAV? [n/Y] : " response
 
         if [[ $response =~ ^([yY][eE][sS]|[yY])$ ]]; then
             # user wants clam av installed
@@ -439,11 +439,11 @@ if [[ $RHEL -eq 7 && $CAV -eq 1 ]]; then
     echo "Do you want to configure clam AV during this installation process?"; echo;
     echo;
     echo "Choosing yes will install required configuration files and settings for";
-    echo "Clam AV to function out of the box on CentOS 7 installations";
+    echo "ClamAV to function out of the box on CentOS 7 installations";
     echo;
     echo "Recommended: Y (yes)"; echo;
     if [ -z "${arg_configClamav+x}" ]; then
-        read -r -p "Configure Clam AV? [n/Y] : " response
+        read -r -p "Configure ClamAV? [n/Y] : " response
 
         if [[ $response =~ ^([yY][eE][sS]|[yY])$ ]]; then
             # user wants clam av configured
@@ -829,7 +829,7 @@ fi
 # via cpan if the user elected to do so.
 clear
 echo;
-echo "Installing available Perl packages, Clam AV (if elected), and ";
+echo "Installing available Perl packages, ClamAV (if elected), and ";
 echo "Spamassassin (if elected) via yum. You can safely ignore any";
 echo "subsequent 'No package available' errors."; echo;
 timewait 3
