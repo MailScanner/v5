@@ -4,6 +4,7 @@
 - Support enable_original_recipient=no in postfix
 - Check CPANOPTION and add verbosity
 - Better AV scanning loop with retry attempts
+- Refactor AV scanning loop
 
 06/17/2018 Changes in    v5.0.7-4
 ==================================
