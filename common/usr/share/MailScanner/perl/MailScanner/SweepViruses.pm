@@ -469,12 +469,10 @@ sub ScanBatch {
   chdir $BaseDir or die "Cannot chdir $BaseDir for virus scanning, $!";
 
   # Dropping the message batch and trying again over and over is not good...
-  # Let's make three honest attempts and then stop without further processing.
-  # Another child will still spawn and try again, but this is much more sane
-  # and preventions other things, such as loggers, from having repeat interactions
+  # Let's remain in a loop here to suspend processing and log periodically.
+  # This prevents other things, such as loggers, from having repeat interactions
   # with the same message batch indefinitely...
   my $scanstatus = 1;
-  my $scanattempt = 0;
 
   while($scanstatus) {
     #print STDERR (($ScanType =~ /dis/i)?"Disinfecting":"Scanning") . " using ".
@@ -483,16 +481,11 @@ sub ScanBatch {
                            \$NumInfections, $ScanType);
     #print STDERR "Found $NumInfections infections\n";
     if ($success eq 'ScAnNeRfAiLeD') {
-      $scanattempt++;
-      MailScanner::Log::WarnLog("Virus Scanning: No virus scanners worked, so message batch will be tried again for attempt %s", $scanattempt);
-      if ($scanattempt > 2) {
-        $batch->DropBatch();
-        MailScanner::Log::DieLog("Virus scanning failure, dropping batch and exiting.  Fix the problem with your A/V software!");
-      }
+      MailScanner::Log::WarnLog("Virus Scanning: No virus scanners worked, so message batch will be tried again");
       # Delete all the messages from this batch as if we weren't scanning
       # them, and reject the batch.
       # MailScanner::Log::WarnLog("Virus Scanning: No virus scanners worked, so message batch was abandoned and retried!");
-      #$batch->DropBatch();
+      $batch->DropBatch();
       #return 1;
     } else {
       $scanstatus = 0;
