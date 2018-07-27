@@ -3275,7 +3275,8 @@ sub UnpackRar {
   return 1 unless $UnrarVersion =~ /^\d+\.\d*$/ && ( $UnrarVersion >= 4.0 && $UnrarVersion < 6.0 );
 
   # Escape spaces in filename
-  $zipname =~ s/\ /\\\ /g;
+  # Commented out as this is causing the opposite effect. Unrar only works when the spaces aren't escaped.
+  # $zipname =~ s/\ /\\\ /g;
 
   # Unrar Version 4x file parse
   if ($UnrarVersion >= 4.0 && $UnrarVersion < 5.0) {
