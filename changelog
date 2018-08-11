@@ -5,6 +5,8 @@
 - Check CPANOPTION and add verbosity
 - Better AV scanning loop with retry attempts
 - Refactor AV scanning loop
+- Revert escaping spaces in unrar (already strict quoted)
+- Cluster friendly update scripts (check for PID before restarting)
 
 06/17/2018 Changes in    v5.0.7-4
 ==================================
