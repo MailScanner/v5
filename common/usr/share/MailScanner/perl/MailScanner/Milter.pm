@@ -30,8 +30,6 @@ use File::Copy;
 use IO::File;
 use IO::Pipe;
 use Sendmail::PMilter;
-use Socket;
-use Unix::Syslog qw(:macros :subs);
 
 use MailScanner::Lock;
 use MailScanner::Config;
@@ -41,15 +39,54 @@ use vars qw($VERSION);
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
 $VERSION = substr q$Revision: 4694 $, 10;
 
+# Attributes are
 #
-#  Each of these callbacks is actually called with a first argument
-#  that is blessed into the pseudo-package Sendmail::Milter::Context. You can
-#  use them like object methods of package Sendmail::Milter::Context.
+# $dir			set by new (incoming queue dir in case we use it)
+# $dname		set by new (filename component only)
+# $hname		set by new (filename component only)
+# $tname		set by new (filename component only)
+# $dpath		set by new (full path)
+# $hpath		set by new (full path)
+# $size			set by size
+# $inhhandle		set by lock
+# $indhandle		set by lock
 #
-#  $ctx is a blessed reference of package Sendmail::Milter::Context to something
-#  yucky, but the Mail Filter API routines are available as object methods
-#  (sans the smfi_ prefix) from this
-#
+
+# Constructor.
+# Takes message id and directory name.
+sub new {
+  my $type = shift;
+  my($id, $dir) = @_;
+  my $this = {};
+  my $mta  = $global::MS->{mta};
+  $this->{dir} = $dir;
+
+  # The Sendmail version of these 3 functions take an extra parameter,
+  # the directory in which the message resides, to allow for nesting.
+  $this->{dname} = $mta->DFileName($id, $dir);
+  $this->{hname} = $mta->HFileName($id, $dir);
+  $this->{tname} = $mta->TFileName($id, $dir);
+
+  $this->{dpath} = $dir . '/' . $this->{dname};
+  $this->{hpath} = $dir . '/' . $this->{hname};
+
+  $this->{inhhandle} = new FileHandle;
+  $this->{indhandle} = new FileHandle;
+
+  bless $this, $type;
+  return $this;
+}
+
+# Print the contents of the structure
+sub printme {
+  my $this = shift;
+
+  print STDERR "dpath = " . $this->{dpath} . "\n" .
+               "hpath = " . $this->{hpath} . "\n" .
+               "inhhandle = " . $this->{inhhandle} . "\n" .
+               "indhandle = " . $this->{indhandle} . "\n" .
+               "size = " . $this->{size} . "\n";
+}
 
 sub connect_callback
 {
@@ -68,6 +105,10 @@ sub connect_callback
                 print "   + iaddr: '" . inet_ntoa($iaddr) . "'\n";
         }
 
+        $test = new MailScanner::Milter('1234blah', '/var/spool/MailScanner/incoming/milter');
+        
+        $test->printme;
+        
         print "   + callback completed.\n";
 
         Sendmail::PMilter::SMFIS_CONTINUE;
@@ -240,10 +281,5 @@ $milter->register('mymilter',
                   \%my_callbacks,
                   Sendmail::PMilter::SMFI_CURR_ACTS
                  );
-openlog 'mymilter', 'pid', Unix::Syslog::LOG_MAIL();
 $< = $> = getpwnam 'nobody';
-syslog LOG_INFO, "Starting up: $$";
-
-END { closelog }
-
 $milter->main(10,100);
