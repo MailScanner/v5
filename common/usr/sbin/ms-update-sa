@@ -7,6 +7,7 @@ SAUPDATE=`which sa-update`
 SACOMPILE=`which sa-compile`
 ms_re2c=`which re2c`
 SAUPDATEARGS="--refreshmirrors"
+PIDFile=`ms-peek 'PID file' /etc/MailScanner/MailScanner.conf`
 
 export SAUPDATE
 export SACOMPILE
@@ -53,10 +54,12 @@ fi
 if [ $UPDATESUCCESS = 0 -a $COMPILESUCCESS = 0 -o $UPDATESUCCESS = 1 ]; then
         logger -i -p mail.notice "ms-update-sa: spamassassin signatures updated"
         rm -f $LOGFILE
-        if [ -d /run/systemd/system ]; then
-            systemctl -q is-active mailscanner && systemctl restart mailscanner || true
-        else
-            /usr/lib/MailScanner/init/ms-init restart >>$LOGFILE 2>&1 || true
+        if [ -f $PIDFile ]; then
+            if [ -d /run/systemd/system ]; then
+                systemctl -q is-active mailscanner && systemctl restart mailscanner || true
+            else
+                /usr/lib/MailScanner/init/ms-init restart >>$LOGFILE 2>&1 || true
+            fi
         fi
 fi
 

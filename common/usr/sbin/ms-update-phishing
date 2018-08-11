@@ -29,6 +29,8 @@ BADURL='http://phishing.mailscanner.info/phishing.bad.sites.conf.gz';
 SAFEURL='http://phishing.mailscanner.info/phishing.safe.sites.conf.gz';
 MSSTARTSCRIPT='/etc/init.d/mailscanner';
 MSSERVICENAME='mailscanner.service';
+PIDFile=`ms-peek 'PID file' $CONFIGDIR/MailScanner.conf`
+
 DEBUG=0
 
 PATH=/bin:/usr/bin:/sbin:/usr/sbin:/usr/etc:/usr/local/bin:/usr/sfw/bin
@@ -322,7 +324,7 @@ updated=$(($bad_updated + $safe_updated));
 
 if [ $updated -ge 1 ]; then
   if [ "$ms_cron_ps_restart" = "1" ]; then
-    if [ ! -f /var/lock/subsys/MailScanner.off ]; then
+    if [ ! -f /var/lock/subsys/MailScanner.off && -f $PIDFile ]; then
       logger -p $SYSLOG.info -t ms-update-phishing restart MailScanner....
       if [ -d /etc/systemd ]; then
         systemctl restart $MSSERVICENAME >/dev/null 2>&1

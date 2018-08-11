@@ -37,6 +37,7 @@ my $emailscurrent = '/var/cache/ScamNailer/';
 # Set this next value to '' if ou are not using MailScanner.
 # Or else change it to any command you need to run after updating the
 # SpamAssassin rules, such as '/sbin/service spamd restart'.
+my $PIDFile = `ms-peek 'PID file' /etc/MailScanner/MailScanner.conf)`;
 my $mailscanner_restart = 'if [ -d /run/systemd/system ]; then; systemctl -q is-active mailscanner && systemctl restart mailscanner; else; /usr/lib/MailScanner/init/ms-init restart; fi';
 
 # The SpamAssassin score to assign to the final rule that fires if any of
@@ -136,8 +137,10 @@ if (GetPhishingUpdate()) {
   close SACF;
 
   # And finally restart MailScanner to use the new rules
-  $mailscanner_restart .= " >/dev/null 2>&1" if $quiet;
-  system($mailscanner_restart) if $mailscanner_restart;
+  if ( -f $PIDFile ) {
+    $mailscanner_restart .= " >/dev/null 2>&1" if $quiet;
+    system($mailscanner_restart) if $mailscanner_restart;
+  }
 
   exit 0;
 }
