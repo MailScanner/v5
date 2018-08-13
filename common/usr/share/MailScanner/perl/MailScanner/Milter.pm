@@ -22,7 +22,7 @@
 package MailScanner::Milter;
 
 use strict 'vars';
-use strict 'refs';
+no strict 'refs';
 no strict 'subs';
 
 use File::Basename;
@@ -30,62 +30,89 @@ use File::Copy;
 use IO::File;
 use IO::Pipe;
 use Sendmail::PMilter;
+use Socket;
+use POSIX qw(strftime);
+use Sys::Hostname;
+use Time::HiRes qw( gettimeofday );
 
 use MailScanner::Lock;
+use MailScanner::Log;
 use MailScanner::Config;
+use MailScanner::Sendmail;
 
 use vars qw($VERSION);
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
 $VERSION = substr q$Revision: 4694 $, 10;
 
-# Attributes are
-#
-# $dir			set by new (incoming queue dir in case we use it)
-# $dname		set by new (filename component only)
-# $hname		set by new (filename component only)
-# $tname		set by new (filename component only)
-# $dpath		set by new (full path)
-# $hpath		set by new (full path)
-# $size			set by size
-# $inhhandle		set by lock
-# $indhandle		set by lock
-#
+# Encodes string length in postfix queue format
+sub encode_length
+{
+    my ($length) = @_;
+    my $lcode = "";
 
-# Constructor.
-# Takes message id and directory name.
-sub new {
-  my $type = shift;
-  my($id, $dir) = @_;
-  my $this = {};
-  my $mta  = $global::MS->{mta};
-  $this->{dir} = $dir;
+    return chr(0) if $length==0;
 
-  # The Sendmail version of these 3 functions take an extra parameter,
-  # the directory in which the message resides, to allow for nesting.
-  $this->{dname} = $mta->DFileName($id, $dir);
-  $this->{hname} = $mta->HFileName($id, $dir);
-  $this->{tname} = $mta->TFileName($id, $dir);
+    while ($length > 0) {
+        if ($length > 127) {
+            $lcode .= chr(255);
+            $length -= 127;
+        } else {
+            $lcode .= chr($length);
+            $length = 0;
+        }
+    }
 
-  $this->{dpath} = $dir . '/' . $this->{dname};
-  $this->{hpath} = $dir . '/' . $this->{hname};
-
-  $this->{inhhandle} = new FileHandle;
-  $this->{indhandle} = new FileHandle;
-
-  bless $this, $type;
-  return $this;
+    return $lcode;
 }
 
-# Print the contents of the structure
-sub printme {
-  my $this = shift;
+sub smtp_id
+{
+    #
+    # Alvaro Marin alvaro@hostalia.com - 2016/08/25
+    # Adapted for MailScanner Milter
+    #
+    # Support for Postfix's long queue IDs format (enable_long_queue_ids).
+    # The name of the file created in the outgoing queue will be the queue ID.
+    # We'll generate it like Postfix does. From src/global/mail_queue.h :
+    #
+    # The long non-repeating queue ID is encoded in an alphabet of 10 digits,
+    # 21 upper-case characters, and 21 or fewer lower-case characters. The
+    # alphabet is made "safe" by removing all the vowels (AEIOUaeiou). The ID
+    # is the concatenation of:
+    #
+    # - the time in seconds (base 52 encoded, six or more chars),
+    #
+    # - the time in microseconds (base 52 encoded, exactly four chars),
+    #
+    my $seconds=0;
+    my $microseconds=0;
+    ($seconds, $microseconds) = gettimeofday;
+    my $microseconds_orig=$microseconds;
+    my @BASE52_CHARACTERS = ("0","1","2","3","4","5","6","7","8","9",
+                                "B","C","D","F","G","H","J","K","L","M",
+                                "N","P","Q","R","S","T","V","W","X","Y",
+                                "Z","b","c","d","f","g","h","j","k","l",
+                                "m","n","p","q","r","s","t","v","w","x","y","z");
+    my $encoded='';
+    my $id_out;
+    my $count=0;
+    while ($count < 6) {
+           $encoded.=$BASE52_CHARACTERS[$seconds%52];
+           $seconds/=52;
+           $count++;
+    }
+    $id_out=reverse $encoded;
+    $encoded='';
+    $count=0;
+    while ($count < 4) {
+            $encoded.=$BASE52_CHARACTERS[$microseconds%52];
+            $microseconds/=52;
+            $count++;
+    }
+    $id_out.=reverse $encoded;
 
-  print STDERR "dpath = " . $this->{dpath} . "\n" .
-               "hpath = " . $this->{hpath} . "\n" .
-               "inhhandle = " . $this->{inhhandle} . "\n" .
-               "indhandle = " . $this->{indhandle} . "\n" .
-               "size = " . $this->{size} . "\n";
+    return $id_out;
 }
 
 sub connect_callback
@@ -94,22 +121,18 @@ sub connect_callback
         my $hostname = shift;
         my $sockaddr_in = shift;
         my ($port, $iaddr);
+        my $message = "";
 
-        print "my_connect:\n";
-        print "   + hostname: '$hostname'\n";
+        # Initialize Message Reference
+        $ctx->setpriv(\$message);
+        my $message_ref = $ctx->getpriv();
 
-        if (defined $sockaddr_in)
-        {
-                ($port, $iaddr) = sockaddr_in($sockaddr_in);
-                print "   + port: '$port'\n";
-                print "   + iaddr: '" . inet_ntoa($iaddr) . "'\n";
-        }
+        ($port, $iaddr) = sockaddr_in($sockaddr_in);
 
-        $test = new MailScanner::Milter('1234blah', '/var/spool/MailScanner/incoming/milter');
-        
-        $test->printme;
-        
-        print "   + callback completed.\n";
+        # Begin building message buffer
+        ${$message_ref} = "($hostname [" . inet_ntoa($iaddr) . "])";
+
+        $ctx->setpriv($message_ref);
 
         Sendmail::PMilter::SMFIS_CONTINUE;
 }
@@ -118,28 +141,14 @@ sub helo_callback
 {
         my $ctx = shift;
         my $helohost = shift;
+        my $message_ref = $ctx->getpriv();
+        my $message = "Received: from $helohost";
+        # Watch for a duplicate callback
+        if ( $message ne substr(${$message_ref}, 0, length($message)) ) {
+            ${$message_ref} = $message . ' ' . ${$message_ref} . "\n";
+        }
 
-        print "my_helo:\n";
-        print "   + helohost: '$helohost'\n";
-
-        print "   + callback completed.\n";
-
-        Sendmail::PMilter::SMFIS_CONTINUE;
-}
-
-sub envfrom_callback
-{
-        my $ctx = shift;
-        my @args = @_;
-        my $message = "";
-
-        print "my_envfrom:\n";
-        print "   + args: '" . join(', ', @args) . "'\n";
-
-        $ctx->setpriv(\$message);
-        print "   + private data allocated.\n";
-
-        print "   + callback completed.\n";
+        $ctx->setpriv($message_ref);
 
         Sendmail::PMilter::SMFIS_CONTINUE;
 }
@@ -148,11 +157,13 @@ sub envrcpt_callback
 {
         my $ctx = shift;
         my @args = @_;
+        my $message_ref = $ctx->getpriv();
+        my $datestring = strftime "%a %e %b %Y %T %z (%Z)", localtime;
+        my $id = smtp_id;
 
-        print "my_envrcpt:\n";
-        print "   + args: '" . join(', ', @args) . "'\n";
+        ${$message_ref} .= '        by ' . hostname . ' (MailScanner Milter) with SMTP id ' . $id . "\n" . '        for ' . join(', ', @args) . '; ' . $datestring . "\n";
 
-        print "   + callback completed.\n";
+        $ctx->setpriv($message_ref);
 
         Sendmail::PMilter::SMFIS_CONTINUE;
 }
@@ -162,25 +173,15 @@ sub header_callback
         my $ctx = shift;
         my $headerf = shift;
         my $headerv = shift;
+        my $message_ref = $ctx->getpriv();
+        my $queuehandle = new FileHandle;
 
-        print "my_header:\n";
-        print "   + field: '$headerf'\n";
-        print "   + value: '$headerv'\n";
-
-        print "   + callback completed.\n";
-
-        Sendmail::PMilter::SMFIS_CONTINUE;
-}
-
-sub eoh_callback
-{
-        my $ctx = shift;
-
-        print "my_eoh:\n";
-        print "   + callback completed.\n";
+        ${$message_ref} .= $headerf . ': ' . $headerv . "\n";
+        $ctx->setpriv($message_ref);
 
         Sendmail::PMilter::SMFIS_CONTINUE;
 }
+
 
 sub body_callback
 {
@@ -189,17 +190,9 @@ sub body_callback
         my $len = shift;
         my $message_ref = $ctx->getpriv();
 
-        # Note: You don't need $len to have a good time.
-        # But it's there if you like.
-
-        print "my_body:\n";
-        print "   + chunk len: $len\n";
-
         ${$message_ref} .= $body_chunk;
 
         $ctx->setpriv($message_ref);
-
-        print "   + callback completed.\n";
 
         Sendmail::PMilter::SMFIS_CONTINUE;
 }
@@ -208,69 +201,132 @@ sub eom_callback
 {
         my $ctx = shift;
         my $message_ref = $ctx->getpriv();
-        my $chunk;
+        # Extract id from message
+        # Split message for processing
+        # This is grossly inefficient and doubles mem usage, refactor
+        # Good enough for testing, though....
+        my @lines = split /\n/, ${$message_ref};
+        my $id = @lines[1];
+        $id =~ s/^.*SMTP id //;
 
-        print "my_eom:\n";
-        print "   + adding line to message body...\n";
+        # Ok we have sufficient info to start writing to disk
+        # Refactoring required before release
+        my $queuehandle = new FileHandle;
+        my $file = "/var/spool/MailScanner/milter/$id";
 
-        # Let's have some fun...
-        # Note: This doesn't support messages with MIME data.
+        # Error checking needed here
+        MailScanner::Lock::openlock($queuehandle,'>' . $file, 'w');
 
-        # Pig-Latin, Babelfish, Double dutch, soo many possibilities!
-        # But we're boring...
+        # Generate pseudo queue file readable by MailScanner
+        # Not a real postfix queue file, but has sufficient structure
+        # for MailScanner to process in its entirety
+        # Magic sauce at work here
 
-        ${$message_ref} .= "---> Append me to this message body!\r\n";
+        # Build metadata for queue file
+        my $length=0;
+        my $metalength=0;
+        my $buffer="";
+        my $str='';
+        my $lcode='';
+        my $numrcpts=-1;
 
-        if (not $ctx->replacebody(${$message_ref}))
-        {
-                print "   - write error!\n";
-                last;
+        # S record
+        foreach my $line (@lines) {
+           if ( $line =~ m/From: / ) {
+               $str = $line;
+               $str =~ s/^From: //;
+               $str =~ s/^.*<//;
+               $str =~ s/>.*$//;
+           }
         }
+        $length = length($str);
+        $metalength += $length;
+        $lcode = encode_length($length);
+        $metalength += length($lcode) + 1;
+        $buffer="S" . $lcode . $str;
+
+        # O record
+        $str='';
+        foreach my $line (@lines) {
+            if ( $line =~ m/^To: / ) {
+                print $line . "\n";
+                $line =~ s/^To: //;
+                my @rcpts = split /,/, $line;
+                foreach my $to (@rcpts) {
+                    if (length($str) > 0) {
+                        $str .= ',';
+                    }
+                    $to =~ s/^.*<//;
+                    $to =~ s/>.*$//;
+                    if ( length($to) > 0 ) {
+                        $str .= $to;
+                        $numrcpts++;
+                    }
+                }
+            }
+        }
+        $length = length($str);
+        $metalength += $length;
+        $lcode = encode_length($length);
+        $metalength += length($lcode) + 1;
+        $buffer .= "O" . $lcode . $str;
+
+        # Build C record now that we know metalength
+        # C record (size, data offset, # recipients)
+        # pad remainder of record (unused by MailScanner)
+        my $msgsize=int(length(${$message_ref}));
+        my $sizedigits=length("$msgsize");
+        my $padding=15-$sizedigits;
+        # msg size
+        $queuehandle->print('C' . chr(95) . " "x$padding . "$msgsize");
+        # data offset
+        # This is the size of this record plus the rest of the metadata
+        my $dataoffset=$metalength + 96;
+        $sizedigits=length("$dataoffset");
+        $padding=16-$sizedigits;
+        $queuehandle->print(" "x$padding . "$dataoffset");
+        # number of recipients
+        $sizedigits=length("$numrcpts");
+        $padding=16-$sizedigits;
+        $queuehandle->print(" "x$padding . "$numrcpts");
+        #Pad
+        $padding=48;
+        $queuehandle->print(" "x$padding);
+
+        # Write rest of meta now and signal of beginning of message
+        $queuehandle->print($buffer . "M" . chr(0));
+
+        # Skip T records, A records (unused by mailscanner)
+        # Skip R records (placing all in O record, mailscanner doesn't care
+        
+        # Todo: Signal start of Body record and end of header record (split and refactor)!
+
+        # N records (message chunks)
+        foreach my $line (@lines) {
+            $length=length($line);
+            $lcode=encode_length($length);
+            $queuehandle->print("N" . $lcode . $line);
+        }
+        
+        # Todo: Signal end of message and add an X record!
+
+        MailScanner::Lock::unlockclose($queuehandle);
 
         $ctx->setpriv(undef);
-        print "   + private data cleared.\n";
 
-        print "   + callback completed.\n";
+        print "eom callback fired...\n";
 
-        Sendmail::PMilter::SMFIS_CONTINUE;
-}
-
-sub abort_callback
-{
-        my $ctx = shift;
-
-        print "my_abort:\n";
-
-        $ctx->setpriv(undef);
-        print "   + private data cleared.\n";
-
-        print "   + callback completed.\n";
-
-        Sendmail::PMilter::SMFIS_CONTINUE;
-}
-
-sub close_callback
-{
-        my $ctx = shift;
-
-        print "my_close:\n";
-        print "   + callback completed.\n";
-
-        Sendmail::PMilter::SMFIS_CONTINUE;
+        Sendmail::PMilter::SMFIS_DISCARD;
 }
 
 my %my_callbacks =
 (
         'connect' => \&connect_callback,
         'helo' =>    \&helo_callback,
-        'envfrom' => \&envfrom_callback,
         'envrcpt' => \&envrcpt_callback,
         'header' =>  \&header_callback,
-        'eoh' =>     \&eoh_callback,
         'body' =>    \&body_callback,
         'eom' =>     \&eom_callback,
-        'abort' =>   \&abort_callback,
-        'close' =>   \&close_callback,
 );
 
 my $conn = 'inet:33333@127.0.0.1';
@@ -281,5 +337,6 @@ $milter->register('mymilter',
                   \%my_callbacks,
                   Sendmail::PMilter::SMFI_CURR_ACTS
                  );
-$< = $> = getpwnam 'nobody';
+# Refactor for posix
+$< = $> = getpwnam 'postfix';
 $milter->main(10,100);
