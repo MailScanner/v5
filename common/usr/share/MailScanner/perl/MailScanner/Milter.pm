@@ -58,15 +58,19 @@ sub connect_callback
         my ($port, $iaddr);
         my $message_ref = $ctx->getpriv();
 
-        $message = $hostname
+        my $message = $hostname;
 
         if (defined $sockaddr_in)
         {
             ($port, $iaddr) = sockaddr_in($sockaddr_in);
-            $message .= '[' . $iaddr . ']';
+            $message .= ' [' . inet_ntoa($iaddr) . ']';
         }
 
-        return SMFIS_CONTINUE;
+        ${$message_ref} = $message;
+
+        $ctx->setpriv($message_ref);
+
+        Sendmail::PMilter::SMFIS_CONTINUE;
 }
 
 sub helo_callback
@@ -74,10 +78,10 @@ sub helo_callback
         my $ctx = shift;
         my $helohost = shift;
         my $message_ref = $ctx->getpriv();
-        my $message = "Received: from $helohost" . ' (' . $message . ')';
+        my $message = "Received: from $helohost";
         # Watch for the second callback
         if ( $message ne substr(${$message_ref}, 0, length($message)) ) {
-            ${$message_ref} = $message . ' ' . ${$message_ref} . "\n";
+            ${$message_ref} = $message . ' (' . ${$message_ref} . ')' ."\n";
         }
 
         $ctx->setpriv($message_ref);
@@ -91,11 +95,17 @@ sub envrcpt_callback
         my @args = @_;
         my $id = smtp_id;
         my $message_ref = $ctx->getpriv();
-        my $datestring = strftime "%a %e %b %Y %T %z (%Z)", localtime;
+        my $datestring = strftime "%a, %e %b %Y %T %z (%Z)", localtime;
         my $symbols = $ctx->{symbols};
-  
-        if (defined($symbols->{'H'}) && defined($symbols->{'H')->{'{tls_version}'}) && defined($symbols->{'H'}->{'{cipher}'}) && defined($symbols->'H'->{'{cipher_bits}'})) {
-            ${$message_ref} .= '        (using ' . $symbols->{'H')->{'{tls_version}'} . ' with cipher ' . $symbols->{'H'}->{'{cipher}'} . '(' . $symbols->'H'->{'{cipher_bits}'} . '/' . $symbols->'H'->{'{cipher_bits}'} . ' bits))'
+
+        # Todo
+        # More work needed here
+        # Need to also display certs...
+        if (defined($symbols->{'H'}) && defined($symbols->{'H'}->{'{tls_version}'}) && defined($symbols->{'H'}->{'{cipher}'}) && defined($symbols->{'H'}->{'{cipher_bits}'})) {
+            ${$message_ref} .= '        (using ' . $symbols->{'H'}->{'{tls_version}'} . ' with cipher ' . $symbols->{'H'}->{'{cipher}'} . ' (' . $symbols->{'H'}->{'{cipher_bits}'} . '/' . $symbols->{'H'}->{'{cipher_bits}'} . ' bits))' . "\n";
+        }
+        if (!defined($symbols->{'H'}->{'{cert_subject}'})) {
+            ${$message_ref} .= '        (no client certificate requested)' . "\n";
         }
         ${$message_ref} .= '        by ' . hostname . ' (MailScanner Milter) with SMTP id ' . $id . "\n" . '        for ' . join(', ', @args) . '; ' . $datestring . "\n";
 
@@ -150,10 +160,12 @@ sub eom_callback
         my $ctx = shift;
         my $message_ref = $ctx->getpriv();
         my $id ='';
+        my $buffer='';
         # Extract id from message efficiently
-        while ($str =~ /([^\n]+\n?/g) {
-            if ( $1 =~ m/^.*SMTP id / )
-                $id = $1;
+        while (${$message_ref} =~ /([^\n]+)\n?/g) {
+            $id = $1;
+            $buffer .= $1 . "\n";
+            if ( $id =~ m/^.*SMTP id / ) {
                 $id =~ s/^.*SMTP id //;
                 last;
             }
@@ -167,8 +179,9 @@ sub eom_callback
         MailScanner::Lock::openlock($queuehandle,'>' . $file, 'w');
 
         # Write out to disk
-        while ($str =~ /([^\n]+\n?/g) {
-           $queuehandle->print($1);
+        $queuehandle->print($buffer);
+        while (${$message_ref} =~ /([^\n]+)\n?/g) {
+           $queuehandle->print($1 . "\n");
         }
 
         MailScanner::Lock::unlockclose($queuehandle);
