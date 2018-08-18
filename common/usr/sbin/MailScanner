@@ -386,6 +386,9 @@ if (/exim/i) {
 } elsif(/qmail/i) {
   $MTAmod = 'Qmail.pm';
   $MTADSmod = 'QMDiskStore.pm';
+} elsif(/msmail/i) {
+  $MTAmod = 'MSMail.pm';
+  $MTADSmod = 'MSDiskStore.pm';
 } else {
   $MTAmod = 'Sendmail.pm';
   $MTADSmod = 'SMDiskStore.pm';
