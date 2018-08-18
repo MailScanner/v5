@@ -411,6 +411,7 @@ SQLQuickPeek
 SQLConfig
 SQLRuleset
 SQLSpamAssassinConfig
+MSMailQueueType          short
 
 #
 # These variables match on any rule matching From:, else anything for To:

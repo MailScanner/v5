@@ -370,7 +370,7 @@ if ($NotConfigured == 3) {
 MailScanner::Config::SetPercent('version', $MailScanner::Config::MailScannerVersion);
 
 # Load the MTA modules we need
-my($MTAmod, $MTADSmod);
+my($MTAmod, $MTADSmod, $LoadMilter);
 # LEOH:if (MailScanner::Config::QuickPeek($ConfFile, 'mta') =~ /exim/i) {
 $_=MailScanner::Config::QuickPeek($ConfFile, 'mta');
 $_='sendmail' if $WantLintOnly || $WantLintLiteOnly || $WantRuleCheck;
@@ -389,6 +389,7 @@ if (/exim/i) {
 } elsif(/msmail/i) {
   $MTAmod = 'MSMail.pm';
   $MTADSmod = 'MSDiskStore.pm';
+  $LoadMilter = 1;
 } else {
   $MTAmod = 'Sendmail.pm';
   $MTADSmod = 'SMDiskStore.pm';
@@ -844,6 +845,11 @@ for (;;) {
     $Children{$born_pid} = 1;
     $NumberOfChildren++;
     sleep 5; # Dropped this from 11 2006-11-01
+  }
+  # Spawn milter if requested after spawning chilren
+  if ($LoadMilter) {
+      $NumberOfChildren+=10;
+      require "MailScanner/Milter.pm";
   }
 
   # I have started enough children. Let's wait for one to die...
