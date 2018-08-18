@@ -218,14 +218,6 @@ sub new {
 
 # Do conditional once at include time
 
-#my($MTA) = MailScanner::Config::Value('mta');
-#
-#print STDERR "MTA is \"" . MailScanner::Config::Value('mta') . "\"\n";
-#
-#print STDERR "We are running zmail\n";
-#
-#MailScanner::Log::InfoLog("Configuring mailscanner for zmail...");
-
   sub HDFileName {
     my($this, $id) = @_;
     #my($dir1, $dir2, $file);
@@ -383,17 +375,18 @@ sub new {
 
     my($RQf) = $message->{store}{inhdhandle};
 
-    my(@results, $msginfo, $from);
-    my($ip, $TOline);
-    my($Line, $Flags);
+    my($from);
+    my($ip);
     # ORIGFound stuff courtesy of Juan Pablo Abuyeres 23/7/2006
     # Should improve handling of virtual domains.
-    my($ORIGFound, $TOFound, $FROMFound, $IPFound, $TIMEFound);
-    my($ErrorFound, $ERecordFound, $rectype, $recdata, $mtime);
+    my($ORIGFound, $TOFound, $FROMFound, $IPFound);
+    my($recdata);
     my $InSubject = 0; # Are we adding continuation subject lines?
+    my $InTo = 0; 
     my(@rcvdiplist);
+    my $RecvFound = 0;
 
-    $message->{nobody} = 0;
+    $message->{nobody} = 1; #assume no body unless detected
 
     # Just in case we get a message with no headers at all
     @{$message->{headers}} = ();
@@ -405,37 +398,56 @@ sub new {
     # Read records until we hit the start of the message M record
     #print STDERR "Reading pre data\n";
     my $headerComplete = 0;
-    my $bodyFound = 0;
-    while(!$message->{nobody} && $recdata = ReadRecord($RQf)) {
-       if ($headerComplete eq 0) {
-           push @{$message->{headers}}, $recdata
+    while($recdata = ReadRecord($RQf)) {
+       if ($headerComplete == 0) {
+           push @{$message->{headers}}, $recdata;
 
            if ($InSubject) {
               if ($recdata =~ /^\s/) {
-              # We are in a continuation line, so remove the leading whitespace
-              $recdata =~ s/^\s//;
-              $message->{subject} .= $recdata;
-              next;
+                  # We are in a continuation line, so remove the leading whitespace
+                  $recdata =~ s/^\s//;
+                  $message->{subject} .= $recdata;
+                  next;
               } else {
-              # Line did not start with continuation character so we're not in Subj
-              $InSubject = 0;
+                  # Line did not start with continuation character so we're not in Subj
+                  $InSubject = 0;
               }
-           } elsif ($recdata =~ m/^From: /i ) {
+           }
+
+           if ($InTo) {
+               $recdata =~ s/^\s\<//;
+               $recdata =~ s/\>//;
+               if ($recdata =~ m/,$/) {
+                  # More recips
+                  $InTo = 1;
+               } else {
+                  $InTo = 0;
+               }
+               $recdata = lc($recdata);
+               push @{$message->{to}}, lc($recdata) unless $ORIGFound;
+               # Postfix compat
+               push @{$message->{metadata}}, "R$recdata";
+           }
+
+          if ($recdata =~ m/^From: /i ) {
             # Sender address
-            $recdata =~ s/^\<//;
-            $recdata =~ s/\<$//;
+            $recdata =~ s/^From: //;
+            $recdata =~ s/^.*\<//;
+            $recdata =~ s/\>$//;
             $message->{from} = lc($recdata);
             $FROMFound = 1;
             next;
-          } elsif ($recdata =~ m/^\s+for / && $ORIGFound = 0 ) {
+          } elsif ($recdata =~ m/^\s+for / && $ORIGFound == 0 ) {
             # Recipient address
-            $recdata =~ s/^\<//;
-            $recdata =~ s/\<$//;
+            $recdata =~ s/^\s+for//;
+            $recdata =~ s/^.*\<//;
+            $recdata =~ s/\>.*$//;
             # If recipient is empty only add metadata
             push @{$message->{to}}, lc($recdata);
             next unless $recdata ne '';
             $TOFound = 1;
             $ORIGFound = 1;
+            # Postfix compat
             push @{$message->{metadata}}, "O$recdata";
             next;
           } elsif ($recdata =~ m/^To: /i) {
@@ -443,21 +455,29 @@ sub new {
             # but are put back into the 'O' originalrcpts list in the
             # replacement message.
             # Original recipient address
-            $recdata =~ s/^\<//;
-            $recdata =~ s/\<$//;
+            $recdata =~ s/^To: //;
+            $recdata =~ s/^.*\<//;
+            $recdata =~ s/\>//;
+            if ($recdata =~ m/,$/) {
+                # Continuation of To line
+                $recdata =~ s/,$//;
+                $InTo = 1;
+            }
             $recdata = lc($recdata);
             push @{$message->{to}}, lc($recdata) unless $ORIGFound;
+            # Postfix compat
             push @{$message->{metadata}}, "R$recdata";
             $message->{postfixrecips}{lc("$recdata")} = 1;
             $TOFound = 1;
             next;
           } elsif ($recdata =~ /^Received:/i) {
-            my $rcvdip = '127.0.0.1';
-            if ($recdata =~ /^Received: .+?\(.*?\[(?:IPv6:)?([0-9a-f.:]+)\]/i) {
-            $rcvdip = $1;
-            push @rcvdiplist, $rcvdip;
+             my $rcvdip = '127.0.0.1';
+             if ($recdata =~ /^Received: .+?\(.*?\[(?:IPv6:)?([0-9a-f.:]+)\]/i) {
+                 $rcvdip = $1;
+                 push @rcvdiplist, $rcvdip;
+            }
             next;
-          } elsif ($recdata == '') {
+          } elsif ($recdata eq '') {
             # Empty line signals end of header
             $headerComplete = 1;
             next;
@@ -467,13 +487,11 @@ sub new {
               next;
           }
         } else {
-            if ($bodyFound eq 0 && $recdata == '') {
-               $message->{nobody} = 1; # Found end of message without a body
-            }
+            # if we landed here, there's a body
+            $message->{nobody} = 0; 
             last;
         }
     }
-
     # Remove all the duplicates from ->{to}
     my %uniqueto;
     foreach (@{$message->{to}}) {
@@ -483,7 +501,11 @@ sub new {
 
     # There will always be at least 1 Received: header, even if 127.0.0.1
     push @rcvdiplist, '127.0.0.1' unless @rcvdiplist;
-    $message->{clientip} = $rcvdiplist[1];
+    # Don't fall off the end of the list
+    $getipfromheader = @rcvdiplist if $getipfromheader>@rcvdiplist;
+    # Don't fall off the start of the list
+    $getipfromheader = 1 if $getipfromheader<1;
+    $message->{clientip} = $rcvdiplist[$getipfromheader-1];
     $IPFound = 1;
 
     # Decode ISO subject lines into UTF8
@@ -514,11 +536,10 @@ sub new {
       $message->{subject} = $TmpSubject;
     }
 
-    return 1 if $FROMFound && $TOFound && !$ErrorFound; # && $IPFound;
+    return 1 if $FROMFound && $TOFound; 
 
     return 0;
   }
-
 
   # Read a Message record. These are structured as follows:
   # Plain old newline terminated message
@@ -526,10 +547,13 @@ sub new {
     my($fh) = @_;
     my($data);
 
+    return undef if eof($fh);
+    
     # Get the data
     $data = "";
-    readline $fh, $data;
-    
+    $data = readline $fh;
+    $data =~ s/\n//;
+  
     return ($data);
   }
 
@@ -1604,5 +1628,4 @@ sub CheckQueueIsFlat {
   # directory structure.
   return 1;
 }
-
 1;

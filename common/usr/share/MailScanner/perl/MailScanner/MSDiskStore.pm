@@ -401,7 +401,7 @@ sub WriteHeader {
   my($MPos, $data);
   $MPos = 0;
   $data = MailScanner::Sendmail::ReadRecord($Tf);
-  while($data != '') {
+  while($data ne '') {
     $MPos = tell $Tf;
     $data = MailScanner::Sendmail::ReadRecord($Tf);
   }
@@ -513,10 +513,9 @@ sub ReadBody {
 
   my $line;
   my $lastlineread = undef;
-
   my $b = Body->new( $this->{inhdhandle} );
   return unless $b;
-
+  
   # Restraint is disabled, do the whole message.
   #print STDERR "max message size is '$max'\n";
   unless ($max) {
@@ -876,6 +875,7 @@ sub Start {
   my($this, $entiremessage) = @_;
 
   my($offset);
+  my($data);
 
   $$this{_donestart} = 1;
   if ($$this{_startpos} == -1) {
@@ -886,9 +886,8 @@ sub Start {
   if ($entiremessage) {
     return;
   }
-
   while($data = MailScanner::Sendmail::ReadRecord($$this{_handle})) {
-    last $data eq "";
+    last if $data eq "";
   }
 
   $$this{_startpos}= tell $$this{_handle};
@@ -898,11 +897,8 @@ sub Start {
 
 sub Next {
   my($this) = @_;
-       
   $this->Start() unless $$this{_donestart};
-
   my($data) = MailScanner::Sendmail::ReadRecord($$this{_handle});
-
   return $data;
 }
 
