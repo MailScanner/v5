@@ -199,6 +199,10 @@ sub new {
   my $this = {};
   my($mta, $addr, $user, $domain);
   my($archiveplaces);
+  my $rejectflag = 0;
+  my $rejectmsg = '';
+  my $rejectheader = '';
+  my $orgname = '';
 
   #print STDERR "Creating message $id\n";
 
@@ -240,20 +244,22 @@ sub new {
   # from a local relay reject?
   my $mta = MailScanner::Config::Value('mta');
   if ($mta =~ /^msmail/i) {
-      my $orgname = MailScanner::Config::DoPercentVars('%org-name%');
       my($header_line);
+      $orgname = MailScanner::Config::DoPercentVars('%org-name%');
+      $rejectheader = "X-$orgname-MailScanner-Relay-Reject:";
+      my $pos = 0;
       foreach $header_line (@{$this->{headers}}) {
-          if($header_line =~ /^X-$orgname-Relay-Reject:/) {
+          if($header_line =~ /^$rejectheader/) {
               # Message was rejected at relay
               # Rewrite header for quarantine so that it doesn't get
               # flagged if released and allows for easy troubleshooting
-              $this->DeleteHeader($this, $header_line);
               $header_line =~ s/^.*: //;
-              $this->AddHeader($this, 'X-' . $orgname . "-Relay-Quarantine: " . $header_line);
-              # Bail out no need to process further right now
-              $this->{INVALID} = 1;
-              return $this;
+              $rejectmsg = $header_line;
+              splice @{$this->{headers}}, $pos, 1, 0, 'X-' . $orgname . "-MailScanner-Relay-Quarantine: " . $rejectmsg;
+              # Flag and carry on
+              $rejectflag = 1;
           }
+          $pos++;
       }
   }
 
@@ -443,6 +449,10 @@ sub new {
   $ArchivesAre    = '[' . $ArchivesAre . ']' if $ArchivesAre;
   $this->{archivesare} = $ArchivesAre;
 
+  if ($rejectflag == 1) {
+      # Log Relay rejects as other
+      $this->{otherinfected} = 1;
+  }
 
   bless $this, $type;
   return $this;

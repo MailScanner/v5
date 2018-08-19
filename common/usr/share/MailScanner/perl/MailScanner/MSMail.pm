@@ -650,7 +650,6 @@ sub new {
 
   sub DeleteHeader {
       my($this, $message, $key) = @_;
-      
       my $usingregexp = ($key =~ s/^\/(.*)\/$/$1/)?1:0;
 
       # Add a colon if they forgot it.
@@ -1018,16 +1017,12 @@ sub new {
                       }
                       $req = 'MAIL FROM: ' . $sender . "\n";
                       $socket->send($req);
-                      MailScanner::Log::NoticeLog("Debug: $req");
                       $socket->recv($response, 1024);
-                      MailScanner::Log::NoticeLog("Debug: $response");
                       if ($response =~ /^250/) {
                           # From received success
                           $req = 'RCPT TO: ' . $recipient . "\n";
                           $socket->send($req);
-                          MailScanner::Log::NoticeLog("Debug: $req");
                           $socket->recv($response, 1024);
-                          MailScanner::Log::NoticeLog("Debug: $response");
                           if ($response =~ /^250/ ) {
                               # Rcpt To success
                               $req='DATA' . "\n";
@@ -1059,8 +1054,12 @@ sub new {
               }
               $socket->close();
           }
+          # Test reject logging
+          # $messagesent = 0;
           if ($messagesent == 0) {
               # Look for a rejection
+              # Debug rejection process
+              # $response = "450 1.2.3 This is a test reject";
               if ($response =~ /^450/) {
                  # Something went wrong cannot deliver message
                  # Prefix email with Reject header to flag for quarantine
@@ -1069,7 +1068,6 @@ sub new {
                  # Open a new file in inbound queue
                  my $inqueuedir = MailScanner::Config::Value('inqueuedir');
                  my $test = @{$inqueuedir}[0] . '/' . $filename;
-                 MailScanner::Log::NoticeLog("Debug: $test");
                  my $queuehandle2 = new FileHandle;
                  MailScanner::Lock::openlock($queuehandle2,'>' . $test, 'w');
                  if (!defined($queuehandle2)) {
