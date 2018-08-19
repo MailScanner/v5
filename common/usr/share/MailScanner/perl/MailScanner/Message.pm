@@ -236,6 +236,28 @@ sub new {
   }
   #  or return 'INVALID'; # Return empty if fails
 
+  # Are we in milter mode, and has the message been requeued
+  # from a local relay reject?
+  my $mta = MailScanner::Config::Value('mta');
+  if ($mta =~ /^msmail/i) {
+      my $orgname = MailScanner::Config::DoPercentVars('%org-name%');
+      my($header_line);
+      foreach $header_line (@{$this->{headers}}) {
+          if($header_line =~ /^X-$orgname-Relay-Reject:/) {
+              # Message was rejected at relay
+              # Rewrite header for quarantine so that it doesn't get
+              # flagged if released and allows for easy troubleshooting
+              $this->DeleteHeader($this, $header_line);
+              $header_line =~ s/^.*: //;
+              $this->AddHeader($this, 'X-' . $orgname . "-Relay-Quarantine: " . $header_line);
+              # Bail out no need to process further right now
+              $this->{INVALID} = 1;
+              return $this;
+          }
+      }
+  }
+
+
   # Work out the user @ domain components
   ($user, $domain) = address2userdomain($this->{from});
   $this->{fromuser} = $user;
@@ -306,8 +328,6 @@ sub new {
     $addmshmac = ($addmshmac =~ /1/)?1:0;
     my $mshmacheader = MailScanner::Config::Value('mshmacheader', $this);
     $mshmacheader .= ':' unless $mshmacheader =~ /:$/;
-
-
 
     # So do we need to look for a header in the message body?
     # Don't check if there was no client IP address, as we must have made it.
@@ -602,7 +622,7 @@ sub IsSpam {
     MailScanner::Log::InfoLog("Valid Watermark HASH found in Message %s Header, skipping Spam Checks", $this->{id}); 
     return 0;
   }
-
+  
   # MailScanner NULL sender mods
   if ($this->{mshmacnullpresent} && $this->{mshmacnullvalid}) {
     MailScanner::Log::InfoLog("Message %s from %s has valid watermark",
@@ -639,6 +659,7 @@ sub IsSpam {
     elsif (($mshmacnull+0.0) > 0.01) {
       $this->{sascore} += $mshmacnull+0.0;
       MailScanner::Log::InfoLog("Message %s had bad watermark, added %s to spam score", $this->{id}, $mshmacnull+0.0) if $LogSpam;
+
       my($mshspam, $mshhigh) = MailScanner::SA::SATest_spam($this, 0.0, $this->{sascore}+0.0);
       $this->{isspam} = 1 if $mshspam;
       $this->{ishigh} = 1 if $mshhigh;
@@ -735,6 +756,7 @@ sub IsSpam {
   #print STDERR "In Message.pm about to look at gsscanner\n";
   if ($usegsscanner) {
     #print STDERR "In Message.pm about to run gsscanner\n";
+
     ($gsscore, $gsreport) = MailScanner::GenericSpam::Checks($this);
     #print STDERR "In Message.pm we got $gsscore, $gsreport\n";
     $this->{gshits} = $gsscore;
@@ -3275,12 +3297,11 @@ sub UnpackRar {
   return 1 unless $UnrarVersion =~ /^\d+\.\d*$/ && ( $UnrarVersion >= 4.0 && $UnrarVersion < 6.0 );
 
   # Escape spaces in filename
-  # Commented out as this is causing the opposite effect. Unrar only works when the spaces aren't escaped.
   # $zipname =~ s/\ /\\\ /g;
 
+  MailScanner::Log::WarnLog("UnPackRar Testing : %s", $zipname);
   # Unrar Version 4x file parse
   if ($UnrarVersion >= 4.0 && $UnrarVersion < 5.0) {
-    #MailScanner::Log::WarnLog("UnPackRar Testing : %s", $zipname);
 
     # This part lists the archive contents and makes the list of
     # file names within. "This is a list verbose option"
@@ -3360,8 +3381,8 @@ sub UnpackRar {
                 $memb =~ /(No files to extract|^COMMAND_TIMED_OUT$)/si;
 
     return 0 if $memb eq ''; # JKF If no members it probably wasn't a Rar self-ext
-    #MailScanner::Log::DebugLog("Unrar : Archive Testing Completed On : %s",
-    #                           $memb);
+    MailScanner::Log::DebugLog("Unrar : Archive Testing Completed On : %s",
+                               $memb);
 
     @members = split /\n/, $memb;
 
@@ -3399,6 +3420,8 @@ sub UnpackRar {
 
     # Have to parse the output from the 'vt' command
     foreach $what (@test) {
+      #print STDERR "Processing \"$what\"\n";
+      MailScanner::Log::WarnLog("UnPackRar Processing : %s", $what);
       $what =~ s/^\s+|\s+$//mg;
 
       # compatibility with "unrar vta"
@@ -5274,7 +5297,6 @@ sub AppendSignCleanEntity {
 # the outgoing queue.
 sub DeliverUninfected {
   my $this = shift;
-  
   if ($this->{bodymodified}) {
     # The body of this message has been modified, so reconstruct
     # it from the MIME structure and deliver that.
@@ -5304,7 +5326,6 @@ my($DisarmFormTag, $DisarmScriptTag, $DisarmCodebaseTag, $DisarmIframeTag,
 sub DeliverUnmodifiedBody {
   my $this = shift;
   my($headervalue) = @_;
-
   #print STDERR "DisarmPhishingFound = " . $DisarmPhishingFound . " for message " . $this->{id} . "\n";
 
   return if $this->{deleted}; # This should never happen

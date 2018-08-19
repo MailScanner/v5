@@ -153,7 +153,7 @@ $SIG{'TERM'} = \&ExitParent;
 #
 # First production release will be 4.00.1.
 #
-$MailScanner::Config::MailScannerVersion = 'VersionNumberHere';
+$MailScanner::Config::MailScannerVersion = '5.0.7';
 
 my $WantHelp          = 0;
 my $Versions          = 0;
@@ -1257,7 +1257,6 @@ sub WorkForHours {
     # Zip up all the attachments to compress them
     $0 = 'MailScanner: compressing attachments';
     $batch->ZipAttachments();
-
     # Encapsulate the messages into message/rfc822 attachments as needed
     $batch->Encapsulate();
 

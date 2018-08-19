@@ -219,7 +219,7 @@ sub eom_callback
         my $incoming = `/usr/sbin/ms-peek "Incoming Queue Dir" /etc/MailScanner/MailScanner.conf`;
         $incoming =~ s/\n//;
         if ($incoming eq '') {
-            MailScanner::Log::WarnLog("MailScanner: Milter:  Unable to determine incoming queue!");
+            MailScanner::Log::WarnLog("Milter:  Unable to determine incoming queue!");
             Sendmail::PMilter::SMFIS_TEMPFAIL;
             return;
         }
@@ -227,6 +227,11 @@ sub eom_callback
 
         # Error checking needed here
         MailScanner::Lock::openlock($queuehandle,'>' . $file, 'w');
+        if (!defined($queuehandle)) {
+            MailScanner::Log::WarnLog("Milter:  Unable to to open queue file for writing!");
+            Sendmail::PMilter::SMFIS_TEMPFAIL;
+            return;
+        }
 
         # Write out to disk
         $queuehandle->print($buffer);

@@ -1,4 +1,4 @@
-#
+
 #   MailScanner - SMTP Email Processor
 #   Copyright (C) 2018 MailScanner project
 #
@@ -384,7 +384,8 @@ sub new {
     my($ORIGFound, $TOFound, $FROMFound, $IPFound);
     my($recdata);
     my $InSubject = 0; # Are we adding continuation subject lines?
-    my $InTo = 0; 
+    my $InTo = 0;
+    my $InFrom = 0;
     my(@rcvdiplist);
     my $RecvFound = 0;
 
@@ -414,9 +415,9 @@ sub new {
                   # Line did not start with continuation character so we're not in Subj
                   $InSubject = 0;
               }
-           }
+          }
 
-           if ($InTo) {
+          if ($InTo) {
                $recdata =~ s/^\s\<//;
                $recdata =~ s/\>//;
                if ($recdata =~ m/,$/) {
@@ -429,17 +430,50 @@ sub new {
                push @{$message->{to}}, lc($recdata) unless $ORIGFound;
                # Postfix compat
                push @{$message->{metadata}}, "R$recdata";
-           }
+          }
+
+          if ($InFrom) {
+              if ($recdata =~ /^\s/ && $FROMFound == 0) {
+                  # If at first you don't succeed...
+                  $recdata =~ s/^\s//;
+                  $recdata =~ s/^.*\<//;
+                  $recdata =~ s/^\<//;
+                  $recdata =~ s/\>.*$//;
+                  $recdata =~ s/\>$//;
+                  # Some emails appear to have stuff in them...
+                  # (stuff) or "stuff"
+                  # there could be others, need a better regex here
+                  $recdata =~ s/[\(\"].*[\)\"]//;
+                  $recdata =~ s/\s$//;
+                  # Did we capture an email (hopefully) or junk? Look for an @
+                  if ($recdata =~ /@/) {
+                      $message->{from} = lc($recdata);
+                      $FROMFound = 1;
+                  }
+              } else {
+                 $InFrom = 0;
+              }
+          }  
 
           if ($recdata =~ m/^From: /i ) {
             # Sender address
+            # Can be multiple lines here...
+            $InFrom = 1;
             $recdata =~ s/^From: //;
             $recdata =~ s/^.*\<//;
             $recdata =~ s/^\<//;
             $recdata =~ s/\>.*$//;
             $recdata =~ s/\>$//;
-            $message->{from} = lc($recdata);
-            $FROMFound = 1;
+            # Some emails appear to have stuff in them...
+            # (stuff) or "stuff"
+            # there could be others, need a better regex here
+            $recdata =~ s/[\(\"].*[\)\"]//;
+            $recdata =~ s/\s$//;
+            # Did we capture an email (hopefully) or junk? Look for an @
+            if ($recdata =~ /@/) {
+                 $message->{from} = lc($recdata);
+                 $FROMFound = 1;
+            }
             next;
           } elsif ($recdata =~ m/^\s+for / && $ORIGFound == 0 ) {
             # Recipient address
@@ -840,9 +874,9 @@ sub new {
   sub KickMessage {
       my($queue2ids, $sendmail2) = @_;
       my($queue);
-      my($MsgsInQueue);
       my(@Files);
       my($queuedir);
+      my($queuedirname);
       my($file);
       my($sendmail);
       my($queuehandle);
@@ -851,6 +885,8 @@ sub new {
       my $recipientfound = 0;
       my($sender);
       my $messagesent = 0;
+      my $InFrom = 0;
+      my $response = '';
 
       foreach $queue (keys %$queue2ids) {
           next unless $queue2ids->{$queue};
@@ -865,23 +901,30 @@ sub new {
                                       "message batch, %s", $queue, $!);
           while(defined($file = $queuedir->read())) {
               next if $file eq '.' || $file eq '..';
-              push @Files, "$queue/$file";
-             $MsgsInQueue++;
+              push @Files, $file;
           }
+          # Should be only one queuedir in this setup
+          $queuedirname = $queue;
           $queuedir->close;
 
       }
 
-      $sendmail = MailScanner::Config::Value('sendmail');
       $queuehandle = new FileHandle();
 
       foreach $file (@Files) {
+          my $filename = $file;
+          my $file = $queuedirname . '/' . $file;
           # Open file
           MailScanner::Lock::openlock($queuehandle,'+<' . $file, 'w');
-
+          if (!defined($queuehandle)) {
+              MailScanner::Log::WarnLog("Cannot open $file for relaying, will try again later");
+              next;
+          }
+          $recipientfound = 0;
           # Correct recipient is the recipient in Received header from milter
           while(!eof($queuehandle)) {
               $line = readline $queuehandle;
+              $line =~ s/\n//;
               if ($line =~ m/^\s+for / && $recipientfound == 0) {
                   $line =~ s/^\s+for//;
                   $line =~ s/^.*\<//;
@@ -892,15 +935,41 @@ sub new {
                   $recipientfound = 1;
                   next;
               } elsif ($line =~ m/^From: / ) {
+                  # Can be multiple lines...
+                  $InFrom = 1;
                   $line =~ s/^From: //;
                   $line =~ s/^.*\<//;
                   $line =~ s/^\<//;
                   $line =~ s/\>.*$//;
                   $line =~ s/\>$//;
-                  $sender = $line;
-                  last;
-              }
-             
+                  # Stuff (refactor)
+                  $line =~ s/[\(\"].*[\)\"]//;
+                  $line =~ s/\s//;
+                  if ($line =~ /@/) {
+                      $sender = $line;
+                      last; 
+                  }
+               } elsif ($InFrom) {
+                   if ($line =~ /^\s/) {
+                       $line =~ s/^\s//;
+                       $line =~ s/^.*\<//;
+                       $line =~ s/^\<//;
+                       $line =~ s/\>.*$//;
+                       $line =~ s/\>$//;
+                       # Stuff (refactor)
+                       $line =~ s/[\(\"].*[\)\"]//;
+                       $line =~ s/\s//;
+                       if ($line =~ /@/) {
+                           $sender = $line;
+                           last;
+                       }
+                   } else {
+                       $InFrom = 0;
+                   }
+               } elsif ($line eq '') {
+                    # At end of header, bail out
+                    last;
+               }
           }
 
           # This is dangerous! Just left here for reference
@@ -908,6 +977,10 @@ sub new {
           # my $ret = system("$sendmail -G -i " . $recipient . " < " . $file);
           # Success ????, delete message :O
           # unlink $file;
+
+          # This is the safe approach using SMTP protocol for relay
+          # If relay bombs out or doesn't respond, messages are preserved
+          # and tried again on next attempt
           if ($recipientfound) {
               $messagesent = 0;
               my $socket = new IO::Socket::INET (
@@ -928,8 +1001,7 @@ sub new {
                   MailScanner::Lock::unlockclose($queuehandle);
                   last;
               }
-
-              my $response = '';
+              $response = '';
               $socket->recv($response, 1024);
               if ($response =~ /^220/) {
 
@@ -939,17 +1011,23 @@ sub new {
                   $socket->recv($response, 1024);
                   if ($response =~ /^250/) {
                       # ehlo receive success
-                      if ($sender eq '') { $sender = 'unknownsender@localhost'; }
-                      $req = 'MAIL FROM: ' . $sender;
+                      if ($sender eq '' || !($sender =~ /@.*\./) ) {
+                          # Must have a valid from to relay
+                          # Email is missing @ and fqdn or is empty
+                          $sender = 'unknownsender@localhost.localdomain';
+                      }
+                      $req = 'MAIL FROM: ' . $sender . "\n";
                       $socket->send($req);
-                    
+                      MailScanner::Log::NoticeLog("Debug: $req");
                       $socket->recv($response, 1024);
-
+                      MailScanner::Log::NoticeLog("Debug: $response");
                       if ($response =~ /^250/) {
                           # From received success
-                          $req = 'RCPT TO: ' . $recipient;
+                          $req = 'RCPT TO: ' . $recipient . "\n";
                           $socket->send($req);
+                          MailScanner::Log::NoticeLog("Debug: $req");
                           $socket->recv($response, 1024);
+                          MailScanner::Log::NoticeLog("Debug: $response");
                           if ($response =~ /^250/ ) {
                               # Rcpt To success
                               $req='DATA' . "\n";
@@ -957,7 +1035,8 @@ sub new {
                               $socket->recv($response, 1024);
                               if ($response =~ /^354/ ) {
                                   # Ready to send data
-                                  seek ($queuehandle, 0, 0);
+                                  # Position at start of message
+                                  seek $queuehandle, 0, 0;
     
                                   while(!eof($queuehandle)) {
                                       $req = readline $queuehandle;
@@ -969,7 +1048,7 @@ sub new {
                                   $socket->recv($response,1024);
                                   if ($response =~ /^250/) {
                                       # Data received
-                                      $req = 'quit\n';
+                                      $req = 'quit' . "\n";
                                       $socket->send($req);
                                       $messagesent = 1;
                                   } 
@@ -981,15 +1060,45 @@ sub new {
               $socket->close();
           }
           if ($messagesent == 0) {
-              MailScanner::Log::WarnLog("Unable to kick message, will retry soon...");
-              MailScanner::Lock::unlockclose($queuehandle);
-              last;
-          } else {
+              # Look for a rejection
+              if ($response =~ /^450/) {
+                 # Something went wrong cannot deliver message
+                 # Prefix email with Reject header to flag for quarantine
+                 MailScanner::Log::WarnLog("Unable to kick message $file, rejected by local relay, quarantining message");
+                 seek $queuehandle, 0, 0;
+                 # Open a new file in inbound queue
+                 my $inqueuedir = MailScanner::Config::Value('inqueuedir');
+                 my $test = @{$inqueuedir}[0] . '/' . $filename;
+                 MailScanner::Log::NoticeLog("Debug: $test");
+                 my $queuehandle2 = new FileHandle;
+                 MailScanner::Lock::openlock($queuehandle2,'>' . $test, 'w');
+                 if (!defined($queuehandle2)) {
+                     MailScanner::Log::WarnLog("Unable to requeue message rejected by relay, will try again later");
+                     MailScanner::Lock::unlockclose($queuehandle);
+                 } else {
+                     my $orgname = MailScanner::Config::DoPercentVars('%org-name%');
+                     $response =~ s/\r\n.*$//;
+                     $queuehandle2->print('X-'. $orgname . '-MailScanner-Relay-Reject: ' . $response . "\n");
+                     while(!eof($queuehandle)) {
+                         $line = readline $queuehandle;
+                         $queuehandle2->print($line);
+                     }
+                     MailScanner::Lock::unlockclose($queuehandle);
+                     unlink $file;
+                     $queuehandle2->flush();
+                     MailScanner::Lock::unlockclose($queuehandle2);
+                     $queuehandle2=undef;
+                     next;
+                 }
+             }
+ 
+             MailScanner::Log::WarnLog("Unable to kick message $file, will retry soon...");
+             MailScanner::Lock::unlockclose($queuehandle);
+         } else {
               # Delivered :D
               MailScanner::Lock::unlockclose($queuehandle);
               unlink $file;
-          }
-
+         }
       }
   }
 
