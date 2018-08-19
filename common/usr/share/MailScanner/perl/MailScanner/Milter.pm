@@ -47,7 +47,10 @@ $VERSION = substr q$Revision: 4694 $, 10;
 
 # Pseudo short postfix ids for now
 sub smtp_id {
-  if (MailScanner::Config::Value("MSMailQueueType") eq "long") {
+  # Cannot access Config in callback, use ms-peek
+  my $type = `/usr/sbin/ms-peek "MSMail Queue Type" /etc/MailScanner/MailScanner.conf`;
+  $type = s/\n//;
+  if ($type eq "long") {
         # Long queue IDs
         my $seconds=0;
         my $microseconds=0;
@@ -95,6 +98,7 @@ sub connect_callback
         my $hostname = shift;
         my $sockaddr_in = shift;
         my ($port, $iaddr);
+        my $ip;
         my $message_ref = $ctx->getpriv();
 
         my $message = $hostname;
@@ -102,7 +106,8 @@ sub connect_callback
         if (defined $sockaddr_in)
         {
             ($port, $iaddr) = sockaddr_in($sockaddr_in);
-            $message .= ' [' . inet_ntoa($iaddr) . ']';
+            $ip = inet_ntoa($iaddr);
+            $message .= ' [' . $ip . ']';
         }
 
         ${$message_ref} = $message;
@@ -137,9 +142,8 @@ sub envrcpt_callback
         my $datestring = strftime "%a, %e %b %Y %T %z (%Z)", localtime;
         my $symbols = $ctx->{symbols};
   
-        # Todo
-        # More work needed here
-        # Need to also detect SSL, certs, etc...
+        # Todo?
+        # display ssl certs if client provided them maybe...
         if (defined($symbols->{'H'}) && defined($symbols->{'H'}->{'{tls_version}'}) && defined($symbols->{'H'}->{'{cipher}'}) && defined($symbols->{'H'}->{'{cipher_bits}'})) {
             ${$message_ref} .= '        (using ' . $symbols->{'H'}->{'{tls_version}'} . ' with cipher ' . $symbols->{'H'}->{'{cipher}'} . ' (' . $symbols->{'H'}->{'{cipher_bits}'} . '/' . $symbols->{'H'}->{'{cipher_bits}'} . ' bits))' . "\n";
         }
@@ -211,7 +215,15 @@ sub eom_callback
 
         # Ok we have sufficient info to start writing to disk
         my $queuehandle = new FileHandle;
-        my $file = "/var/spool/MailScanner/milter/$id";
+        # Cannot access config values inside of this callback, use ms-peek
+        my $incoming = `/usr/sbin/ms-peek "Incoming Queue Dir" /etc/MailScanner/MailScanner.conf`;
+        $incoming =~ s/\n//;
+        if ($incoming eq '') {
+            MailScanner::Log::WarnLog("MailScanner: Milter:  Unable to determine incoming queue!");
+            Sendmail::PMilter::SMFIS_TEMPFAIL;
+            return;
+        }
+        my $file = "$incoming/$id";
 
         # Error checking needed here
         MailScanner::Lock::openlock($queuehandle,'>' . $file, 'w');
@@ -222,21 +234,19 @@ sub eom_callback
            $queuehandle->print($1 . "\n");
         }
 
+        $queuehandle->flush();
         MailScanner::Lock::unlockclose($queuehandle);
 
         $ctx->setpriv(undef);
 
-        print "eom callback fired...\n";
-
-        #Sendmail::PMilter::SMFIS_DISCARD;
-        Sendmail::PMilter::SMFIS_CONTINUE;
+        Sendmail::PMilter::SMFIS_DISCARD;
 }
 
 
 my $pid = fork;
 
 if (!defined($pid)) {
-    MailScanner::Log::WarnLog("Milter:  Unable to fork!");
+    MailScanner::Log::WarnLog("MailScanner: Milter:  Unable to fork!");
 }
 if ($pid == 0) {
     my %my_callbacks =
@@ -261,7 +271,7 @@ if ($pid == 0) {
     $< = $> = getpwnam('postfix');
     $( = $) = getgrnam('mtagroup');
     $0 = "MailScanner: Milter Process";
-    $milter->main(10,10);
+    $milter->main(10,100);
 }
 
 1;

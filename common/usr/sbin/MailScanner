@@ -848,7 +848,7 @@ for (;;) {
   }
   # Spawn milter if requested after spawning chilren
   if ($LoadMilter) {
-      $NumberOfChildren+=10;
+      $NumberOfChildren+=11;
       require "MailScanner/Milter.pm";
   }
 

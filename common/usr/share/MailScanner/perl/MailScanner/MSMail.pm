@@ -34,6 +34,8 @@ use Encode;
 use vars qw($VERSION);
 
 use IO::Socket::UNIX;
+use IO::Socket::INET;
+use Net::Domain qw(hostname hostfqdn hostdomain domainname);
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
 $VERSION = substr q$Revision: 5098 $, 10;
@@ -557,151 +559,111 @@ sub new {
     return ($data);
   }
 
-  # Add all the message headers to the metadata so it's ready to be
-  # mangled and output to disk. Puts the headers at the end.
-  # Can be passed in a string containing all the headers.
-  # This is usually the output of stringify_output (MIME-Tools).
-  # JKF: @headers doesn't include leading "H" header indicator.
-  #      @metadata includes leading "H" but no \n characters.
-  #      The input to this function can be a "\n"-separated string of
-  #      new header lines. This is useful as the SpamCheck header can
-  #      be flowed over multiple lines, but still be passed into here
-  #      as a single header.
   sub AddHeadersToQf {
-    my $this = shift;
-    my($message, $headers) = @_;
+      my $this = shift;
+      my($message, $headers) = @_;
 
-    my($header, $h, @headerswithouth);
-    my($records, $pos);
+      my($header, $h, @headers);
+      my($records, $pos);
 
-    if ($headers) {
-      #print STDERR "AddHeadersToQf: Headers are $headers\n";
-      @headerswithouth = split(/\n/, $headers);
-    } else {
-      #print STDERR "AddHeadersToQf: Message-Headers are " .
-      #             join("\n", @{$message->{headers}}) . "\n";;
-      @headerswithouth = @{$message->{headers}};
-    }
+      if ($headers) {
+        @headers = split(/\n/, $headers);
+      } else {
+        @headers = @{$message->{headers}};
+      }
 
-    # Make complete records ready for insertion in the metadata
-    foreach (@headerswithouth) {
-      s/^/N/;
-    }
-
-    # Look through for the M record that indicates start of message.
-    # Insert each line of the headers as an N record just after that.
-    $pos = 0;
-    $pos++ while($message->{metadata}[$pos] !~ /^M/);
-    # $pos now points at M record
-    $pos++;
-    # Now at position to insert header records
-    #print STDERR "Adding headers at $pos\n";
-    splice @{$message->{metadata}}, $pos, 0, @headerswithouth;
-    #print STDERR "Metadata is now:\n" . join("\n", @{$message->{metadata}}) . "End of metadata\n";
+      # Add to end of metadata, skipping over postfix compat lines
+      foreach $header (@headers) {
+          push @{$message->{metadata}}, 'H' . $header;
+      }
   }
 
-  # Add a header. Needs to look for the position of the M record again
-  # so it knows where to insert it.
+  # Add a header to the message
   sub AddHeader {
-    my($this, $message, $newkey, $newvalue) = @_;
-
-    # Find the X record
-    my($pos);
-
-    # DKIM: This is for adding the header at the position of the first N record
-    # DKIM: Find the first N (or else the X as a safeguard)
-    if ($message->{newheadersattop}) {
-      $pos = 0;
-      while ($pos < $#{$message->{metadata}} &&
-             $message->{metadata}[$pos] !~ /^[NX]/) {
-        $pos++;
+      my($this, $message, $newkey, $newvalue) = @_;
+      
+      my($pos);
+  
+      # DKIM friendly add?
+      if ($message->{newheadersattop}) {
+          $pos = 0;
+          while ($pos < $#{$message->{metadata}} &&
+               $message->{metadata}[$pos] !~ /^H/) {
+               $pos++;
+          }
+      } else {
+           $pos = $#{$message->{metadata}};
       }
-    } else {
-      # DKIM: This is for adding the header at the end, pos-->X record
-      $pos = $#{$message->{metadata}};
-      $pos-- while ($pos >= 0 && $message->{metadata}[$pos] !~ /^X/);
-    }
-    #print STDERR "*** AddHeader $newkey $newvalue at position $pos\n";
 
-    # Need to split the new header data into the 1st line and a list of
-    # continuation lines, creating a new N record for each continuation
-    # line.
-    my(@lines, $line, $firstline);
-    @lines = split(/\n/, $newvalue);
-    $firstline = shift @lines;
-    # We want a list of N records
-    foreach (@lines) {
-      s/^/N/;
-    }
+      # Need to split the new header data into the 1st line and a list of
+      # continuation lines, creating a new N record for each continuation
+      # line.
+      my(@lines, $line, $firstline);
+      @lines = split(/\n/, $newvalue);
+      $firstline = shift @lines;
+      foreach (@lines) {
+        s/^/H/;
+      }
 
-    # Insert the lines at position $pos
-    splice @{$message->{metadata}}, $pos, 0, "N$newkey $firstline", @lines;
+      splice @{$message->{metadata}}, $pos, 0, "H$newkey $firstline", @lines;
   }
 
-  # Delete a header. Must be in an N line plus any continuation N lines
-  # that immediately follow it.
   sub DeleteHeader {
-    my($this, $message, $key) = @_;
+      my($this, $message, $key) = @_;
+      
+      my $usingregexp = ($key =~ s/^\/(.*)\/$/$1/)?1:0;
 
-    my $usingregexp = ($key =~ s/^\/(.*)\/$/$1/)?1:0;
-
-    # Add a colon if they forgot it.
-    $key .= ':' unless $usingregexp || $key =~ /:$/;
-    # If it's not a regexp, then anchor it and sanitise it.
-    $key = '^' . quotemeta($key) unless $usingregexp;
-
-    my($pos, $line);
-    $pos = 0;
-    $pos++ while ($message->{metadata}[$pos] !~ /^M/);
-    # Now points at the M record
-    $pos++;
-    # Now points at first N record
-    while ($pos < @{$message->{metadata}}) {
-      $line = $message->{metadata}[$pos];
-      if ($line =~ s/^N//) {
-        unless ($line =~ /$key/i) {
-          $pos++;
-          next;
-        }
-        # We have found the start of 1 occurrence of this header
-        splice @{$message->{metadata}}, $pos, 1;
-        # Delete continuation lines
-        while($message->{metadata}[$pos] =~ /^N\s/) {
+      # Add a colon if they forgot it.
+      $key .= ':' unless $usingregexp || $key =~ /:$/;
+      # If it's not a regexp, then anchor it and sanitise it.
+      $key = '^' . quotemeta($key) unless $usingregexp;
+     
+      my($pos, $line);
+      $pos = 0;
+      $pos++ while ($message->{metadata}[$pos] !~ /^H/);
+      while ($pos < @{$message->{metadata}}) {
+          $line = $message->{metadata}[$pos];
+          if ($line =~ s/^H//) {
+              unless ($line =~ /$key/i) {
+                  $pos++;
+                  next;
+              }
+          }
+          # We have found the start of 1 occurrence of this header
           splice @{$message->{metadata}}, $pos, 1;
-        }
-        next;
+          # Delete continuation lines
+          while($message->{metadata}[$pos] =~ /^H\s/) {
+              splice @{$message->{metadata}}, $pos, 1;
+          }
+          next;
       }
-      $pos++;
-    }
   }
 
   sub UniqHeader {
-    my($this, $message, $key) = @_;
+      my($this, $message, $key) = @_;
 
-    my($pos, $foundat);
-    $pos = 0;
-    $pos++ while ($message->{metadata}[$pos] !~ /^M/);
-    # Now points at the M record
-    $pos++;
-    # Now points at first N record
-    $foundat = -1;
-    while ($pos < @{$message->{metadata}}) {
-      if ($message->{metadata}[$pos] =~ /^N$key/i) {
-        if ($foundat == -1) { # Skip 1st occurrence
-          $foundat = $pos;
+      my($pos, $foundat);
+      $pos = 0;
+      $pos++ while ($message->{metadata}[$pos] !~ /^H/);
+      $foundat = -1;
+      while ($pos < @{$message->{metadata}}) {
+          if ($message->{metadata}[$pos] =~ /^H$key/i) {
+              if ($foundat == -1) { # Skip 1st occurrence
+                  $foundat = $pos;
+                  $pos++;
+                  next;
+              }
+              # We have found the start of 1 occurrence of this header
+              splice @{$message->{metadata}}, $pos, 1;
+              # Delete continuation lines
+              while($message->{metadata}[$pos] =~ /^H\s/) {
+                 splice @{$message->{metadata}}, $pos, 1;
+              }
+              next;
+          }
           $pos++;
-          next;
-        }
-        # We have found the start of 1 occurrence of this header
-        splice @{$message->{metadata}}, $pos, 1;
-        # Delete continuation lines
-        while($message->{metadata}[$pos] =~ /^N\s/) {
-          splice @{$message->{metadata}}, $pos, 1;
-        }
-        next;
       }
-      $pos++;
-    }
+
   }
 
   sub ReplaceHeader {
@@ -712,174 +674,137 @@ sub new {
     $this->AddHeader($message, $key, $newvalue);
   }
 
-  # Append to the end of a header if it exists.
   sub AppendHeader {
-    my($this, $message, $key, $newvalue, $sep) = @_;
+      my($this, $message, $key, $newvalue, $sep) = @_;
 
-    my($linenum, $oldlocation, $totallines);
+      my($linenum, $oldlocation, $totallines);
 
-    # Try to find the old header
-    $oldlocation = -1;
-    $totallines = @{$message->{metadata}};
+      # Try to find the old header
+      $oldlocation = -1;
+      $totallines = @{$message->{metadata}};
 
-    # Find the start of the header
-    for($linenum=0; $linenum<$totallines; $linenum++) {
-      last if $message->{metadata}[$linenum] =~ /^M/;
-    }
-    for($linenum++; $linenum<$totallines; $linenum++) {
-      next unless $message->{metadata}[$linenum] =~ /^N$key/i;
-      $oldlocation = $linenum;
-      last;
-    }
+       for($linenum=0; $linenum<$totallines; $linenum++) {
+          last if $message->{metadata}[$linenum] =~ /^H/;
+       }
 
-    # Didn't find it?
-    if ($oldlocation<0) {
-      $this->AddHeader($message, $key, $newvalue);
-      return;
-    }
+      for($linenum++; $linenum<$totallines; $linenum++) {
+        next unless $message->{metadata}[$linenum] =~ /^H$key/i;
+        $oldlocation = $linenum;
+        last;
+      }
 
-    # Find the last line of the header
-    do {
-      $oldlocation++;
-    } while($linenum<$totallines &&
-            $message->{metadata}[$oldlocation] =~ /^N\s/);
-    $oldlocation--;
+      # Didn't find it?
+      if ($oldlocation<0) {
+        $this->AddHeader($message, $key, $newvalue);
+        return;
+      }
+     
+      # Find the last line of the header
+      do {
+          $oldlocation++;
+      } while($linenum<$totallines &&
+          $message->{metadata}[$oldlocation] =~ /^H\s/);
+      $oldlocation--;
 
-    # Need to split the new header data into the 1st line and a list of
-    # continuation lines, creating a new N record for each continuation
-    # line.
-    my(@lines, $line, $firstline);
-    @lines = split(/\n/, $newvalue);
-    $firstline = shift @lines;
-    # We want a list of N records
-    foreach (@lines) {
-      s/^/N/;
-    }
-    # Add 1st line onto the end of the header
-    $message->{metadata}[$oldlocation] .= "$sep$firstline";
-    # Insert any continuation lines into the metadata just after the 1st line
-    splice @{$message->{metadata}}, $oldlocation+1, 0, @lines;
+      my(@lines, $line, $firstline);
+      @lines = split(/\n/, $newvalue);
+      $firstline = shift @lines;
+      foreach (@lines) {
+          s/^/H/;
+      }
+      $message->{metadata}[$oldlocation] .= "$sep$firstline";
+      splice @{$message->{metadata}}, $oldlocation+1,0, @lines;
   }
 
-  # Insert text at the start of a header if it exists.
   sub PrependHeader {
-    my($this, $message, $key, $newvalue, $sep) = @_;
+      my($this, $message, $key, $newvalue, $sep) = @_;
 
-    my($linenum, $oldlocation, $totallines);
+      my($linenum, $oldlocation, $totallines);
 
-    # Try to find the old header
-    $oldlocation = -1;
-    $totallines = @{$message->{metadata}};
+      # Try to find the old header
+      $oldlocation = -1;
+      $totallines = @{$message->{metadata}};
 
-    # Find the start of the header
-    for($linenum=0; $linenum<$totallines; $linenum++) {
-      last if $message->{metadata}[$linenum] =~ /^M/;
-    }
-    for($linenum++; $linenum<$totallines; $linenum++) {
-      next unless $message->{metadata}[$linenum] =~ /^N$key/i;
-      $oldlocation = $linenum;
-      last;
-    }
+      # Find the start of the header
+      for($linenum=0; $linenum<$totallines; $linenum++) {
+          last if $message->{metadata}[$linenum] =~ /^H/;
+      }
 
-    # Didn't find it?
-    if ($oldlocation<0) {
-      $this->AddHeader($message, $key, $newvalue);
-      return;
-    }
+      for($linenum++; $linenum<$totallines; $linenum++) {
+          next unless $message->{metadata}[$linenum] =~ /^H$key/i;
+          $oldlocation = $linenum;
+          last;
+      }
 
-    $message->{metadata}[$oldlocation] =~ s/^N$key\s*/N$key $newvalue$sep/i;
+      # Didn't find it?
+      if ($oldlocation<0) {
+         $this->AddHeader($message, $key, $newvalue);
+         return;
+       }
+
+       $message->{metadata}[$oldlocation] =~ s/^H$key\s*/H$key $newvalue$sep/i;
   }
 
   sub TextStartsHeader {
-    my($this, $message, $key, $text) = @_;
+      my($this, $message, $key, $text) = @_;
 
-    my($linenum, $oldlocation, $totallines);
+      my($linenum, $oldlocation, $totallines);
 
-    # Try to find the old header
-    $oldlocation = -1;
-    $totallines = @{$message->{metadata}};
+      # Try to find the old header
+      $oldlocation = -1;
+      $totallines = @{$message->{metadata}};
 
-    # Find the start of the header
-    for($linenum=0; $linenum<$totallines; $linenum++) {
-      last if $message->{metadata}[$linenum] =~ /^M/;
-    }
-    for($linenum++; $linenum<$totallines; $linenum++) {
-      next unless $message->{metadata}[$linenum] =~ /^N$key/i;
-      $oldlocation = $linenum;
-      last;
-    }
+      for($linenum=0; $linenum<$totallines; $linenum++) {
+          last if $message->{metadata}[$linenum] =~ /^H/;
+      }
 
-    # Didn't find it?
-    return 0 if $oldlocation<0;
+      for($linenum++; $linenum<$totallines; $linenum++) {
+        next unless $message->{metadata}[$linenum] =~ /^H$key/i;
+        $oldlocation = $linenum;
+        last;
+      }
 
-    return 1 if $message->{metadata}[$oldlocation] =~
-                                   /^N$key\s+\Q$text\E/i;
-    return 0;
+      # Didn't find it?
+      return 0 if $oldlocation<0;
+
+      return 1 if $message->{metadata}[$oldlocation] =~
+                                   /^H$key\s+\Q$text\E/i;
+      return 0;
   }
 
-  # BUG BUG BUG This contains a problem where it will not
-  # find the text on the end of a multi-line header. Need to
-  # flag multi-line headers so change the final regexp.
   sub TextEndsHeader {
-    my($this, $message, $key, $text) = @_;
+      my($this, $message, $key, $text) = @_;
+      my($linenum, $oldlocation, $lastline, $totallines);
 
-    my($linenum, $oldlocation, $lastline, $totallines);
+      # Try to find the old header
+      $oldlocation = -1;
+      $totallines = @{$message->{metadata}};
+      
+      for($linenum=0; $linenum<$totallines; $linenum++) {
+          last if $message->{metadata}[$linenum] =~ /^H/;
+      }
 
-    # Try to find the old header
-    $oldlocation = -1;
-    $totallines = @{$message->{metadata}};
+      for($linenum++; $linenum<$totallines; $linenum++) {
+        next unless $message->{metadata}[$linenum] =~ /^H$key/i;
+        $oldlocation = $linenum;
+        last;
+      }
 
-    # Find the start of the header
-    for($linenum=0; $linenum<$totallines; $linenum++) {
-      last if $message->{metadata}[$linenum] =~ /^M/;
-    }
-    for($linenum++; $linenum<$totallines; $linenum++) {
-      next unless $message->{metadata}[$linenum] =~ /^N$key/i;
-      $oldlocation = $linenum;
-      last;
-    }
+      # Didn't find it?
+      return 0 if $oldlocation<0;
 
-    # Didn't find it?
-    return 0 if $oldlocation<0;
+      # Find the last line of the header
+      $lastline = $oldlocation;
+      do {
+          $lastline++;
+      } while($lastline<$totallines &&
+            $message->{metadata}[$lastline] =~ /^H\s/);
+      $lastline--;
+      $key = '\s' unless $lastline == $oldlocation;
 
-    # Find the last line of the header
-    $lastline = $oldlocation;
-    do {
-      $lastline++;
-    } while($lastline<$totallines &&
-            $message->{metadata}[$lastline] =~ /^N\s/);
-    $lastline--;
-    $key = '\s' unless $lastline == $oldlocation;
-
-    return 1 if $message->{metadata}[$lastline] =~
-                                   /^N$key.+\Q$text\E$/i;
-    return 0;
-  }
-
-
-  # Add recipient R records to the end of the metadata, just before
-  # the terminating E record
-  sub AddRecipients {
-    my $this = shift;
-    my($message, @recips) = @_;
-
-    # Remove all the duplicates @recips
-    my %uniqueto;
-    foreach (@recips) {
-      $uniqueto{$_} = 1;
-    }
-    @recips = keys %uniqueto;
-
-    my $totallines = @{$message->{metadata}};
-
-    foreach (@recips) {
-      s/^/R/;
-    }
-
-    # Changed 2 to 1 in next line for Postfix 2.1
-    splice @{$message->{metadata}}, $totallines-1, 0, @recips;
-    #print STDERR "AddRecipients: " . join(',',@recips) . "\n";
-    #print STDERR "metadata is \"" . join("\n", @{$message->{metadata}}) . "\n";
+      return 1 if $message->{metadata}[$lastline] =~
+                                   /^H$key.+\Q$text\E$/i;
+      return 0;
   }
 
   # Delete the original recipients from the message. We'll add some
@@ -904,153 +829,173 @@ sub new {
       $linenum--; # Study the same line again
     }
   }
-
-  # Send an I down the FIFO to the Postfix queue manager, so that it reads
-  # its incoming queue.
-  # I am passed a hash of queues --> space-separated string of message ids
+  
+  
   sub KickMessage {
-    my($queue2ids, $sendmail2) = @_;
-    my($queue);
+      my($queue2ids, $sendmail2) = @_;
+      my($queue);
+      my($MsgsInQueue);
+      my(@Files);
+      my($queuedir);
+      my($file);
+      my($sendmail);
+      my($queuehandle);
+      my($line);
+      my($recipient);
+      my $recipientfound = 0;
+      my($sender);
+      my $messagesent = 0;
 
-    # Do a kick for every queue that contains some message ids
-    foreach $queue (keys %$queue2ids) {
-      next unless $queue2ids->{$queue};
+      foreach $queue (keys %$queue2ids) {
+          next unless $queue2ids->{$queue};
+          $queuedir  = new DirHandle;
+          unless (chdir $queue) {
+              MailScanner::Log::WarnLog("Cannot cd to dir %s to kick messages, %s",
+                                    $queue, $!);
+          }
 
-      my $pf_dir = $queue;
-      $pf_dir =~ s/[^\/]+$/public/;
-      $pf_dir = $pf_dir.'/qmgr';
+          $queuedir->open('.')
+              or MailScanner::Log::DieLog("Cannot open queue dir %s for kicking messages " .
+                                      "message batch, %s", $queue, $!);
+          while(defined($file = $queuedir->read())) {
+              next if $file eq '.' || $file eq '..';
+              push @Files, "$queue/$file";
+             $MsgsInQueue++;
+          }
+          $queuedir->close;
 
-      if(-S $pf_dir){
-      	# UNIX
-	  	my $fh = IO::Socket::UNIX->new( Type => SOCK_STREAM, Peer => $pf_dir, ) or
-		MailScanner::Log::WarnLog("KickMessage could not write to UNIX > $pf_dir");
-		print $fh "I";
-		close $fh;	
-	  }elsif(-p $pf_dir){
-	  	# FIFO
-		open(my $fh, '>', $pf_dir) or
-		MailScanner::Log::WarnLog("KickMessage could not write to FIFO > $pf_dir");
-		print $fh "I";
-		close $fh;
-	  }else{
-	  	MailScanner::Log::WarnLog("Unable to determine socket type (FIFO/UNIX) > $pf_dir");
-	  }
-    }
-    return 0;
+      }
+
+      $sendmail = MailScanner::Config::Value('sendmail');
+      $queuehandle = new FileHandle();
+
+      foreach $file (@Files) {
+          # Open file
+          MailScanner::Lock::openlock($queuehandle,'+<' . $file, 'w');
+
+          # Correct recipient is the recipient in Received header from milter
+          while(!eof($queuehandle)) {
+              $line = readline $queuehandle;
+              if ($line =~ m/^\s+for / && $recipientfound == 0) {
+                  $line =~ s/^\s+for//;
+                  $line =~ s/^.*\<//;
+                  $line =~ s/\>.*$//;
+                  $recipient = $line;
+                  $recipientfound = 1;
+                  next;
+              } elsif ($line =~ m/^From: / ) {
+                  $line =~ s/^From: //;
+                  $line =~ s/^.*\<//;
+                  $line =~ s/\>$//;
+                  $sender = $line;
+                  last;
+              }
+             
+          }
+
+          # This is dangerous! Just left here for reference
+          # no return code other than 0 is returned
+          # my $ret = system("$sendmail -G -i " . $recipient . " < " . $file);
+          # Success ????, delete message :O
+          # unlink $file;
+          if ($recipientfound) {
+              $messagesent = 0;
+              my $socket = new IO::Socket::INET (
+                  PeerHost => '127.0.0.1',
+                  PeerPort => '25',
+                  Proto => 'tcp',
+              );
+        
+              if(!defined($socket)) {
+                  MailScanner::Log::WarnLog("Cannot connect to Socket on port 25, is Postfix running?");
+                  MailScanner::Lock::unlockclose($queuehandle);
+                  last;
+              }
+              
+              my $server = hostfqdn();
+              if(!defined($server)) {
+                  MailScanner::Log::WarnLog("Cannot determine local fqdn! Unable to kick messages.");
+                  MailScanner::Lock::unlockclose($queuehandle);
+                  last;
+              }
+
+              my $response = '';
+              $socket->recv($response, 1024);
+              if ($response =~ /^220/) {
+
+                  my $req = 'ehlo ' . $server . "\n";
+                  $socket->send($req);
+    
+                  $socket->recv($response, 1024);
+                  if ($response =~ /^250/) {
+                      # ehlo receive success
+                      if ($sender eq '') { $sender = 'unknownsender@localhost'; }
+                      $req = 'MAIL FROM: ' . $sender;
+                      $socket->send($req);
+                    
+                      $socket->recv($response, 1024);
+
+                      if ($response =~ /^250/) {
+                          # From received success
+                          $req = 'RCPT TO: ' . $recipient;
+                          $socket->send($req);
+                          $socket->recv($response, 1024);
+                          if ($response =~ /^250/ ) {
+                              # Rcpt To success
+                              $req='DATA' . "\n";
+                              $socket->send($req);
+                              $socket->recv($response, 1024);
+                              if ($response =~ /^354/ ) {
+                                  # Ready to send data
+                                  seek ($queuehandle, 0, 0);
+    
+                                  while(!eof($queuehandle)) {
+                                      $req = readline $queuehandle;
+                                      $socket->send($req);
+                                  }
+                                  $req = "\r\n.\r\n";
+                                  $socket->send($req);
+    
+                                  $socket->recv($response,1024);
+                                  if ($response =~ /^250/) {
+                                      # Data received
+                                      $req = 'quit\n';
+                                      $socket->send($req);
+                                      $messagesent = 1;
+                                  } 
+                              }   
+                          }
+                      }
+                  }
+              }
+              $socket->close();
+          }
+          if ($messagesent == 0) {
+              MailScanner::Log::WarnLog("Unable to kick message, will retry soon...");
+              MailScanner::Lock::unlockclose($queuehandle);
+              last;
+          } else {
+              # Delivered :D
+              MailScanner::Lock::unlockclose($queuehandle);
+              unlink $file;
+          }
+
+      }
   }
 
-  # Produce a string containing everything that goes before the first
-  # N record of the message, including all the headers and the separator
-  # line.
+  # Unused in MSMail, just return
   sub PreDataString {
-    #my $this = shift;
-    my($message) = @_;
-
-    my($linenum, $result, $type, $data, $to, $preNlen);
-    my $TimestampFound = 0;
-
-    #print STDERR "In PreDataString\n";
-    # Output all the metadata records up until (& including) the M record.
-    $linenum = 0;
-    $result  = '';
-    foreach (@{$message->{metadata}}) {
-      /^(.)(.*)$/;
-      ($type, $data) = ($1, $2);
-      $TimestampFound++ if $type eq 'T'; # Must only ever have 1 timestamp
-      #print STDERR "PreData1 Type $type Data $data\n";
-      last if $type eq 'M';
-      $result .= Record2String($type, $data);
-      # Make the S record appear just after the T record
-      # as that's where Postfix likes to see it.
-      $result .= Record2String('S', $message->{from}) if $type eq 'T';
-      #print STDERR "PreData $type $data\n";
-      $linenum++;
-    }
-    # The recipients are already in the pre-message string.
-    ## Add the recipients
-    ## If there is more than 1 recipient, then place original recips in the
-    ## 'O' list. If only 1 then just put it in an 'R' record.
-    #if (scalar(@{$message->{to}}) > 1 && defined($message->{originalrecips})) {
-    #  # There are several recips and there is an originalrecips list
-    #  my $RecordType;
-    #  foreach $to (@{$message->{to}}) {
-    #    $RecordType = $message->{originalrecips}{"$to"}?'O':'R';
-    #    $result .= Record2String($RecordType, $to);
-    #  }
-    #} else {
-    #  foreach $to (@{$message->{to}}) {
-    #    $result .= Record2String('R', $to);
-    #  }
-    #}
-
-    # Add the M record to mark the start of the headers
-    $result .= Record2String('M', $data);
-    $linenum++;
-
-    # Store the length of th estring so far as we need to return it
-    $preNlen = length($result);
-
-    my $totallines = scalar(@{$message->{metadata}});
-    # Add the headers
-    for ($linenum=$linenum; $linenum<$totallines; $linenum++) {
-      #$_ = $message->{metadata}[$linenum];
-      $message->{metadata}[$linenum] =~ /^(.)(.*)$/;
-      ($type, $data) = ($1, $2);
-      #print STDERR "PreData2 Type $type Data $data\n";
-      last if $type eq 'X';
-      $result .= Record2String($type, $data);
-      #print STDERR "Pre $type $data\n";
-    }
-
-    # Add the header-body separator line if there is a message body
-    #print STDERR "No body flag is " . $message->{nobody} . "\n";
-    $result .= Record2String('N', "") unless $message->{nobody};
-
-    #print STDERR "Result of PreDataString is $result\n";
-    # Return the string and the length of the data before any N records
-    return ($result, $preNlen, $TimestampFound);
+      return;
   }
 
+  # Unused in MSMail, just return
   sub PostDataString {
-    #my $this = shift;
-    my($message) = @_;
-
-    my($result, $type, $data);
-    my($record, $recordnum);
-    my $TimestampFound = 0;
-    $result = Record2String('X', "");
-
-    $recordnum = @{$message->{metadata}} - 1;
-    $recordnum-- while($message->{metadata}[$recordnum] !~ /^X/);
-    for($recordnum++; $recordnum<@{$message->{metadata}}; $recordnum++) {
-      $record = $message->{metadata}[$recordnum];
-      $record =~ /^(.)(.*)$/;
-      ($type, $data) = ($1, $2);
-      $result .= Record2String($type, $data);
-      $TimestampFound++ if $type eq 'T';
-      #print STDERR "Post $type $data\n";
-    }
-
-    return($result, $TimestampFound);
+      return;
   }
 
-
+  # Unused in MSMail, just return
   sub Record2String {
-    my($rectype, $recdata) = @_;
-
-    return "" if $rectype eq ""; # Catch empty records
-
-    my($result, $len_byte, $len_rest);
-    $result = "";
-    $result .= $rectype;
-
-    $len_rest = length($recdata);
-    do {
-        $len_byte = $len_rest & 0x7F;
-        $len_byte |= 0x80 if $len_rest >>= 7;
-        $result .= pack 'C', $len_byte;
-    } while ($len_rest != 0);
-    $result .= $recdata;
+      return;
   }
 
 

@@ -240,40 +240,15 @@ sub LinkData {
   return;
 }
 
-
-# Write the temporary header data file, before it is made "live" by
-# renaming it.
-# Passed the parent message object we are working on, and the outqueue dir.
-# There is only one message, so this function have to write "both"
-# REVISO LEOH
+# Build a plain message file
+# Uses postfix recommended methods to requeue message
 sub WriteHeader {
   my $this = shift;
   my($message, $Outq) = @_;
 
-  my($tfile, $Tf, $predata, $HeaderStartPos, $TimestampInPre);
+  my($tfile, $Tf);
 
-  #print STDERR "Writing header for message " . $message->{id} . "\n";
   $tfile = $Outq . '/' . $this->{tname};
-  #$file  .= '/' . $this->{tname};
-  #print STDERR "Writing header to temp file $tfile\n";
-
-  ($predata, $HeaderStartPos, $TimestampInPre)
-    = MailScanner::Sendmail::PreDataString($message);
-
-  # If we found more than 1 timestamp in the pre-data string, then
-  # ditch this message and leave it back in the incoming queue
-  #print STDERR "Predata is \"$predata\"\n";
-  #print STDERR "HeaderStartPos is \"$HeaderStartPos\"\n";
-  #print STDERR "TimestampInPre is \"$TimestampInPre\"\n";
-  if ($TimestampInPre != 1) {
-    # Quietly drop the data structures of this message.
-    MailScanner::Log::WarnLog("Message %s is currently invalid, retrying",
-                              $message->{id});
-    my @toclear = ( $message->{id} );
-    $global::MS->{work}->ClearIds(\@toclear); # Delete attachments
-    $message->DropFromBatch() if $message;
-    return;
-  }
 
   umask 0077; # Add this to try to stop 0666 qf files
   $Tf = new FileHandle;
@@ -281,188 +256,80 @@ sub WriteHeader {
     or MailScanner::Log::DieLog("Cannot create + lock clean tempfile %s, %s",
                                 $tfile, $!);
 
-  #print STDERR "Writing predata \"$predata\"\n";
-  #print STDERR "Length of predata is " . length($predata) . "\n";
-  #print STDERR "Before writing predata we are at " . $Tf->tell . "\n";
-  $Tf->print($predata);
-  #print STDERR "Predata is \"$predata\"\n";
-  #print STDERR "After writing predata, file is at " . $Tf->tell() . "\n";
-
   # Flush the filehandle to save duplicate writes in some Perls
   $Tf->flush();
-
-  #print STDERR "In WriteHeader, header starts at $HeaderStartPos\n";
-
+  
+  # We have the complete headers in memory, let use that instead
+  # This allows headers to be modified in memory and written back out
+  
+  # Headers
+  my $line;
+  foreach $line (@{$message->{metadata}}) {
+       if ($line =~ /^H/) {
+          $line =~ s/^H//;
+          $Tf->print($line . "\n");
+       }
+  }
   if ($this->{body}[0] eq "ORIGINAL") {
-    #
-    # Create a body instance with the already open filehandle
-    #
-    my $b= Body->new( $this->{inhdhandle} );
+    $Tf->print("\n");
+    my $b = Body->new( $this->{inhdhandle} );
     if ($b) {
       $b->Start();
-      my $line;
-      #print STDERR "originalBody\n";
       while(defined($line = $b->Next())) {
-        #print STDERR "Original: \"$line\"\n";
-        $Tf->print(MailScanner::Sendmail::Record2String('N', $line));
-        #print STDERR "BODY:  $line\n";
+          $Tf->print($line . "\n");
       }
       $b->Done();
     }
-    $Tf->flush();
-  } elsif ($this->{body}[0] eq "MIME" ) {
-    my ($type, $id, $entity, $outq)= @{$this->{body}};
-    # This needs re-writing, as we need to massage every line
-
-    # Create a pipe to squirt the message body through
-    my $pipe = new IO::Pipe;
-    my $pid;
-
-    if (not defined $pipe or not defined ($pid = fork)) {
-      MailScanner::Log::WarnLog("Pipe creation failed in WriteHeader, %s", $!);
-    } elsif ($pid) { # Parent
-      $Tf->flush(); # JKF 20050317
-      $pipe->reader();
-      # Read the pipe a line at a time and write an N record for each line.
-      while(<$pipe>) {
-        chomp;
-        $Tf->print(MailScanner::Sendmail::Record2String('N', $_));
-        #print STDERR "Body: $_\n";
-      }
-      # We have to tell the caller what the child's pid is in order to
-      # reap it. Although IO::Pipe does this for us when it is told to
-      # fork and exec, it unfortunately doesn't have a neat hook for us
-      # to tell it the pid when we do the fork. Bah.
-      $pipe->close();
-      $Tf->flush(); # JKF 20050307
-      waitpid $pid, 0;
-    } else { # Child
-      $Tf->flush(); # JKF 20050317
-      $pipe->writer();
-      $entity->print_body($pipe)
-        or MailScanner::Log::WarnLog("WriteMIMEBody to %s possibly failed, %s",
-                                     $tfile, $!);
-      $pipe->close();
-      #$Tf->flush(); # JKF 20050307
-      exit;
-    }
-  }
-  my($PostStartPos, $HeaderLength, $PostData, $TimestampInPost);
-  $PostStartPos = tell $Tf;
-  #print STDERR "\n\nPost data starts at $PostStartPos\n";
-
-  ($PostData, $TimestampInPost)
-    = MailScanner::Sendmail::PostDataString($message);
-  $Tf->print($PostData);
-  #print STDERR "TimestampInPost = \"$TimestampInPost\"\n";
-  #print STDERR "PostDataString = \"$PostData\"\n";
   $Tf->flush();
+  } elsif ($this->{body}[0] eq "MIME") {
+      my ($type, $id, $entity, $outq)= @{$this->{body}};
+      # This needs re-writing, as we need to massage every line
 
-  # If we found any timestamp in the post-data string, and we had one in
-  # the pre-data string, then ditch this message and leave it back in the
-  # incoming queue.
-  if ($TimestampInPre && $TimestampInPost) {
-    #print STDERR "We had trouble!\n";
-    # Quietly drop the data structures of this message.
-    $message->{deleted} = 1;
-    $message->{gonefromdisk} = 1; # Don't try to delete the original
-    #20090421 $message->{abandoned} = 1; # Retry this message as it was ditched
-    unlink $tfile; # Delete the new file from the queue
-    MailScanner::Lock::unlockclose($Tf);
-    return;
-  }
+      # Create a pipe to squirt the message body through
+      my $pipe = new IO::Pipe;
+      my $pid;
 
-  # Now over-write the length records in the 1st record and in the M record
-  seek $Tf, 2, 0;
+      if (not defined $pipe or not defined ($pid = fork)) {
+          MailScanner::Log::WarnLog("Pipe creation failed in WriteHeader, %s", $!);
+      } elsif ($pid) { # Parent
+          $Tf->flush(); # JKF 20050317
+          $pipe->reader();
+          # Read the pipe a line at a time and write an N record for each line.
+          while(<$pipe>) {
+              chomp;
+              $Tf->print($_ . "\n");
+          }
+          # We have to tell the caller what the child's pid is in order to
+          # reap it. Although IO::Pipe does this for us when it is told to
+          # fork and exec, it unfortunately doesn't have a neat hook for us
+          # to tell it the pid when we do the fork. Bah.
+          $pipe->close();
+          $Tf->flush(); # JKF 20050307
+          waitpid $pid, 0;
+       } else { # Child
+          $Tf->flush(); # JKF 20050317
+          $pipe->writer();
+          $entity->print_body($pipe)
+             or MailScanner::Log::WarnLog("WriteMIMEBody to %s possibly failed, %s",
+                                     $tfile, $!);
+          $pipe->close();
+          #$Tf->flush(); # JKF 20050307
+          exit;
+       }
+   }
 
-  #print STDERR "\n\nPostStartPos = \"$PostStartPos\"\n\n";
-  #print STDERR "\n\nHeaderStartPos = \"$HeaderStartPos\"\n\n";
-  $HeaderLength = ($PostStartPos-$HeaderStartPos);
-
-  #print STDERR "\nC record contains headerlength " . $HeaderLength .
-  #             " and headerstartpos " . $HeaderStartPos . "\n";
-
-  # Count the number of recipients in the metadata now
-  my ($recipcounter, $record);
-  $recipcounter = 0;
-  foreach $record (@{$message->{metadata}}) {
-      $record =~ /^(.)(.*)$/;
-      $recipcounter++ if $1 =~ /R/;
-  }
-
-
-  #print STDERR "Writing Data length = " . $PostStartPos-$HeaderStartPos . " Header start = $HeaderStartPos Recip Counter = $recipcounter\n";
-  printf $Tf "%15ld %15ld %15ld", $HeaderLength, $HeaderStartPos, $recipcounter;
-  printf $Tf " %15ld", $message->{PostfixQmgrOpts}
-    if $message->{PostfixQmgrOpts} ne "";
-  seek $Tf, 0, 0;
-  #print STDERR "Seeked to start of file\n";
-  # Find the M record
-  my($MPos, $data);
-  $MPos = 0;
-  $data = MailScanner::Sendmail::ReadRecord($Tf);
-  while($data ne '') {
-    $MPos = tell $Tf;
-    $data = MailScanner::Sendmail::ReadRecord($Tf);
-  }
-  unless ($MailScanner::Postfix::DataStructure > 0) {
-    seek $Tf, $MPos+2, 0;
-    printf $Tf "%15ld", $PostStartPos;
-  }
   MailScanner::Lock::unlockclose($Tf);
   undef $Tf; # Try to ensure Tf is completely closed, flushed, everything
 
-  my($hddirbase, $hddir1, $hddir2, $hdoutfile, $now);
-  # Postfix wants the message file to have perms 0700 for some reason
-  $tfile =~ /^(.*)$/;
-  $tfile = $1;
-  chmod 0700, "$tfile"; # TAINT
-  $now = time;
-  if ($MailScanner::SMDiskStore::HashDirDepth == 2) {
-    ($hddirbase, $hddir1, $hddir2, $hdoutfile) = 
+  my $hdoutfile;
+  my $hddirbase; 
+  ($hddirbase, $hdoutfile) =
       MailScanner::Sendmail::HDOutFileName($tfile);
-    #print STDERR "tfile = $tfile and hdoutfile = $hdoutfile\n";
-    mkdir "$hddirbase/$hddir1", 0755;
-    mkdir "$hddirbase/$hddir1/$hddir2", 0755;
-    chmod 0755, "$hddirbase/$hddir1", "$hddirbase/$hddir1/$hddir2";
-    # Update all the datestamps so that Postfix qmgr will see them
-    utime $now, $now, "$hddirbase/$hddir1", "$hddirbase/$hddir1/$hddir2",
-          "$tfile";
-    rename "$tfile", "$hddirbase/$hddir1/$hddir2/$hdoutfile"
+  rename "$tfile", "$hddirbase/$hdoutfile"
       or MailScanner::Log::DieLog("Cannot rename clean %s to %s, %s",
                                   $tfile, $hdoutfile, $!);
-    MailScanner::Log::InfoLog("Requeue: %s to %s", $message->{id},$hdoutfile);
-  } elsif ($MailScanner::SMDiskStore::HashDirDepth == 1) {
-    ($hddirbase, $hddir1, $hdoutfile) = 
-      MailScanner::Sendmail::HDOutFileName($tfile);
-    #print STDERR "tfile = $tfile and hdoutfile = $hdoutfile\n";
-    mkdir "$hddirbase/$hddir1", 0755;
-    chmod 0755, "$hddirbase/$hddir1";
-    # Update all the datestamps so that Postfix qmgr will see them
-    utime $now, $now, "$hddirbase/$hddir1", "$tfile";
-    rename "$tfile", "$hddirbase/$hddir1/$hdoutfile"
-      or MailScanner::Log::DieLog("Cannot rename clean %s to %s, %s",
-                                  $tfile, $hdoutfile, $!);
-    MailScanner::Log::InfoLog("Requeue: %s to %s", $message->{id},$hdoutfile);
-  } elsif ($MailScanner::SMDiskStore::HashDirDepth == 0) {
-    ($hddirbase, $hdoutfile) = 
-      MailScanner::Sendmail::HDOutFileName($tfile);
-    #print STDERR "tfile = $tfile and hdoutfile = $hdoutfile\n";
-    # Update all the datestamps so that Postfix qmgr will see them
-    $tfile =~ /^(.*)$/;
-    $tfile = $1;
-    utime $now, $now, "$tfile"; # TAINT
-    $hddirbase =~ /^(.*)$/;
-    $hddirbase = $1;
-    $hdoutfile =~ /^(.*)$/;
-    $hdoutfile = $1;
-    rename "$tfile", "$hddirbase/$hdoutfile" # TAINT
-      or MailScanner::Log::DieLog("Cannot rename clean %s to %s, %s",
-                                  $tfile, $hdoutfile, $!);
-    MailScanner::Log::InfoLog("Requeue: %s to %s", $message->{id},$hdoutfile);
-  }
+  MailScanner::Log::InfoLog("Requeue: %s to %s", $message->{id},$hdoutfile);
 }
-
 
 # Return the size of the message (Header+body)
 #REVISO LEOH
@@ -606,34 +473,7 @@ sub ReadBody {
     $b->Done();
     return;
   }
-
-#****************************************************************
-#    # Was the $max parameter used at all?
-#    if ($max) {
-#      my $size = 0;
-#      $b->Start();
-#      while(defined($line = $b->Next()) && $size<$max) {
-#        push @{$body}, $line . "\n";
-#        $size += length($line)+1;
-#      }
-#      # Continue copying until we hit a blank line, gives SA a complete
-#      # encoded attachment
-#      #while(defined $line) {
-#      #  $line = $b->Next();
-#      #  last if $line =~ /^\s+$/;
-#      #  push @{$body}, $line . "\n" if defined $line;
-#      #}
-#      $b->Done();
-#    } else {
-#      # No $max passed, so do as before
-#      $b->Start();
-#      while(defined($line = $b->Next())) {
-#        push @{$body}, $line . "\n";
-#      }
-#      $b->Done();
-#    }
 }
-
 
 # Write the message body to a file in the outgoing queue.
 # Passed the message id, the root entity of the MIME structure
