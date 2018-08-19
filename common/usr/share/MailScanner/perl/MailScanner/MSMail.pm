@@ -434,16 +434,16 @@ sub new {
           if ($recdata =~ m/^From: /i ) {
             # Sender address
             $recdata =~ s/^From: //;
-            $recdata =~ s/^.*\<//;
-            $recdata =~ s/\>$//;
+            $recdata =~ s/^*\<//;
+            $recdata =~ s/\>*$//;
             $message->{from} = lc($recdata);
             $FROMFound = 1;
             next;
           } elsif ($recdata =~ m/^\s+for / && $ORIGFound == 0 ) {
             # Recipient address
             $recdata =~ s/^\s+for//;
-            $recdata =~ s/^.*\<//;
-            $recdata =~ s/\>.*$//;
+            $recdata =~ s/^*\<//;
+            $recdata =~ s/\>*$//;
             # If recipient is empty only add metadata
             push @{$message->{to}}, lc($recdata);
             next unless $recdata ne '';
@@ -458,8 +458,8 @@ sub new {
             # replacement message.
             # Original recipient address
             $recdata =~ s/^To: //;
-            $recdata =~ s/^.*\<//;
-            $recdata =~ s/\>//;
+            $recdata =~ s/^*\<//;
+            $recdata =~ s/\>*$//;
             if ($recdata =~ m/,$/) {
                 # Continuation of To line
                 $recdata =~ s/,$//;
@@ -878,15 +878,15 @@ sub new {
               $line = readline $queuehandle;
               if ($line =~ m/^\s+for / && $recipientfound == 0) {
                   $line =~ s/^\s+for//;
-                  $line =~ s/^.*\<//;
-                  $line =~ s/\>.*$//;
+                  $line =~ s/^*\<//;
+                  $line =~ s/\>*$//;
                   $recipient = $line;
                   $recipientfound = 1;
                   next;
               } elsif ($line =~ m/^From: / ) {
                   $line =~ s/^From: //;
-                  $line =~ s/^.*\<//;
-                  $line =~ s/\>$//;
+                  $line =~ s/^*\<//;
+                  $line =~ s/\>*$//;
                   $sender = $line;
                   last;
               }
