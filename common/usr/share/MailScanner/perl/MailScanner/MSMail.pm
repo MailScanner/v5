@@ -434,16 +434,20 @@ sub new {
           if ($recdata =~ m/^From: /i ) {
             # Sender address
             $recdata =~ s/^From: //;
-            $recdata =~ s/^*\<//;
-            $recdata =~ s/\>*$//;
+            $recdata =~ s/^.*\<//;
+            $recdata =~ s/^\<//;
+            $recdata =~ s/\>.*$//;
+            $recdata =~ s/\>$//;
             $message->{from} = lc($recdata);
             $FROMFound = 1;
             next;
           } elsif ($recdata =~ m/^\s+for / && $ORIGFound == 0 ) {
             # Recipient address
             $recdata =~ s/^\s+for//;
-            $recdata =~ s/^*\<//;
-            $recdata =~ s/\>*$//;
+            $recdata =~ s/^.*\<//;
+            $recdata =~ s/^\<//;
+            $recdata =~ s/\>.*$//;
+            $recdata =~ s/\>$//;
             # If recipient is empty only add metadata
             push @{$message->{to}}, lc($recdata);
             next unless $recdata ne '';
@@ -458,8 +462,10 @@ sub new {
             # replacement message.
             # Original recipient address
             $recdata =~ s/^To: //;
-            $recdata =~ s/^*\<//;
-            $recdata =~ s/\>*$//;
+            $recdata =~ s/^.*\<//;
+            $recdata =~ s/^\<//;
+            $recdata =~ s/\>.*$//;
+            $recdata =~ s/\>$//;
             if ($recdata =~ m/,$/) {
                 # Continuation of To line
                 $recdata =~ s/,$//;
