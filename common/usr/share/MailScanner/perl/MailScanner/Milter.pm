@@ -213,6 +213,14 @@ sub eom_callback
             }
         }
 
+        my $mailfrom='';
+        my $symbols = $ctx->{symbols};
+        # Capture the Mail From address for further processing
+        # We'll create a Header to store the Mail From attribute for MailScanner
+        if (defined($symbols->{'M'}) && defined($symbols->{'M'}->{'{mail_addr}'})) {
+            $mailfrom=$symbols->{'M'}->{'{mail_addr}'};
+        }
+
         # Ok we have sufficient info to start writing to disk
         my $queuehandle = new FileHandle;
         # Cannot access config values inside of this callback, use ms-peek
@@ -226,15 +234,21 @@ sub eom_callback
         my $file = "$incoming/$id";
 
         # Error checking needed here
-        MailScanner::Lock::openlock($queuehandle,'>' . $file, 'w');
-        if (!defined($queuehandle)) {
+        my $ret;
+        $ret = MailScanner::Lock::openlock($queuehandle,'>' . $file, 'w');
+        if ($ret != 1) {
             MailScanner::Log::WarnLog("Milter:  Unable to to open queue file for writing!");
             Sendmail::PMilter::SMFIS_TEMPFAIL;
             return;
         }
-
+        # Inject a Mail From Header
+        my $org = `/usr/sbin/ms-peek %org-name% /etc/MailScanner/MailScanner.conf`;
+        $org =~ s/\n//;
         # Write out to disk
+        # Add new header info
         $queuehandle->print($buffer);
+        # Add Mail From to Header
+        $queuehandle->print('X-' . $org . '-MailScanner-Milter-Mail-From: ' . $mailfrom . "\n");
         while (${$message_ref} =~ /(.*)\n?/g) {
            $queuehandle->print($1 . "\n");
         }

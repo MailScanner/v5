@@ -388,6 +388,8 @@ sub new {
     my $InFrom = 0;
     my(@rcvdiplist);
     my $RecvFound = 0;
+    
+    my $org = MailScanner::Config::DoPercentVars('%org-name%');
 
     $message->{nobody} = 1; #assume no body unless detected
 
@@ -431,48 +433,43 @@ sub new {
                # Postfix compat
                push @{$message->{metadata}}, "R$recdata";
           }
+           # Replaced with Mail From address
+#          if ($InFrom) {
+#              if ($recdata =~ /^\s/ && $FROMFound == 0) {
+#                  # If at first you don't succeed...
+#                  $recdata =~ s/^\s//;
+#                  $recdata =~ s/^.*\<//;
+#                  $recdata =~ s/^\<//;
+#                  $recdata =~ s/\>.*$//;
+#                  $recdata =~ s/\>$//;
+#                  # Some emails appear to have stuff in them...
+#                  # (stuff) or "stuff"
+#                  # there could be others, need a better regex here
+#                  $recdata =~ s/[\(\"].*[\)\"]//;
+#                  $recdata =~ s/\s$//;
+#                  # Did we capture an email (hopefully) or junk? Look for an @
+#                  if ($recdata =~ /@/) {
+#                      $message->{from} = lc($recdata);
+#                      $FROMFound = 1;
+#                  }
+#              } else {
+#                 $InFrom = 0;
+#              }
+#          }  
 
-          if ($InFrom) {
-              if ($recdata =~ /^\s/ && $FROMFound == 0) {
-                  # If at first you don't succeed...
-                  $recdata =~ s/^\s//;
-                  $recdata =~ s/^.*\<//;
-                  $recdata =~ s/^\<//;
-                  $recdata =~ s/\>.*$//;
-                  $recdata =~ s/\>$//;
-                  # Some emails appear to have stuff in them...
-                  # (stuff) or "stuff"
-                  # there could be others, need a better regex here
-                  $recdata =~ s/[\(\"].*[\)\"]//;
-                  $recdata =~ s/\s$//;
-                  # Did we capture an email (hopefully) or junk? Look for an @
-                  if ($recdata =~ /@/) {
-                      $message->{from} = lc($recdata);
-                      $FROMFound = 1;
-                  }
-              } else {
-                 $InFrom = 0;
-              }
-          }  
-
-          if ($recdata =~ m/^From: /i ) {
-            # Sender address
-            # Can be multiple lines here...
-            $InFrom = 1;
-            $recdata =~ s/^From: //;
+          # Use Mail From provided by Milter
+          if ($recdata =~ m/^X-$org-MailScanner-Milter-Mail-From: /) {
+            $recdata =~ s/^.*: //;
             $recdata =~ s/^.*\<//;
             $recdata =~ s/^\<//;
             $recdata =~ s/\>.*$//;
             $recdata =~ s/\>$//;
-            # Some emails appear to have stuff in them...
-            # (stuff) or "stuff"
-            # there could be others, need a better regex here
-            $recdata =~ s/[\(\"].*[\)\"]//;
-            $recdata =~ s/\s$//;
             # Did we capture an email (hopefully) or junk? Look for an @
             if ($recdata =~ /@/) {
                  $message->{from} = lc($recdata);
                  $FROMFound = 1;
+                 # Postfix compat
+                 push @{$message->{metadata}}, "S$recdata";
             }
             next;
           } elsif ($recdata =~ m/^\s+for / && $ORIGFound == 0 ) {
@@ -914,8 +911,8 @@ sub new {
           my $filename = $file;
           my $file = $queuedirname . '/' . $file;
           # Open file
-          MailScanner::Lock::openlock($queuehandle,'+<' . $file, 'w');
-          if (!defined($queuehandle)) {
+          my $ret = MailScanner::Lock::openlock($queuehandle,'+<' . $file, 'w');
+          if ($ret != 1) {
               MailScanner::Log::WarnLog("Cannot open $file for relaying, will try again later");
               next;
           }
@@ -1069,8 +1066,8 @@ sub new {
                  my $inqueuedir = MailScanner::Config::Value('inqueuedir');
                  my $test = @{$inqueuedir}[0] . '/' . $filename;
                  my $queuehandle2 = new FileHandle;
-                 MailScanner::Lock::openlock($queuehandle2,'>' . $test, 'w');
-                 if (!defined($queuehandle2)) {
+                 my $ret = MailScanner::Lock::openlock($queuehandle2,'>' . $test, 'w');
+                 if ($ret != 1) {
                      MailScanner::Log::WarnLog("Unable to requeue message rejected by relay, will try again later");
                      MailScanner::Lock::unlockclose($queuehandle);
                  } else {
