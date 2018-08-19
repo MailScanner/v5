@@ -884,15 +884,19 @@ sub new {
               $line = readline $queuehandle;
               if ($line =~ m/^\s+for / && $recipientfound == 0) {
                   $line =~ s/^\s+for//;
-                  $line =~ s/^*\<//;
-                  $line =~ s/\>*$//;
+                  $line =~ s/^.*\<//;
+                  $line =~ s/^\<//;
+                  $line =~ s/\>.*$//;
+                  $line =~ s/\>$//;
                   $recipient = $line;
                   $recipientfound = 1;
                   next;
               } elsif ($line =~ m/^From: / ) {
                   $line =~ s/^From: //;
-                  $line =~ s/^*\<//;
-                  $line =~ s/\>*$//;
+                  $line =~ s/^.*\<//;
+                  $line =~ s/^\<//;
+                  $line =~ s/\>.*$//;
+                  $line =~ s/\>$//;
                   $sender = $line;
                   last;
               }
