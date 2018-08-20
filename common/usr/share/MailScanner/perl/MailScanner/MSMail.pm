@@ -434,28 +434,28 @@ sub new {
                push @{$message->{metadata}}, "R$recdata";
           }
            # Replaced with Mail From address
-#          if ($InFrom) {
-#              if ($recdata =~ /^\s/ && $FROMFound == 0) {
-#                  # If at first you don't succeed...
-#                  $recdata =~ s/^\s//;
-#                  $recdata =~ s/^.*\<//;
-#                  $recdata =~ s/^\<//;
-#                  $recdata =~ s/\>.*$//;
-#                  $recdata =~ s/\>$//;
-#                  # Some emails appear to have stuff in them...
-#                  # (stuff) or "stuff"
-#                  # there could be others, need a better regex here
-#                  $recdata =~ s/[\(\"].*[\)\"]//;
-#                  $recdata =~ s/\s$//;
-#                  # Did we capture an email (hopefully) or junk? Look for an @
-#                  if ($recdata =~ /@/) {
-#                      $message->{from} = lc($recdata);
-#                      $FROMFound = 1;
-#                  }
-#              } else {
-#                 $InFrom = 0;
-#              }
-#          }  
+          if ($InFrom) {
+              if ($recdata =~ /^\s/ && $FROMFound == 0) {
+                  # If at first you don't succeed...
+                  $recdata =~ s/^\s//;
+                  $recdata =~ s/^.*\<//;
+                  $recdata =~ s/^\<//;
+                  $recdata =~ s/\>.*$//;
+                  $recdata =~ s/\>$//;
+                  # Some emails appear to have stuff in them...
+                  # (stuff) or "stuff"
+                  # there could be others, need a better regex here
+                  $recdata =~ s/[\(\"].*[\)\"]//;
+                  $recdata =~ s/\s$//;
+                  # Did we capture an email (hopefully) or junk? Look for an @
+                  if ($recdata =~ /@/) {
+                      $message->{from} = lc($recdata);
+                      $FROMFound = 1;
+                  }
+              } else {
+                 $InFrom = 0;
+              }
+          }  
 
           # Use Mail From provided by Milter
           if ($recdata =~ m/^X-$org-MailScanner-Milter-Mail-From: /) {
@@ -472,6 +472,26 @@ sub new {
                  push @{$message->{metadata}}, "S$recdata";
             }
             next;
+          } elsif ($recdata =~ /^From: / && $FROMFound == 0) {
+              # Fall back to From is Mail From not found...
+              $InFrom = 1;
+              $recdata =~ s/^From: //;
+              $recdata =~ s/^\s//;
+              $recdata =~ s/^.*\<//;
+              $recdata =~ s/^\<//;
+              $recdata =~ s/\>.*$//;
+              $recdata =~ s/\>$//;
+              # Some emails appear to have stuff in them...
+              # (stuff) or "stuff"
+              # there could be others, need a better regex here
+              $recdata =~ s/[\(\"].*[\)\"]//;
+              $recdata =~ s/\s$//;
+              # Did we capture an email (hopefully) or junk? Look for an @
+              if ($recdata =~ /@/) {
+                  $message->{from} = lc($recdata);
+                  $FROMFound = 1;
+              }
+              next;
           } elsif ($recdata =~ m/^\s+for / && $ORIGFound == 0 ) {
             # Recipient address
             $recdata =~ s/^\s+for//;

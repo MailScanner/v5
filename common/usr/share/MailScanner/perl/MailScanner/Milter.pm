@@ -245,10 +245,10 @@ sub eom_callback
         my $org = `/usr/sbin/ms-peek %org-name% /etc/MailScanner/MailScanner.conf`;
         $org =~ s/\n//;
         # Write out to disk
-        # Add new header info
-        $queuehandle->print($buffer);
         # Add Mail From to Header
         $queuehandle->print('X-' . $org . '-MailScanner-Milter-Mail-From: ' . $mailfrom . "\n");
+        # Add header info up to this point
+        $queuehandle->print($buffer);
         while (${$message_ref} =~ /(.*)\n?/g) {
            $queuehandle->print($1 . "\n");
         }
