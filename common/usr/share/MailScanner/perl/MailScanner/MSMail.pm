@@ -1052,16 +1052,18 @@ sub new {
     
                                   while(!eof($queuehandle)) {
                                       $req = readline $queuehandle;
+                                      # rfc 5321, section 4.5.2
+                                      # Handle dots in DATA \./ :D
+                                      if ($req =~ /^\./) {
+                                          $req = '.' . $req;
+                                      }
                                       $socket->send($req);
                                   }
                                   $req = "\r\n.\r\n";
                                   $socket->send($req);
     
-                                  $socket->recv($response,1024);
-                                  if ($response =~ /^250/) {
-                                      # Data received
-                                      $req = 'quit' . "\n";
-                                      $socket->send($req);
+                                  $socket->recv($response, 1024);
+                                  if ($response =~ /^250/ && !($response =~ /Error/)) {
                                       $messagesent = 1;
                                   } 
                               }   
@@ -1093,6 +1095,8 @@ sub new {
                  } else {
                      my $orgname = MailScanner::Config::DoPercentVars('%org-name%');
                      $response =~ s/\r\n.*$//;
+                     $response =~ s/\n.*$//;
+                     $response =~ s/\n//;
                      $queuehandle2->print('X-'. $orgname . '-MailScanner-Relay-Reject: ' . $response . "\n");
                      while(!eof($queuehandle)) {
                          $line = readline $queuehandle;
