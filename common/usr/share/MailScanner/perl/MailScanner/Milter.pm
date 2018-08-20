@@ -246,7 +246,9 @@ sub eom_callback
         $org =~ s/\n//;
         # Write out to disk
         # Add Mail From to Header
-        $queuehandle->print('X-' . $org . '-MailScanner-Milter-Mail-From: ' . $mailfrom . "\n");
+        if ($mailfrom ne '') {
+            $queuehandle->print('X-' . $org . '-MailScanner-Milter-Mail-From: ' . $mailfrom . "\n");
+        }
         # Add header info up to this point
         $queuehandle->print($buffer);
         while (${$message_ref} =~ /(.*)\n?/g) {
@@ -266,8 +268,14 @@ my $pid = fork;
 
 if (!defined($pid)) {
     MailScanner::Log::WarnLog("MailScanner: Milter:  Unable to fork!");
+    exit 1;
 }
 if ($pid == 0) {
+   $0 = "MSMilter Daemon";
+   #$PidFile = MailScanner::Config::QuickPeek($ConfFile, 'pidfile');
+   my $PidFile = "/var/run/MSMilter.pid";
+   WritePIDFile($$,$PidFile);
+
     my %my_callbacks =
     (
         'connect' => \&connect_callback,
@@ -289,8 +297,26 @@ if ($pid == 0) {
     $milter->setconn($conn);
     $< = $> = getpwnam('postfix');
     $( = $) = getgrnam('mtagroup');
-    $0 = "MailScanner: Milter Process";
     $milter->main(10,100);
+
+    # Should never get here, if we did, it didn't work
+    MailScanner::Log::WarnLog("MailScanner: Milter:  Unable to spawn milter!");
+    exit 1
+}
+# Successful if we reach this point
+exit 0;
+
+#
+# Create and write a PID file for a given process id
+#
+sub WritePIDFile {
+  my($process,$PidFile) = @_;
+
+  my $pidfh = new FileHandle;
+  $pidfh->open(">$PidFile")
+    or MailScanner::Log::WarnLog("Cannot write pid file %s, %s", $PidFile, $!);
+  print $pidfh "$process\n";
+  $pidfh->close();
 }
 
 1;

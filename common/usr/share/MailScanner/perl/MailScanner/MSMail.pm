@@ -903,6 +903,7 @@ sub new {
       my $messagesent = 0;
       my $InFrom = 0;
       my $response = '';
+      my $orgname = MailScanner::Config::DoPercentVars('%org-name%');
 
       foreach $queue (keys %$queue2ids) {
           next unless $queue2ids->{$queue};
@@ -950,6 +951,12 @@ sub new {
                   $recipient = $line;
                   $recipientfound = 1;
                   next;
+              # Use envelope sender
+              } elsif ($line =~ /^X-$orgname-MailScanner-Milter-From: /) {
+                  $line =~ s/^X-$orgname-MailScanner-Milter-From: //;
+                  $sender = $line;
+                  last;
+              # Fallback to From: header
               } elsif ($line =~ m/^From: / ) {
                   # Can be multiple lines...
                   $InFrom = 1;
@@ -1093,7 +1100,6 @@ sub new {
                      MailScanner::Log::WarnLog("Unable to requeue message rejected by relay, will try again later");
                      MailScanner::Lock::unlockclose($queuehandle);
                  } else {
-                     my $orgname = MailScanner::Config::DoPercentVars('%org-name%');
                      $response =~ s/\r\n.*$//;
                      $response =~ s/\n.*$//;
                      $response =~ s/\n//;

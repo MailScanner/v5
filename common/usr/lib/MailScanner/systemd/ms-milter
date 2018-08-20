@@ -1,0 +1,22 @@
+[Unit]
+Description=LSB: MSMilter daemon
+Documentation=man:systemd-sysv-generator(8)
+SourcePath=/usr/lib/MailScanner/init/msmilter-init
+After=network-online.target remote-fs.target rsyslog.service
+Wants=network-online.target
+
+[Service]
+Type=forking
+Restart=no
+TimeoutSec=1min
+IgnoreSIGPIPE=no
+KillMode=process
+GuessMainPID=no
+RemainAfterExit=yes
+ExecStart=/usr/lib/MailScanner/init/msmilter-init start
+ExecStop=/usr/lib/MailScanner/init/mssmilter-init stop
+EnvironmentFile=-/etc/MailScanner/defaults
+PIDFile=/var/run/MSMilter.pid
+
+[Install]
+WantedBy=multi-user.target
