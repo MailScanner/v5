@@ -388,6 +388,7 @@ sub new {
     my $InFrom = 0;
     my(@rcvdiplist);
     my $RecvFound = 0;
+    my $UnfoldBuffer = '';
     
     my $org = MailScanner::Config::DoPercentVars('%org-name%');
 
@@ -420,18 +421,28 @@ sub new {
           }
 
           if ($InTo) {
-               $recdata =~ s/^\s\<//;
-               $recdata =~ s/\>//;
-               if ($recdata =~ m/,$/) {
-                  # More recips
-                  $InTo = 1;
-               } else {
-                  $InTo = 0;
-               }
-               $recdata = lc($recdata);
-               push @{$message->{to}}, lc($recdata) unless $ORIGFound;
-               # Postfix compat
-               push @{$message->{metadata}}, "R$recdata";
+            if ($recdata =~ /^\s/) {
+                # In a continuation line
+                $recdata =~ s/^\s//;
+                $UnfoldBuffer .= ' ' . $recdata;
+            } else {
+                # End of To field
+                my $to = $UnfoldBuffer;
+                $to =~ s/^To: //;
+                foreach $recdata (split /,/, $to) {
+                    $recdata =~ s/^.*\<//;
+                    $recdata =~ s/^\<//;
+                    $recdata =~ s/\>.*$//;
+                    $recdata =~ s/\>$//;
+                    $recdata = lc($recdata);
+                    push @{$message->{to}}, lc($recdata) unless $ORIGFound;
+                    # Postfix compat
+                    push @{$message->{metadata}}, "R$recdata";
+                    $message->{postfixrecips}{lc("$recdata")} = 1;
+                    $TOFound = 1;
+                }
+                $InTo=0;
+             }
           }
            # Replaced with Mail From address
           if ($InFrom) {
@@ -512,22 +523,9 @@ sub new {
             # but are put back into the 'O' originalrcpts list in the
             # replacement message.
             # Original recipient address
-            $recdata =~ s/^To: //;
-            $recdata =~ s/^.*\<//;
-            $recdata =~ s/^\<//;
-            $recdata =~ s/\>.*$//;
-            $recdata =~ s/\>$//;
-            if ($recdata =~ m/,$/) {
-                # Continuation of To line
-                $recdata =~ s/,$//;
-                $InTo = 1;
-            }
-            $recdata = lc($recdata);
-            push @{$message->{to}}, lc($recdata) unless $ORIGFound;
-            # Postfix compat
-            push @{$message->{metadata}}, "R$recdata";
-            $message->{postfixrecips}{lc("$recdata")} = 1;
-            $TOFound = 1;
+            # RFC 822 unfold address field
+            $UnfoldBuffer = $recdata;
+            $InTo = 1;
             next;
           } elsif ($recdata =~ /^Received:/i) {
              my $rcvdip = '127.0.0.1';
