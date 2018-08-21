@@ -14,7 +14,7 @@ KillMode=process
 GuessMainPID=no
 RemainAfterExit=yes
 ExecStart=/usr/lib/MailScanner/init/msmilter-init start
-ExecStop=/usr/lib/MailScanner/init/mssmilter-init stop
+ExecStop=/usr/lib/MailScanner/init/msmilter-init stop
 EnvironmentFile=-/etc/MailScanner/defaults
 PIDFile=/var/run/MSMilter.pid
 

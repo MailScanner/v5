@@ -87,11 +87,10 @@ do_start()
     # statement below
 
     # starts the daemon
-    $DAEMON
+    $DAEMON $ms_conf
 
     RETVAL="$?"
 
-    # Set lockfile to inform cronjobs about the running daemon
     if [ $RETVAL -eq 0 ]; then
         return 0
     else
@@ -257,6 +256,7 @@ case "$1" in
 
     if [ $STARTRETVAL -eq 0 ]; then
         [ "$VERBOSE" != no ] && logger -i -p mail.notice "$NAME started"
+        sleep 1;
         PID=$(head -n 1 $PIDFILE)
         echo "$NAME started with process id $PID"
     else
