@@ -217,7 +217,7 @@ sub eom_callback
         } else {
              # Null Sender 
              # RFC 1123, 821
-             $mailfrom="<>";
+             $mailfrom='<>';
         }
 
         # Ok we have sufficient info to start writing to disk
@@ -264,9 +264,7 @@ sub eom_callback
         $queuehandle->print($buffer);
 
         # Add Mail From to Header
-        if ($mailfrom ne '') {
-            $queuehandle->print('X-' . $org . '-MailScanner-Milter-Mail-From: ' . $mailfrom . "\n");
-        }
+        $queuehandle->print('X-' . $org . '-MailScanner-Milter-Mail-From: ' . $mailfrom . "\n");
 
         # Write beginning of second received header
         $queuehandle->print($buffer2);
