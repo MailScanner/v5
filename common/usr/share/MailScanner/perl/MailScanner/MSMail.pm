@@ -444,65 +444,28 @@ sub new {
                 $InTo=0;
              }
           }
-           # Replaced with Mail From address
-          if ($InFrom) {
-              if ($recdata =~ /^\s/ && $FROMFound == 0) {
-                  # If at first you don't succeed...
-                  $recdata =~ s/^\s//;
-                  $recdata =~ s/^.*\<//;
-                  $recdata =~ s/^\<//;
-                  $recdata =~ s/\>.*$//;
-                  $recdata =~ s/\>$//;
-                  # Some emails appear to have stuff in them...
-                  # (stuff) or "stuff"
-                  # there could be others, need a better regex here
-                  $recdata =~ s/[\(\"].*[\)\"]//;
-                  $recdata =~ s/\s$//;
-                  # Did we capture an email (hopefully) or junk? Look for an @
-                  if ($recdata =~ /@/) {
-                      $message->{from} = lc($recdata);
-                      $FROMFound = 1;
-                  }
-              } else {
-                 $InFrom = 0;
-              }
-          }  
 
           # Use Mail From provided by Milter
           if ($recdata =~ m/^X-$org-MailScanner-Milter-Mail-From: /) {
             $recdata =~ s/^.*: //;
-            $recdata =~ s/^.*\<//;
-            $recdata =~ s/^\<//;
-            $recdata =~ s/\>.*$//;
-            $recdata =~ s/\>$//;
-            # Did we capture an email (hopefully) or junk? Look for an @
-            if ($recdata =~ /@/) {
-                 $message->{from} = lc($recdata);
-                 $FROMFound = 1;
-                 # Postfix compat
-                 push @{$message->{metadata}}, "S$recdata";
+            if ($recdata =~ /^\<\>$/ ) {
+               # RFC 1123, 821 null reverse path
+               $message->{from} = '';
+               $FROMFound = 1;
+            } else {
+                $recdata =~ s/^.*\<//;
+                $recdata =~ s/^\<//;
+                $recdata =~ s/\>.*$//;
+                $recdata =~ s/\>$//;
+                # Did we capture an email (hopefully) or junk? Look for an @
+                if ($recdata =~ /@/) {
+                     $message->{from} = lc($recdata);
+                     $FROMFound = 1;
+                     # Postfix compat
+                     push @{$message->{metadata}}, "S$recdata";
+                }
             }
             next;
-          } elsif ($recdata =~ /^From: / && $FROMFound == 0) {
-              # Fall back to From is Mail From not found...
-              $InFrom = 1;
-              $recdata =~ s/^From: //;
-              $recdata =~ s/^\s//;
-              $recdata =~ s/^.*\<//;
-              $recdata =~ s/^\<//;
-              $recdata =~ s/\>.*$//;
-              $recdata =~ s/\>$//;
-              # Some emails appear to have stuff in them...
-              # (stuff) or "stuff"
-              # there could be others, need a better regex here
-              $recdata =~ s/[\(\"].*[\)\"]//;
-              $recdata =~ s/\s$//;
-              # Did we capture an email (hopefully) or junk? Look for an @
-              if ($recdata =~ /@/) {
-                  $message->{from} = lc($recdata);
-                  $FROMFound = 1;
-              }
-              next;
           } elsif ($recdata =~ m/^\s+for / && $ORIGFound == 0 ) {
             # Recipient address
             $recdata =~ s/^\s+for//;
@@ -519,10 +482,6 @@ sub new {
             push @{$message->{metadata}}, "O$recdata";
             next;
           } elsif ($recdata =~ m/^To: /i) {
-            # Original recipients are handled by MS as normal recipients,
-            # but are put back into the 'O' originalrcpts list in the
-            # replacement message.
-            # Original recipient address
             # RFC 822 unfold address field
             $UnfoldBuffer = $recdata;
             $InTo = 1;
@@ -950,47 +909,14 @@ sub new {
                   $recipientfound = 1;
                   next;
               # Use envelope sender
-              } elsif ($line =~ /^X-$orgname-MailScanner-Milter-From: /) {
-                  $line =~ s/^X-$orgname-MailScanner-Milter-From: //;
+              } elsif ($line =~ /^X-$orgname-MailScanner-Milter-Mail-From: /) {
+                  $line =~ s/^X-$orgname-MailScanner-Milter-Mail-From: //;
                   $sender = $line;
                   last;
-              # Fallback to From: header
-              } elsif ($line =~ m/^From: / ) {
-                  # Can be multiple lines...
-                  $InFrom = 1;
-                  $line =~ s/^From: //;
-                  $line =~ s/^.*\<//;
-                  $line =~ s/^\<//;
-                  $line =~ s/\>.*$//;
-                  $line =~ s/\>$//;
-                  # Stuff (refactor)
-                  $line =~ s/[\(\"].*[\)\"]//;
-                  $line =~ s/\s//;
-                  if ($line =~ /@/) {
-                      $sender = $line;
-                      last; 
-                  }
-               } elsif ($InFrom) {
-                   if ($line =~ /^\s/) {
-                       $line =~ s/^\s//;
-                       $line =~ s/^.*\<//;
-                       $line =~ s/^\<//;
-                       $line =~ s/\>.*$//;
-                       $line =~ s/\>$//;
-                       # Stuff (refactor)
-                       $line =~ s/[\(\"].*[\)\"]//;
-                       $line =~ s/\s//;
-                       if ($line =~ /@/) {
-                           $sender = $line;
-                           last;
-                       }
-                   } else {
-                       $InFrom = 0;
-                   }
-               } elsif ($line eq '') {
+              } elsif ($line eq '') {
                     # At end of header, bail out
                     last;
-               }
+              }
           }
 
           # This is dangerous! Just left here for reference
@@ -1032,11 +958,6 @@ sub new {
                   $socket->recv($response, 1024);
                   if ($response =~ /^250/) {
                       # ehlo receive success
-                      if ($sender eq '' || !($sender =~ /@.*\./) ) {
-                          # Must have a valid from to relay
-                          # Email is missing @ and fqdn or is empty
-                          $sender = 'unknownsender@localhost.localdomain';
-                      }
                       $req = 'MAIL FROM: ' . $sender . "\n";
                       $socket->send($req);
                       $socket->recv($response, 1024);
