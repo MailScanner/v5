@@ -214,6 +214,11 @@ sub eom_callback
         # We'll create a Header to store the Mail From attribute for MailScanner
         if (defined($symbols->{'M'}) && defined($symbols->{'M'}->{'{mail_addr}'})) {
             $mailfrom=$symbols->{'M'}->{'{mail_addr}'};
+            # Null Sender 
+            # RFC 1123, 821
+            if ($mailfrom eq '') {
+                $mailfrom='<>';
+            }
         } else {
              # Null Sender 
              # RFC 1123, 821
