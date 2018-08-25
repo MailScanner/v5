@@ -108,6 +108,11 @@ sub connect_callback
             $message .= ' [' . $ip . ']';
         }
 
+        # Localhost relaying email?  Accept the message for delivery
+        if ($ip =~ /^127/ || $ip =~ /^::1/) {
+            return Sendmail::PMilter::SMFIS_ACCEPT;
+        }
+        
         ${$message_ref} = $message;
       
         $ctx->setpriv($message_ref);
