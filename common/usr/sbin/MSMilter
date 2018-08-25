@@ -109,7 +109,7 @@ sub connect_callback
         }
 
         # Localhost relaying email?  Accept the message for delivery
-        if ($ip =~ /^127/ || $ip =~ /^::1/) {
+        if ($ip =~ /^127/ || $ip =~ /^::1$/) {
             return Sendmail::PMilter::SMFIS_ACCEPT;
         }
         
