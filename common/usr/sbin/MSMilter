@@ -1,7 +1,7 @@
 #!/usr/bin/perl -U -I /usr/share/MailScanner/perl
 
 # (c) 2018 MailScanner Project <https://www.mailscanner.info>
-#          Version 0.9
+#          Version 1.0
 #
 #     This program is free software; you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by

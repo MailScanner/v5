@@ -74,6 +74,14 @@ if [ ! -d '/var/spool/MailScanner/quarantine' ]; then
 	mkdir -p /var/spool/MailScanner/quarantine
 fi
 
+if [ ! -d '/var/spool/MailScanner/milterin' ]; then
+	mkdir -p /var/spool/MailScanner/milterin
+fi
+
+if [ ! -d '/var/spool/MailScanner/milterout' ]; then
+	mkdir -p /var/spool/MailScanner/milterout
+fi
+
 if [ -d '/var/spool/exim4.in' ]; then
 	install -d -oDebian-exim -gmtagroup -m0750 /var/spool/exim4.in
 	install -d -oDebian-exim -gmtagroup -m0750 /var/spool/exim4.in/db
@@ -89,6 +97,8 @@ fi
 install -d -omail -gmtagroup -m0775 /var/spool/MailScanner/archive
 install -d -omail -gmtagroup -m0775 /var/spool/MailScanner/incoming
 install -d -omail -gmtagroup -m0775 /var/spool/MailScanner/quarantine
+install -d -omail -gmtagroup -m0775 /var/spool/MailScanner/milterin
+install -d -omail -gmtagroup -m0775 /var/spool/MailScanner/milterout
 
 if [ -d '/etc/MailScanner/custom' -o -L '/etc/MailScanner/custom' ]; then
 	rm -f /etc/MailScanner/custom
@@ -142,18 +152,36 @@ if [ -f '/etc/init.d/MailScanner' ]; then
 	rm -f /etc/init.d/MailScanner
 fi
 
+# remove old symlink if present
+if [ -L '/etc/init.d/msmilter' ]; then
+	rm -f /etc/init.d/msmilter
+fi
+
+# remove old file if present
+if [ -f '/etc/init.d/msmilter' ]; then
+	rm -f /etc/init.d/msmilter
+fi
+
 # remove old systemd file if present
 if [ -f '/lib/systemd/system/mailscanner.service' ]; then
     rm -f /lib/systemd/system/mailscanner.service
+fi
+
+# remove old systemd file if present
+if [ -f '/lib/systemd/system/msmilter.service' ]; then
+    rm -f /lib/systemd/system/msmilter.service
 fi
 
 # Check for systemd
 if [ -f '/lib/systemd/systemd' -o -f '/usr/lib/systemd/systemd' ]; then
     cp /usr/lib/MailScanner/systemd/ms-systemd /lib/systemd/system/mailscanner.service
     chmod -x /lib/systemd/system/mailscanner.service
+    cp /usr/lib/MailScanner/systemd/ms-milter /lib/systemd/system/msmilter.service
+    chmod -x /lib/systemd/system/msmilter.service
 # add symlink to init script
 elif [ ! -L '/etc/init.d/mailscanner' ]; then
-	ln -s /usr/lib/MailScanner/init/ms-init /etc/init.d/mailscanner
+    ln -s /usr/lib/MailScanner/init/ms-init /etc/init.d/mailscanner
+    ln -s /usr/lib/MailScanner/init/msmilter-init /etc/init.d/msmilter
 fi
 
 # create if missing

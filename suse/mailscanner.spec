@@ -54,7 +54,7 @@ mkdir -p ${RPM_BUILD_ROOT}/etc/{cron.hourly,cron.daily}
 mkdir -p ${RPM_BUILD_ROOT}/usr/share/MailScanner/reports/{hu,de,se,ca,cy+en,pt_br,fr,es,en,cz,it,dk,nl,ro,sk}
 mkdir -p ${RPM_BUILD_ROOT}/usr/share/MailScanner/perl/{MailScanner,custom}
 mkdir -p ${RPM_BUILD_ROOT}/usr/{lib/MailScanner/wrapper,lib/MailScanner/init,lib/MailScanner/systemd}
-mkdir -p ${RPM_BUILD_ROOT}/var/spool/MailScanner/{archive,incoming,quarantine}
+mkdir -p ${RPM_BUILD_ROOT}/var/spool/MailScanner/{archive,incoming,quarantine,milterin,milterout}
 
 ### etc
 install etc/cron.daily/mailscanner ${RPM_BUILD_ROOT}/etc/cron.daily/
@@ -103,6 +103,7 @@ EOF
 ### usr/sbin
 
 install usr/sbin/MailScanner        				${RPM_BUILD_ROOT}/usr/sbin/MailScanner
+install usr/sbin/MSMilter           				${RPM_BUILD_ROOT}/usr/sbin/MSMilter
 install usr/sbin/ms-check      						${RPM_BUILD_ROOT}/usr/sbin/ms-check
 install usr/sbin/ms-clean-quarantine				${RPM_BUILD_ROOT}/usr/sbin/ms-clean-quarantine
 install usr/sbin/ms-create-locks 					${RPM_BUILD_ROOT}/usr/sbin/ms-create-locks
@@ -182,6 +183,8 @@ MCP.pm
 MCPMessage.pm
 Message.pm
 MessageBatch.pm
+MSDiskStore.pm
+MSMail.pm
 PFDiskStore.pm
 Postfix.pm
 Qmail.pm
@@ -219,7 +222,9 @@ EOF
 ### usr/lib/MailScanner
 
 install usr/lib/MailScanner/init/ms-init ${RPM_BUILD_ROOT}/usr/lib/MailScanner/init/
+install usr/lib/MailScanner/init/msmilter-init ${RPM_BUILD_ROOT}/usr/lib/MailScanner/init/
 install usr/lib/MailScanner/systemd/ms-systemd ${RPM_BUILD_ROOT}/usr/lib/MailScanner/systemd/
+install usr/lib/MailScanner/systemd/ms-milter ${RPM_BUILD_ROOT}/usr/lib/MailScanner/systemd/
 
 while read f 
 do
@@ -271,9 +276,26 @@ if [ -f '/etc/init.d/MailScanner' ]; then
 	rm -f /etc/init.d/MailScanner
 fi
 
+# remove old symlink if present
+if [ -L '/etc/init.d/msmilter' ]; then
+	chkconfig --del msmilter >/dev/null 2>&1
+	rm -f /etc/init.d/msmilter
+fi
+
+# remove old file if present
+if [ -f '/etc/init.d/msmilter' ]; then
+	chkconfig --del msmilter >/dev/null 2>&1
+	rm -f /etc/init.d/msmilter
+fi
+
 # remove systemd if present
 if [ -f '/usr/lib/systemd/system/mailscanner.service' ]; then
     rm -f /usr/lib/systemd/system/mailscanner.service
+fi
+
+# remove systemd if present
+if [ -f '/usr/lib/systemd/system/msmilter.service' ]; then
+    rm -f /usr/lib/systemd/system/msmilter.service
 fi
 
 if [ -d '/usr/lib/MailScanner/MailScanner/CustomFunctions' ]; then
@@ -394,6 +416,14 @@ if [ ! -d '/var/spool/MailScanner/quarantine' ]; then
 	mkdir -p /var/spool/MailScanner/quarantine
 fi
 
+if [ ! -d '/var/spool/MailScanner/milterin' ]; then
+	mkdir -p /var/spool/MailScanner/milterin
+fi
+
+if [ ! -d '/var/spool/MailScanner/milterout' ]; then
+	mkdir -p /var/spool/MailScanner/milterout
+fi
+
 if [ -f '/etc/MailScanner/spam.assassin.prefs.conf' ]; then
 	mv -f /etc/MailScanner/spam.assassin.prefs.conf /etc/MailScanner/spamassassin.conf
 fi
@@ -508,6 +538,7 @@ fi
 # Check for systemd
 if [ -f '/lib/systemd/systemd' -o -f '/usr/lib/systemd/systemd' ]; then
     cp /usr/lib/MailScanner/systemd/ms-systemd /usr/lib/systemd/system/mailscanner.service
+    cp /usr/lib/MailScanner/systemd/ms-milter /usr/lib/systemd/system/msmilter.service
 # create init.d symlink
 elif [ -d '/etc/init.d' -a ! -L '/etc/init.d/mailscanner' -a -f '/usr/lib/MailScanner/init/ms-init' ]; then
     ln -s /usr/lib/MailScanner/init/ms-init /etc/init.d/mailscanner
@@ -516,6 +547,13 @@ elif [ -d '/etc/init.d' -a ! -L '/etc/init.d/mailscanner' -a -f '/usr/lib/MailSc
     if [ $? -ne 0 ]; then
         chkconfig --add mailscanner
         chkconfig mailscanner off
+    fi
+    ln -s /usr/lib/MailScanner/init/msmilter-init /etc/init.d/msmilter
+    # Sort out the rc.d directories
+    chkconfig --list msmilter >/dev/null 2>&1
+    if [ $? -ne 0 ]; then
+        chkconfig --add msmilter
+        chkconfig msmilter off
     fi
 fi
 
@@ -537,14 +575,34 @@ echo    --Systemd--
 echo    systemctl enable mailscanner.service
 echo    systemctl start mailscanner.service
 echo
+echo To activate MSMilter \(if in use\) run the following commands:
+echo
+echo    --SysV Init--
+echo    chkconfig msmilter on
+echo    service msmilter start
+echo
+echo    --Systemd--
+echo    systemctl enable msmilter.service
+echo    systemctl start msmilter.service
 echo
 
 %preun
 if [ $1 = 0 ]; then
     # We are being deleted, not upgraded
-    service mailscanner stop >/dev/null 2>&1
-    chkconfig mailscanner off
-    chkconfig --del mailscanner
+    if [ -f '/usr/lib/systemd/systemd' ]; then
+        systemctl stop mailscanner.service >/dev/null 2>&1
+        systemctl disable mailscanner.service
+        rm -f /usr/lib/systemd/system/mailscanner.service
+        systemctl stop msmilter.service >/dev/null 2>&1
+        systemctl disable msmilter.service >/dev/null 2>&1
+    else
+        service mailscanner stop >/dev/null 2>&1
+        chkconfig mailscanner off
+        chkconfig --del mailscanner
+        service msmilter stop >/dev/null 2>&1
+        chkconfig msmilter off
+        chkconfig --del msmilter
+    fi
 fi
 exit 0
 
@@ -566,6 +624,8 @@ exit 0
 %attr(755,root,root) %dir /usr/lib/MailScanner/systemd
 %attr(755,root,root) %dir /var/spool/MailScanner/archive
 %attr(755,root,root) %dir /var/spool/MailScanner/incoming
+%attr(755,root,root) %dir /var/spool/MailScanner/milterin
+%attr(755,root,root) %dir /var/spool/MailScanner/milterout
 #%attr(755,root,root) %dir /var/spool/MailScanner/quarantine
 %attr(755,root,root) %dir /usr/share/MailScanner
 %attr(755,root,root) %dir /usr/share/MailScanner/perl
@@ -574,6 +634,7 @@ exit 0
 %attr(755,root,root) %dir /usr/share/MailScanner/reports
 
 %attr(755,root,root) /usr/sbin/MailScanner
+%attr(755,root,root) /usr/sbin/MSMilter
 %attr(755,root,root) /usr/sbin/ms-check
 %attr(755,root,root) /usr/sbin/ms-clean-quarantine
 %attr(755,root,root) /usr/sbin/ms-create-locks
@@ -591,7 +652,9 @@ exit 0
 %attr(755,root,root) /usr/sbin/ms-upgrade-conf
 
 %attr(755,root,root) /usr/lib/MailScanner/init/ms-init
+%attr(755,root,root) /usr/lib/MailScanner/init/msmilter-init
 %attr(644,root,root) /usr/lib/MailScanner/systemd/ms-systemd
+%attr(644,root,root) /usr/lib/MailScanner/systemd/ms-milter
 
 %attr(755,root,root) /usr/lib/MailScanner/wrapper/avast-wrapper
 %attr(755,root,root) /usr/lib/MailScanner/wrapper/avg-autoupdate
@@ -634,6 +697,8 @@ exit 0
 %attr(644,root,root) /usr/share/MailScanner/perl/MailScanner/MCPMessage.pm
 %attr(644,root,root) /usr/share/MailScanner/perl/MailScanner/Message.pm
 %attr(644,root,root) /usr/share/MailScanner/perl/MailScanner/MessageBatch.pm
+%attr(644,root,root) /usr/share/MailScanner/perl/MailScanner/MSDiskStore.pm
+%attr(644,root,root) /usr/share/MailScanner/perl/MailScanner/MSMail.pm
 %attr(644,root,root) /usr/share/MailScanner/perl/MailScanner/PFDiskStore.pm
 %attr(644,root,root) /usr/share/MailScanner/perl/MailScanner/Postfix.pm
 %attr(644,root,root) /usr/share/MailScanner/perl/MailScanner/Qmail.pm
@@ -1104,6 +1169,9 @@ exit 0
 
 
 %changelog
+* Sat Aug 25 2018 Shawn Iverson <shawniverson@gmail.com>
+- Add Milter support for MailScanner
+
 * Sun Sep 03 2017 Shawn Iverson <shawniverson@gmail.com>
 - Preserve quarantine perms and better init runlevel handling
 

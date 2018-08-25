@@ -714,7 +714,7 @@ ARMOD+=('Pod::Simple');			ARMOD+=('POSIX');				ARMOD+=('Scalar::Util');
 ARMOD+=('Socket'); 				ARMOD+=('Storable'); 	 	 	ARMOD+=('Test::Harness');		
 ARMOD+=('Test::Pod');			ARMOD+=('Test::Simple');		ARMOD+=('Time::HiRes');			
 ARMOD+=('Time::localtime'); 	ARMOD+=('Sys::Hostname::Long');	ARMOD+=('Sys::SigAction');		
-ARMOD+=('Sys::Syslog'); 		ARMOD+=('Env'); 				
+ARMOD+=('Sys::Syslog'); 		ARMOD+=('Env');
 ARMOD+=('Mail::SpamAssassin');
 
 # not required but nice to have
@@ -728,11 +728,11 @@ ARMOD+=('Mail::SPF::Query');	ARMOD+=('Module::Build');		ARMOD+=('Net::CIDR::Lite
 ARMOD+=('Net::DNS');			ARMOD+=('Net::LDAP');			ARMOD+=('Net::DNS::Resolver::Programmable');
 ARMOD+=('NetAddr::IP');			ARMOD+=('Parse::RecDescent');	ARMOD+=('Test::Harness');
 ARMOD+=('Test::Manifest');		ARMOD+=('Text::Balanced');		ARMOD+=('URI');	
-ARMOD+=('version');				ARMOD+=('IO::Compress::Bzip2');
+ARMOD+=('version');				ARMOD+=('IO::Compress::Bzip2'); ARMOD+=('Sendmail::PMilter');
 
-# additional spamassassin plugins				
-ARMOD+=('Mail::SpamAssassin::Plugin::Rule2XSBody');		
-ARMOD+=('Mail::SpamAssassin::Plugin::DCC');				
+# additional spamassassin plugins
+ARMOD+=('Mail::SpamAssassin::Plugin::Rule2XSBody');
+ARMOD+=('Mail::SpamAssassin::Plugin::DCC');
 ARMOD+=('Mail::SpamAssassin::Plugin::Pyzor');
 
 

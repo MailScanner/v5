@@ -436,7 +436,7 @@ ARMODAFTERSA+=('Mail::SPF::Query');	ARMODAFTERSA+=('Module::Build');		ARMODAFTER
 ARMODAFTERSA+=('Net::DNS');			ARMODAFTERSA+=('Net::LDAP');			ARMODAFTERSA+=('Net::DNS::Resolver::Programmable');
 ARMODAFTERSA+=('NetAddr::IP');		ARMODAFTERSA+=('Parse::RecDescent');	ARMODAFTERSA+=('Test::Harness');
 ARMODAFTERSA+=('Test::Manifest');	ARMODAFTERSA+=('Text::Balanced');		ARMODAFTERSA+=('URI');
-ARMODAFTERSA+=('version');			ARMODAFTERSA+=('IO::Compress::Bzip2');
+ARMODAFTERSA+=('version');			ARMODAFTERSA+=('IO::Compress::Bzip2');  ARMODAFTERSA+=('Sendmail::PMilter');
 
 # additional spamassassin plugins
 ARMODAFTERSA+=('Mail::SpamAssassin::Plugin::Rule2XSBody');

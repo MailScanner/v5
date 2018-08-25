@@ -2,7 +2,7 @@
 #   MailScanner - SMTP Email Processor
 #   Copyright (C) 2018 MailScanner project
 #
-#   $Id: MSMail.pm 5098 2011-06-25 20:11:06Z sysjkf $
+#   $Id: MSMail.pm 5098 2018-08-25 13:20:01Z sysjkf $
 #
 #   This program is free software; you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@
 #   along with this program; if not, write to the Free Software
 #   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-#      https://www.mailscanner.info
+#    Contributed by Shawn Iverson for MailScanner <shawniverson@efa-project.org>
 #
 
 
