@@ -412,6 +412,8 @@ SQLConfig
 SQLRuleset
 SQLSpamAssassinConfig
 MSMailQueueType          short
+MilterPIDFile            /var/run/MSMilter.pid
+MilterScanner            yes
 
 #
 # These variables match on any rule matching From:, else anything for To:

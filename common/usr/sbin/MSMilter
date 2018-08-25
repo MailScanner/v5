@@ -1,7 +1,7 @@
 #!/usr/bin/perl -U -I /usr/share/MailScanner/perl
 
 # (c) 2018 MailScanner Project <https://www.mailscanner.info>
-#          Version 0.1
+#          Version 0.9
 #
 #     This program is free software; you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -25,6 +25,7 @@ no strict 'subs';
 use POSIX;
 require 5.005;
 
+use DirHandle;
 use File::Basename;
 use File::Copy;
 use IO::File;
@@ -38,6 +39,8 @@ use Time::HiRes qw( gettimeofday );
 use MailScanner::Lock;
 use MailScanner::Log;
 use MailScanner::Config;
+use MailScanner::CustomConfig;
+use MailScanner::Message;
 
 my $ConfFile;
 
@@ -198,12 +201,29 @@ sub eom_callback
         my $message_ref = $ctx->getpriv();
         my $id ='';
         my $buffer='';
-        # Extract id from message efficiently
+        my $to='';
+        my $ip='';
+
+        # Are we in scanner mode?
+        my $scannermode = MailScanner::Config::QuickPeek($ConfFile, 'milterscanner');
+
+        # Extract id, envelope to, ip from message efficiently
         while (${$message_ref} =~ /([^\n]+)\n?/g) {
-            $id = $1;
+            my $line = $1;
             $buffer .= $1 . "\n";
-            if ( $id =~ m/^.*SMTP id / ) {
-                $id =~ s/^.*SMTP id //;
+            if ($line =~ /^Received: / ) {
+                $ip = '127.0.0.1';
+                if ($line =~ /^Received: .+?\(.*?\[(?:IPv6:)?([0-9a-f.:]+)\]/i) {
+                    $ip = $1;
+                }
+            } elsif ( $line =~ m/^.*SMTP id / ) {
+                $line =~ s/^.*SMTP id //;
+                $id = $line;
+            } elsif ( $line =~ /^\s+for / ) {
+                $line =~ s/^\s+for //;
+                $line =~ s/^\<//;
+                $line =~ s/\>.*$//;
+                $to = $line;
                 last;
             }
         }
@@ -237,7 +257,6 @@ sub eom_callback
         }
         my $file = "$incoming/$id";
 
-        # Error checking needed here
         my $ret;
         $ret = MailScanner::Lock::openlock($queuehandle,'>' . $file, 'w');
         if ($ret != 1) {
@@ -276,7 +295,8 @@ sub eom_callback
 
         # Add header info up to this point
         while (${$message_ref} =~ /(.*)\n?/g) {
-           $queuehandle->print($1 . "\n");
+           my $line = $1;
+           $queuehandle->print($line . "\n");
         }
 
         $queuehandle->flush();
@@ -284,6 +304,51 @@ sub eom_callback
 
         $ctx->setpriv(undef);
 
+        # Determine what to do next
+        if ($scannermode =~ /^yes$/) {
+           # Blacklist test
+           # Build a message object to test against
+           my $message = {};
+           if ($mailfrom ne '<>') {
+               $message->{from} = $mailfrom;
+           } else {
+               $message->{from} = '';
+           }
+           push @{$message->{to}}, $to;
+           $message->{clientip} = $ip;
+           my $user;
+           my $domain;
+           ($user, $domain) = MailScanner::Message::address2userdomain($message->{from});
+           $message->{fromuser} = $user;
+           $message->{fromdomain} = $domain;
+
+           my $touser;
+           my $todomain;
+        
+           ($touser, $todomain) = MailScanner::Message::address2userdomain(@{$message->{to}}[0]);
+           push @{$message->{touser}}, $touser;
+           push @{$message->{todomain}}, $todomain;
+          
+           my $test;
+           # Check whitelist first
+           $test = MailScanner::Config::Value('spamwhitelist', $message);
+
+           # Not in whitelist, then check blacklist
+           if ($test == 0) {
+               # test
+               $test = MailScanner::Config::Value('spamblacklist', $message);
+
+               # Blacklisted, fire a reject
+               if ($test == 1) {
+                   # Set reject code
+                   $ctx->setreply('554', '5.7.1', 'Message Blacklisted');
+                  return Sendmail::PMilter::SMFIS_REJECT;
+               }
+           }
+        }
+
+        # Send DISCARD signal to accept message and drop from postfix
+        # for mailscanner processing
         Sendmail::PMilter::SMFIS_DISCARD;
 }
 
@@ -306,11 +371,7 @@ sub WritePIDFile {
 sub StartLogging {
   my($filename) = @_;
 
-  # Create the syslog process name from stripping the conf filename down
-  # to the basename without the extension.
-  my $procname = $filename;
-  $procname =~ s#^.*/##;
-  $procname =~ s#\.conf$##;
+  my $procname = 'MSMilter';
 
   my $logbanner = "MSMilter Daemon starting...";
 
@@ -337,9 +398,12 @@ BEGIN {
      
     # Start logging
     StartLogging($ConfFile);
-    my $logbanner = "MSMilter Daemon checking configuration...\n";
-      MailScanner::Log::Configure($logbanner, 'stderr');
-    
+   
+    MailScanner::Config::initialise(MailScanner::Config::QuickPeek($ConfFile,
+                                  'customfunctionsdir'));
+    # Read Config File
+    MailScanner::Config::Read($ConfFile);
+
     my $pid = fork;
     
     if (!defined($pid)) {
@@ -352,9 +416,11 @@ BEGIN {
         # Need this new parent process to ignore SIGHUP, and catch SIGTERM
         $SIG{'HUP'} = 'IGNORE';
         $SIG{'TERM'} = \&ExitParent;
- 
+    
         my $PidFile = MailScanner::Config::QuickPeek($ConfFile, 'milterpidfile');
         WritePIDFile($$,$PidFile);
+
+        MailScanner::Log::Reset();
 
         my %my_callbacks =
         (
