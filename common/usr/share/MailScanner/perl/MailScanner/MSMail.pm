@@ -1412,11 +1412,13 @@ sub FindHashDirDepth {
         # If they want a particular message id, ignore it if it doesn't match
         next if $onlyid ne "" && $idtemp ne $onlyid;
 
-        #my $id = $idtemp . sprintf(".%05X", int(rand 1000000)+1);
-        # Don't put a random number on the end, put a reasonable hash of
-        # the file on the end.
-        # JKF 20090423 Add a "P" in the middle of so it cannot be a number.
-        my $id = $idtemp . '.' . PostfixKey($fullpath);
+        # Don't do this with long queue ids
+        # Apply to short queue ids
+        my $id;
+        if ($idtemp =~ /^[A-F0-9]+\.[A-Za-z0-9]{5}$/) {
+            $id = $idtemp . '.' . PostfixKey($fullpath);
+        }
+
         #print STDERR "ID = $id\n";
         my $idorig = $idtemp;
 
