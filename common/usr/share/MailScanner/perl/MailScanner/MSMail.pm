@@ -1417,6 +1417,8 @@ sub FindHashDirDepth {
         my $id;
         if ($idtemp =~ /^[A-F0-9]+\.[A-Za-z0-9]{5}$/) {
             $id = $idtemp . '.' . PostfixKey($fullpath);
+        } else {
+            $id = $idtemp;
         }
 
         #print STDERR "ID = $id\n";
