@@ -46,8 +46,7 @@ my $ConfFile;
 
 sub smtp_id {
   my $type = MailScanner::Config::QuickPeek($ConfFile, 'msmailqueuetype');
-  $type = s/\n//;
-  if ($type eq "long") {
+  if ($type =~ /long/i) {
         # Long queue IDs
         my $seconds=0;
         my $microseconds=0;
