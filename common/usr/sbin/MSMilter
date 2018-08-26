@@ -76,6 +76,19 @@ sub smtp_id {
         }
         $file_out.=reverse $encoded;
 
+        $file_out.="z";
+
+        # File doesn't exist yet, just randomize
+        my $inode=int(rand 1000000) + 1;
+        $encoded='';
+        $count=0;
+        while ($count < 4) {
+                $encoded.=$BASE52_CHARACTERS[$inode%51];
+                $inode/=51;
+                $count++;
+        }
+        $file_out.=reverse $encoded;
+
         # We check the generated ID...
         if ($file_out !~ /[A-Za-z0-9]{12,20}/) {
                 # Something has gone wrong, back to short ID for safety
