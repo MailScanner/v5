@@ -1882,7 +1882,7 @@ sub FindHashDirDepth {
         # Don't do this with long queue ids
         # Apply to short queue ids
         my $id;
-        if ($idtemp =~ /^[A-F0-9]+\.[A-Za-z0-9]{5}$/) {
+        if ($idtemp =~ /^[A-F0-9]+$/) {
             $id = $idtemp . '.' . PostfixKey($fullpath);
         } else {
             $id = $idtemp;
