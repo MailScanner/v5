@@ -8,6 +8,7 @@
 - Revert escaping spaces in unrar (already strict quoted)
 - Cluster friendly update scripts (check for PID before restarting)
 - Milter support option for MailScanner
+- Fix postfix long queue ids getting suffixed with key
 
 06/17/2018 Changes in    v5.0.7-4
 ==================================
