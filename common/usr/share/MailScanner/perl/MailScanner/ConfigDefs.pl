@@ -412,9 +412,13 @@ SQLConfig
 SQLRuleset
 SQLSpamAssassinConfig
 MSMailQueueType          short
+MSMailRelayPort          25
+MSMailRelayAddress       127.0.0.1
 MilterPIDFile            /var/run/MSMilter.pid
 MilterScanner            yes
-
+MilterMaxChildren        10
+MilterPort               33333
+MilterBind               127.0.0.1
 #
 # These variables match on any rule matching From:, else anything for To:
 #

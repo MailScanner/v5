@@ -45,7 +45,7 @@ use MailScanner::Message;
 my $ConfFile;
 
 sub smtp_id {
-  my $type = MailScanner::Config::QuickPeek($ConfFile, 'msmailqueuetype');
+  my $type = MailScanner::Config::Value('msmailqueuetype');
   if ($type =~ /long/i) {
         # Long queue IDs
         my $seconds=0;
@@ -222,7 +222,7 @@ sub eom_callback
         my $ip='';
 
         # Are we in scanner mode?
-        my $scannermode = MailScanner::Config::QuickPeek($ConfFile, 'milterscanner');
+        my $scannermode = MailScanner::Config::Value('milterscanner');
 
         # Extract id, envelope to, ip from message efficiently
         while (${$message_ref} =~ /([^\n]+)\n?/g) {
@@ -265,7 +265,7 @@ sub eom_callback
         # Ok we have sufficient info to start writing to disk
         my $queuehandle = new FileHandle;
         # Cannot access config values inside of this callback, use ms-peek
-        my $incoming = MailScanner::Config::QuickPeek($ConfFile,'incomingqueuedir');
+        my $incoming = MailScanner::Config::Value('incomingqueuedir');
         $incoming =~ s/\n//;
         if ($incoming eq '') {
             MailScanner::Log::WarnLog("Milter:  Unable to determine incoming queue!");
@@ -434,8 +434,14 @@ BEGIN {
         $SIG{'HUP'} = 'IGNORE';
         $SIG{'TERM'} = \&ExitParent;
     
-        my $PidFile = MailScanner::Config::QuickPeek($ConfFile, 'milterpidfile');
+        my $PidFile = MailScanner::Config::Value('milterpidfile');
         WritePIDFile($$,$PidFile);
+        
+        my $children = MailScanner::Config::Value('miltermaxchildren');
+        my $user = MailScanner::Config::Value('runasuser');
+        my $group = MailScanner::Config::Value('incomingworkgroup');
+        my $bind = MailScanner::Config::Value('milterbind');
+        my $port = MailScanner::Config::Value('milterport');
 
         MailScanner::Log::Reset();
 
@@ -450,17 +456,17 @@ BEGIN {
             'eom' =>     \&eom_callback,
         );
         
-        my $conn = 'inet:33333@127.0.0.1';
+        my $conn = 'inet:'. $port . '@' . $bind;
         $ENV{PMILTER_DISPATCHER} = 'prefork';
         my $milter = Sendmail::PMilter->new();
-        $milter->register('mymilter',
+        $milter->register('MSMilter',
                       \%my_callbacks,
                       Sendmail::PMilter::SMFI_CURR_ACTS
                      );
         $milter->setconn($conn);
-        $< = $> = getpwnam('postfix');
-        $( = $) = getgrnam('mtagroup');
-        $milter->main(10,100);
+        $< = $> = getpwnam($user);
+        $( = $) = getgrnam($group);
+        $milter->main($children,$children);
     
         # Should never get here, if we did, it didn't work
         MailScanner::Log::WarnLog("Unable to spawn milter!");

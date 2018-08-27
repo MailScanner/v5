@@ -861,6 +861,8 @@ sub new {
       my $InFrom = 0;
       my $response = '';
       my $orgname = MailScanner::Config::DoPercentVars('%org-name%');
+      my $port = MailScanner::Config::Value('msmailrelayport');
+      my $address = MailScanner::Config::Value('msmailrelayaddress');
 
       foreach $queue (keys %$queue2ids) {
           next unless $queue2ids->{$queue};
@@ -931,13 +933,13 @@ sub new {
           if ($recipientfound) {
               $messagesent = 0;
               my $socket = new IO::Socket::INET (
-                  PeerHost => '127.0.0.1',
-                  PeerPort => '25',
+                  PeerHost => $address,
+                  PeerPort => $port,
                   Proto => 'tcp',
               );
         
               if(!defined($socket)) {
-                  MailScanner::Log::WarnLog("Cannot connect to Socket on port 25, is Postfix running?");
+                  MailScanner::Log::WarnLog("Cannot connect to Socket at $address on port $port, is MTA running?");
                   MailScanner::Lock::unlockclose($queuehandle);
                   last;
               }
