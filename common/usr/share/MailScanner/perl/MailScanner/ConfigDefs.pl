@@ -256,7 +256,14 @@ whitelistmaxrecips		= ignorespamwhitelistifrecipientsexceed
 workuser			= incomingworkuser
 workgroup			= incomingworkgroup
 workperms			= incomingworkpermissions
-
+msmailqueuetype                 = MSMailQueueType
+msmailrelayport                 = MSMailRelayPort
+msmailrelayaddress              = MSMailRelayAddress
+milterpidfile                   = MilterPIDFile
+milterscanner                   = MilterScanner
+miltermaxchildren               = MilterMaxChildren
+milterport                      = MilterPort
+milterbind                      = MilterBind
 
 #
 # Simple variables which can only have a single value, no rules allowed.
