@@ -264,15 +264,13 @@ sub eom_callback
 
         # Ok we have sufficient info to start writing to disk
         my $queuehandle = new FileHandle;
-        # Cannot access config values inside of this callback, use ms-peek
         my $incoming = MailScanner::Config::Value('inqueuedir');
-        $incoming =~ s/\n//;
         if ($incoming eq '') {
             MailScanner::Log::WarnLog("Milter:  Unable to determine incoming queue!");
             Sendmail::PMilter::SMFIS_TEMPFAIL;
             return;
         }
-        my $file = "$incoming/$id";
+        my $file = @{$incoming}[0] . '/' . '$id';
 
         my $ret;
         $ret = MailScanner::Lock::openlock($queuehandle,'>' . $file, 'w');
