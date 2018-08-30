@@ -92,7 +92,7 @@ sub smtp_id {
         # We check the generated ID...
         if ($file_out !~ /[A-Za-z0-9]{12,20}/) {
                 # Something has gone wrong, back to short ID for safety
-                MailScanner::Log::WarnLog("Milter:  ERROR generating long queue ID");
+                MailScanner::Log::WarnLog("ERROR generating long queue ID");
                 $file_out = sprintf("%05X%lX", int(rand 1000000)+1, int(rand 1000000)+1);
         }
      return $file_out;
@@ -266,7 +266,7 @@ sub eom_callback
         my $queuehandle = new FileHandle;
         my $incoming = MailScanner::Config::Value('inqueuedir');
         if ($incoming eq '') {
-            MailScanner::Log::WarnLog("Milter:  Unable to determine incoming queue!");
+            MailScanner::Log::WarnLog("Unable to determine incoming queue!");
             Sendmail::PMilter::SMFIS_TEMPFAIL;
             return;
         }
@@ -275,7 +275,7 @@ sub eom_callback
         my $ret;
         $ret = MailScanner::Lock::openlock($queuehandle,'>' . $file, 'w');
         if ($ret != 1) {
-            MailScanner::Log::WarnLog("Milter:  Unable to to open queue file for writing!");
+            MailScanner::Log::WarnLog("Unable to to open queue file for writing!");
             Sendmail::PMilter::SMFIS_TEMPFAIL;
             return;
         }
