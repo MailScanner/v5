@@ -2,8 +2,6 @@
 #   MailScanner - SMTP Email Processor
 #   Copyright (C) 2018  MailScanner Project
 #
-#   $Id: MSDiskStore.pm 5098 2018-08-25 13:20:01Z sysjkf $
-#
 #   This program is free software; you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
 #   the Free Software Foundation; either version 2 of the License, or
@@ -19,7 +17,7 @@
 #   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 #    Contributed by Shawn Iverson for MailScanner <shawniverson@efa-project.org>
-#
+#    Adapted from PFDiskStore.pm
 
 package MailScanner::SMDiskStore;
 
