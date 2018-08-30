@@ -1,8 +1,5 @@
-
 #   MailScanner - SMTP Email Processor
 #   Copyright (C) 2018 MailScanner project
-#
-#   $Id: MSMail.pm 5098 2018-08-25 13:20:01Z sysjkf $
 #
 #   This program is free software; you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
@@ -19,7 +16,7 @@
 #   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 #    Contributed by Shawn Iverson for MailScanner <shawniverson@efa-project.org>
-#
+#    Adapted from Postfix.pm
 
 
 package MailScanner::Sendmail;
@@ -389,8 +386,10 @@ sub new {
     my(@rcvdiplist);
     my $RecvFound = 0;
     my $UnfoldBuffer = '';
-    
+
     my $org = MailScanner::Config::DoPercentVars('%org-name%');
+
+    MailScanner::Log::DebugLog("MSMail: ReadQf: org = $org");
 
     $message->{nobody} = 1; #assume no body unless detected
 
@@ -440,6 +439,7 @@ sub new {
                     push @{$message->{metadata}}, "R$recdata";
                     $message->{postfixrecips}{lc("$recdata")} = 1;
                     $TOFound = 1;
+                    MailScanner::Log::DebugLog("MSMail: ReadQf: to = $recdata");
                 }
                 $InTo=0;
              }
@@ -452,6 +452,7 @@ sub new {
                # RFC 1123, 821 null reverse path
                $message->{from} = '';
                $FROMFound = 1;
+                   MailScanner::Log::DebugLog("MSMail: ReadQf: null sender detected");
             } else {
                 $recdata =~ s/^.*\<//;
                 $recdata =~ s/^\<//;
@@ -463,6 +464,7 @@ sub new {
                      $FROMFound = 1;
                      # Postfix compat
                      push @{$message->{metadata}}, "S$recdata";
+                     MailScanner::Log::DebugLog("MSMail: ReadQf: from = $recdata");
                 }
             }
             next;
@@ -478,6 +480,7 @@ sub new {
             next unless $recdata ne '';
             $TOFound = 1;
             $ORIGFound = 1;
+            MailScanner::Log::DebugLog("MSMail: mail from = $recdata");
             # Postfix compat
             push @{$message->{metadata}}, "O$recdata";
             next;
@@ -491,20 +494,24 @@ sub new {
              if ($recdata =~ /^Received: .+?\(.*?\[(?:IPv6:)?([0-9a-f.:]+)\]/i) {
                  $rcvdip = $1;
                  push @rcvdiplist, $rcvdip;
+                 MailScanner::Log::DebugLog("MSMail: ReadQf: ip = $rcvdip");
             }
             next;
           } elsif ($recdata eq '') {
             # Empty line signals end of header
             $headerComplete = 1;
+            MailScanner::Log::DebugLog("MSMail: ReadQf: End of Header found");
             next;
           } elsif ($recdata =~ /^Subject:\s*(\S.*)?$/i) {
               $message->{subject} = $1;
               $InSubject = 1;
+              MailScanner::Log::DebugLog("MSMail: subject found");
               next;
           }
         } else {
             # if we landed here, there's a body
             $message->{nobody} = 0; 
+            MailScanner::Log::DebugLog("MSMail: ReadQf: body found");
             last;
         }
     }
@@ -864,6 +871,7 @@ sub new {
       my $port = MailScanner::Config::Value('msmailrelayport');
       my $address = MailScanner::Config::Value('msmailrelayaddress');
 
+      MailScanner::Log::DebugLog("MSMail: KickMessage:\n org = $orgname\n port = $port\n address = $address");
       foreach $queue (keys %$queue2ids) {
           next unless $queue2ids->{$queue};
           $queuedir  = new DirHandle;
@@ -909,13 +917,16 @@ sub new {
                   $line =~ s/\>$//;
                   $recipient = $line;
                   $recipientfound = 1;
+                  MailScanner::Log::DebugLog("MSMail: KickMessage: recipient = $recipient");
                   next;
               # Use envelope sender
               } elsif ($line =~ /^X-$orgname-MailScanner-Milter-Mail-From: /) {
                   $line =~ s/^X-$orgname-MailScanner-Milter-Mail-From: //;
                   $sender = $line;
+                  MailScanner::Log::DebugLog("MSMail: KickMessage: sender = $sender");
                   last;
               } elsif ($line eq '') {
+                    MailScanner::Log::DebugLog("MSMail: KickMessage: found end of header");
                     # At end of header, bail out
                     last;
               }
@@ -953,27 +964,32 @@ sub new {
               $response = '';
               $socket->recv($response, 1024);
               if ($response =~ /^220/) {
+                 MailScanner::Log::DebugLog("MSMail: KickMessage: Connect success 220 received");
 
                   my $req = 'ehlo ' . $server . "\n";
                   $socket->send($req);
     
                   $socket->recv($response, 1024);
                   if ($response =~ /^250/) {
+                      MailScanner::Log::DebugLog("MSMail: KickMessage: ehlo success 250 received");
                       # ehlo receive success
                       $req = 'MAIL FROM: ' . $sender . "\n";
                       $socket->send($req);
                       $socket->recv($response, 1024);
                       if ($response =~ /^250/) {
+                          MailScanner::Log::DebugLog("MSMail: KickMessage: MAIL FROM success 250 received");
                           # From received success
                           $req = 'RCPT TO: ' . $recipient . "\n";
                           $socket->send($req);
                           $socket->recv($response, 1024);
                           if ($response =~ /^250/ ) {
+                              MailScanner::Log::DebugLog("MSMail: KickMessage: RCPT TO success 250 received");
                               # Rcpt To success
                               $req='DATA' . "\n";
                               $socket->send($req);
                               $socket->recv($response, 1024);
                               if ($response =~ /^354/ ) {
+                                  MailScanner::Log::DebugLog("MSMail: KickMessage: DATA success 354 received");
                                   # Ready to send data
                                   # Position at start of message
                                   seek $queuehandle, 0, 0;
@@ -992,6 +1008,7 @@ sub new {
     
                                   $socket->recv($response, 1024);
                                   if ($response =~ /^250/ && !($response =~ /Error/)) {
+                                      MailScanner::Log::DebugLog("MSMail: KickMessage: Message send successful");
                                       $messagesent = 1;
                                   } 
                               }   
@@ -1021,6 +1038,7 @@ sub new {
                      MailScanner::Log::WarnLog("Unable to requeue message rejected by relay, will try again later");
                      MailScanner::Lock::unlockclose($queuehandle);
                  } else {
+                     MailScanner::Log::DebugLog("MSMail: KickMessage: Message rejected! Requeuing to quarantine.");
                      $response =~ s/\r\n.*$//;
                      $response =~ s/\n.*$//;
                      $response =~ s/\n//;
