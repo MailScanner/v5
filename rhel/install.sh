@@ -969,8 +969,8 @@ if [ $CONFCAV -eq 1 ]; then
     #fi
     # More config options
     #sed -i '/^User <USER>/ c\User clam' /etc/clamd.d/clamd.conf
-    sed -i '/#LocalSocket \/var\/run\/clamd.<SERVICE>\/clamd.sock/ c\LocalSocket /var/run/clamd.scan/clamd.sock' /etc/clamd.d/scan.conf
-    sed -i '/#LogFile \/var\/log\/clamd.<SERVICE>/ c\LogFile /var/log/clamd.scan/scan.log' /etc/clamd.d/scan.conf
+    sed -i '/#LocalSocket \/var\/run\/clamd.scan\/clamd.sock/ c\LocalSocket /var/run/clamd.scan/clamd.sock' /etc/clamd.d/scan.conf
+    sed -i '/#LogFile \/var\/log\/clamd.scan/ c\LogFile /var/log/clamd.scan' /etc/clamd.d/scan.conf
     # Log rotation if not present
     #if [ ! -f /etc/logrotate.d/clamd.logrotate ]; then
     #    cp /usr/share/doc/clamav-server-$clamav_version/clamd.logrotate /etc/logrotate.d/
