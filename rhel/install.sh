@@ -953,83 +953,87 @@ fi
 
 # Configure clamav if required
 if [ $CONFCAV -eq 1 ]; then
-    # Get clam version
-    clamav_version=$(rpm -q --queryformat=%{VERSION} clamav-server)
+   # Get clam version
+    # ClamAV changed in CentOS/RHEL7 0.100.1+, most items commented for prior reference
+    #clamav_version=$(rpm -q --queryformat=%{VERSION} clamav-server)
     # Grab sample config if not present
-    if [ ! -f /etc/clamd.d/clamd.conf ]; then
-        cp /usr/share/doc/clamav-server-$clamav_version/clamd.conf /etc/clamd.d/clamd.conf
-    fi
+    #if [ ! -f /etc/clamd.d/clamd.conf ]; then
+    #    cp /usr/share/doc/clamav-server-$clamav_version/clamd.conf /etc/clamd.d/clamd.conf
+    #fi
     # Enable config
-    sed -i '/^Example/ c\#Example' /etc/clamd.d/clamd.conf
+    sed -i '/^Example/ c\#Example' /etc/clamd.d/scan.conf
     # Create clam user if not present
-    id -u clam >/dev/null 2>&1
-    if [ $? -ne 0 ]; then
-        useradd -d /var/lib/clamav -c "Clam Anti Virus Checker" -G virusgroup,clamupdate -s /sbin/nologin -M clam
-    fi
+    #id -u clam >/dev/null 2>&1
+    #if [ $? -ne 0 ]; then
+    #    useradd -d /var/lib/clamav -c "Clam Anti Virus Checker" -G virusgroup,clamupdate -s /sbin/nologin -M clam
+    #fi
     # More config options
-    sed -i '/^User <USER>/ c\User clam' /etc/clamd.d/clamd.conf
-    sed -i '/#LocalSocket \/var\/run\/clamd.<SERVICE>\/clamd.sock/ c\LocalSocket /var/run/clamd.scan/clamd.sock' /etc/clamd.d/clamd.conf
-    sed -i '/#LogFile \/var\/log\/clamd.<SERVICE>/ c\LogFile /var/log/clamd.scan/scan.log' /etc/clamd.d/clamd.conf
+    #sed -i '/^User <USER>/ c\User clam' /etc/clamd.d/clamd.conf
+    sed -i '/#LocalSocket \/var\/run\/clamd.<SERVICE>\/clamd.sock/ c\LocalSocket /var/run/clamd.scan/clamd.sock' /etc/clamd.d/scan.conf
+    sed -i '/#LogFile \/var\/log\/clamd.<SERVICE>/ c\LogFile /var/log/clamd.scan/scan.log' /etc/clamd.d/scan.conf
     # Log rotation if not present
-    if [ ! -f /etc/logrotate.d/clamd.logrotate ]; then
-        cp /usr/share/doc/clamav-server-$clamav_version/clamd.logrotate /etc/logrotate.d/
-    fi
+    #if [ ! -f /etc/logrotate.d/clamd.logrotate ]; then
+    #    cp /usr/share/doc/clamav-server-$clamav_version/clamd.logrotate /etc/logrotate.d/
+    #fi
     # Filesystem/Permissions/SELinux
-    chown -R clam:clam /etc/clamd.d
-    mkdir -p /var/log/clamd.scan
-    chown -R clam:clam /var/log/clamd.scan
-    chcon -u system_u -r object_r -t antivirus_log_t /var/log/clamd.scan
-    mkdir -p /var/run/clamd.scan
-    chown -R clam:clam /var/run/clamd.scan
-    chcon -u system_u -r object_r -t antivirus_var_run_t /var/run/clamd.scan
-    echo "d /var/run/clamd.scan 0750 clam mtagroup -" > /etc/tmpfiles.d/clamd.conf
-    echo "d /var/run/clamd.scan 0750 clam mtagroup -" > /etc/tmpfiles.d/clamd.scan.conf
+    #chown -R clam:clam /etc/clamd.d
+    #mkdir -p /var/log/clamd.scan
+    #chown -R clam:clam /var/log/clamd.scan
+    #chcon -u system_u -r object_r -t antivirus_log_t /var/log/clamd.scan
+    #mkdir -p /var/run/clamd.scan
+    #chown -R clam:clam /var/run/clamd.scan
+    #chcon -u system_u -r object_r -t antivirus_var_run_t /var/run/clamd.scan
+    chown -R clamscan:mtagroup /var/run/clamd.scan
+    echo "d /var/run/clamd.scan 0750 clam mtagroup -" > /usr/lib/tmpfiles.d/clamd.scan.conf
+    touch /var/log/clamd.scan
+    chown clamscan:clamscan /var/log/clamd.scan
+    usermod -G mtagroup,virusgroup,clamupdate clamscan
     # sysconfig file
-    if [ ! -f /etc/sysconfig/clamd ]; then
-        cat > /etc/sysconfig/clamd << 'EOF'
-CLAMD_CONFIGFILE=/etc/clamd.d/clamd.conf
-CLAMD_SOCKET=/var/run/clamd.scan/clamd.sock
+    #if [ ! -f /etc/sysconfig/clamd ]; then
+    #    cat > /etc/sysconfig/clamd << 'EOF'
+#CLAMD_CONFIGFILE=/etc/clamd.d/clamd.conf
+#CLAMD_SOCKET=/var/run/clamd.scan/clamd.sock
 #CLAMD_OPTIONS=
-EOF
-    fi
+#EOF
+    #fi
 
     # Systemd services
-    if [ ! -f /usr/lib/systemd/system/clam.freshclam.service ]; then
-        cat > /usr/lib/systemd/system/clam.freshclam.service << 'EOF'
-[Unit]
-Description = freshclam scanner
-After = network.target
+    #if [ ! -f /usr/lib/systemd/system/clam.freshclam.service ]; then
+        #cat > /usr/lib/systemd/system/clam.freshclam.service << 'EOF'
+#[Unit]
+#Description = freshclam scanner
+#After = network.target
+#
+#[Service]
+#Type = forking
+#ExecStart = /usr/bin/freshclam -d -c 4
+#Restart = on-failure
+#PrivateTmp = true
+#
+#[Install]
+#WantedBy=multi-user.target
+#EOF
+#    fi
+#    
+#    if [ ! -f /usr/lib/systemd/system/clam.scan.service ]; then
+#        cat > /usr/lib/systemd/system/clam.scan.service << 'EOF'
+#[Unit]
+#Description = clamd scanner daemon
+#After = syslog.target nss-lookup.target network.target
+#
+#[Service]
+#Type = forking
+#ExecStart = /usr/sbin/clamd -c /etc/clamd.d/clamd.conf
+#Restart = on-failure
+#PrivateTmp = true
+#
+#[Install]
+#WantedBy=multi-user.target
+#EOF
+#    fi
 
-[Service]
-Type = forking
-ExecStart = /usr/bin/freshclam -d -c 4
-Restart = on-failure
-PrivateTmp = true
-
-[Install]
-WantedBy=multi-user.target
-EOF
-    fi
-    
-    if [ ! -f /usr/lib/systemd/system/clam.scan.service ]; then
-        cat > /usr/lib/systemd/system/clam.scan.service << 'EOF'
-[Unit]
-Description = clamd scanner daemon
-After = syslog.target nss-lookup.target network.target
-
-[Service]
-Type = forking
-ExecStart = /usr/sbin/clamd -c /etc/clamd.d/clamd.conf
-Restart = on-failure
-PrivateTmp = true
-
-[Install]
-WantedBy=multi-user.target
-EOF
-    fi
-
-    systemctl enable clam.freshclam
-    systemctl enable clam.scan
+#    systemctl enable clam.freshclam
+#    systemctl enable clam.scan
 fi
 
 # now check for missing perl modules and install them via cpan
