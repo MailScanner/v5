@@ -9,6 +9,7 @@
 - Cluster friendly update scripts (check for PID before restarting)
 - Milter support option for MailScanner
 - Fix postfix long queue ids getting suffixed with key
+- Support ClamAV 0.100.1+ configuration change in RHEL/CentOS 7
 
 06/17/2018 Changes in    v5.0.7-4
 ==================================
