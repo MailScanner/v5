@@ -688,7 +688,7 @@ BASEPACKAGES="binutils gcc glibc-devel libaio make man-pages man-pages-overrides
 # package is not available for their distro release it
 # will be ignored during the install.
 #
-MOREPACKAGES="perl-Archive-Tar perl-Archive-Zip perl-Compress-Raw-Zlib perl-Compress-Zlib perl-Convert-BinHex perl-CPAN perl-Data-Dump perl-DBD-SQLite perl-DBI perl-Digest-HMAC perl-Digest-SHA1 perl-Env perl-ExtUtils-MakeMaker perl-File-ShareDir-Install perl-File-Temp perl-Filesys-Df perl-Getopt-Long perl-IO-String perl-IO-stringy perl-HTML-Parser perl-HTML-Tagset perl-Inline perl-IO-Zlib perl-Mail-DKIM perl-Mail-IMAPClient perl-Mail-SPF perl-MailTools perl-Net-CIDR perl-Net-DNS perl-Net-DNS-Resolver-Programmable perl-MIME-tools perl-Convert-TNEF perl-Net-IP perl-OLE-Storage_Lite perl-Pod-Escapes perl-Pod-Simple perl-Scalar-List-Utils perl-Storable perl-Pod-Escapes perl-Pod-Simple perl-Razor-Agent perl-Sys-Hostname-Long perl-Sys-SigAction perl-Test-Manifest perl-Test-Pod perl-Time-HiRes perl-TimeDate perl-URI perl-YAML pyzor re2c unrar tnef perl-Encode-Detect perl-LDAP perl-IO-Compress-Bzip2 p7zip p7zip-plugins perl-LWP-Protocol-https";
+MOREPACKAGES="perl-Archive-Tar perl-Archive-Zip perl-Compress-Raw-Zlib perl-Compress-Zlib perl-Convert-BinHex perl-CPAN perl-Data-Dump perl-DBD-SQLite perl-DBI perl-Digest-HMAC perl-Digest-SHA1 perl-Env perl-ExtUtils-MakeMaker perl-File-ShareDir-Install perl-File-Temp perl-Filesys-Df perl-Getopt-Long perl-IO-String perl-IO-stringy perl-HTML-Parser perl-HTML-Tagset perl-Inline perl-IO-Zlib perl-Mail-DKIM perl-Mail-IMAPClient perl-Mail-SPF perl-MailTools perl-Net-CIDR perl-Net-DNS perl-Net-DNS-Resolver-Programmable perl-MIME-tools perl-Convert-TNEF perl-Net-IP perl-OLE-Storage_Lite perl-Pod-Escapes perl-Pod-Simple perl-Scalar-List-Utils perl-Storable perl-Pod-Escapes perl-Pod-Simple perl-Razor-Agent perl-Sys-Hostname-Long perl-Sys-SigAction perl-Test-Manifest perl-Test-Pod perl-Time-HiRes perl-TimeDate perl-URI perl-YAML pyzor re2c unrar tnef perl-Encode-Detect perl-LDAP perl-IO-Compress-Bzip2 p7zip p7zip-plugins perl-LWP-Protocol-https perl-Test-Simple";
 
 # the array of perl modules needed
 ARMOD=();
@@ -714,7 +714,7 @@ ARMOD+=('Pod::Simple');			ARMOD+=('POSIX');				ARMOD+=('Scalar::Util');
 ARMOD+=('Socket'); 				ARMOD+=('Storable'); 	 	 	ARMOD+=('Test::Harness');		
 ARMOD+=('Test::Pod');			ARMOD+=('Test::Simple');		ARMOD+=('Time::HiRes');			
 ARMOD+=('Time::localtime'); 	ARMOD+=('Sys::Hostname::Long');	ARMOD+=('Sys::SigAction');		
-ARMOD+=('Sys::Syslog'); 		ARMOD+=('Env'); 				
+ARMOD+=('Sys::Syslog'); 		ARMOD+=('Env');
 ARMOD+=('Mail::SpamAssassin');
 
 # not required but nice to have
@@ -728,11 +728,11 @@ ARMOD+=('Mail::SPF::Query');	ARMOD+=('Module::Build');		ARMOD+=('Net::CIDR::Lite
 ARMOD+=('Net::DNS');			ARMOD+=('Net::LDAP');			ARMOD+=('Net::DNS::Resolver::Programmable');
 ARMOD+=('NetAddr::IP');			ARMOD+=('Parse::RecDescent');	ARMOD+=('Test::Harness');
 ARMOD+=('Test::Manifest');		ARMOD+=('Text::Balanced');		ARMOD+=('URI');	
-ARMOD+=('version');				ARMOD+=('IO::Compress::Bzip2');
+ARMOD+=('version');				ARMOD+=('IO::Compress::Bzip2'); ARMOD+=('Sendmail::PMilter');
 
-# additional spamassassin plugins				
-ARMOD+=('Mail::SpamAssassin::Plugin::Rule2XSBody');		
-ARMOD+=('Mail::SpamAssassin::Plugin::DCC');				
+# additional spamassassin plugins
+ARMOD+=('Mail::SpamAssassin::Plugin::Rule2XSBody');
+ARMOD+=('Mail::SpamAssassin::Plugin::DCC');
 ARMOD+=('Mail::SpamAssassin::Plugin::Pyzor');
 
 

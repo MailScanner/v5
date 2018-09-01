@@ -153,7 +153,7 @@ $SIG{'TERM'} = \&ExitParent;
 #
 # First production release will be 4.00.1.
 #
-$MailScanner::Config::MailScannerVersion = 'VersionNumberHere';
+$MailScanner::Config::MailScannerVersion = '5.1.1';
 
 my $WantHelp          = 0;
 my $Versions          = 0;
@@ -386,6 +386,9 @@ if (/exim/i) {
 } elsif(/qmail/i) {
   $MTAmod = 'Qmail.pm';
   $MTADSmod = 'QMDiskStore.pm';
+} elsif(/msmail/i) {
+  $MTAmod = 'MSMail.pm';
+  $MTADSmod = 'MSDiskStore.pm';
 } else {
   $MTAmod = 'Sendmail.pm';
   $MTADSmod = 'SMDiskStore.pm';
@@ -1248,7 +1251,6 @@ sub WorkForHours {
     # Zip up all the attachments to compress them
     $0 = 'MailScanner: compressing attachments';
     $batch->ZipAttachments();
-
     # Encapsulate the messages into message/rfc822 attachments as needed
     $batch->Encapsulate();
 

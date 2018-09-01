@@ -1,8 +1,5 @@
-#
 #   MailScanner - SMTP Email Processor
-#   Copyright (C) 2002  Julian Field
-#
-#   $Id: Postfix.pm 5098 2011-06-25 20:11:06Z sysjkf $
+#   Copyright (C) 2018 MailScanner project
 #
 #   This program is free software; you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
@@ -18,8 +15,8 @@
 #   along with this program; if not, write to the Free Software
 #   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-#      https://www.mailscanner.info
-#
+#    Contributed by Shawn Iverson for MailScanner <shawniverson@efa-project.org>
+#    Adapted from Postfix.pm
 
 
 package MailScanner::Sendmail;
@@ -34,6 +31,8 @@ use Encode;
 use vars qw($VERSION);
 
 use IO::Socket::UNIX;
+use IO::Socket::INET;
+use Net::Domain qw(hostname hostfqdn hostdomain domainname);
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
 $VERSION = substr q$Revision: 5098 $, 10;
@@ -218,14 +217,6 @@ sub new {
 
 # Do conditional once at include time
 
-#my($MTA) = MailScanner::Config::Value('mta');
-#
-#print STDERR "MTA is \"" . MailScanner::Config::Value('mta') . "\"\n";
-#
-#print STDERR "We are running zmail\n";
-#
-#MailScanner::Log::InfoLog("Configuring mailscanner for zmail...");
-
   sub HDFileName {
     my($this, $id) = @_;
     #my($dir1, $dir2, $file);
@@ -383,530 +374,153 @@ sub new {
 
     my($RQf) = $message->{store}{inhdhandle};
 
-    my(@results, $msginfo, $from);
-    my($ip, $TOline);
-    my($Line, $Flags);
-    my($MsgContSize, $DataOffset, $NumRecips);
+    my($from);
+    my($ip);
     # ORIGFound stuff courtesy of Juan Pablo Abuyeres 23/7/2006
     # Should improve handling of virtual domains.
-    my($ORIGFound, $TOFound, $FROMFound, $IPFound, $TIMEFound);
-    my($ErrorFound, $ERecordFound, $rectype, $recdata, $mtime);
+    my($ORIGFound, $TOFound, $FROMFound, $IPFound);
+    my($recdata);
     my $InSubject = 0; # Are we adding continuation subject lines?
-    my $pRecordsFound = 0; # p record spin-through of body? //Glenn
-    my $OriginalPos = 0; # p record jumpoff point //Glenn
-    my $MaxpRecPos = 0; # Max position where a p record might occur.
-    my @npos = (); # save all p record positions, although we only
-                   # look at/use the first and last.
-    #my $ipfromheader = ''; # The IP address from the first Received: line
-    #my $read1strcvd = 0; # Have we read the 1st Received: line?
+    my $InTo = 0;
+    my $InFrom = 0;
     my(@rcvdiplist);
+    my $RecvFound = 0;
+    my $UnfoldBuffer = '';
 
-    #print STDERR "In ReadQf\n";
-    #$message->{store}->print();
-    $message->{nobody} = 0; # If there is no message body we just get X at end of headers
-    $ERecordFound = 0;
+    my $org = MailScanner::Config::DoPercentVars('%org-name%');
+
+    MailScanner::Log::DebugLog("MSMail: ReadQf: org = $org");
+
+    $message->{nobody} = 1; #assume no body unless detected
 
     # Just in case we get a message with no headers at all
     @{$message->{headers}} = ();
-
-    # seek to end of file and save position, to make sure p records don't
-    # try go past this point. 17 is the record size for a p record.
-    seek $RQf, -17, 2;
-    $MaxpRecPos = tell $RQf;
 
     # Seek to the start of the file in case anyone read the file
     # between me opening it and locking it.
     seek $RQf, 0, 0;
 
-    # Read the initial record.
-    # Provides Message content size, data offset and recipient count
-    ($rectype, $recdata) = ReadRecord($RQf);
-    #print "1st $rectype is \"$recdata\"\n";
-    MailScanner::Log::WarnLog("Syntax error in Postfix queue file, didn't " .
-                              "start with a C record") unless $rectype eq 'C';
-    #$recdata =~ /^([0-9 ]{15}) ([0-9 ]{15}) ([0-9 ]{15})( ([0-9 ]{15}))?$/;
-    #($MsgContSize, $DataOffset, $NumRecips) = ($1+0, $2+0, $3+0);
-
-    my @numbers = split " ", $recdata;
-    ($MsgContSize, $DataOffset, $NumRecips) =
-      ($numbers[0]+0, $numbers[1]+0, $numbers[2]+0);
-
-    # If $5 is set then we have a new data structure in the file
-    $MailScanner::Postfix::DataStructure = 0;
-    #if ($5 ne "") {
-    #  $MailScanner::Postfix::DataStructure = 1;
-    #  $message->{PostfixQmgrOpts} = $5+0;
-    #}
-
-    if (defined $numbers[3]) {
-      $MailScanner::Postfix::DataStructure = 1;
-      $message->{PostfixQmgrOpts} = $numbers[3]+0;
-    }
-
-    #$MsgContSize =~ s/^\s*//;
-    #$DataOffset  =~ s/^\s*//;
-    #$NumRecips   =~ s/^\s*//;
-    #print STDERR "MsgContSize=$MsgContSize DataOffset=$DataOffset NumRecips=$NumRecips\n";
-    push @{$message->{metadata}}, "$rectype$recdata";
-    #print STDERR "Content size = $MsgContSize\n";
-    #print STDERR "Data offset  = $DataOffset\n";
-    #print STDERR "Num Recips   = $NumRecips\n";
-
-    # If the data offset is 0 then Postfix definitely hasn't finished
-    # writing the message.
-    unless ($DataOffset+0 > 10) { # 10 == arbitrary small number
-      # JKF 5/12/2005 This could fail with an unblessed reference error
-      # JKF 5/12/2005 so do it by hand.
-      # JKF 5/12/2005 $message->DropFromBatch();
-      $message->{deleted} = 1;
-      $message->{gonefromdisk} = 1; # Don't try to delete the original
-      $message->{store}->Unlock(); # Unlock it so other processes can pick it up
-      #20090421 $message->{abandoned} = 1;
-      return 0;
-    }
-
     # Read records until we hit the start of the message M record
     #print STDERR "Reading pre data\n";
-    while(($rectype, $recdata) = ReadRecord($RQf)) {
-      #print STDERR "Got $rectype $recdata\n";
-      if ($rectype eq 'M') {
-        # Message starts here
-        push @{$message->{metadata}}, "$rectype$recdata";
-        last;
-      } elsif ($rectype eq 'S') {
-        # Sender address
-        $recdata =~ s/^\<//;
-        $recdata =~ s/\<$//;
-        $message->{from} = lc($recdata);
-        $FROMFound = 1;
-      #JKF 20040322 } elsif ($rectype eq 'R') {
-      } elsif ($rectype eq 'O') {
-        # Recipient address
-        $recdata =~ s/^\<//;
-        $recdata =~ s/\<$//;
-        # If recipient is empty only add metadata
-        push @{$message->{to}}, lc($recdata);
-        next unless $recdata ne '';
-        push @{$message->{metadata}}, "$rectype$recdata";
-        $TOFound = 1;
-        $ORIGFound = 1;
-        #print STDERR "Pre R Recip $recdata\n";
-      #JKF 20040322 } elsif ($rectype eq 'O') {
-      } elsif ($rectype eq 'R') {
-        # Original recipients are handled by MS as normal recipients,
-        # but are put back into the 'O' originalrcpts list in the
-        # replacement message.
-        # Original recipient address
-        $recdata =~ s/^\<//;
-        $recdata =~ s/\<$//;
-        $recdata = lc($recdata);
-        push @{$message->{to}}, lc($recdata) unless $ORIGFound;
-        push @{$message->{metadata}}, "$rectype$recdata";
-        #JKF 20040322 $message->{originalrecips}{"$recdata"} = 1;
-        $message->{postfixrecips}{lc("$recdata")} = 1;
-        $TOFound = 1;
-        #print STDERR "Pre O Recip $recdata\n";
-      } elsif ($rectype eq 'p') {
-	# //Glenn 2007-01-16
-	# Handle p records (GOTO like in-place edit thing) by reading
-	# the pointed to data into the main message object, and
-	# silently discarding the actual p record.
-	# This p record should only point to added recipients, or
-	# moved records of the same type already handled in this
-	# segment, so lets just store the jumpoff point and loop.
-	# When we hit the next p record it should be the "jump back to
-        # original pos" one, or another forward p record... so we'll
-	# check that and act accordingly..
-        $pRecordsFound = 1; # If we find a p record we need remember this to handle body ...
-	next if ($recdata+0 == 0); # Ignore zero (placeholder) jumps
-	if ($recdata+0 > $MaxpRecPos) {
-	    MailScanner::Log::WarnLog("p record handling: Attempt to jump beyond end of file, aborting file (for now).");
-	    $ErrorFound = 1;
-	    last;
-	}
-	if ($OriginalPos == 0) {
-	   # Jump to after E record and commence
-	   $OriginalPos = tell $RQf;
-	   seek $RQf, $recdata+0, 0; # jump. we should check this works.
-	   next;
-	} else {
-	  # We're at the return point, or moving even furtehr away...
-	  if ($recdata+0 < $OriginalPos) {
-	     MailScanner::Log::WarnLog("p record handling: $recdata < $OriginalPos, this cannot be! Aborting this file.");
-	     #seek $RQf, $OriginalPos, 0; # jump back up. we should chk this.
-	     $OriginalPos = 0;
-	     @npos = ();
-	     $ErrorFound = 1;
-	     last;
-	  } else {
-	    seek $RQf, $recdata+0, 0; # jump back or forward. we should chk this works.
-            foreach $_ (@npos) {
-              if ($_+0 eq $recdata+0) {
-		  $ErrorFound = 1;
-		  last;
-	       }
-	    }
-            if ($ErrorFound) {
-		  MailScanner::Log::WarnLog("p record handling: Loop condition found, aborting file.");
-		  $OriginalPos = 0; # Reset to not fool next segment loop
-	       @npos = ();
-		  last;
-	    }
-	  }
-	}
-	push @npos, $recdata+0; # save jumpto position, for loop detection.
-      } else {
-        # Some other record type. Just store it and move on.
-        push @{$message->{metadata}}, "$rectype$recdata";
-      }
-    }
+    my $headerComplete = 0;
+    while($recdata = ReadRecord($RQf)) {
+       if ($headerComplete == 0) {
+           push @{$message->{headers}}, $recdata;
 
-    # We are now at the start of the message. Read the headers until
-    # we get an empty N record which is the blank line just after the
-    # headers.
-    #print STDERR "Reading message body\n";
-    while(!$message->{nobody} && (($rectype, $recdata) = ReadRecord($RQf))) {
-      #print STDERR "Reading headers: $rectype, $recdata\n";
-      if ($rectype eq 'X') {
-        #push @{$message->{metadata}}, "$rectype$recdata";
-        $message->{nobody} = 1; # Found end of message before message body text
-        last;
-      }
-      last if $rectype eq 'N' && $recdata eq "";
-      if (!defined($rectype)) {
-         $ErrorFound = 1;
-      #print STDERR "RECTYPER ERROR: $rectype, $recdata\n";
-         last;
-      }
-      if ($rectype eq 'p') {
-	 # //Glenn 2007-01-16
-	 # Handle p records (GOTO like in-place edit thing) by reading
-	 # the pointed to data into the main message object, and
-	 # silently discarding the actual p record.
-	 # This p record should only point to added headers, or
-	 # moved records of the same type already handled in this
-	 # segment, so lets just store the jumpoff point and loop.
-	 # When we hit the next p record it should be the "jump back to
-         # original pos" one, or another forward p record... so we'll
-	 # check that and act accordingly..
-         $pRecordsFound = 1; # If we find a p record we need remember this to handle body ...
-	 next if ($recdata+0 == 0); # Ignore zero (placeholder) jumps
-	 if ($recdata+0 > $MaxpRecPos) {
-	    MailScanner::Log::WarnLog("p record handling: Attempt to jump beyond end of file, aborting file (for now).");
-	    $ErrorFound = 1;
-	    last;
-	 }
-	 if ($OriginalPos == 0) {
-	    # Jump to after E record and commence
-	    $OriginalPos = tell $RQf;
-	    seek $RQf, $recdata+0, 0; # jump. we should check this works.
-	 } else {
-	   # We're at the return point, or moving even further away...
-	   if ($recdata+0 < $OriginalPos) {
-	     MailScanner::Log::WarnLog("p record handling: $recdata < $OriginalPos, this cannot be! Aborting this file.");
-	     #seek $RQf, $OriginalPos, 0; # jump back up. we should chk this.
-	     $OriginalPos = 0;
-	      @npos = ();
-	     $ErrorFound = 1;
-	     last;
-	   } else {
-	     seek $RQf, $recdata+0, 0; # jump back or forward. we should chk this works.
-            foreach $_ (@npos) {
-              if ($_+0 eq $recdata+0) {
-		   $ErrorFound = 1;
-		   last;
-	        }
-	    }
-            if ($ErrorFound) {
-		  MailScanner::Log::WarnLog("p record handling: Loop condition found, aborting file.");
-		  $OriginalPos = 0; # Reset to not fool next segment loop
-	        @npos = ();
-		  last;
-	     }
-	   }
-	 }
-	 push @npos, $recdata+0; # save jumpto position, for loop detection.
-	 next; # done, don't add a spurious "converted p to N" record.
-      }
-      next if ($rectype eq 'w'); # Skip deleted (w) records ... Else they will be transformed to Normal (N) records.
-      push @{$message->{headers}}, $recdata; # Headers have no leading N
-      if ($recdata =~ /^Subject:\s*(\S.*)?$/i) {
-        $message->{subject} = $1;
-        $InSubject = 1;
-        next;
-      }
-      if ($InSubject) {
-        if ($recdata =~ /^\s/) {
-          # We are in a continuation line, so remove the leading whitespace
-          $recdata =~ s/^\s//;
-          $message->{subject} .= $recdata;
-          next;
+           if ($InSubject) {
+              if ($recdata =~ /^\s/) {
+                  # We are in a continuation line, so remove the leading whitespace
+                  $recdata =~ s/^\s//;
+                  $message->{subject} .= $recdata;
+                  next;
+              } else {
+                  # Line did not start with continuation character so we're not in Subj
+                  $InSubject = 0;
+              }
+          }
+
+          if ($InTo) {
+            if ($recdata =~ /^\s/) {
+                # In a continuation line
+                $recdata =~ s/^\s//;
+                $UnfoldBuffer .= ' ' . $recdata;
+            } else {
+                # End of To field
+                my $to = $UnfoldBuffer;
+                $to =~ s/^To: //;
+                foreach $recdata (split /,/, $to) {
+                    $recdata =~ s/^.*\<//;
+                    $recdata =~ s/^\<//;
+                    $recdata =~ s/\>.*$//;
+                    $recdata =~ s/\>$//;
+                    $recdata = lc($recdata);
+                    push @{$message->{to}}, lc($recdata) unless $ORIGFound;
+                    # Postfix compat
+                    push @{$message->{metadata}}, "R$recdata";
+                    $message->{postfixrecips}{lc("$recdata")} = 1;
+                    $TOFound = 1;
+                    MailScanner::Log::DebugLog("MSMail: ReadQf: to = $recdata");
+                }
+                $InTo=0;
+             }
+          }
+
+          # Use Mail From provided by Milter
+          if ($recdata =~ m/^X-$org-MailScanner-Milter-Mail-From: /) {
+            $recdata =~ s/^.*: //;
+            if ($recdata =~ /^\<\>$/ ) {
+               # RFC 1123, 821 null reverse path
+               $message->{from} = '';
+               $FROMFound = 1;
+                   MailScanner::Log::DebugLog("MSMail: ReadQf: null sender detected");
+            } else {
+                $recdata =~ s/^.*\<//;
+                $recdata =~ s/^\<//;
+                $recdata =~ s/\>.*$//;
+                $recdata =~ s/\>$//;
+                # Did we capture an email (hopefully) or junk? Look for an @
+                if ($recdata =~ /@/) {
+                     $message->{from} = lc($recdata);
+                     $FROMFound = 1;
+                     # Postfix compat
+                     push @{$message->{metadata}}, "S$recdata";
+                     MailScanner::Log::DebugLog("MSMail: ReadQf: from = $recdata");
+                }
+            }
+            next;
+          } elsif ($recdata =~ m/^\s+for / && $ORIGFound == 0 ) {
+            # Recipient address
+            $recdata =~ s/^\s+for//;
+            $recdata =~ s/^.*\<//;
+            $recdata =~ s/^\<//;
+            $recdata =~ s/\>.*$//;
+            $recdata =~ s/\>$//;
+            # If recipient is empty only add metadata
+            push @{$message->{to}}, lc($recdata);
+            next unless $recdata ne '';
+            $TOFound = 1;
+            $ORIGFound = 1;
+            MailScanner::Log::DebugLog("MSMail: ReadQf: mail from = $recdata");
+            # Postfix compat
+            push @{$message->{metadata}}, "O$recdata";
+            next;
+          } elsif ($recdata =~ m/^To: /i) {
+            # RFC 822 unfold address field
+            $UnfoldBuffer = $recdata;
+            $InTo = 1;
+            next;
+          } elsif ($recdata =~ /^Received:/i) {
+             my $rcvdip = '127.0.0.1';
+             if ($recdata =~ /^Received: .+?\(.*?\[(?:IPv6:)?([0-9a-f.:]+)\]/i) {
+                 $rcvdip = $1;
+                 push @rcvdiplist, $rcvdip;
+                 MailScanner::Log::DebugLog("MSMail: ReadQf: ip = $rcvdip");
+            }
+            next;
+          } elsif ($recdata eq '') {
+            # Empty line signals end of header
+            $headerComplete = 1;
+            MailScanner::Log::DebugLog("MSMail: ReadQf: End of Header found");
+            next;
+          } elsif ($recdata =~ /^Subject:\s*(\S.*)?$/i) {
+              $message->{subject} = $1;
+              $InSubject = 1;
+              MailScanner::Log::DebugLog("MSMail: ReadQf: subject found");
+              next;
+          }
         } else {
-          # Line did not start with continuation character so we're not in Subj
-          $InSubject = 0;
+            # if we landed here, there's a body
+            $message->{nobody} = 0; 
+            MailScanner::Log::DebugLog("MSMail: ReadQf: body found");
+            last;
         }
-      }
-      #if ($recdata =~ /^Received: .+\[(\d+\.\d+\.\d+\.\d+)\]/i) {
-      #  unless ($read1strcvd) {
-      #    $ipfromheader = $1;
-      #    $read1strcvd = 1;
-      #  }
-      #  unless ($IPFound) {
-      #    $message->{clientip} = $1;
-      #    $IPFound = 1;
-      #  }
-      #} elsif ($recdata =~ /^Received: .+\[([\dabcdef.:]+)\]/i) {
-      # Linux adds "IPv6:" on the front of the IPv6 address, so remove it
-      if ($recdata =~ /^Received:/i) {
-        my $rcvdip = '127.0.0.1';
-        if ($recdata =~ /^Received: .+?\(.*?\[(?:IPv6:)?([0-9a-f.:]+)\]/i) {
-          $rcvdip = $1;
-          #unless ($read1strcvd) {
-          #  $ipfromheader = $1;
-          #  $read1strcvd = 1;
-          #}
-          #15 if ($getipfromheader && $getipfromheader <= @rcvdiplist) {
-          #15   $message->{clientip} = $rcvdiplist[$getipfromheader-1];
-          #15   $IPFound = 1;
-          #15 }
-          #unless ($IPFound) {
-          #  $message->{clientip} = $1;
-          #  $IPFound = 1;
-          #}
-        }#15  elsif (!$IPFound &&
-         #15         $getipfromheader==1 &&
-         #15         $recdata =~ /^Received: .+\(Postfix/i) {
-         #15  $message->{clientip} = '127.0.0.1';  #spoof local sender from localhost
-         #15  $rcvdip = '127.0.0.1';
-         #15  $IPFound = 1;
-        #15 }
-        push @rcvdiplist, $rcvdip;
-      }
     }
-    # Must remember to add empty "X" record after the message data.
-
-    # We are now at the end of the headers. Jump straight to the metadata
-    # after the message.
-#    seek $RQf, $MsgContSize+$DataOffset, 0;
-
-# Inelegant, but working. Instead of an efficient seek, we spinn through to
-# after X record. Unless we don't have a body to spin through. Also skip
-# the spin if we don't have any p records already (to not punish the normal
-# case). Don't spin if error found either.
-    if (!$message->{nobody} && $pRecordsFound && !$ErrorFound) {
-      while(($rectype, $recdata) = ReadRecord($RQf)) {
-        #print STDERR "Metadata type $rectype data \"$recdata\"\n";
-        if (!defined($rectype) or $rectype eq 'X') {
-	  $ErrorFound = 1 if(!defined($rectype));
-          last;
-        }
-        if ($rectype eq 'p') {
-	  # //Glenn 2007-01-16
-	  # Handle p records (GOTO like in-place edit thing) by reading
-	  # the pointed to data into the main message object, and
-	  # silently discarding the actual p record.
-	  # This p record should only point to a new body record, or
-	  # moved records of the same type already handled in this
-	  # segment, so lets just store the jumpoff point and loop.
-	  # When we hit the next p record it should be the "jump back to
-          # original pos" one, or another forward p record... so we'll
-	  # check that and act accordingly..
-	  next if ($recdata+0 == 0); # Ignore zero (placeholder) jumps
-	  if ($recdata+0 > $MaxpRecPos) {
-	      MailScanner::Log::WarnLog("p record handling: Attempt to jump beyond end of file, aborting file (for now).");
-	      $ErrorFound = 1;
-	      last;
-	  }
-	  if ($OriginalPos == 0) {
-	     # Jump to after E record and commence
-	     $OriginalPos = tell $RQf;
-	     seek $RQf, $recdata+0, 0; # jump. we should check this works.
-	     next;
-	  } else {
-	    # We're at the return point, or moving even furtehr away...
-	    if ($recdata+0 < $OriginalPos) {
-	       MailScanner::Log::WarnLog("p record handling: $recdata < $OriginalPos, this cannot be! Aborting this file.");
-	       #seek $RQf, $OriginalPos, 0; # jump back up. we should chk this.
-	       $OriginalPos = 0;
-	       @npos = ();
-	       $ErrorFound = 1;
-	       last;
-	    } else {
-	      seek $RQf, $recdata+0, 0; # jump back or forward. we should chk this works.
-              foreach $_ (@npos) {
-                if ($_+0 eq $recdata+0) {
-		    $ErrorFound = 1;
-		    last;
-	         }
-	      }
-              if ($ErrorFound) {
-		 MailScanner::Log::WarnLog("p record handling: Loop condition found, aborting file.");
-		 $OriginalPos = 0; # Reset to not fool next segment loop
-	         @npos = ();
-		 last;
-	      }
-	    }
-	  }
-	  push @npos, $recdata+0; # save jumpto position, for loop detection.
-        }
-      }
-      #print STDERR "\n\nErrorFound=$ErrorFound and rectype=$rectype\n\n";
-      # Found errors above, means the file isn't complete... remove it from the batch and return immediately.
-      if ($ErrorFound || $rectype ne 'X') {
-        #MailScanner::Log::WarnLog("No end-of-message record found in %s, " .
-        #                          "retrying", $message->{id});
-        # JKF 5/12/2005 This could fail with an unblessed reference error
-        # JKF 5/12/2005 so do it by hand.
-        # JKF 5/12/2005 $message->DropFromBatch();
-        $message->{deleted} = 1;
-        $message->{gonefromdisk} = 1; # Don't try to delete the original
-        $message->{store}->Unlock(); # Unlock it so other processes can pick it up
-        #20090421 $message->{abandoned} = 1; # JKF 20090301 This message was scrapped
-
-        return 0;
-      }
-    }
-    # "safety" seek, in case things go badly above. We also need to return "before" the X record, so that it is copied over below.
-    #my $CurrentPos = tell $RQf;
-    #print STDERR "MsgContSize+DataOffset = ",$MsgContSize+$DataOffset,"\nCuurentPos = ",$CurrentPos+0,"\n";
-    seek $RQf, $MsgContSize+$DataOffset, 0; # if ($MsgContSize+$DataOffset ne $CurrentPos+0);
-
-    # We are now in the metadata after the message.
-    #print STDERR "Reading post data\n";
-    while(($rectype, $recdata) = ReadRecord($RQf)) {
-      #print STDERR "Metadata type $rectype data \"$recdata\"\n";
-      if ($rectype eq 'E') {
-        push @{$message->{metadata}}, "$rectype$recdata";
-        $ERecordFound = 1;
-        last;
-      }
-      # JKF 20050621 Must only ever find 1 timestamp or the message is corrupt
-      if ($rectype eq 'T') {
-        if ($TIMEFound) {
-          $ErrorFound = 1;
-          last;
-        }
-        $TIMEFound = 1;
-      }
-      #JKF 20040322 if ($rectype eq 'R') {
-      if ($rectype eq 'O') {
-        # Recipient address
-        $recdata =~ s/^\<//;
-        $recdata =~ s/\<$//;
-        push @{$message->{to}}, lc($recdata);
-        push @{$message->{metadata}}, "$rectype$recdata";
-        $TOFound = 1;
-        $ORIGFound = 1;
-        #print STDERR "Post R Recip $recdata\n";
-      #JKF 20040322 } elsif ($rectype eq 'O') {
-      } elsif ($rectype eq 'R') {
-        # These recipients are used in the message handling in MS,
-        # but must be put back in the 'O' list in the new message.
-        # Original recipient address
-        $recdata =~ s/^\<//;
-        $recdata =~ s/\<$//;
-        $recdata = lc($recdata);
-        #push @{$message->{to}}, $recdata;
-        push @{$message->{to}}, lc($recdata) unless $ORIGFound;
-        push @{$message->{metadata}}, "$rectype$recdata";
-        #JKF 20040322 $message->{originalrecips}{"$recdata"} = 1;
-        $message->{postfixrecips}{"$recdata"} = 1;
-        $TOFound = 1;
-        #print STDERR "Post O Recip $recdata\n";
-      } elsif ($rectype eq 'p') {
-	# //Glenn 2007-01-16
-	# Handle p records (GOTO like in-place edit thing) by reading
-	# the pointed to data into the main message object, and
-	# silently discarding the actual p record.
-	# This p record should only point to added recipients, or
-	# moved records of the same type already handled in this
-	# segment, so lets just store the jumpoff point and loop.
-	# When we hit the next p record it should be the "jump back to
-        # original pos" one, or another forward p record... so we'll
-	# check that and act accordingly..
-	# I'm not sure this segment can have p records, but better
-	# safe than sorry.
-	next if ($recdata+0 == 0); # Ignore zero (placeholder) jumps
-	if ($recdata+0 > $MaxpRecPos) {
-	    MailScanner::Log::WarnLog("p record handling: Attempt to jump beyond end of file, aborting file (for now).");
-	    $ErrorFound = 1;
-	    last;
-	}
-	if ($OriginalPos == 0) {
-	   # Jump to after E record and commence
-	   $OriginalPos = tell $RQf;
-	   seek $RQf, $recdata+0, 0; # jump. we should check this works.
-	   next;
-	} else {
-	  # We're at the return point, or moving even further away...
-	  if ($recdata+0 < $OriginalPos) {
-	     MailScanner::Log::WarnLog("p record handling: $recdata < $OriginalPos, this cannot be! Aborting this file.");
-	     #seek $RQf, $OriginalPos, 0; # jump back up. we should chk this.
-	     $OriginalPos = 0;
-	     @npos = ();
-	     $ErrorFound = 1;
-	     last;
-	  } else {
-	    seek $RQf, $recdata+0, 0; # jump back or forward. we should chk this works.
-            foreach $_ (@npos) {
-              if ($_+0 eq $recdata+0) {
-		  $ErrorFound = 1;
-		  last;
-	       }
-	    }
-            if ($ErrorFound) {
-		  MailScanner::Log::WarnLog("p record handling: Loop condition found, aborting file.");
-		  $OriginalPos = 0; # Reset to not fool next segment loop
-	       @npos = ();
-		  last;
-	    }
-	  }
-	}
-	push @npos, $recdata+0; # save jumpto position, for loop detection.
-      } else {
-        # Some other record type. Just store it and move on.
-        push @{$message->{metadata}}, "$rectype$recdata";
-      }
-    }
-    #print STDERR "\n\nErrorFound=$ErrorFound and rectype=$rectype\n\n";
-    # Found errors above, means the file isn't complete... remove it from the batch and return immediately.
-    if ($ErrorFound) {
-      #MailScanner::Log::WarnLog("No end-of-message record found in %s, " .
-      #                          "retrying", $message->{id});
-      # JKF 5/12/2005 This could fail with an unblessed reference error
-      # JKF 5/12/2005 so do it by hand.
-      # JKF 5/12/2005 $message->DropFromBatch();
-      $message->{deleted} = 1;
-      $message->{gonefromdisk} = 1; # Don't try to delete the original
-      $message->{store}->Unlock(); # Unlock it so other processes can pick it up
-      #20090421 $message->{abandoned} = 1; # JKF 20090301 This message was scrapped
-
-      return 0;
-    }
-      
     # Remove all the duplicates from ->{to}
     my %uniqueto;
     foreach (@{$message->{to}}) {
       $uniqueto{$_} = 1;
     }
     @{$message->{to}} = keys %uniqueto;
-
-    # We now have all the pre-message records followed by the M record
-    # followed by the post-message records including the X record and the
-    # terminating E record. We can add recipient R records just before
-    # the last last metadata record (so we keep the E at the end).
-    # The message headers and body get put in just after the M record.
-
-    # Every postfix file should at least define the sender, 1 recipient and
-    # the IP address. Everything else is optional, and is preserved as
-    # MailScanner may not understand all the types of line.
-    #print STDERR "Found FROM\n" if $FROMFound;
-    #print STDERR "Found TO\n"   if $TOFound;
-    #print STDERR "Found IP\n"   if $IPFound;
-    #print STDERR "Successfully ReadQf!\n" if $FROMFound && $TOFound && $IPFound;
-
-    # If we didn't find an IP address, then put in 0.0.0.0 so that at least
-    # we have something there
 
     # There will always be at least 1 Received: header, even if 127.0.0.1
     push @rcvdiplist, '127.0.0.1' unless @rcvdiplist;
@@ -916,16 +530,6 @@ sub new {
     $getipfromheader = 1 if $getipfromheader<1;
     $message->{clientip} = $rcvdiplist[$getipfromheader-1];
     $IPFound = 1;
-    #print STDERR "Using IP " . $message->{clientip} . "\n";
-
-    #$message->{clientip} = '0.0.0.0' unless $IPFound;
-    # If we were told to get the IP address from the headers, and there was one
-    #$getipfromheader = @rcvdiplist if $getipfromheader>@rcvdiplist;
-    # If they wanted the 2nd Received from address, give'em element 1 of list
-    #$message->{clientip} = $rcvdiplist[$getipfromheader-1] if
-    #  $getipfromheader>0;
-    #$message->{clientip} = $ipfromheader
-    #  if $getipfromheader && $read1strcvd && $ipfromheader ne "";
 
     # Decode ISO subject lines into UTF8
     # Needed for UTF8 support in MailWatch 2.0
@@ -954,218 +558,132 @@ sub new {
       $TmpSubject =~ s/ {1,10}$//;
       $message->{subject} = $TmpSubject;
     }
-    #old $message->{subject} = MIME::WordDecoder::unmime($message->{subject});
 
-    # If we never found the E (end of message file) record, then
-    # Postfix is definitely still writing the message.
-    unless ($ERecordFound) {
-      MailScanner::Log::WarnLog("No end-of-message record found in %s, " .
-                                "retrying", $message->{id});
-      # JKF 5/12/2005 This could fail with an unblessed reference error
-      # JKF 5/12/2005 so do it by hand.
-      # JKF 5/12/2005 $message->DropFromBatch();
-      $message->{deleted} = 1;
-      $message->{gonefromdisk} = 1; # Don't try to delete the original
-      $message->{store}->Unlock(); # Unlock it so other processes can pick it up
-      #20090421 $message->{abandoned} = 1; # Retry this message as it was ditched
+    return 1 if $FROMFound && $TOFound; 
 
-      return 0;
-    }
-
-    #20090421 $message->{abandoned} = 1 if $ErrorFound; # Mark message as scrapped
-
-    return 1 if $FROMFound && $TOFound && !$ErrorFound; # && $IPFound;
-    #MailScanner::Log::WarnLog("Batch: Found invalid queue file for " .
-    #                          "message %s", $message->{id});
     return 0;
   }
 
-
-  # Read a Postfix record. These are structured as follows:
-  # First 1 byte to show the record type. These are nice easy-to-read ASCII.
-  # Then 1 or more bytes to show the length. These are encoded so that
-  # the bottom 7 bits of each byte hold length data, and the 8th (top) bit
-  # is 1 if there is another length byte. The most significant bytes are
-  # given first.
-  # Then 0 or more bytes of data. No terminator.
+  # Read a Message record. These are structured as follows:
+  # Plain old newline terminated message
   sub ReadRecord {
     my($fh) = @_;
-    my($type, $len, $shift, $len_byte, $data);
+    my($data);
 
-    # Get the record type
-    read $fh, $type, 1 or return (undef,undef);
-
-    # Get the length
-    $len = 0;
-    $shift = 0;
-    while (1) {
-      read $fh, $len_byte, 1 or return (undef, undef);
-      $len_byte = ord $len_byte;
-      if ($shift >= 39) {
-        MailScanner::Log::WarnLog("Postfix record too long in ReadRecord()");
-        return (undef, undef);
-      }
-      #print STDERR "ReadRecord: Got length byte $len_byte\n";
-      #sleep 1;
-      $len |= (($len_byte & 0x7F) << $shift);
-      last if ($len_byte & 0x80) == 0;
-      $shift += 7;
-    }
-
+    return undef if eof($fh);
+    
     # Get the data
     $data = "";
-    read $fh, $data, $len if $len;
-
-    $data =~ s/\0//g; # Remove any null bytes
-    #print STDERR "ReadRecord: $type \"$data\"\n";
-    return ($type, $data);
+    $data = readline $fh;
+    $data =~ s/\n//;
+  
+    return ($data);
   }
 
-  # Add all the message headers to the metadata so it's ready to be
-  # mangled and output to disk. Puts the headers at the end.
-  # Can be passed in a string containing all the headers.
-  # This is usually the output of stringify_output (MIME-Tools).
-  # JKF: @headers doesn't include leading "H" header indicator.
-  #      @metadata includes leading "H" but no \n characters.
-  #      The input to this function can be a "\n"-separated string of
-  #      new header lines. This is useful as the SpamCheck header can
-  #      be flowed over multiple lines, but still be passed into here
-  #      as a single header.
   sub AddHeadersToQf {
-    my $this = shift;
-    my($message, $headers) = @_;
+      my $this = shift;
+      my($message, $headers) = @_;
 
-    my($header, $h, @headerswithouth);
-    my($records, $pos);
+      my($header, $h, @headers);
+      my($records, $pos);
 
-    if ($headers) {
-      #print STDERR "AddHeadersToQf: Headers are $headers\n";
-      @headerswithouth = split(/\n/, $headers);
-    } else {
-      #print STDERR "AddHeadersToQf: Message-Headers are " .
-      #             join("\n", @{$message->{headers}}) . "\n";;
-      @headerswithouth = @{$message->{headers}};
-    }
+      if ($headers) {
+        @headers = split(/\n/, $headers);
+      } else {
+        @headers = @{$message->{headers}};
+      }
 
-    # Make complete records ready for insertion in the metadata
-    foreach (@headerswithouth) {
-      s/^/N/;
-    }
-
-    # Look through for the M record that indicates start of message.
-    # Insert each line of the headers as an N record just after that.
-    $pos = 0;
-    $pos++ while($message->{metadata}[$pos] !~ /^M/);
-    # $pos now points at M record
-    $pos++;
-    # Now at position to insert header records
-    #print STDERR "Adding headers at $pos\n";
-    splice @{$message->{metadata}}, $pos, 0, @headerswithouth;
-    #print STDERR "Metadata is now:\n" . join("\n", @{$message->{metadata}}) . "End of metadata\n";
+      # Add to end of metadata, skipping over postfix compat lines
+      foreach $header (@headers) {
+          push @{$message->{metadata}}, 'H' . $header;
+      }
   }
 
-  # Add a header. Needs to look for the position of the M record again
-  # so it knows where to insert it.
+  # Add a header to the message
   sub AddHeader {
-    my($this, $message, $newkey, $newvalue) = @_;
-
-    # Find the X record
-    my($pos);
-
-    # DKIM: This is for adding the header at the position of the first N record
-    # DKIM: Find the first N (or else the X as a safeguard)
-    if ($message->{newheadersattop}) {
-      $pos = 0;
-      while ($pos < $#{$message->{metadata}} &&
-             $message->{metadata}[$pos] !~ /^[NX]/) {
-        $pos++;
+      my($this, $message, $newkey, $newvalue) = @_;
+      
+      my($pos);
+  
+      # DKIM friendly add?
+      if ($message->{newheadersattop}) {
+          $pos = 0;
+          while ($pos < $#{$message->{metadata}} &&
+               $message->{metadata}[$pos] !~ /^H/) {
+               $pos++;
+          }
+      } else {
+           $pos = $#{$message->{metadata}};
       }
-    } else {
-      # DKIM: This is for adding the header at the end, pos-->X record
-      $pos = $#{$message->{metadata}};
-      $pos-- while ($pos >= 0 && $message->{metadata}[$pos] !~ /^X/);
-    }
-    #print STDERR "*** AddHeader $newkey $newvalue at position $pos\n";
 
-    # Need to split the new header data into the 1st line and a list of
-    # continuation lines, creating a new N record for each continuation
-    # line.
-    my(@lines, $line, $firstline);
-    @lines = split(/\n/, $newvalue);
-    $firstline = shift @lines;
-    # We want a list of N records
-    foreach (@lines) {
-      s/^/N/;
-    }
+      # Need to split the new header data into the 1st line and a list of
+      # continuation lines, creating a new N record for each continuation
+      # line.
+      my(@lines, $line, $firstline);
+      @lines = split(/\n/, $newvalue);
+      $firstline = shift @lines;
+      foreach (@lines) {
+        s/^/H/;
+      }
 
-    # Insert the lines at position $pos
-    splice @{$message->{metadata}}, $pos, 0, "N$newkey $firstline", @lines;
+      splice @{$message->{metadata}}, $pos, 0, "H$newkey $firstline", @lines;
   }
 
-  # Delete a header. Must be in an N line plus any continuation N lines
-  # that immediately follow it.
   sub DeleteHeader {
-    my($this, $message, $key) = @_;
+      my($this, $message, $key) = @_;
+      my $usingregexp = ($key =~ s/^\/(.*)\/$/$1/)?1:0;
 
-    my $usingregexp = ($key =~ s/^\/(.*)\/$/$1/)?1:0;
-
-    # Add a colon if they forgot it.
-    $key .= ':' unless $usingregexp || $key =~ /:$/;
-    # If it's not a regexp, then anchor it and sanitise it.
-    $key = '^' . quotemeta($key) unless $usingregexp;
-
-    my($pos, $line);
-    $pos = 0;
-    $pos++ while ($message->{metadata}[$pos] !~ /^M/);
-    # Now points at the M record
-    $pos++;
-    # Now points at first N record
-    while ($pos < @{$message->{metadata}}) {
-      $line = $message->{metadata}[$pos];
-      if ($line =~ s/^N//) {
-        unless ($line =~ /$key/i) {
-          $pos++;
-          next;
-        }
-        # We have found the start of 1 occurrence of this header
-        splice @{$message->{metadata}}, $pos, 1;
-        # Delete continuation lines
-        while($message->{metadata}[$pos] =~ /^N\s/) {
+      # Add a colon if they forgot it.
+      $key .= ':' unless $usingregexp || $key =~ /:$/;
+      # If it's not a regexp, then anchor it and sanitise it.
+      $key = '^' . quotemeta($key) unless $usingregexp;
+     
+      my($pos, $line);
+      $pos = 0;
+      $pos++ while ($message->{metadata}[$pos] !~ /^H/);
+      while ($pos < @{$message->{metadata}}) {
+          $line = $message->{metadata}[$pos];
+          if ($line =~ s/^H//) {
+              unless ($line =~ /$key/i) {
+                  $pos++;
+                  next;
+              }
+          }
+          # We have found the start of 1 occurrence of this header
           splice @{$message->{metadata}}, $pos, 1;
-        }
-        next;
+          # Delete continuation lines
+          while($message->{metadata}[$pos] =~ /^H\s/) {
+              splice @{$message->{metadata}}, $pos, 1;
+          }
+          next;
       }
-      $pos++;
-    }
   }
 
   sub UniqHeader {
-    my($this, $message, $key) = @_;
+      my($this, $message, $key) = @_;
 
-    my($pos, $foundat);
-    $pos = 0;
-    $pos++ while ($message->{metadata}[$pos] !~ /^M/);
-    # Now points at the M record
-    $pos++;
-    # Now points at first N record
-    $foundat = -1;
-    while ($pos < @{$message->{metadata}}) {
-      if ($message->{metadata}[$pos] =~ /^N$key/i) {
-        if ($foundat == -1) { # Skip 1st occurrence
-          $foundat = $pos;
+      my($pos, $foundat);
+      $pos = 0;
+      $pos++ while ($message->{metadata}[$pos] !~ /^H/);
+      $foundat = -1;
+      while ($pos < @{$message->{metadata}}) {
+          if ($message->{metadata}[$pos] =~ /^H$key/i) {
+              if ($foundat == -1) { # Skip 1st occurrence
+                  $foundat = $pos;
+                  $pos++;
+                  next;
+              }
+              # We have found the start of 1 occurrence of this header
+              splice @{$message->{metadata}}, $pos, 1;
+              # Delete continuation lines
+              while($message->{metadata}[$pos] =~ /^H\s/) {
+                 splice @{$message->{metadata}}, $pos, 1;
+              }
+              next;
+          }
           $pos++;
-          next;
-        }
-        # We have found the start of 1 occurrence of this header
-        splice @{$message->{metadata}}, $pos, 1;
-        # Delete continuation lines
-        while($message->{metadata}[$pos] =~ /^N\s/) {
-          splice @{$message->{metadata}}, $pos, 1;
-        }
-        next;
       }
-      $pos++;
-    }
+
   }
 
   sub ReplaceHeader {
@@ -1176,174 +694,137 @@ sub new {
     $this->AddHeader($message, $key, $newvalue);
   }
 
-  # Append to the end of a header if it exists.
   sub AppendHeader {
-    my($this, $message, $key, $newvalue, $sep) = @_;
+      my($this, $message, $key, $newvalue, $sep) = @_;
 
-    my($linenum, $oldlocation, $totallines);
+      my($linenum, $oldlocation, $totallines);
 
-    # Try to find the old header
-    $oldlocation = -1;
-    $totallines = @{$message->{metadata}};
+      # Try to find the old header
+      $oldlocation = -1;
+      $totallines = @{$message->{metadata}};
 
-    # Find the start of the header
-    for($linenum=0; $linenum<$totallines; $linenum++) {
-      last if $message->{metadata}[$linenum] =~ /^M/;
-    }
-    for($linenum++; $linenum<$totallines; $linenum++) {
-      next unless $message->{metadata}[$linenum] =~ /^N$key/i;
-      $oldlocation = $linenum;
-      last;
-    }
+       for($linenum=0; $linenum<$totallines; $linenum++) {
+          last if $message->{metadata}[$linenum] =~ /^H/;
+       }
 
-    # Didn't find it?
-    if ($oldlocation<0) {
-      $this->AddHeader($message, $key, $newvalue);
-      return;
-    }
+      for($linenum++; $linenum<$totallines; $linenum++) {
+        next unless $message->{metadata}[$linenum] =~ /^H$key/i;
+        $oldlocation = $linenum;
+        last;
+      }
 
-    # Find the last line of the header
-    do {
-      $oldlocation++;
-    } while($linenum<$totallines &&
-            $message->{metadata}[$oldlocation] =~ /^N\s/);
-    $oldlocation--;
+      # Didn't find it?
+      if ($oldlocation<0) {
+        $this->AddHeader($message, $key, $newvalue);
+        return;
+      }
+     
+      # Find the last line of the header
+      do {
+          $oldlocation++;
+      } while($linenum<$totallines &&
+          $message->{metadata}[$oldlocation] =~ /^H\s/);
+      $oldlocation--;
 
-    # Need to split the new header data into the 1st line and a list of
-    # continuation lines, creating a new N record for each continuation
-    # line.
-    my(@lines, $line, $firstline);
-    @lines = split(/\n/, $newvalue);
-    $firstline = shift @lines;
-    # We want a list of N records
-    foreach (@lines) {
-      s/^/N/;
-    }
-    # Add 1st line onto the end of the header
-    $message->{metadata}[$oldlocation] .= "$sep$firstline";
-    # Insert any continuation lines into the metadata just after the 1st line
-    splice @{$message->{metadata}}, $oldlocation+1, 0, @lines;
+      my(@lines, $line, $firstline);
+      @lines = split(/\n/, $newvalue);
+      $firstline = shift @lines;
+      foreach (@lines) {
+          s/^/H/;
+      }
+      $message->{metadata}[$oldlocation] .= "$sep$firstline";
+      splice @{$message->{metadata}}, $oldlocation+1,0, @lines;
   }
 
-  # Insert text at the start of a header if it exists.
   sub PrependHeader {
-    my($this, $message, $key, $newvalue, $sep) = @_;
+      my($this, $message, $key, $newvalue, $sep) = @_;
 
-    my($linenum, $oldlocation, $totallines);
+      my($linenum, $oldlocation, $totallines);
 
-    # Try to find the old header
-    $oldlocation = -1;
-    $totallines = @{$message->{metadata}};
+      # Try to find the old header
+      $oldlocation = -1;
+      $totallines = @{$message->{metadata}};
 
-    # Find the start of the header
-    for($linenum=0; $linenum<$totallines; $linenum++) {
-      last if $message->{metadata}[$linenum] =~ /^M/;
-    }
-    for($linenum++; $linenum<$totallines; $linenum++) {
-      next unless $message->{metadata}[$linenum] =~ /^N$key/i;
-      $oldlocation = $linenum;
-      last;
-    }
+      # Find the start of the header
+      for($linenum=0; $linenum<$totallines; $linenum++) {
+          last if $message->{metadata}[$linenum] =~ /^H/;
+      }
 
-    # Didn't find it?
-    if ($oldlocation<0) {
-      $this->AddHeader($message, $key, $newvalue);
-      return;
-    }
+      for($linenum++; $linenum<$totallines; $linenum++) {
+          next unless $message->{metadata}[$linenum] =~ /^H$key/i;
+          $oldlocation = $linenum;
+          last;
+      }
 
-    $message->{metadata}[$oldlocation] =~ s/^N$key\s*/N$key $newvalue$sep/i;
+      # Didn't find it?
+      if ($oldlocation<0) {
+         $this->AddHeader($message, $key, $newvalue);
+         return;
+       }
+
+       $message->{metadata}[$oldlocation] =~ s/^H$key\s*/H$key $newvalue$sep/i;
   }
 
   sub TextStartsHeader {
-    my($this, $message, $key, $text) = @_;
+      my($this, $message, $key, $text) = @_;
 
-    my($linenum, $oldlocation, $totallines);
+      my($linenum, $oldlocation, $totallines);
 
-    # Try to find the old header
-    $oldlocation = -1;
-    $totallines = @{$message->{metadata}};
+      # Try to find the old header
+      $oldlocation = -1;
+      $totallines = @{$message->{metadata}};
 
-    # Find the start of the header
-    for($linenum=0; $linenum<$totallines; $linenum++) {
-      last if $message->{metadata}[$linenum] =~ /^M/;
-    }
-    for($linenum++; $linenum<$totallines; $linenum++) {
-      next unless $message->{metadata}[$linenum] =~ /^N$key/i;
-      $oldlocation = $linenum;
-      last;
-    }
+      for($linenum=0; $linenum<$totallines; $linenum++) {
+          last if $message->{metadata}[$linenum] =~ /^H/;
+      }
 
-    # Didn't find it?
-    return 0 if $oldlocation<0;
+      for($linenum++; $linenum<$totallines; $linenum++) {
+        next unless $message->{metadata}[$linenum] =~ /^H$key/i;
+        $oldlocation = $linenum;
+        last;
+      }
 
-    return 1 if $message->{metadata}[$oldlocation] =~
-                                   /^N$key\s+\Q$text\E/i;
-    return 0;
+      # Didn't find it?
+      return 0 if $oldlocation<0;
+
+      return 1 if $message->{metadata}[$oldlocation] =~
+                                   /^H$key\s+\Q$text\E/i;
+      return 0;
   }
 
-  # BUG BUG BUG This contains a problem where it will not
-  # find the text on the end of a multi-line header. Need to
-  # flag multi-line headers so change the final regexp.
   sub TextEndsHeader {
-    my($this, $message, $key, $text) = @_;
+      my($this, $message, $key, $text) = @_;
+      my($linenum, $oldlocation, $lastline, $totallines);
 
-    my($linenum, $oldlocation, $lastline, $totallines);
+      # Try to find the old header
+      $oldlocation = -1;
+      $totallines = @{$message->{metadata}};
+      
+      for($linenum=0; $linenum<$totallines; $linenum++) {
+          last if $message->{metadata}[$linenum] =~ /^H/;
+      }
 
-    # Try to find the old header
-    $oldlocation = -1;
-    $totallines = @{$message->{metadata}};
+      for($linenum++; $linenum<$totallines; $linenum++) {
+        next unless $message->{metadata}[$linenum] =~ /^H$key/i;
+        $oldlocation = $linenum;
+        last;
+      }
 
-    # Find the start of the header
-    for($linenum=0; $linenum<$totallines; $linenum++) {
-      last if $message->{metadata}[$linenum] =~ /^M/;
-    }
-    for($linenum++; $linenum<$totallines; $linenum++) {
-      next unless $message->{metadata}[$linenum] =~ /^N$key/i;
-      $oldlocation = $linenum;
-      last;
-    }
+      # Didn't find it?
+      return 0 if $oldlocation<0;
 
-    # Didn't find it?
-    return 0 if $oldlocation<0;
+      # Find the last line of the header
+      $lastline = $oldlocation;
+      do {
+          $lastline++;
+      } while($lastline<$totallines &&
+            $message->{metadata}[$lastline] =~ /^H\s/);
+      $lastline--;
+      $key = '\s' unless $lastline == $oldlocation;
 
-    # Find the last line of the header
-    $lastline = $oldlocation;
-    do {
-      $lastline++;
-    } while($lastline<$totallines &&
-            $message->{metadata}[$lastline] =~ /^N\s/);
-    $lastline--;
-    $key = '\s' unless $lastline == $oldlocation;
-
-    return 1 if $message->{metadata}[$lastline] =~
-                                   /^N$key.+\Q$text\E$/i;
-    return 0;
-  }
-
-
-  # Add recipient R records to the end of the metadata, just before
-  # the terminating E record
-  sub AddRecipients {
-    my $this = shift;
-    my($message, @recips) = @_;
-
-    # Remove all the duplicates @recips
-    my %uniqueto;
-    foreach (@recips) {
-      $uniqueto{$_} = 1;
-    }
-    @recips = keys %uniqueto;
-
-    my $totallines = @{$message->{metadata}};
-
-    foreach (@recips) {
-      s/^/R/;
-    }
-
-    # Changed 2 to 1 in next line for Postfix 2.1
-    splice @{$message->{metadata}}, $totallines-1, 0, @recips;
-    #print STDERR "AddRecipients: " . join(',',@recips) . "\n";
-    #print STDERR "metadata is \"" . join("\n", @{$message->{metadata}}) . "\n";
+      return 1 if $message->{metadata}[$lastline] =~
+                                   /^H$key.+\Q$text\E$/i;
+      return 0;
   }
 
   # Delete the original recipients from the message. We'll add some
@@ -1368,160 +849,236 @@ sub new {
       $linenum--; # Study the same line again
     }
   }
-
-  # Send an I down the FIFO to the Postfix queue manager, so that it reads
-  # its incoming queue.
-  # I am passed a hash of queues --> space-separated string of message ids
+  
+  
   sub KickMessage {
-    my($queue2ids, $sendmail2) = @_;
-    my($queue);
+      my($queue2ids, $sendmail2) = @_;
+      my($queue);
+      my(@Files);
+      my($queuedir);
+      my($queuedirname);
+      my($file);
+      my($sendmail);
+      my($queuehandle);
+      my($line);
+      my($recipient);
+      my $recipientfound = 0;
+      my($sender);
+      my $messagesent = 0;
+      my $InFrom = 0;
+      my $response = '';
+      my $orgname = MailScanner::Config::DoPercentVars('%org-name%');
+      my $port = MailScanner::Config::Value('msmailrelayport');
+      my $address = MailScanner::Config::Value('msmailrelayaddress');
 
-    # Do a kick for every queue that contains some message ids
-    foreach $queue (keys %$queue2ids) {
-      next unless $queue2ids->{$queue};
+      MailScanner::Log::DebugLog("MSMail: KickMessage:\n org = $orgname\n port = $port\n address = $address");
+      foreach $queue (keys %$queue2ids) {
+          next unless $queue2ids->{$queue};
+          $queuedir  = new DirHandle;
+          unless (chdir $queue) {
+              MailScanner::Log::WarnLog("Cannot cd to dir %s to kick messages, %s",
+                                    $queue, $!);
+          }
 
-      my $pf_dir = $queue;
-      $pf_dir =~ s/[^\/]+$/public/;
-      $pf_dir = $pf_dir.'/qmgr';
+          $queuedir->open('.')
+              or MailScanner::Log::DieLog("Cannot open queue dir %s for kicking messages " .
+                                      "message batch, %s", $queue, $!);
+          while(defined($file = $queuedir->read())) {
+              next if $file eq '.' || $file eq '..';
+              push @Files, $file;
+          }
+          # Should be only one queuedir in this setup
+          $queuedirname = $queue;
+          $queuedir->close;
 
-      if(-S $pf_dir){
-      	# UNIX
-	  	my $fh = IO::Socket::UNIX->new( Type => SOCK_STREAM, Peer => $pf_dir, ) or
-		MailScanner::Log::WarnLog("KickMessage could not write to UNIX > $pf_dir");
-		print $fh "I";
-		close $fh;	
-	  }elsif(-p $pf_dir){
-	  	# FIFO
-		open(my $fh, '>', $pf_dir) or
-		MailScanner::Log::WarnLog("KickMessage could not write to FIFO > $pf_dir");
-		print $fh "I";
-		close $fh;
-	  }else{
-	  	MailScanner::Log::WarnLog("Unable to determine socket type (FIFO/UNIX) > $pf_dir");
-	  }
-    }
-    return 0;
+      }
+
+      $queuehandle = new FileHandle();
+
+      foreach $file (@Files) {
+          my $filename = $file;
+          my $file = $queuedirname . '/' . $file;
+          # Open file
+          my $ret = MailScanner::Lock::openlock($queuehandle,'+<' . $file, 'w');
+          if ($ret != 1) {
+              MailScanner::Log::WarnLog("Cannot open $file for relaying, will try again later");
+              next;
+          }
+          $recipientfound = 0;
+          # Correct recipient is the recipient in Received header from milter
+          while(!eof($queuehandle)) {
+              $line = readline $queuehandle;
+              $line =~ s/\n//;
+              if ($line =~ m/^\s+for / && $recipientfound == 0) {
+                  $line =~ s/^\s+for//;
+                  $line =~ s/^.*\<//;
+                  $line =~ s/^\<//;
+                  $line =~ s/\>.*$//;
+                  $line =~ s/\>$//;
+                  $recipient = $line;
+                  $recipientfound = 1;
+                  MailScanner::Log::DebugLog("MSMail: KickMessage: recipient = $recipient");
+                  next;
+              # Use envelope sender
+              } elsif ($line =~ /^X-$orgname-MailScanner-Milter-Mail-From: /) {
+                  $line =~ s/^X-$orgname-MailScanner-Milter-Mail-From: //;
+                  $sender = $line;
+                  MailScanner::Log::DebugLog("MSMail: KickMessage: sender = $sender");
+                  last;
+              } elsif ($line eq '') {
+                    MailScanner::Log::DebugLog("MSMail: KickMessage: found end of header");
+                    # At end of header, bail out
+                    last;
+              }
+          }
+
+          # This is dangerous! Just left here for reference
+          # no return code other than 0 is returned
+          # my $ret = system("$sendmail -G -i " . $recipient . " < " . $file);
+          # Success ????, delete message :O
+          # unlink $file;
+
+          # This is the safe approach using SMTP protocol for relay
+          # If relay bombs out or doesn't respond, messages are preserved
+          # and tried again on next attempt
+          if ($recipientfound) {
+              $messagesent = 0;
+              my $socket = new IO::Socket::INET (
+                  PeerHost => $address,
+                  PeerPort => $port,
+                  Proto => 'tcp',
+              );
+        
+              if(!defined($socket)) {
+                  MailScanner::Log::WarnLog("Cannot connect to Socket at $address on port $port, is MTA running?");
+                  MailScanner::Lock::unlockclose($queuehandle);
+                  last;
+              }
+              
+              my $server = hostfqdn();
+              if(!defined($server)) {
+                  MailScanner::Log::WarnLog("Cannot determine local fqdn! Unable to kick messages.");
+                  MailScanner::Lock::unlockclose($queuehandle);
+                  last;
+              }
+              $response = '';
+              $socket->recv($response, 1024);
+              if ($response =~ /^220/) {
+                 MailScanner::Log::DebugLog("MSMail: KickMessage: Connect success 220 received");
+
+                  my $req = 'ehlo ' . $server . "\n";
+                  $socket->send($req);
+    
+                  $socket->recv($response, 1024);
+                  if ($response =~ /^250/) {
+                      MailScanner::Log::DebugLog("MSMail: KickMessage: ehlo success 250 received");
+                      # ehlo receive success
+                      $req = 'MAIL FROM: ' . $sender . "\n";
+                      $socket->send($req);
+                      $socket->recv($response, 1024);
+                      if ($response =~ /^250/) {
+                          MailScanner::Log::DebugLog("MSMail: KickMessage: MAIL FROM success 250 received");
+                          # From received success
+                          $req = 'RCPT TO: ' . $recipient . "\n";
+                          $socket->send($req);
+                          $socket->recv($response, 1024);
+                          if ($response =~ /^250/ ) {
+                              MailScanner::Log::DebugLog("MSMail: KickMessage: RCPT TO success 250 received");
+                              # Rcpt To success
+                              $req='DATA' . "\n";
+                              $socket->send($req);
+                              $socket->recv($response, 1024);
+                              if ($response =~ /^354/ ) {
+                                  MailScanner::Log::DebugLog("MSMail: KickMessage: DATA success 354 received");
+                                  # Ready to send data
+                                  # Position at start of message
+                                  seek $queuehandle, 0, 0;
+    
+                                  while(!eof($queuehandle)) {
+                                      $req = readline $queuehandle;
+                                      # rfc 5321, section 4.5.2
+                                      # Handle dots in DATA \./ :D
+                                      if ($req =~ /^\./) {
+                                          $req = '.' . $req;
+                                      }
+                                      $socket->send($req);
+                                  }
+                                  $req = "\r\n.\r\n";
+                                  $socket->send($req);
+    
+                                  $socket->recv($response, 1024);
+                                  if ($response =~ /^250/ && !($response =~ /Error/)) {
+                                      MailScanner::Log::DebugLog("MSMail: KickMessage: Message send successful");
+                                      $messagesent = 1;
+                                  } 
+                              }   
+                          }
+                      }
+                  }
+              }
+              $socket->close();
+          }
+          # Test reject logging
+          # $messagesent = 0;
+          if ($messagesent == 0) {
+              # Look for a rejection
+              # Debug rejection process
+              # $response = "450 1.2.3 This is a test reject";
+              if ($response =~ /^450/) {
+                 # Something went wrong cannot deliver message
+                 # Prefix email with Reject header to flag for quarantine
+                 MailScanner::Log::WarnLog("Unable to kick message $file, rejected by local relay, quarantining message");
+                 seek $queuehandle, 0, 0;
+                 # Open a new file in inbound queue
+                 my $inqueuedir = MailScanner::Config::Value('inqueuedir');
+                 my $test = @{$inqueuedir}[0] . '/' . $filename;
+                 my $queuehandle2 = new FileHandle;
+                 my $ret = MailScanner::Lock::openlock($queuehandle2,'>' . $test, 'w');
+                 if ($ret != 1) {
+                     MailScanner::Log::WarnLog("Unable to requeue message rejected by relay, will try again later");
+                     MailScanner::Lock::unlockclose($queuehandle);
+                 } else {
+                     MailScanner::Log::DebugLog("MSMail: KickMessage: Message rejected! Requeuing to quarantine.");
+                     $response =~ s/\r\n.*$//;
+                     $response =~ s/\n.*$//;
+                     $response =~ s/\n//;
+                     $queuehandle2->print('X-'. $orgname . '-MailScanner-Relay-Reject: ' . $response . "\n");
+                     while(!eof($queuehandle)) {
+                         $line = readline $queuehandle;
+                         $queuehandle2->print($line);
+                     }
+                     MailScanner::Lock::unlockclose($queuehandle);
+                     unlink $file;
+                     $queuehandle2->flush();
+                     MailScanner::Lock::unlockclose($queuehandle2);
+                     $queuehandle2=undef;
+                     next;
+                 }
+             }
+ 
+             MailScanner::Log::WarnLog("Unable to kick message $file, will retry soon...");
+             MailScanner::Lock::unlockclose($queuehandle);
+         } else {
+              # Delivered :D
+              MailScanner::Lock::unlockclose($queuehandle);
+              unlink $file;
+         }
+      }
   }
 
-  # Does not exist in Postfix as there is only 1 file per message.
-  #sub CreateQf {
-  #  my($message) = @_;
-  #
-  #  return join("\n", @{$message->{metadata}}) . "\n\n";
-  #}
-
-  # Produce a string containing everything that goes before the first
-  # N record of the message, including all the headers and the separator
-  # line.
+  # Unused in MSMail, just return
   sub PreDataString {
-    #my $this = shift;
-    my($message) = @_;
-
-    my($linenum, $result, $type, $data, $to, $preNlen);
-    my $TimestampFound = 0;
-
-    #print STDERR "In PreDataString\n";
-    # Output all the metadata records up until (& including) the M record.
-    $linenum = 0;
-    $result  = '';
-    foreach (@{$message->{metadata}}) {
-      /^(.)(.*)$/;
-      ($type, $data) = ($1, $2);
-      $TimestampFound++ if $type eq 'T'; # Must only ever have 1 timestamp
-      #print STDERR "PreData1 Type $type Data $data\n";
-      last if $type eq 'M';
-      $result .= Record2String($type, $data);
-      # Make the S record appear just after the T record
-      # as that's where Postfix likes to see it.
-      $result .= Record2String('S', $message->{from}) if $type eq 'T';
-      #print STDERR "PreData $type $data\n";
-      $linenum++;
-    }
-    # The recipients are already in the pre-message string.
-    ## Add the recipients
-    ## If there is more than 1 recipient, then place original recips in the
-    ## 'O' list. If only 1 then just put it in an 'R' record.
-    #if (scalar(@{$message->{to}}) > 1 && defined($message->{originalrecips})) {
-    #  # There are several recips and there is an originalrecips list
-    #  my $RecordType;
-    #  foreach $to (@{$message->{to}}) {
-    #    $RecordType = $message->{originalrecips}{"$to"}?'O':'R';
-    #    $result .= Record2String($RecordType, $to);
-    #  }
-    #} else {
-    #  foreach $to (@{$message->{to}}) {
-    #    $result .= Record2String('R', $to);
-    #  }
-    #}
-
-    # Add the M record to mark the start of the headers
-    $result .= Record2String('M', $data);
-    $linenum++;
-
-    # Store the length of th estring so far as we need to return it
-    $preNlen = length($result);
-
-    my $totallines = scalar(@{$message->{metadata}});
-    # Add the headers
-    for ($linenum=$linenum; $linenum<$totallines; $linenum++) {
-      #$_ = $message->{metadata}[$linenum];
-      $message->{metadata}[$linenum] =~ /^(.)(.*)$/;
-      ($type, $data) = ($1, $2);
-      #print STDERR "PreData2 Type $type Data $data\n";
-      last if $type eq 'X';
-      $result .= Record2String($type, $data);
-      #print STDERR "Pre $type $data\n";
-    }
-
-    # Add the header-body separator line if there is a message body
-    #print STDERR "No body flag is " . $message->{nobody} . "\n";
-    $result .= Record2String('N', "") unless $message->{nobody};
-
-    #print STDERR "Result of PreDataString is $result\n";
-    # Return the string and the length of the data before any N records
-    return ($result, $preNlen, $TimestampFound);
+      return;
   }
 
+  # Unused in MSMail, just return
   sub PostDataString {
-    #my $this = shift;
-    my($message) = @_;
-
-    my($result, $type, $data);
-    my($record, $recordnum);
-    my $TimestampFound = 0;
-    $result = Record2String('X', "");
-
-    $recordnum = @{$message->{metadata}} - 1;
-    $recordnum-- while($message->{metadata}[$recordnum] !~ /^X/);
-    for($recordnum++; $recordnum<@{$message->{metadata}}; $recordnum++) {
-      $record = $message->{metadata}[$recordnum];
-      $record =~ /^(.)(.*)$/;
-      ($type, $data) = ($1, $2);
-      $result .= Record2String($type, $data);
-      $TimestampFound++ if $type eq 'T';
-      #print STDERR "Post $type $data\n";
-    }
-
-    return($result, $TimestampFound);
+      return;
   }
 
-
+  # Unused in MSMail, just return
   sub Record2String {
-    my($rectype, $recdata) = @_;
-
-    return "" if $rectype eq ""; # Catch empty records
-
-    my($result, $len_byte, $len_rest);
-    $result = "";
-    $result .= $rectype;
-
-    $len_rest = length($recdata);
-    do {
-        $len_byte = $len_rest & 0x7F;
-        $len_byte |= 0x80 if $len_rest >>= 7;
-        $result .= pack 'C', $len_byte;
-    } while ($len_rest != 0);
-    $result .= $recdata;
+      return;
   }
 
 
@@ -1875,10 +1432,6 @@ sub FindHashDirDepth {
         # If they want a particular message id, ignore it if it doesn't match
         next if $onlyid ne "" && $idtemp ne $onlyid;
 
-        #my $id = $idtemp . sprintf(".%05X", int(rand 1000000)+1);
-        # Don't put a random number on the end, put a reasonable hash of
-        # the file on the end.
-        # JKF 20090423 Add a "P" in the middle of so it cannot be a number.
         # Don't do this with long queue ids
         # Apply to short queue ids
         my $id;
@@ -1887,6 +1440,7 @@ sub FindHashDirDepth {
         } else {
             $id = $idtemp;
         }
+
         #print STDERR "ID = $id\n";
         my $idorig = $idtemp;
 
@@ -2106,5 +1660,4 @@ sub CheckQueueIsFlat {
   # directory structure.
   return 1;
 }
-
 1;
