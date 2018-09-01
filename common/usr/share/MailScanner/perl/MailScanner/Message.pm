@@ -632,7 +632,7 @@ sub IsSpam {
     MailScanner::Log::InfoLog("Valid Watermark HASH found in Message %s Header, skipping Spam Checks", $this->{id}); 
     return 0;
   }
-  
+
   # MailScanner NULL sender mods
   if ($this->{mshmacnullpresent} && $this->{mshmacnullvalid}) {
     MailScanner::Log::InfoLog("Message %s from %s has valid watermark",
@@ -3309,7 +3309,7 @@ sub UnpackRar {
   # Escape spaces in filename
   # $zipname =~ s/\ /\\\ /g;
 
-  MailScanner::Log::WarnLog("UnPackRar Testing : %s", $zipname);
+  #MailScanner::Log::WarnLog("UnPackRar Testing : %s", $zipname);
   # Unrar Version 4x file parse
   if ($UnrarVersion >= 4.0 && $UnrarVersion < 5.0) {
 
@@ -3431,7 +3431,7 @@ sub UnpackRar {
     # Have to parse the output from the 'vt' command
     foreach $what (@test) {
       #print STDERR "Processing \"$what\"\n";
-      MailScanner::Log::WarnLog("UnPackRar Processing : %s", $what);
+      #MailScanner::Log::WarnLog("UnPackRar Processing : %s", $what);
       $what =~ s/^\s+|\s+$//mg;
 
       # compatibility with "unrar vta"
