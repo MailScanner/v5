@@ -462,7 +462,7 @@ BEGIN {
         
         my $children = MailScanner::Config::Value('miltermaxchildren');
         my $user = MailScanner::Config::Value('runasuser');
-        my $group = MailScanner::Config::Value('incomingworkgroup');
+        my $group = MailScanner::Config::Value('workgroup');
         my $bind = MailScanner::Config::Value('milterbind');
         my $port = MailScanner::Config::Value('milterport');
 

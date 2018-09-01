@@ -480,7 +480,7 @@ sub new {
             next unless $recdata ne '';
             $TOFound = 1;
             $ORIGFound = 1;
-            MailScanner::Log::DebugLog("MSMail: mail from = $recdata");
+            MailScanner::Log::DebugLog("MSMail: ReadQf: mail from = $recdata");
             # Postfix compat
             push @{$message->{metadata}}, "O$recdata";
             next;
@@ -505,7 +505,7 @@ sub new {
           } elsif ($recdata =~ /^Subject:\s*(\S.*)?$/i) {
               $message->{subject} = $1;
               $InSubject = 1;
-              MailScanner::Log::DebugLog("MSMail: subject found");
+              MailScanner::Log::DebugLog("MSMail: ReadQf: subject found");
               next;
           }
         } else {
