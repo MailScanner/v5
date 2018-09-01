@@ -18,6 +18,7 @@
 #	Release: 	https://www.mailscanner.info/downloads
 #	Github: 	https://github.com/MailScanner/v5
 # 	Manual: 	https://s3.amazonaws.com/msv5/docs/ms-admin-guide.pdf
+#	Milter: 	https://github.com/MailScanner/v5/blob/master/doc/MailScanner%20Milter%20Guide.pdf
 # 	Support: 	http://lists.mailscanner.info/mailman/listinfo/mailscanner
 #
 #	Install
