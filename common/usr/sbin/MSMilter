@@ -330,11 +330,8 @@ sub eom_callback
         # Write beginning of second received header
         $queuehandle->print($buffer2);
 
-        # Add header info up to this point
-        while (${$message_ref} =~ /(.*)\n?/g) {
-           my $line = $1;
-           $queuehandle->print($line . "\n");
-        }
+        # Write rest of message to disk in single write
+        $queuehandle->print(${$message_ref});
 
         $queuehandle->flush();
         MailScanner::Lock::unlockclose($queuehandle);
