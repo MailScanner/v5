@@ -206,6 +206,17 @@ my %Scanners = (
     SupportScanning	=> $S_SUPPORTED,
     SupportDisinfect	=> $S_SUPPORTED,
   },
+  "drweb"   => {
+      Name		=> 'DrWeb',
+      Lock                => 'drwebBusy.lock',
+      CommonOptions       => '',
+      DisinfectOptions    => '-cu',
+      ScanOptions         => '',
+      InitParser          => \&InitDrwebParser,
+      ProcessOutput       => \&ProcessDrwebOutput,
+      SupportScanning     => $S_SUPPORTED,
+      SupportDisinfect    => $S_NONE,
+    },
 );
 
 # Initialise the Sophos SAVI library if we are using it.
@@ -1161,6 +1172,11 @@ sub InitEsetsParser {
   ;
 }
 
+# Initialise any state variables the DrWeb output parser uses
+sub InitDrwebParser {
+  ;
+}
+
 # These functions must be called with, in order:
 # * The line of output from the scanner
 # * The MessageBatch object the reports are written to
@@ -1879,6 +1895,39 @@ sub ProcessEsetsOutput {
   $infections->{"$id"}{"$part"} .= $report . "\n";
   $types->{"$id"}{"$part"} .= "v"; # it's a real virus
   MailScanner::Log::InfoLog("Esets::INFECTED::$threat");
+  return 1;
+}
+
+# Parse the output of the DrWeb output.
+# Konrad Madej <kmadej@nask.pl>
+# Modified 2018-09-28 - Alan Urquhart <alan@asuweb.co.uk>
+sub ProcessDrwebOutput {
+  my($line, $infections, $types, $BaseDir, $Name) = @_;
+  my $report;
+  chomp $line;
+  return 0 unless $line =~ /^(.+)\s+infected\s+with\s+(.*)$/i;
+  my ($file, $virus) = ($1, $2);
+  my $logout = $line;
+  $logout =~ s/\s{20,}/ /g;
+  # Sample output:
+  #
+  # /var/spool/MailScanner/incoming/19551/1/neicar.com - infected with EICAR Test File (NOT a Virus!)
+  # Remove path elements before /./, // if any and
+  # , >, $BaseDir leaving just id/part/rest
+  $file =~ s/\/\.\//\//g;
+  $file =~ s/\/\//\//g;
+  $file =~ s/^>+//g;
+  $file =~ s/^$BaseDir//;
+  $file =~ s/^\///g;
+  my($id, $part, @rest) = split(/\//, $file);
+  #Removed trailing "-" which causes MailScanner to print empty string
+  $part = substr $part,0,-2;
+  my $notype = substr($part,1);
+  $logout =~ s/\Q$part\E/$notype/;
+  $report = $Name . ': ' if $Name;
+  $infections->{"$id"}{"$part"} .= "$report$notype was infected by $virus" . "\n";
+  $types->{"$id"}{"$part"} .= "v"; # it's a real virus
+  MailScanner::Log::InfoLog("DrWeb::INFECTED::$virus");
   return 1;
 }
 
