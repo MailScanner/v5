@@ -1,0 +1,35 @@
+#!/bin/sh
+
+#
+# DrWeb wrapper
+# 2003-11-13 Konrad Madej <kmadej@nask.pl>
+# 2018-09-28 Alan Urquhart <alan@asuweb.co.uk> - Modified for MailScanner v5
+#
+
+PackageDir=$1
+shift
+prog=drweb-ctl
+
+if [ "x$1" = "x-IsItInstalled" ]; then
+  [ -x ${PackageDir}/$prog ] && exit 0
+  exit 1
+fi
+
+# Remove last arg (subdir) from options
+for i in $@
+do
+  if [ -n "$last" ]
+  then
+    if [ -n "$opts" ]
+    then
+      opts="$opts $last"
+    else
+      opts="$last"
+    fi
+  fi
+  last=$i
+done
+subdir=$last
+
+echo exec $PackageDir/$prog $opts scan "$subdir"
+exec $PackageDir/$prog $opts scan "$subdir"
