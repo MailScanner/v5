@@ -24,6 +24,9 @@
 #   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 
+#OS Name
+OSType=`/usr/bin/env uname -s`
+
 # this passed from the CLI
 # ./scanner-wrapper /path/to/av/bin /thing/to/scan
 ClamScan=$1/bin/clamscan
@@ -144,7 +147,11 @@ fi
 [ -d ${IWD} ] || mkdir -p ${IWD}
 
 # create our working tmp directory in the base tmp directory
-TempDir=`mktemp -d --tmpdir=${IWD}`
+if [ "${OSType}" = "FreeBSD" ]; then
+    TempDir=`TMPDIR=${IWD} mktemp -d`
+else
+    TempDir=`mktemp -d --tmpdir=${IWD}`
+fi
 
 # In case we get interupted....
 trap "rm -rf ${TempDir}" EXIT
