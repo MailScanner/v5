@@ -257,11 +257,6 @@ if [ -d '/etc/clamav' ]; then
 			
 		# add to include for clamd
 		if [ -f '/etc/apparmor.d/local/usr.sbin.clamd' ]; then
-			DEFAULTAPPARMOR='#include <local\/usr.sbin.clamd>';
-			APPARMORFIX=' include local\/usr.sbin.clamd';
-
-			# enable include directory
-			sed -i "s/${DEFAULTAPPARMOR}/${APPARMORFIX}/g" /etc/apparmor.d/usr.sbin.clamd
 			echo '/var/spool/MailScanner/incoming/** krw,' > /etc/apparmor.d/local/usr.sbin.clamd
 			echo '/var/spool/MailScanner/incoming/** ix,' >> /etc/apparmor.d/local/usr.sbin.clamd
 			
