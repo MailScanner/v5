@@ -1361,7 +1361,7 @@ sub new {
       # Thanks to Holger Gebhard for this.
       #BUGGY: next unless $message->{metadata}[$linenum] =~ /^[ARO].+@(?:\w|-|\.)+\.\w{2,})/;
       #next unless $message->{metadata}[$linenum] =~ /^[ARO]/;
-      next unless $message->{metadata}[$linenum] =~ /^[ARO].+@(?:\w|-|\.)+\.\w{2,}/;
+      next unless $message->{metadata}[$linenum] =~ /^[ARO].+\@[a-zA-Z0-9\-.]+/;
       # Have found the right line
       #print STDERR "Deleting recip " . $message->{metadata}[$linenum] . "\n";
       splice(@{$message->{metadata}}, $linenum, 1);
