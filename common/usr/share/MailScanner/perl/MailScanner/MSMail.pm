@@ -400,8 +400,34 @@ sub new {
     # between me opening it and locking it.
     seek $RQf, 0, 0;
 
-    # Read records until we hit the start of the message M record
-    #print STDERR "Reading pre data\n";
+    # Read milter original recipient headers until we hit the start of the message header
+    my $pos - 0;
+    while($recdata = ReadRecord($RQf)) {
+        if ($recdata =~ /^O/) {
+            # Recipient address
+            $recdata =~ s/^O//;
+            $recdata =~ s/^.*\<//;
+            $recdata =~ s/^\<//;
+            $recdata =~ s/\>.*$//;
+            $recdata =~ s/\>$//;
+            # If recipient is empty only add metadata
+            push @{$message->{to}}, lc($recdata);
+            next unless $recdata ne '';
+            $TOFound = 1;
+            $ORIGFound = 1;
+            MailScanner::Log::DebugLog("MSMail: ReadQf: orig rcpt = $recdata");
+            # Postfix compat
+            push @{$message->{metadata}}, "O$recdata";
+            $pos = tell $RQf
+        } else {
+            last;
+        }
+    }
+
+    # Seek to previous line
+    seek $RQf, $pos, 0;
+
+    # Read records until we hit the start of the message record
     my $headerComplete = 0;
     while($recdata = ReadRecord($RQf)) {
        if ($headerComplete == 0) {
@@ -468,23 +494,7 @@ sub new {
                 }
             }
             next;
-          } elsif ($recdata =~ m/^\s+for / && $ORIGFound == 0 ) {
-            # Recipient address
-            $recdata =~ s/^\s+for//;
-            $recdata =~ s/^.*\<//;
-            $recdata =~ s/^\<//;
-            $recdata =~ s/\>.*$//;
-            $recdata =~ s/\>$//;
-            # If recipient is empty only add metadata
-            push @{$message->{to}}, lc($recdata);
-            next unless $recdata ne '';
-            $TOFound = 1;
-            $ORIGFound = 1;
-            MailScanner::Log::DebugLog("MSMail: ReadQf: mail from = $recdata");
-            # Postfix compat
-            push @{$message->{metadata}}, "O$recdata";
-            next;
-          } elsif ($recdata =~ m/^To: /i) {
+         } elsif ($recdata =~ m/^To: /i) {
             # RFC 822 unfold address field
             $UnfoldBuffer = $recdata;
             $InTo = 1;
@@ -827,29 +837,15 @@ sub new {
       return 0;
   }
 
-  # Delete the original recipients from the message. We'll add some
-  # using AddRecipients later.
+  # Unused in MSMail
   sub DeleteRecipients {
-    my $this = shift;
-    my($message) = @_;
-
-    #print STDERR "Deleting Recipients!\n";
-    my($linenum);
-    for ($linenum=0; $linenum<@{$message->{metadata}}; $linenum++) {
-      # Looking for "recipient" lines
-      # Should allow 'O' here as well
-      # JKF 30/08/2006 next unless $message->{metadata}[$linenum] =~ /^[RO]/;
-      # Thanks to Holger Gebhard for this.
-      #BUGGY: next unless $message->{metadata}[$linenum] =~ /^[ARO].+@(?:\w|-|\.)+\.\w{2,})/;
-      #next unless $message->{metadata}[$linenum] =~ /^[ARO]/;
-      next unless $message->{metadata}[$linenum] =~ /^[ARO].+@(?:\w|-|\.)+\.\w{2,}/;
-      # Have found the right line
-      #print STDERR "Deleting recip " . $message->{metadata}[$linenum] . "\n";
-      splice(@{$message->{metadata}}, $linenum, 1);
-      $linenum--; # Study the same line again
-    }
+      return;
   }
-  
+
+  # Unused in MSMail
+  sub AddRecipients {
+      return;
+  }
   
   sub KickMessage {
       my($queue2ids, $sendmail2) = @_;
@@ -861,7 +857,7 @@ sub new {
       my($sendmail);
       my($queuehandle);
       my($line);
-      my($recipient);
+      my @recipient;
       my $recipientfound = 0;
       my($sender);
       my $messagesent = 0;
@@ -905,22 +901,32 @@ sub new {
               next;
           }
           $recipientfound = 0;
-          # Correct recipient is the recipient in Received header from milter
+          # Read original recipients in pre-data header
+          my $msgstart = 0;
           while(!eof($queuehandle)) {
               $line = readline $queuehandle;
               $line =~ s/\n//;
-              if ($line =~ m/^\s+for / && $recipientfound == 0) {
-                  $line =~ s/^\s+for//;
-                  $line =~ s/^.*\<//;
-                  $line =~ s/^\<//;
-                  $line =~ s/\>.*$//;
-                  $line =~ s/\>$//;
-                  $recipient = $line;
+              if ($line =~ m/^O/) {
+                  $line =~ s/^O//;
+                  push @recipient, $line;
                   $recipientfound = 1;
-                  MailScanner::Log::DebugLog("MSMail: KickMessage: recipient = $recipient");
+                  MailScanner::Log::DebugLog("MSMail: KickMessage: recipient = $line");
+                  $msgstart = tell $queuehandle;
                   next;
+              } else {
+                  last;
+              }
+          }
+
+          # Move to previous line
+          seek $queuehandle, $msgstart, 0;
+          
+          # Process the rest of the header
+          while(!eof($queuehandle)) {
+              $line = readline $queuehandle;
+              $line =~ s/\n//;
               # Use envelope sender
-              } elsif ($line =~ /^X-$orgname-MailScanner-Milter-Mail-From: /) {
+              if ($line =~ /^X-$orgname-MailScanner-Milter-Mail-From: /) {
                   $line =~ s/^X-$orgname-MailScanner-Milter-Mail-From: //;
                   $sender = $line;
                   MailScanner::Log::DebugLog("MSMail: KickMessage: sender = $sender");
@@ -979,11 +985,19 @@ sub new {
                       if ($response =~ /^250/) {
                           MailScanner::Log::DebugLog("MSMail: KickMessage: MAIL FROM success 250 received");
                           # From received success
-                          $req = 'RCPT TO: ' . $recipient . "\n";
-                          $socket->send($req);
-                          $socket->recv($response, 1024);
-                          if ($response =~ /^250/ ) {
-                              MailScanner::Log::DebugLog("MSMail: KickMessage: RCPT TO success 250 received");
+                          my $recipientsok = 1;
+                          foreach my $myrecipient (@recipient) {
+                              $req = 'RCPT TO: ' . $myrecipient . "\n";
+                              $socket->send($req);
+                              $socket->recv($response, 1024);
+                              if ($response =~ /^250/ ) {
+                                  MailScanner::Log::DebugLog("MSMail: KickMessage: RCPT TO success 250 received");
+                              } else {
+                                  $recipientsok = 0;
+                              }
+                          }
+
+                          if ($recipientsok == 1) {
                               # Rcpt To success
                               $req='DATA' . "\n";
                               $socket->send($req);
@@ -992,7 +1006,7 @@ sub new {
                                   MailScanner::Log::DebugLog("MSMail: KickMessage: DATA success 354 received");
                                   # Ready to send data
                                   # Position at start of message
-                                  seek $queuehandle, 0, 0;
+                                  seek $queuehandle, $msgstart, 0;
     
                                   while(!eof($queuehandle)) {
                                       $req = readline $queuehandle;
@@ -1066,7 +1080,7 @@ sub new {
       }
   }
 
-  # Unused in MSMail, just return
+  # Unused in MSMail
   sub PreDataString {
       return;
   }
