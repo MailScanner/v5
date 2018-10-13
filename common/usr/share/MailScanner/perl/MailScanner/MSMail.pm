@@ -400,7 +400,7 @@ sub new {
     # between me opening it and locking it.
     seek $RQf, 0, 0;
 
-    # Read milter original recipient headers until we hit the start of the message header
+    # Read milter pre-data headers until we hit the start of the message header
     my $pos - 0;
     while($recdata = ReadRecord($RQf)) {
         if ($recdata =~ /^O/) {
@@ -418,6 +418,18 @@ sub new {
             MailScanner::Log::DebugLog("MSMail: ReadQf: orig rcpt = $recdata");
             # Postfix compat
             push @{$message->{metadata}}, "O$recdata";
+            $pos = tell $RQf
+        } elsif ($recdata =~ /^S/) {
+            $recdata =~ s/^S//;
+            $recdata =~ s/^.*\<//;
+            $recdata =~ s/^\<//;
+            $recdata =~ s/\>.*$//;
+            $recdata =~ s/\>$//;
+            $message->{from} = lc($recdata);
+            $FROMFound = 1;
+            # Postfix compat
+            push @{$message->{metadata}}, "S$recdata";
+            MailScanner::Log::DebugLog("MSMail: ReadQf: from = $recdata");
             $pos = tell $RQf
         } else {
             last;
@@ -469,31 +481,6 @@ sub new {
                 }
                 $InTo=0;
              }
-          }
-
-          # Use Mail From provided by Milter
-          if ($recdata =~ m/^X-$org-MailScanner-Milter-Mail-From: /) {
-            $recdata =~ s/^.*: //;
-            if ($recdata =~ /^\<\>$/ ) {
-               # RFC 1123, 821 null reverse path
-               $message->{from} = '';
-               $FROMFound = 1;
-                   MailScanner::Log::DebugLog("MSMail: ReadQf: null sender detected");
-            } else {
-                $recdata =~ s/^.*\<//;
-                $recdata =~ s/^\<//;
-                $recdata =~ s/\>.*$//;
-                $recdata =~ s/\>$//;
-                # Did we capture an email (hopefully) or junk? Look for an @
-                if ($recdata =~ /@/) {
-                     $message->{from} = lc($recdata);
-                     $FROMFound = 1;
-                     # Postfix compat
-                     push @{$message->{metadata}}, "S$recdata";
-                     MailScanner::Log::DebugLog("MSMail: ReadQf: from = $recdata");
-                }
-            }
-            next;
          } elsif ($recdata =~ m/^To: /i) {
             # RFC 822 unfold address field
             $UnfoldBuffer = $recdata;
@@ -627,7 +614,7 @@ sub new {
       }
 
       # Need to split the new header data into the 1st line and a list of
-      # continuation lines, creating a new N record for each continuation
+      # continuation lines, creating a new H record for each continuation
       # line.
       my(@lines, $line, $firstline);
       @lines = split(/\n/, $newvalue);
@@ -713,9 +700,9 @@ sub new {
       $oldlocation = -1;
       $totallines = @{$message->{metadata}};
 
-       for($linenum=0; $linenum<$totallines; $linenum++) {
+      for($linenum=0; $linenum<$totallines; $linenum++) {
           last if $message->{metadata}[$linenum] =~ /^H/;
-       }
+      }
 
       for($linenum++; $linenum<$totallines; $linenum++) {
         next unless $message->{metadata}[$linenum] =~ /^H$key/i;
@@ -900,7 +887,7 @@ sub new {
               next;
           }
           $recipientfound = 0;
-          # Read original recipients in pre-data header
+          # Read in pre-data header
           my $msgstart = 0;
           while(!eof($queuehandle)) {
               $line = readline $queuehandle;
@@ -912,6 +899,11 @@ sub new {
                   MailScanner::Log::DebugLog("MSMail: KickMessage: recipient = $line");
                   $msgstart = tell $queuehandle;
                   next;
+              } elsif ($line =~ /^S/) {
+                  $line =~ s/^S//;
+                  $sender = $line;
+                  MailScanner::Log::DebugLog("MSMail: KickMessage: sender = $sender");
+                  $msgstart = tell $queuehandle;
               } else {
                   last;
               }
@@ -924,24 +916,12 @@ sub new {
           while(!eof($queuehandle)) {
               $line = readline $queuehandle;
               $line =~ s/\n//;
-              # Use envelope sender
-              if ($line =~ /^X-$orgname-MailScanner-Milter-Mail-From: /) {
-                  $line =~ s/^X-$orgname-MailScanner-Milter-Mail-From: //;
-                  $sender = $line;
-                  MailScanner::Log::DebugLog("MSMail: KickMessage: sender = $sender");
-                  last;
-              } elsif ($line eq '') {
+              if ($line eq '') {
                     MailScanner::Log::DebugLog("MSMail: KickMessage: found end of header");
                     # At end of header, bail out
                     last;
               }
           }
-
-          # This is dangerous! Just left here for reference
-          # no return code other than 0 is returned
-          # my $ret = system("$sendmail -G -i " . $recipient . " < " . $file);
-          # Success ????, delete message :O
-          # unlink $file;
 
           # This is the safe approach using SMTP protocol for relay
           # If relay bombs out or doesn't respond, messages are preserved
@@ -1321,7 +1301,7 @@ sub FindHashDirDepth {
         # Got to read directories and child directories here and find
         # files in the the child directories.
         while(defined($file = $queuedir->read())) {
-          next if $file eq '.' || $file eq '..';
+          next if $file eq '.' || $file eq '..' || $file =~ /^temp-/;
           if ($MailScanner::SMDiskStore::HashDirDepth==0) {
             next unless $file =~ /$mta->{HDFileRegexp}/;
             push @SortedFiles, "$queuedirname/$file";
@@ -1341,7 +1321,7 @@ sub FindHashDirDepth {
           next unless -d $file;
           $queue1dir->open($file) or next;
           while(defined($file1 = $queue1dir->read())) {
-            next if $file1 eq '.' || $file1 eq '..' || $file1 eq 'core';
+            next if $file1 eq '.' || $file1 eq '..' || $file1 eq 'core' || $file1 =~ /^temp-/;
             if ($MailScanner::SMDiskStore::HashDirDepth==1) {
               next unless $file1 =~ /$mta->{HDFileRegexp}/;
               push @SortedFiles, "$queuedirname/$file/$file1";
@@ -1362,7 +1342,7 @@ sub FindHashDirDepth {
               next unless -d "$file/$file1";
               $queue2dir->open("$file/$file1") or next;
               while(defined($file2 = $queue2dir->read())) {
-                next if $file2 eq '.' || $file2 eq '..' || $file2 eq 'core';
+                next if $file2 eq '.' || $file2 eq '..' || $file2 eq 'core' || $file2 =~ /^temp-/;
                 next unless $file2 =~ /$mta->{HDFileRegexp}/;
                 push @SortedFiles, "$queuedirname/$file/$file1/$file2";
                 if ($UnsortedBatchesLeft<=0) {
