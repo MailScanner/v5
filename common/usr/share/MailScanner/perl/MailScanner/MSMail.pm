@@ -734,7 +734,6 @@ sub new {
           $oldlocation++;
       } while($linenum<$totallines &&
           $message->{metadata}[$oldlocation] =~ /^H\s/);
-      $oldlocation--;
 
       my(@lines, $line, $firstline);
       @lines = split(/\n/, $newvalue);
