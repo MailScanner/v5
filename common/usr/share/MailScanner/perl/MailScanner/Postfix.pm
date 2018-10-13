@@ -1355,13 +1355,9 @@ sub new {
     #print STDERR "Deleting Recipients!\n";
     my($linenum);
     for ($linenum=0; $linenum<@{$message->{metadata}}; $linenum++) {
-      # Looking for "recipient" lines
-      # Should allow 'O' here as well
-      # JKF 30/08/2006 next unless $message->{metadata}[$linenum] =~ /^[RO]/;
-      # Thanks to Holger Gebhard for this.
-      #BUGGY: next unless $message->{metadata}[$linenum] =~ /^[ARO].+@(?:\w|-|\.)+\.\w{2,})/;
-      #next unless $message->{metadata}[$linenum] =~ /^[ARO]/;
-      next unless $message->{metadata}[$linenum] =~ /^[ARO].+\@[a-zA-Z0-9\-.]+/;
+      # Looking for all type of "recipient" records interpreted by Postfix
+      # See https://github.com/MailScanner/v5/pull/239
+      next unless $message->{metadata}[$linenum] =~ /^(?:R|O|Adsn_orig_rcpt)/;
       # Have found the right line
       #print STDERR "Deleting recip " . $message->{metadata}[$linenum] . "\n";
       splice(@{$message->{metadata}}, $linenum, 1);

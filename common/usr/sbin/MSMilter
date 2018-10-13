@@ -1,7 +1,7 @@
 #!/usr/bin/perl -U -I /usr/share/MailScanner/perl
 
 # (c) 2018 MailScanner Project <https://www.mailscanner.info>
-#          Version 1.0
+#          Version 1.1
 #
 #     This program is free software; you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -157,24 +157,41 @@ sub envrcpt_callback
 {
         my $ctx = shift;
         my @args = @_;
-        my $id = smtp_id;
         my $message_ref = $ctx->getpriv();
-        my $datestring = strftime "%a, %e %b %Y %T %z (%Z)", localtime;
         my $symbols = $ctx->{symbols};
-  
-        # Todo?
-        # display ssl certs if client provided them maybe...
-        if (defined($symbols->{'H'}) && defined($symbols->{'H'}->{'{tls_version}'}) && defined($symbols->{'H'}->{'{cipher}'}) && defined($symbols->{'H'}->{'{cipher_bits}'})) {
-            ${$message_ref} .= '        (using ' . $symbols->{'H'}->{'{tls_version}'} . ' with cipher ' . $symbols->{'H'}->{'{cipher}'} . ' (' . $symbols->{'H'}->{'{cipher_bits}'} . '/' . $symbols->{'H'}->{'{cipher_bits}'} . ' bits))' . "\n";
-             MailScanner::Log::DebugLog("envrcpt_callback: ssl/tls detected");
+        my $mailfrom;
+
+        # Watch for second callback
+        if ( ${$message_ref} !~ /MailScanner Milter/ ) {
+
+            # Capture the Mail From address for further processing
+            if (defined($symbols->{'M'}) && defined($symbols->{'M'}->{'{mail_addr}'})) {
+                $mailfrom=$symbols->{'M'}->{'{mail_addr}'};
+            } else {
+                 # Null Sender 
+                 # RFC 1123, 821
+                 $mailfrom='';
+            }
+
+            ${$message_ref} = 'S<' . $mailfrom . ">\n" . ${$message_ref};
+
+            my $id = smtp_id;
+            my $datestring = strftime "%a, %e %b %Y %T %z (%Z)", localtime;
+            if (defined($symbols->{'H'}) && defined($symbols->{'H'}->{'{tls_version}'}) && defined($symbols->{'H'}->{'{cipher}'}) && defined($symbols->{'H'}->{'{cipher_bits}'})) {
+                ${$message_ref} .= '        (using ' . $symbols->{'H'}->{'{tls_version}'} . ' with cipher ' . $symbols->{'H'}->{'{cipher}'} . ' (' . $symbols->{'H'}->{'{cipher_bits}'} . '/' . $symbols->{'H'}->{'{cipher_bits}'} . ' bits))' . "\n";
+                 MailScanner::Log::DebugLog("envrcpt_callback: ssl/tls detected");
+            }
+            if (!defined($symbols->{'H'}->{'{cert_subject}'})) {
+                ${$message_ref} .= '        (no client certificate requested)' . "\n";
+                MailScanner::Log::DebugLog("envrcpt_callback: no client certificate requested");
+            }
+            ${$message_ref} .= '        by ' . hostname . ' (MailScanner Milter) with SMTP id ' . $id . "\n";
+
+            MailScanner::Log::DebugLog("envrcpt_callback: id = $id datestring = $datestring");
         }
-        if (!defined($symbols->{'H'}->{'{cert_subject}'})) {
-            ${$message_ref} .= '        (no client certificate requested)' . "\n";
-             MailScanner::Log::DebugLog("envrcpt_callback: no client certificate requested");
-        }
-        ${$message_ref} .= '        by ' . hostname . ' (MailScanner Milter) with SMTP id ' . $id . "\n" . '        for ' . join(', ', @args) . '; ' . $datestring . "\n";
-        
-        MailScanner::Log::DebugLog("envrcpt_callback: id = $id datestring = $datestring");
+
+        # Build original recipient milter header
+        ${$message_ref} = 'O' . $args[0] . "\n" . ${$message_ref};
          
         $ctx->setpriv($message_ref);
 
@@ -198,46 +215,18 @@ sub eoh_callback
 {
         my $ctx = shift;
         my $message_ref = $ctx->getpriv();
-
-        # Signal the end of the header here
-        ${$message_ref} .= "\n";
-        
-         MailScanner::Log::DebugLog("eoh_callback: End of Header detected");
-
-        $ctx->setpriv($message_ref);
-
-        Sendmail::PMilter::SMFIS_CONTINUE;
-}
-
-sub body_callback
-{
-        my $ctx = shift;
-        my $body_chunk = shift;
-        my $len = shift;
-        my $message_ref = $ctx->getpriv();
-
-        ${$message_ref} .= $body_chunk;
-
-        $ctx->setpriv($message_ref);
-
-        Sendmail::PMilter::SMFIS_CONTINUE;
-}
-
-sub eom_callback
-{
-        my $ctx = shift;
-        my $message_ref = $ctx->getpriv();
-        my $id ='';
-        my $buffer='';
-        my $to='';
-        my $ip='';
+        my $id;
+        my $line;
+        my $buffer;
+        my $ip;
+        my @to;
+        my $from;
 
         # Are we in scanner mode?
         my $scannermode = MailScanner::Config::Value('milterscanner');
         
         MailScanner::Log::DebugLog("eom_callback: scannermode = $scannermode");
 
-        # Extract id, envelope to, ip from message efficiently
         while (${$message_ref} =~ /([^\n]+)\n?/g) {
             my $line = $1;
             $buffer .= $1 . "\n";
@@ -246,97 +235,55 @@ sub eom_callback
                 if ($line =~ /^Received: .+?\(.*?\[(?:IPv6:)?([0-9a-f.:]+)\]/i) {
                     $ip = $1;
                 }
-                MailScanner::Log::DebugLog("eom_callback: ip = $ip");
+                MailScanner::Log::DebugLog("eoh_callback: ip = $ip");
             } elsif ( $line =~ m/^.*SMTP id / ) {
                 $line =~ s/^.*SMTP id //;
                 $id = $line;
-                MailScanner::Log::DebugLog("eom_callback: id = $id");
-            } elsif ( $line =~ /^\s+for / ) {
-                $line =~ s/^\s+for //;
+                MailScanner::Log::DebugLog("eoh_callback: id = $id");
+                last;
+            } elsif ( $line =~ /^O/ ) {
+                $line =~ s/^O//;
                 $line =~ s/^\<//;
                 $line =~ s/\>.*$//;
-                $to = $line;
-                MailScanner::Log::DebugLog("eom_callback: to = $to");
-                last;
+                push @to, $line;
+                MailScanner::Log::DebugLog("eoh_callback: to = $line");
+            } elsif ( $line =~ /^F/ ) {
+                $line =~ s/^F//;
+                $line =~ s/^\<//;
+                $line =~ s/\>.*$//;
+                $from = $line;
+                MailScanner::Log::DebugLog("eoh_callback: from = $line");
             }
         }
 
-        my $mailfrom='';
-        my $symbols = $ctx->{symbols};
-        # Capture the Mail From address for further processing
-        # We'll create a Header to store the Mail From attribute for MailScanner
-        if (defined($symbols->{'M'}) && defined($symbols->{'M'}->{'{mail_addr}'})) {
-            $mailfrom=$symbols->{'M'}->{'{mail_addr}'};
-            # Null Sender 
-            # RFC 1123, 821
-            if ($mailfrom eq '') {
-                $mailfrom='<>';
-                MailScanner::Log::DebugLog("eom_callback: null sender detected");
-            }
-        } else {
-             # Null Sender 
-             # RFC 1123, 821
-             $mailfrom='<>';
-             MailScanner::Log::DebugLog("eom_callback: null sender detected");
-        }
-
-        # Ok we have sufficient info to start writing to disk
+        # Write header to file
         my $queuehandle = new FileHandle;
         my $incoming = MailScanner::Config::Value('inqueuedir');
-        MailScanner::Log::DebugLog("eom_callback: incoming = " . @{$incoming}[0]);
+        MailScanner::Log::DebugLog("eoh_callback: incoming = " . @{$incoming}[0]);
         if ($incoming eq '') {
             MailScanner::Log::WarnLog("Unable to determine incoming queue!");
             Sendmail::PMilter::SMFIS_TEMPFAIL;
             return;
         }
-        my $file = @{$incoming}[0] . '/' . $id;
-        
-        MailScanner::Log::DebugLog("eom_callback: file = $file");
+        my $file = @{$incoming}[0] . '/temp-' . $id;
+
+        MailScanner::Log::DebugLog("eoh_callback: file = $file");
 
         my $ret;
-        $ret = MailScanner::Lock::openlock($queuehandle,'>' . $file, 'w');
+        $ret = MailScanner::Lock::openlock($queuehandle,'>>' . $file, 'w');
         if ($ret != 1) {
-            MailScanner::Log::WarnLog("Unable to to open queue file for writing!");
+            MailScanner::Log::WarnLog("Unable to to open queue temp file for writing!");
             Sendmail::PMilter::SMFIS_TEMPFAIL;
             return;
         }
-        # Inject a Mail From Header
-        my $org = MailScanner::Config::DoPercentVars('%org-name%');
-        $org =~ s/\n//;
-        MailScanner::Log::DebugLog("eom_callback: org = $org");
-        # Write out to disk
 
-        # Advance to end of first Received: Header
-        my $test;
-        my $buffer2;
-        while (${$message_ref} =~ /(.*)\n?/g) {
-            $test = $1;
-            if ( $test =~ /^\s/ ) {
-                # Still in a header continuation
-                $buffer .= $test . "\n";
-                next;
-            } else {
-                # End of first Received Header
-                $buffer2 = $test . "\n";
-                last;
-            }
-        }
-        # Write out first received header
-        $queuehandle->print($buffer);
-
-        # Add Mail From to Header
-        $queuehandle->print('X-' . $org . '-MailScanner-Milter-Mail-From: ' . $mailfrom . "\n");
-
-        # Write beginning of second received header
-        $queuehandle->print($buffer2);
-
-        # Write rest of message to disk in single write
         $queuehandle->print(${$message_ref});
+
+        # Signal end of header
+        $queuehandle->print("\n");
 
         $queuehandle->flush();
         MailScanner::Lock::unlockclose($queuehandle);
-
-        $ctx->setpriv(undef);
 
         # Determine what to do next
         if ($scannermode =~ /^yes$/) {
@@ -344,12 +291,12 @@ sub eom_callback
            # Blacklist test
            # Build a message object to test against
            my $message = {};
-           if ($mailfrom ne '<>') {
-               $message->{from} = $mailfrom;
+           if ($from ne '<>') {
+               $message->{from} = $from;
            } else {
                $message->{from} = '';
            }
-           push @{$message->{to}}, $to;
+           @{$message->{to}} = @to;
            $message->{clientip} = $ip;
            my $user;
            my $domain;
@@ -360,9 +307,11 @@ sub eom_callback
            my $touser;
            my $todomain;
         
-           ($touser, $todomain) = MailScanner::Message::address2userdomain(@{$message->{to}}[0]);
-           push @{$message->{touser}}, $touser;
-           push @{$message->{todomain}}, $todomain;
+           foreach my $msgto (@{$message->{to}}) {
+               ($touser, $todomain) = MailScanner::Message::address2userdomain($msgto);
+               push @{$message->{touser}}, $touser;
+               push @{$message->{todomain}}, $todomain;
+           }
           
            my $test;
            # Check whitelist first
@@ -379,10 +328,78 @@ sub eom_callback
                    MailScanner::Log::DebugLog("eom_callback: blacklist match, firing reject");
                    # Set reject code
                    $ctx->setreply('554', '5.7.1', 'Message Blacklisted');
-                  return Sendmail::PMilter::SMFIS_REJECT;
+
+                   # Delete temp file
+                   unlink $file;
+                   return Sendmail::PMilter::SMFIS_REJECT;
                }
            }
         }
+
+        MailScanner::Log::DebugLog("eoh_callback: End of Header detected");
+
+        # Start storing just the id
+        ${$message_ref} = $id;
+
+        $ctx->setpriv($message_ref);
+
+        Sendmail::PMilter::SMFIS_CONTINUE;
+}
+
+sub body_callback
+{
+        my $ctx = shift;
+        my $body_chunk = shift;
+        my $len = shift;
+        my $message_ref = $ctx->getpriv();
+
+        my $queuehandle = new FileHandle;
+        my $incoming = MailScanner::Config::Value('inqueuedir');
+        MailScanner::Log::DebugLog("body_callback: incoming = " . @{$incoming}[0]);
+        if ($incoming eq '') {
+            MailScanner::Log::WarnLog("Unable to determine incoming queue!");
+            Sendmail::PMilter::SMFIS_TEMPFAIL;
+            return;
+        }
+        my $file = @{$incoming}[0] . '/temp-' . ${$message_ref};
+
+        MailScanner::Log::DebugLog("body_callback: file = $file");
+
+        my $ret;
+        $ret = MailScanner::Lock::openlock($queuehandle,'>>' . $file, 'w');
+        if ($ret != 1) {
+            MailScanner::Log::WarnLog("Unable to to open queue temp file for writing!");
+            Sendmail::PMilter::SMFIS_TEMPFAIL;
+            return;
+        }
+        $queuehandle->print($body_chunk);
+
+        $queuehandle->flush();
+        MailScanner::Lock::unlockclose($queuehandle);
+
+        $ctx->setpriv($message_ref);
+
+        Sendmail::PMilter::SMFIS_CONTINUE;
+}
+
+sub eom_callback
+{
+        my $ctx = shift;
+        my $message_ref = $ctx->getpriv();
+        
+        my $incoming = MailScanner::Config::Value('inqueuedir');
+        MailScanner::Log::DebugLog("eom_callback: incoming = " . @{$incoming}[0]);
+        if ($incoming eq '') {
+            MailScanner::Log::WarnLog("Unable to determine incoming queue!");
+            Sendmail::PMilter::SMFIS_TEMPFAIL;
+            return;
+        }
+        my $file = @{$incoming}[0] . '/temp-' . ${$message_ref};
+        my $file2 = @{$incoming}[0] . '/' . ${$message_ref};
+
+        move($file, $file2);
+
+        $ctx->setpriv(undef);
 
         # Send DISCARD signal to accept message and drop from postfix
         # for mailscanner processing
