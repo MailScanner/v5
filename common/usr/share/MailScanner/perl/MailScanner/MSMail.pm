@@ -611,6 +611,7 @@ sub new {
           }
       } else {
            $pos = $#{$message->{metadata}};
+           $pos++;
       }
 
       # Need to split the new header data into the 1st line and a list of
@@ -721,6 +722,7 @@ sub new {
           $oldlocation++;
       } while($linenum<$totallines &&
           $message->{metadata}[$oldlocation] =~ /^H\s/);
+      $oldlocation--;
 
       my(@lines, $line, $firstline);
       @lines = split(/\n/, $newvalue);
