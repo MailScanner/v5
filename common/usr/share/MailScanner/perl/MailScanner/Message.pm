@@ -2265,6 +2265,10 @@ sub Explode {
   $parser->filer($filer);
   $parser->extract_uuencode(1); # uue is off by default
   $parser->output_to_core('NONE'); # everything into files
+  # 101318 Bug workaround in MIME::Parser not writing UTF8 encoded MIME Parts
+  # MIME attachments not parsing with certain unicode characters
+  # See https://github.com/MailScanner/v5/issues/233
+  $parser->decode_headers(1);
   
   # The whole parsing thing is totally different for sendmail & Exim for speed.
   # Many thanks for those who know themselves for this great improvement!
