@@ -1877,6 +1877,9 @@ sub ProcessEsetsOutput {
   # password protected
   return 0 if $line =~ m/protected/i;
   
+  # archive damaged
+  return 0 if $line =~ m/archive damaged/i;
+  
   my ($a, $b, $c, $d) = split(/,/, $line);
   my ($filename) = $a =~ m/\"(.*)\"/; 
   my ($threat) = $b =~ m/\"(.*)\"/; 
