@@ -1,0 +1,54 @@
+#!/bin/sh
+
+# kaspersky-wrapper --	invoke Kaspersky AV for use with mailscanner
+#
+#   MailScanner - SMTP E-Mail Virus Scanner
+#   Copyright (C) 2018 MailScanner Project <https://mailscanner.info>
+#
+#   This program is free software; you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation; either version 2 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program; if not, write to the Free Software
+#   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+
+PackageDir=$1   # This may vary depending on your OS
+shift
+
+Scanner=bin/kavscanner
+
+# pass this in from mailscanner's config
+
+# I'm only listing ones which we may find useful...
+
+ScanOptions=""
+ScanOptions="$ScanOptions -eP"		# scan packed files
+ScanOptions="$ScanOptions -eA"		# scan archive files
+ScanOptions="$ScanOptions -eS"		# scan self-extractors
+ScanOptions="$ScanOptions -eM"		# to check "plain mail format" files 
+ScanOptions="$ScanOptions -eB"		# to check "mail databases"
+ScanOptions="$ScanOptions -ee"		# disable heuristic "code analyser"
+ScanOptions="$ScanOptions -eP"		# enable unpacking of executables
+ScanOptions="$ScanOptions -eA"		# enable archive extracting
+ScanOptions="$ScanOptions -R"		# do recurse
+ScanOptions="$ScanOptions -mn"		# report nothing for OK files.
+ScanOptions="$ScanOptions -l"		# stay on filesystem
+ScanOptions="$ScanOptions -s"		# skip all symlinks
+ScanOptions="$ScanOptions -xn"		# do not display clean files
+ScanOptions="$ScanOptions -xp"		# do not display progress
+
+if [ "x$1" = "x-IsItInstalled" ]; then
+  [ -x ${PackageDir}/$Scanner ] && exit 0
+  exit 1
+fi
+
+exec ${PackageDir}/$Scanner $ScanOptions "$@"
+

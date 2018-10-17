@@ -216,7 +216,18 @@ my %Scanners = (
       ProcessOutput       => \&ProcessDrwebOutput,
       SupportScanning     => $S_SUPPORTED,
       SupportDisinfect    => $S_NONE,
-    },
+  },
+  "kaspersky"   => {
+    Name                => 'Kaspersky',
+    Lock                => 'kasperskyBusy.lock',
+    CommonOptions       => '',
+    DisinfectOptions    => '-i2',
+    ScanOptions         => '-i0',
+    InitParser          => \&InitKasperskyParser,
+    ProcessOutput       => \&ProcessKasperskyOutput,
+    SupportScanning     => $S_SUPPORTED,
+    SupportDisinfect    => $S_SUPPORTED,
+  },
 );
 
 # Initialise the Sophos SAVI library if we are using it.
@@ -2305,4 +2316,66 @@ sub ConnectToClamd {
   return $sock;
 } # EO ConnectToClamd
 
+# If you use Kaspersky, look at this code carefully
+# and then be very grateful you didn't have to write it.
+# Note that Kaspersky will now change long paths so they have "..."
+# in the middle of them, removing the middle of the path.
+# *WHY* do people have to do dumb things like this?
+#
+sub ProcessKasperskyOutput {
+  my($line, $infections, $types, $BaseDir, $Name) = @_;
+  #my($line) = @_;
+
+  my($report, $infected, $dot, $id, $part, @rest);
+  my($logout);
+
+  # Don't know what kaspersky means by "object" yet...
+
+  # Lose trailing cruft
+  return 0 unless defined $kaspersky_CurrentObject;
+
+  if ($line =~ /^Current\sobject:\s(.*)$/) {
+    $kaspersky_CurrentObject = $1;
+  }
+  elsif ($kaspersky_CurrentObject eq "") {
+    # Lose leading cruft
+    return 0;
+  }
+  else {
+    chomp $line;
+    $line =~ s/^\r//;
+    # We can rely on BaseDir not having trailing slash.
+    # Prefer s/// to m// as less likely to do unpredictable things.
+    if ($line =~ / infected: /) {
+      $line =~ s/.* \.\.\. (.*)/\.$1/; # Kav will now put ... in long paths
+      $report = $line;
+      $logout = $line;
+      $logout =~ s/%/%%/g;
+      $logout =~ s/\s{20,}/ /g;
+      $line =~ s/^$BaseDir//;
+      $line =~ s/(.*) infected:.*/\.$1/; # To handle long paths again
+      ($dot,$id,$part,@rest) = split(/\//, $line);
+      my $notype = substr($part,1);
+      $logout =~ s/\Q$part\E/$notype/;
+      $report =~ s/\Q$part\E/$notype/;
+
+      MailScanner::Log::InfoLog($logout);
+      $report = $Name . ': ' . $report if $Name;
+      $infections->{"$id"}{"$part"} .= $report . "\n";
+      $types->{"$id"}{"$part"} .= "v"; # so we know what to tell sender
+      return 1;
+    }
+    # see commented code below if you think this regexp looks fishy
+    if ($line =~ /^([\r ]*)Scan\sprocess\scompleted\.\s*$/) {
+      undef $kaspersky_CurrentObject;
+      # uncomment this to see just one reason why I hate kaspersky AVP -- nwp
+      # foreach(split //, $1) {
+      #   print ord($_) . "\n";
+      # }
+    }
+  }
+  return 0;
+}
+
 1;
+
