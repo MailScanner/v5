@@ -1,0 +1,26 @@
+From: "$postmastername" <$localpostmaster>
+To: $from
+Subject: Warning: E-mail viruses detected
+X-%org-name%-MailScanner: generated
+
+Our e-mail content detector has just been triggered by a message you sent:
+  To: $to
+  Subject: $subject
+  Date: $date
+
+One or more of the attachments ($filename) are on
+the list of unacceptable attachments for this site and will not have
+been delivered.
+
+Consider renaming the files to avoid this constraint.
+
+The virus detector said this about the message:
+Report: $report
+
+-- 
+MailScanner
+Email Virus Scanner
+%org-long-name%
+%web-site%
+
+
