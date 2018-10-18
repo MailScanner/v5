@@ -4234,6 +4234,11 @@ sub BuildFile2EntityAndEntity2File {
   # JKF 20090327 None of the others do, they represent the real attach name.
   $headfile = $entity->head->recommended_filename || $namewithouttype; # $path;
   #print STDERR "rec filename for \"$headfile\" is \"" . $entity->head->recommended_filename . "\"\n";
+  
+  # Remove any wide characters so that WordDecoder can parse
+  # https://github.com/MailScanner/v5/issues/253
+  $headfile =~ s/[^\x00-\x7f]//g;
+  
   $headfile = MIME::WordDecoder::mime_to_perl_string($headfile);
   #print STDERR "headfile is $headfile\n";
   if ($headfile) {
