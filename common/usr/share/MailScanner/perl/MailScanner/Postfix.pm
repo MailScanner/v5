@@ -950,7 +950,7 @@ sub new {
     my $safesubject = $message->{subject};
     $safesubject =~  tr/\x00-\xFF/#/c;
 
-    my $TmpSubject = MIME::WordDecoder::mime_to_perl_string($safesubject});
+    my $TmpSubject = MIME::WordDecoder::mime_to_perl_string($safesubject);
     if ($TmpSubject ne $message->{subject}) {
       # The mime_to_perl_string function dealt with an encoded subject, as it did
       # something. Allow up to 10 trailing spaces so that SweepContent
