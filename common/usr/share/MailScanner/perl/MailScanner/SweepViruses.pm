@@ -1116,7 +1116,26 @@ sub InitSophosParser {
 }
 
 sub InitClamdParser {
-  ;
+ my($BaseDir, $batch) = @_;
+
+  %ClamAVAlreadyLogged = ();
+  if (MailScanner::Config::Value('clamavspam')) {
+    # Write the whole message into $id.message in the headers directory
+    my($id, $message);
+    while(($id, $message) = each %{$batch->{messages}}) {
+      next if $message->{deleted};
+      my $filename = "$BaseDir/$id.message";
+      my $target = new IO::File $filename, "w";
+      MailScanner::Log::DieLog("writing to $filename: $!")
+        if not defined $target;
+      $message->{store}->WriteEntireMessage($message, $target);
+      $target->close;
+      # Set the ownership and permissions on the .message like .header
+      chown $global::MS->{work}->{uid}, $global::MS->{work}->{gid}, $filename
+        if $global::MS->{work}->{changeowner};
+      chmod 0664, $filename;
+    }
+  }
 }
 
 # Initialise any state variables the F-Secure output parser uses
