@@ -7698,7 +7698,9 @@ sub DisarmEndtagCallback {
           if ($linkurl ne "") {
             if ($TheyMatch) {
               # Even though they are the same, still squeal if it's a raw IP
-              if ($numbertrap) {
+              # Ignore fax: and tel: (not ip but numeric)
+              # https://github.com/MailScanner/v5/issues/224
+              if ($numbertrap && $DisarmLinkURL !~ m/^(fax|tel)[:;]/i) {
                 print MailScanner::Config::LanguageValue(0, 'numericlinkwarning')
                       . ' '
                       if $PhishingHighlight && !$AlreadyReported; # && !InPhishingWhitelist($linkurl);
@@ -7739,13 +7741,15 @@ sub DisarmEndtagCallback {
         #
         # Strict Phishing Net Goes Here
         #
+        # Ignore fax: and tel: (not ip but numeric)
+        # https://github.com/MailScanner/v5/issues/224
         if ($alarm ||
           ($linkurl ne "" && $squashedtext !~ /^(w+\.)?\Q$linkurl\E\/?$/)
-          || ($linkurl ne "" && $numbertrap)) {
+          || ($linkurl ne "" && $numbertrap && $DisarmLinkURL !~ m/^(fax|tel)[:;]/i)) {
 
           unless (InPhishingWhitelist($linkurl)) {
             use bytes; # Don't send UTF16 to syslog, it breaks!
-            if ($linkurl ne "" && $numbertrap && $linkurl eq $squashedtext) {
+            if ($linkurl ne "" && $numbertrap && $linkurl eq $squashedtext && $DisarmLinkURL !~ m/^(fax|tel)[:;]/i) {
               # It's not a real phishing trap, just a use of numberic IP links
               print MailScanner::Config::LanguageValue(0, 'numericlinkwarning') .
                     ' ' if $PhishingHighlight && !$AlreadyReported;
@@ -7759,7 +7763,9 @@ sub DisarmEndtagCallback {
             $linkurl = substr $linkurl, 0, 80;
             $squashedtext = substr $squashedtext, 0, 80;
             $DisarmDoneSomething{'phishing'} = 1 if $PhishingHighlight; #JKF1 $PhishingSubjectTag;
-            if ($numbertrap) {
+            # Ignore fax: and tel: (not ip but numeric)
+            # https://github.com/MailScanner/v5/issues/224
+            if ($numbertrap && $DisarmLinkURL !~ m/^(fax|tel)[:;]/i) {
               MailScanner::Log::InfoLog('Found ip-based phishing fraud from ' .
                                         '%s in %s', $DisarmLinkURL, $id);
                                         #'%s in %s', $linkurl, $id);
@@ -7973,6 +7979,9 @@ sub CleanLinkURL {
        $linkurl !~ /^(https?|ftp|mailto|webcal):/i;
   $linkurl =~ s/^(https?:\/\/[^:]+):80($|\D)/$1$2/i; # Remove http://....:80
   $linkurl =~ s/^(https?|ftp|webcal)[:;]\/\///i;
+  # Remove fax and tel prefixes
+  # https://github.com/MailScanner/v5/issues/224
+  $linkurl =~ s/^(fax|tel)[:;]//i;
   return ("",0) if $linkurl =~ /^ma[il]+to[:;]/i;
   #$linkurl = "" if $linkurl =~ /^ma[il]+to[:;]/i;
   $linkurl =~ s/[?\/].*$//; # Only compare up to the first '/' or '?'
