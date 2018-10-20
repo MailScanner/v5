@@ -254,6 +254,7 @@ generic-autoupdate
 generic-wrapper
 sophos-autoupdate
 sophos-wrapper
+kaspersky-wrapper
 EOF
 
 %clean
@@ -740,6 +741,7 @@ exit 0
 %attr(755,root,root) /usr/lib/MailScanner/wrapper/generic-wrapper
 %attr(755,root,root) /usr/lib/MailScanner/wrapper/sophos-autoupdate
 %attr(755,root,root) /usr/lib/MailScanner/wrapper/sophos-wrapper
+%attr(755,root,root) /usr/lib/MailScanner/wrapper/kaspersky-wrapper
 
 %config(noreplace) /usr/share/MailScanner/perl/custom/CustomAction.pm
 %config(noreplace) /usr/share/MailScanner/perl/custom/GenericSpamScanner.pm
@@ -1239,6 +1241,9 @@ exit 0
 
 
 %changelog
+* Sat Oct 20 2018 Shawn Iverson <shawniverson@efa-project.org>
+- Add kaspersky-wrapper
+
 * Sat Aug 25 2018 Shawn Iverson <shawniverson@efa-project.org>
 - Add Milter support to MailScanner
 
