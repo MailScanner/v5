@@ -4,7 +4,7 @@
 - Detect fax and tel links
 - mime_perl_to_string fix for ignored handler
 - Add Kaspersky Linux Mail Server support
-- Ignore "archive damaged" in esests scanner output
+- Ignore "archive damaged" in esets scanner output
 - Cleanup reports, add en_uk reports
 - Workaround MIME::Parser failing to decode UTF-8
 - Refactor milter to fully support multiple original recipients
@@ -12,7 +12,7 @@
 - Refactor milter to reject blacklisted emails early
 - Fix off by one header add in milter
 - Look for all recipient records in DeleteRecipients
-- Update milter doc to 1.2
+- Update milter doc to 1.3
 - Remove invalid Apparmor code in debian package
 - Fix condition concatenation in ms-update-phishing
 - Fix mktemp in clamav-wrapper for FreeBSD11
