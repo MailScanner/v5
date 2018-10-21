@@ -1114,7 +1114,7 @@ sub InitSophosSAVIParser {
 sub InitSophosParser {
   ;
 }
-
+my (%ClamAVAlreadyLogged);
 sub InitClamdParser {
  my($BaseDir, $batch) = @_;
 
@@ -1148,7 +1148,7 @@ sub InitFSecureParser {
 
 # Initialise any state variables the ClamAV output parser uses
 my ($clamav_archive, $qmclamav_archive);
-my (%ClamAVAlreadyLogged);
+#my (%ClamAVAlreadyLogged);
 sub InitClamAVParser {
   my($BaseDir, $batch) = @_;
 
@@ -1229,6 +1229,11 @@ sub InitDrwebParser {
 # than just setting it, I guess.
 #
 
+# Initialise any state variables the Kaspersky output parser uses
+my ($kaspersky_CurrentObject);
+sub InitKasperskyParser {
+  $kaspersky_CurrentObject = "";
+}
 
 sub ProcessClamAVModOutput {
   my($line, $infections, $types, $BaseDir, $Name, $spaminfre) = @_;
