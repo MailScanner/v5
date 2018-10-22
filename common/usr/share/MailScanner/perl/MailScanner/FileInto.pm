@@ -22,7 +22,14 @@ sub output_path {
     my $dir = $self->output_dir($head);
 
     ### Get the output filename, decoding into the local character set:
-    my $fname = mime_to_perl_string $head->recommended_filename;
+
+    # Remove any wide characters so that WordDecoder can parse
+    # no handler was set here, but that's okay, let's play it safe anyway
+    # https://github.com/MailScanner/v5/issues/253
+    my $safefilename = $head->recommended_filename;
+    $safefilename =~  tr/\x00-\xFF/#/c;
+
+    my $fname = mime_to_perl_string $safefilename;
 
     ### Can we use it:
     if    (!defined($fname)) {

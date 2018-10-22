@@ -1,10 +1,36 @@
-07/14/2018 Changes in    v5.0.7-5
+10/20/2018 Changes in....v5.1.2-1
+==================================
+- Clamd full message scan
+- Detect fax and tel links
+- mime_perl_to_string fix for ignored handler
+- Add Kaspersky Linux Mail Server support
+- Ignore "archive damaged" in esets scanner output
+- Cleanup reports, add en_uk reports
+- Workaround MIME::Parser failing to decode UTF-8
+- Refactor milter to fully support multiple original recipients
+- Refactor milter to support large messages
+- Refactor milter to reject blacklisted emails early
+- Fix off by one header add in milter
+- Look for all recipient records in DeleteRecipients
+- Update milter doc to 1.3
+- Remove invalid Apparmor code in debian package
+- Fix condition concatenation in ms-update-phishing
+- Fix mktemp in clamav-wrapper for FreeBSD11
+- Add DrWeb virus scanner support
+- Fixes for clamav on rhel variants
+
+08/25/2018 Changes in    v5.1.1-1
 ==================================
 - Remove space in "Clam AV" 
 - Support enable_original_recipient=no in postfix
 - Check CPANOPTION and add verbosity
 - Better AV scanning loop with retry attempts
 - Refactor AV scanning loop
+- Revert escaping spaces in unrar (already strict quoted)
+- Cluster friendly update scripts (check for PID before restarting)
+- Milter support option for MailScanner
+- Fix postfix long queue ids getting suffixed with key
+- Support ClamAV 0.100.1+ configuration change in RHEL/CentOS 7
 
 06/17/2018 Changes in    v5.0.7-4
 ==================================

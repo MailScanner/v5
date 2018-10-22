@@ -256,7 +256,14 @@ whitelistmaxrecips		= ignorespamwhitelistifrecipientsexceed
 workuser			= incomingworkuser
 workgroup			= incomingworkgroup
 workperms			= incomingworkpermissions
-
+msmailqueuetype                 = MSMailQueueType
+msmailrelayport                 = MSMailRelayPort
+msmailrelayaddress              = MSMailRelayAddress
+milterpidfile                   = MilterPIDFile
+milterscanner                   = MilterScanner
+miltermaxchildren               = MilterMaxChildren
+milterport                      = MilterPort
+milterbind                      = MilterBind
 
 #
 # Simple variables which can only have a single value, no rules allowed.
@@ -411,7 +418,14 @@ SQLQuickPeek
 SQLConfig
 SQLRuleset
 SQLSpamAssassinConfig
-
+MSMailQueueType          short
+MSMailRelayPort          25
+MSMailRelayAddress       127.0.0.1
+MilterPIDFile            /var/run/MSMilter.pid
+MilterScanner            yes
+MilterMaxChildren        10
+MilterPort               33333
+MilterBind               127.0.0.1
 #
 # These variables match on any rule matching From:, else anything for To:
 #

@@ -199,6 +199,10 @@ sub new {
   my $this = {};
   my($mta, $addr, $user, $domain);
   my($archiveplaces);
+  my $rejectflag = 0;
+  my $rejectmsg = '';
+  my $rejectheader = '';
+  my $orgname = '';
 
   #print STDERR "Creating message $id\n";
 
@@ -235,6 +239,30 @@ sub new {
     return $this;
   }
   #  or return 'INVALID'; # Return empty if fails
+
+  # Are we in milter mode, and has the message been requeued
+  # from a local relay reject?
+  my $mta = MailScanner::Config::Value('mta');
+  if ($mta =~ /^msmail/i) {
+      my($header_line);
+      $orgname = MailScanner::Config::DoPercentVars('%org-name%');
+      $rejectheader = "X-$orgname-MailScanner-Relay-Reject:";
+      my $pos = 0;
+      foreach $header_line (@{$this->{headers}}) {
+          if($header_line =~ /^$rejectheader/) {
+              # Message was rejected at relay
+              # Rewrite header for quarantine so that it doesn't get
+              # flagged if released and allows for easy troubleshooting
+              $header_line =~ s/^.*: //;
+              $rejectmsg = $header_line;
+              splice @{$this->{headers}}, $pos, 1, 0, 'X-' . $orgname . "-MailScanner-Relay-Quarantine: " . $rejectmsg;
+              # Flag and carry on
+              $rejectflag = 1;
+          }
+          $pos++;
+      }
+  }
+
 
   # Work out the user @ domain components
   ($user, $domain) = address2userdomain($this->{from});
@@ -306,8 +334,6 @@ sub new {
     $addmshmac = ($addmshmac =~ /1/)?1:0;
     my $mshmacheader = MailScanner::Config::Value('mshmacheader', $this);
     $mshmacheader .= ':' unless $mshmacheader =~ /:$/;
-
-
 
     # So do we need to look for a header in the message body?
     # Don't check if there was no client IP address, as we must have made it.
@@ -423,6 +449,10 @@ sub new {
   $ArchivesAre    = '[' . $ArchivesAre . ']' if $ArchivesAre;
   $this->{archivesare} = $ArchivesAre;
 
+  if ($rejectflag == 1) {
+      # Log Relay rejects as other
+      $this->{otherinfected} = 1;
+  }
 
   bless $this, $type;
   return $this;
@@ -639,6 +669,7 @@ sub IsSpam {
     elsif (($mshmacnull+0.0) > 0.01) {
       $this->{sascore} += $mshmacnull+0.0;
       MailScanner::Log::InfoLog("Message %s had bad watermark, added %s to spam score", $this->{id}, $mshmacnull+0.0) if $LogSpam;
+
       my($mshspam, $mshhigh) = MailScanner::SA::SATest_spam($this, 0.0, $this->{sascore}+0.0);
       $this->{isspam} = 1 if $mshspam;
       $this->{ishigh} = 1 if $mshhigh;
@@ -735,6 +766,7 @@ sub IsSpam {
   #print STDERR "In Message.pm about to look at gsscanner\n";
   if ($usegsscanner) {
     #print STDERR "In Message.pm about to run gsscanner\n";
+
     ($gsscore, $gsreport) = MailScanner::GenericSpam::Checks($this);
     #print STDERR "In Message.pm we got $gsscore, $gsreport\n";
     $this->{gshits} = $gsscore;
@@ -2233,6 +2265,10 @@ sub Explode {
   $parser->filer($filer);
   $parser->extract_uuencode(1); # uue is off by default
   $parser->output_to_core('NONE'); # everything into files
+  # 101318 Bug workaround in MIME::Parser not writing UTF8 encoded MIME Parts
+  # MIME attachments not parsing with certain unicode characters
+  # See https://github.com/MailScanner/v5/issues/233
+  $parser->decode_headers(1);
   
   # The whole parsing thing is totally different for sendmail & Exim for speed.
   # Many thanks for those who know themselves for this great improvement!
@@ -3275,11 +3311,11 @@ sub UnpackRar {
   return 1 unless $UnrarVersion =~ /^\d+\.\d*$/ && ( $UnrarVersion >= 4.0 && $UnrarVersion < 6.0 );
 
   # Escape spaces in filename
-  $zipname =~ s/\ /\\\ /g;
+  # $zipname =~ s/\ /\\\ /g;
 
+  #MailScanner::Log::WarnLog("UnPackRar Testing : %s", $zipname);
   # Unrar Version 4x file parse
   if ($UnrarVersion >= 4.0 && $UnrarVersion < 5.0) {
-    #MailScanner::Log::WarnLog("UnPackRar Testing : %s", $zipname);
 
     # This part lists the archive contents and makes the list of
     # file names within. "This is a list verbose option"
@@ -3359,8 +3395,8 @@ sub UnpackRar {
                 $memb =~ /(No files to extract|^COMMAND_TIMED_OUT$)/si;
 
     return 0 if $memb eq ''; # JKF If no members it probably wasn't a Rar self-ext
-    #MailScanner::Log::DebugLog("Unrar : Archive Testing Completed On : %s",
-    #                           $memb);
+    MailScanner::Log::DebugLog("Unrar : Archive Testing Completed On : %s",
+                               $memb);
 
     @members = split /\n/, $memb;
 
@@ -3398,6 +3434,8 @@ sub UnpackRar {
 
     # Have to parse the output from the 'vt' command
     foreach $what (@test) {
+      #print STDERR "Processing \"$what\"\n";
+      #MailScanner::Log::WarnLog("UnPackRar Processing : %s", $what);
       $what =~ s/^\s+|\s+$//mg;
 
       # compatibility with "unrar vta"
@@ -4196,6 +4234,12 @@ sub BuildFile2EntityAndEntity2File {
   # JKF 20090327 None of the others do, they represent the real attach name.
   $headfile = $entity->head->recommended_filename || $namewithouttype; # $path;
   #print STDERR "rec filename for \"$headfile\" is \"" . $entity->head->recommended_filename . "\"\n";
+  
+  # Remove any wide characters so that WordDecoder can parse
+  # mime_to_perl_string is ignoring the built-in handler that was set earlier
+  # https://github.com/MailScanner/v5/issues/253
+  $headfile =~  tr/\x00-\xFF/#/c;
+  
   $headfile = MIME::WordDecoder::mime_to_perl_string($headfile);
   #print STDERR "headfile is $headfile\n";
   if ($headfile) {
@@ -5273,7 +5317,6 @@ sub AppendSignCleanEntity {
 # the outgoing queue.
 sub DeliverUninfected {
   my $this = shift;
-  
   if ($this->{bodymodified}) {
     # The body of this message has been modified, so reconstruct
     # it from the MIME structure and deliver that.
@@ -5303,7 +5346,6 @@ my($DisarmFormTag, $DisarmScriptTag, $DisarmCodebaseTag, $DisarmIframeTag,
 sub DeliverUnmodifiedBody {
   my $this = shift;
   my($headervalue) = @_;
-
   #print STDERR "DisarmPhishingFound = " . $DisarmPhishingFound . " for message " . $this->{id} . "\n";
 
   return if $this->{deleted}; # This should never happen
@@ -7656,7 +7698,9 @@ sub DisarmEndtagCallback {
           if ($linkurl ne "") {
             if ($TheyMatch) {
               # Even though they are the same, still squeal if it's a raw IP
-              if ($numbertrap) {
+              # Ignore fax: and tel: (not ip but numeric)
+              # https://github.com/MailScanner/v5/issues/224
+              if ($numbertrap && $DisarmLinkURL !~ m/^(fax|tel)[:;]/i) {
                 print MailScanner::Config::LanguageValue(0, 'numericlinkwarning')
                       . ' '
                       if $PhishingHighlight && !$AlreadyReported; # && !InPhishingWhitelist($linkurl);
@@ -7697,13 +7741,15 @@ sub DisarmEndtagCallback {
         #
         # Strict Phishing Net Goes Here
         #
+        # Ignore fax: and tel: (not ip but numeric)
+        # https://github.com/MailScanner/v5/issues/224
         if ($alarm ||
           ($linkurl ne "" && $squashedtext !~ /^(w+\.)?\Q$linkurl\E\/?$/)
-          || ($linkurl ne "" && $numbertrap)) {
+          || ($linkurl ne "" && $numbertrap && $DisarmLinkURL !~ m/^(fax|tel)[:;]/i)) {
 
           unless (InPhishingWhitelist($linkurl)) {
             use bytes; # Don't send UTF16 to syslog, it breaks!
-            if ($linkurl ne "" && $numbertrap && $linkurl eq $squashedtext) {
+            if ($linkurl ne "" && $numbertrap && $linkurl eq $squashedtext && $DisarmLinkURL !~ m/^(fax|tel)[:;]/i) {
               # It's not a real phishing trap, just a use of numberic IP links
               print MailScanner::Config::LanguageValue(0, 'numericlinkwarning') .
                     ' ' if $PhishingHighlight && !$AlreadyReported;
@@ -7717,7 +7763,9 @@ sub DisarmEndtagCallback {
             $linkurl = substr $linkurl, 0, 80;
             $squashedtext = substr $squashedtext, 0, 80;
             $DisarmDoneSomething{'phishing'} = 1 if $PhishingHighlight; #JKF1 $PhishingSubjectTag;
-            if ($numbertrap) {
+            # Ignore fax: and tel: (not ip but numeric)
+            # https://github.com/MailScanner/v5/issues/224
+            if ($numbertrap && $DisarmLinkURL !~ m/^(fax|tel)[:;]/i) {
               MailScanner::Log::InfoLog('Found ip-based phishing fraud from ' .
                                         '%s in %s', $DisarmLinkURL, $id);
                                         #'%s in %s', $linkurl, $id);
@@ -7931,6 +7979,9 @@ sub CleanLinkURL {
        $linkurl !~ /^(https?|ftp|mailto|webcal):/i;
   $linkurl =~ s/^(https?:\/\/[^:]+):80($|\D)/$1$2/i; # Remove http://....:80
   $linkurl =~ s/^(https?|ftp|webcal)[:;]\/\///i;
+  # Remove fax and tel prefixes
+  # https://github.com/MailScanner/v5/issues/224
+  $linkurl =~ s/^(fax|tel)[:;]//i;
   return ("",0) if $linkurl =~ /^ma[il]+to[:;]/i;
   #$linkurl = "" if $linkurl =~ /^ma[il]+to[:;]/i;
   $linkurl =~ s/[?\/].*$//; # Only compare up to the first '/' or '?'

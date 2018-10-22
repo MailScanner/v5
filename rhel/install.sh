@@ -688,7 +688,7 @@ BASEPACKAGES="binutils gcc glibc-devel libaio make man-pages man-pages-overrides
 # package is not available for their distro release it
 # will be ignored during the install.
 #
-MOREPACKAGES="perl-Archive-Tar perl-Archive-Zip perl-Compress-Raw-Zlib perl-Compress-Zlib perl-Convert-BinHex perl-CPAN perl-Data-Dump perl-DBD-SQLite perl-DBI perl-Digest-HMAC perl-Digest-SHA1 perl-Env perl-ExtUtils-MakeMaker perl-File-ShareDir-Install perl-File-Temp perl-Filesys-Df perl-Getopt-Long perl-IO-String perl-IO-stringy perl-HTML-Parser perl-HTML-Tagset perl-Inline perl-IO-Zlib perl-Mail-DKIM perl-Mail-IMAPClient perl-Mail-SPF perl-MailTools perl-Net-CIDR perl-Net-DNS perl-Net-DNS-Resolver-Programmable perl-MIME-tools perl-Convert-TNEF perl-Net-IP perl-OLE-Storage_Lite perl-Pod-Escapes perl-Pod-Simple perl-Scalar-List-Utils perl-Storable perl-Pod-Escapes perl-Pod-Simple perl-Razor-Agent perl-Sys-Hostname-Long perl-Sys-SigAction perl-Test-Manifest perl-Test-Pod perl-Time-HiRes perl-TimeDate perl-URI perl-YAML pyzor re2c unrar tnef perl-Encode-Detect perl-LDAP perl-IO-Compress-Bzip2 p7zip p7zip-plugins perl-LWP-Protocol-https";
+MOREPACKAGES="perl-Archive-Tar perl-Archive-Zip perl-Compress-Raw-Zlib perl-Compress-Zlib perl-Convert-BinHex perl-CPAN perl-Data-Dump perl-DBD-SQLite perl-DBI perl-Digest-HMAC perl-Digest-SHA1 perl-Env perl-ExtUtils-MakeMaker perl-File-ShareDir-Install perl-File-Temp perl-Filesys-Df perl-Getopt-Long perl-IO-String perl-IO-stringy perl-HTML-Parser perl-HTML-Tagset perl-Inline perl-IO-Zlib perl-Mail-DKIM perl-Mail-IMAPClient perl-Mail-SPF perl-MailTools perl-Net-CIDR perl-Net-DNS perl-Net-DNS-Resolver-Programmable perl-MIME-tools perl-Convert-TNEF perl-Net-IP perl-OLE-Storage_Lite perl-Pod-Escapes perl-Pod-Simple perl-Scalar-List-Utils perl-Storable perl-Pod-Escapes perl-Pod-Simple perl-Razor-Agent perl-Sys-Hostname-Long perl-Sys-SigAction perl-Test-Manifest perl-Test-Pod perl-Time-HiRes perl-TimeDate perl-URI perl-YAML pyzor re2c unrar tnef perl-Encode-Detect perl-LDAP perl-IO-Compress-Bzip2 p7zip p7zip-plugins perl-LWP-Protocol-https perl-Test-Simple";
 
 # the array of perl modules needed
 ARMOD=();
@@ -714,7 +714,7 @@ ARMOD+=('Pod::Simple');			ARMOD+=('POSIX');				ARMOD+=('Scalar::Util');
 ARMOD+=('Socket'); 				ARMOD+=('Storable'); 	 	 	ARMOD+=('Test::Harness');		
 ARMOD+=('Test::Pod');			ARMOD+=('Test::Simple');		ARMOD+=('Time::HiRes');			
 ARMOD+=('Time::localtime'); 	ARMOD+=('Sys::Hostname::Long');	ARMOD+=('Sys::SigAction');		
-ARMOD+=('Sys::Syslog'); 		ARMOD+=('Env'); 				
+ARMOD+=('Sys::Syslog'); 		ARMOD+=('Env');
 ARMOD+=('Mail::SpamAssassin');
 
 # not required but nice to have
@@ -728,11 +728,11 @@ ARMOD+=('Mail::SPF::Query');	ARMOD+=('Module::Build');		ARMOD+=('Net::CIDR::Lite
 ARMOD+=('Net::DNS');			ARMOD+=('Net::LDAP');			ARMOD+=('Net::DNS::Resolver::Programmable');
 ARMOD+=('NetAddr::IP');			ARMOD+=('Parse::RecDescent');	ARMOD+=('Test::Harness');
 ARMOD+=('Test::Manifest');		ARMOD+=('Text::Balanced');		ARMOD+=('URI');	
-ARMOD+=('version');				ARMOD+=('IO::Compress::Bzip2');
+ARMOD+=('version');				ARMOD+=('IO::Compress::Bzip2'); ARMOD+=('Sendmail::PMilter');
 
-# additional spamassassin plugins				
-ARMOD+=('Mail::SpamAssassin::Plugin::Rule2XSBody');		
-ARMOD+=('Mail::SpamAssassin::Plugin::DCC');				
+# additional spamassassin plugins
+ARMOD+=('Mail::SpamAssassin::Plugin::Rule2XSBody');
+ARMOD+=('Mail::SpamAssassin::Plugin::DCC');
 ARMOD+=('Mail::SpamAssassin::Plugin::Pyzor');
 
 
@@ -953,83 +953,87 @@ fi
 
 # Configure clamav if required
 if [ $CONFCAV -eq 1 ]; then
-    # Get clam version
-    clamav_version=$(rpm -q --queryformat=%{VERSION} clamav-server)
+   # Get clam version
+    # ClamAV changed in CentOS/RHEL7 0.100.1+, most items commented for prior reference
+    #clamav_version=$(rpm -q --queryformat=%{VERSION} clamav-server)
     # Grab sample config if not present
-    if [ ! -f /etc/clamd.d/clamd.conf ]; then
-        cp /usr/share/doc/clamav-server-$clamav_version/clamd.conf /etc/clamd.d/clamd.conf
-    fi
+    #if [ ! -f /etc/clamd.d/clamd.conf ]; then
+    #    cp /usr/share/doc/clamav-server-$clamav_version/clamd.conf /etc/clamd.d/clamd.conf
+    #fi
     # Enable config
-    sed -i '/^Example/ c\#Example' /etc/clamd.d/clamd.conf
+    sed -i '/^Example/ c\#Example' /etc/clamd.d/scan.conf
     # Create clam user if not present
-    id -u clam >/dev/null 2>&1
-    if [ $? -ne 0 ]; then
-        useradd -d /var/lib/clamav -c "Clam Anti Virus Checker" -G virusgroup,clamupdate -s /sbin/nologin -M clam
-    fi
+    #id -u clam >/dev/null 2>&1
+    #if [ $? -ne 0 ]; then
+    #    useradd -d /var/lib/clamav -c "Clam Anti Virus Checker" -G virusgroup,clamupdate -s /sbin/nologin -M clam
+    #fi
     # More config options
-    sed -i '/^User <USER>/ c\User clam' /etc/clamd.d/clamd.conf
-    sed -i '/#LocalSocket \/var\/run\/clamd.<SERVICE>\/clamd.sock/ c\LocalSocket /var/run/clamd.scan/clamd.sock' /etc/clamd.d/clamd.conf
-    sed -i '/#LogFile \/var\/log\/clamd.<SERVICE>/ c\LogFile /var/log/clamd.scan/scan.log' /etc/clamd.d/clamd.conf
+    #sed -i '/^User <USER>/ c\User clam' /etc/clamd.d/clamd.conf
+    sed -i '/#LocalSocket \/var\/run\/clamd.scan\/clamd.sock/ c\LocalSocket /var/run/clamd.scan/clamd.sock' /etc/clamd.d/scan.conf
+    sed -i '/#LogFile \/var\/log\/clamd.scan/ c\LogFile /var/log/clamd.scan' /etc/clamd.d/scan.conf
     # Log rotation if not present
-    if [ ! -f /etc/logrotate.d/clamd.logrotate ]; then
-        cp /usr/share/doc/clamav-server-$clamav_version/clamd.logrotate /etc/logrotate.d/
-    fi
+    #if [ ! -f /etc/logrotate.d/clamd.logrotate ]; then
+    #    cp /usr/share/doc/clamav-server-$clamav_version/clamd.logrotate /etc/logrotate.d/
+    #fi
     # Filesystem/Permissions/SELinux
-    chown -R clam:clam /etc/clamd.d
-    mkdir -p /var/log/clamd.scan
-    chown -R clam:clam /var/log/clamd.scan
-    chcon -u system_u -r object_r -t antivirus_log_t /var/log/clamd.scan
-    mkdir -p /var/run/clamd.scan
-    chown -R clam:clam /var/run/clamd.scan
-    chcon -u system_u -r object_r -t antivirus_var_run_t /var/run/clamd.scan
-    echo "d /var/run/clamd.scan 0750 clam mtagroup -" > /etc/tmpfiles.d/clamd.conf
-    echo "d /var/run/clamd.scan 0750 clam mtagroup -" > /etc/tmpfiles.d/clamd.scan.conf
+    #chown -R clam:clam /etc/clamd.d
+    #mkdir -p /var/log/clamd.scan
+    #chown -R clam:clam /var/log/clamd.scan
+    #chcon -u system_u -r object_r -t antivirus_log_t /var/log/clamd.scan
+    #mkdir -p /var/run/clamd.scan
+    #chown -R clam:clam /var/run/clamd.scan
+    #chcon -u system_u -r object_r -t antivirus_var_run_t /var/run/clamd.scan
+    chown -R clamscan:mtagroup /var/run/clamd.scan
+    echo "d /var/run/clamd.scan 0750 clamscan mtagroup -" > /usr/lib/tmpfiles.d/clamd.scan.conf
+    touch /var/log/clamd.scan
+    chown clamscan:clamscan /var/log/clamd.scan
+    usermod -G mtagroup,virusgroup,clamupdate clamscan
     # sysconfig file
-    if [ ! -f /etc/sysconfig/clamd ]; then
-        cat > /etc/sysconfig/clamd << 'EOF'
-CLAMD_CONFIGFILE=/etc/clamd.d/clamd.conf
-CLAMD_SOCKET=/var/run/clamd.scan/clamd.sock
+    #if [ ! -f /etc/sysconfig/clamd ]; then
+    #    cat > /etc/sysconfig/clamd << 'EOF'
+#CLAMD_CONFIGFILE=/etc/clamd.d/clamd.conf
+#CLAMD_SOCKET=/var/run/clamd.scan/clamd.sock
 #CLAMD_OPTIONS=
-EOF
-    fi
+#EOF
+    #fi
 
     # Systemd services
-    if [ ! -f /usr/lib/systemd/system/clam.freshclam.service ]; then
-        cat > /usr/lib/systemd/system/clam.freshclam.service << 'EOF'
-[Unit]
-Description = freshclam scanner
-After = network.target
+    #if [ ! -f /usr/lib/systemd/system/clam.freshclam.service ]; then
+        #cat > /usr/lib/systemd/system/clam.freshclam.service << 'EOF'
+#[Unit]
+#Description = freshclam scanner
+#After = network.target
+#
+#[Service]
+#Type = forking
+#ExecStart = /usr/bin/freshclam -d -c 4
+#Restart = on-failure
+#PrivateTmp = true
+#
+#[Install]
+#WantedBy=multi-user.target
+#EOF
+#    fi
+#    
+#    if [ ! -f /usr/lib/systemd/system/clam.scan.service ]; then
+#        cat > /usr/lib/systemd/system/clam.scan.service << 'EOF'
+#[Unit]
+#Description = clamd scanner daemon
+#After = syslog.target nss-lookup.target network.target
+#
+#[Service]
+#Type = forking
+#ExecStart = /usr/sbin/clamd -c /etc/clamd.d/clamd.conf
+#Restart = on-failure
+#PrivateTmp = true
+#
+#[Install]
+#WantedBy=multi-user.target
+#EOF
+#    fi
 
-[Service]
-Type = forking
-ExecStart = /usr/bin/freshclam -d -c 4
-Restart = on-failure
-PrivateTmp = true
-
-[Install]
-WantedBy=multi-user.target
-EOF
-    fi
-    
-    if [ ! -f /usr/lib/systemd/system/clam.scan.service ]; then
-        cat > /usr/lib/systemd/system/clam.scan.service << 'EOF'
-[Unit]
-Description = clamd scanner daemon
-After = syslog.target nss-lookup.target network.target
-
-[Service]
-Type = forking
-ExecStart = /usr/sbin/clamd -c /etc/clamd.d/clamd.conf
-Restart = on-failure
-PrivateTmp = true
-
-[Install]
-WantedBy=multi-user.target
-EOF
-    fi
-
-    systemctl enable clam.freshclam
-    systemctl enable clam.scan
+#    systemctl enable clam.freshclam
+#    systemctl enable clam.scan
 fi
 
 # now check for missing perl modules and install them via cpan
