@@ -3126,15 +3126,25 @@ sub Unpack7zip {
       # MailScanner::Log::WarnLog("7z what: %s", $what);
       # If we are on line one then it's the file name with full path
       # otherwise we are on the info line containing the attributes
-      $what =~ s/ +/ /g;
-      my (@Zarray ) = split /\s/, $what;
-      my $Zname = pop @Zarray; # this is the most important value, other values are nice to have but this one we must have
+      ##$what =~ s/ +/ /g;
+      ##my (@Zarray ) = split /\s/, $what;
+
+      # Add support to filenames with spaces.
+      my @Zarray;
+      for (my $i=0; $i <= 4; $i++) {
+        $what =~ / +/;
+        $Zarray[$i]= substr($what, 0,     $-[0]),
+        $what=substr($what, $+[0]);
+      }
+      $Zarray[5]=$what;
+
+      # my $Zname = pop @Zarray; # this is the most important value, other values are nice to have but this one we must have
+      my $Zname = $Zarray[5]; # this is the most important value, other values are nice to have but this one we must have
       my $Zdate = $Zarray[0];
       my $Ztime = $Zarray[1];
       my $Zattr = $Zarray[2];
       #my $Zsize = $Zarray[3];
       #my $ZCsize = $Zarray[4];
-
       #MailScanner::Log::WarnLog("7z-members: [%s] [%s] [%s] [%s] [%s] [%s]", $Zdate, $Ztime, $Zattr, $Zsize, $ZCsize, $Zname);
 
       $memb .= "$Zname\n" if $Zattr !~ /^d|^D/;
