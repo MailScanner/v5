@@ -741,11 +741,6 @@ if [ $SA == 1 ]; then
     ARMOD+=('Mail::SpamAssassin');
 fi
 
-# add to array if the user is installing clam av
-if [ $CAV == 1 ]; then
-    ARMOD+=('Mail::ClamAV');
-fi
-
 # 32 or 64 bit
 MACHINE_TYPE=`uname -m`
 
@@ -1095,6 +1090,19 @@ do
         echo "$i => OK";
     fi
 done
+
+# Mail::ClamAV has broken version detection
+# Prepare to patch and install
+if [ $CAV == 1 ]; then
+    cpan -g Mail::ClamAV
+    package=$(find -name Mail-ClamAV*gz | tail -n1)
+    tar xzvf $package
+    packagedir=$(echo $package | sed -e 's/\.tar\.gz//')
+    patch -p1 $packagedir/Makefile.PL < patch.diff
+    cd $packagedir
+    perl Makefile.PL
+    make install
+fi
 
 if [ $CPANOPTION -eq 1 ]; then
   # Install MIME::Tools from CPAN even though rpm is present

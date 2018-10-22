@@ -2,7 +2,11 @@
 
 # Jerry Benton
 # 24 APR 2016
-
+#
+# Shawn Iverson <shawniverson@efa-project.org>
+# 22 OCT 2018
+#
+#
 # this Build.debian script should be located in the base
 # directory when run. 
 
@@ -108,6 +112,7 @@ cp $DEVBASEDIR/debian/install.sh 			$PKGTMP/MailScanner-${FULLMSVER}
 cp $DEVBASEDIR/changelog 						$PKGTMP/MailScanner-${FULLMSVER}
 cp $DEVBASEDIR/LICENSE 							$PKGTMP/MailScanner-${FULLMSVER}
 cp $DEVBASEDIR/README 							$PKGTMP/MailScanner-${FULLMSVER}
+cp $DEVBASEDIR/debian/patch/patch.diff 			$PKGTMP/MailScanner-${FULLMSVER}
 chmod +x $PKGTMP/MailScanner-${FULLMSVER}/install.sh
 cd $PKGTMP
 tar czf MailScanner-${FULLMSVER}.deb.tar.gz *
