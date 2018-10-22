@@ -12,8 +12,7 @@
 # Updated By:
 # Manuel Dalla Lana < endelwar@aregar.it >
 # Shawn Iverson < shawniverson@gmail.com >
-# 17 JUN 2018
-
+# 22 OCT 2018
 # clear the screen. yay!
 clear
 
@@ -586,6 +585,19 @@ if [ ${CPANOPTION} == 1 ]; then
             perl -MCPAN -e "CPAN::Shell->force(qw(install ${i} ));"
         fi
     done
+
+    # Mail::ClamAV has broken version detection
+    # Prepare to patch and install
+    if [ $CAV == 1 ]; then
+        cpan -g Mail::ClamAV
+        package=$(find -name Mail-ClamAV*gz | tail -n1)
+        tar xzvf $package
+        packagedir=$(echo $package | sed -e 's/\.tar\.gz//')
+        patch -p1 $packagedir/Makefile.PL < patch.diff
+        cd $packagedir
+        perl Makefile.PL
+        make install
+    fi
 
     # Install MIME::Tools from CPAN even though rpm is present
     # Fixes outdated MIME::Tools causing MailScanner to crash

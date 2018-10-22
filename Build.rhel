@@ -5,6 +5,9 @@
 # 13 FEB 2015
 # 18 April 2016 - Updated
 #
+# Shawn Iverson <shawniverson@efa-project.org>
+# 22 October 2018
+#
 # This script will build the latest RPM install 
 # package and put it in /msbuilds/rpm
 
@@ -142,9 +145,11 @@ mkdir -p $RPMOUT/MailScanner-$VERSION
 cp $SRCDIR/install.sh $RPMOUT/MailScanner-$VERSION/
 cp $DEVBASEDIR/README $RPMOUT/MailScanner-$VERSION/
 cp $DEVBASEDIR/LICENSE $RPMOUT/MailScanner-$VERSION/
+cp $SRCDIR/patch/patch.diff $RPMOUT/MailScanner-$VERSION/
 find $RPMOUT/MailScanner-$VERSION -name 'install.sh' -exec chmod 755 {} \;
 find $RPMOUT/MailScanner-$VERSION -name 'LICENSE' -exec chmod 644 {} \;
 find $RPMOUT/MailScanner-$VERSION -name 'README' -exec chmod 644 {} \;
+find $RPMOUT/MailScanner-$VERSION -name 'patch.diff' -exec chmod 644 {} \;
 
 # Build the RPM and SRPMS
 # extra define statements help make the rpm backwards compatible
