@@ -1,5 +1,7 @@
 10/20/2018 Changes in....v5.1.2-1
 ==================================
+- Patch Mail::ClamAV to allow install for SuSE builds
+- 7zip handle spaces in filenames
 - Clamd full message scan
 - Detect fax and tel links
 - mime_perl_to_string fix for ignored handler

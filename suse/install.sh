@@ -236,10 +236,10 @@ if [ -z "${arg_installClamav+x}" ]; then
         # some of these options may result in a 'no package available' on
         # some distributions, but that is ok
         CAV=1
-        CAVOPTION="pcre-devel clamav clamav-database clamav-nodb clamz";
+        CAVOPTION="pcre-devel clamav monitoring-plugins-clamav";
     elif [ -z $response ]; then  
         CAV=1
-        CAVOPTION="pcre-devel clamav clamav-database clamav-nodb clamz";
+        CAVOPTION="pcre-devel clamav monitoring-plugins-clamav";
     else
         # user does not want clam av
         CAV=0
@@ -249,7 +249,7 @@ else
     CAV=${arg_installClamav}
     CAVOPTION=
     if [ ${CAV} -eq 1 ]; then
-        CAVOPTION="pcre-devel clamav clamav-database clamav-nodb clamz";
+        CAVOPTION="pcre-devel clamav monitoring-plugins-clamav";
     fi
 fi
 
@@ -441,11 +441,6 @@ if [ $SA == 1 ]; then
     ARMOD+=('Mail::SpamAssassin');
 fi
 
-# add to array if the user is installing clam av
-if [ $CAV == 1 ]; then
-    ARMOD+=('Mail::ClamAV');
-fi
-
 # logging starts here
 (
 clear
@@ -590,6 +585,19 @@ do
         echo "$i => OK";
     fi
 done
+
+# Mail::ClamAV has broken version detection
+# Prepare to patch and install
+if [ $CAV == 1 ]; then
+    cpan -g Mail::ClamAV
+    package=$(find -name Mail-ClamAV*gz | tail -n1)
+    tar xzvf $package
+    packagedir=$(echo $package | sed -e 's/\.tar\.gz//')
+    patch -p1 $packagedir/Makefile.PL < patch.diff
+    cd $packagedir
+    perl Makefile.PL
+    make install
+fi
 
 if [ $CPANOPTION -eq 1]; then
   # Install MIME::Tools from CPAN even though rpm is present
