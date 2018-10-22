@@ -123,7 +123,7 @@ install usr/sbin/ms-upgrade-conf                     ${RPM_BUILD_ROOT}/usr/sbin/
 
 ### usr/share/MailScanner
 
-for lang in ca cy+en cz de dk en es fr hu it nl pt_br ro se sk
+for lang in ca cy+en cz de dk en en_uk es fr hu it nl pt_br ro se sk
 do
   while read f 
   do
