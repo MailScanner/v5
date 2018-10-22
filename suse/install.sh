@@ -599,7 +599,7 @@ if [ $CAV == 1 ]; then
     make install
 fi
 
-if [ $CPANOPTION -eq 1]; then
+if [ $CPANOPTION -eq 1 ]; then
   # Install MIME::Tools from CPAN even though rpm is present
   # Fixes outdated MIME::Tools causing MailScanner to crash
   clear
