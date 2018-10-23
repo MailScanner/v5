@@ -145,7 +145,7 @@ mkdir -p $RPMOUT/MailScanner-$VERSION
 cp $SRCDIR/install.sh $RPMOUT/MailScanner-$VERSION/
 cp $DEVBASEDIR/README $RPMOUT/MailScanner-$VERSION/
 cp $DEVBASEDIR/LICENSE $RPMOUT/MailScanner-$VERSION/
-cp $SRCDIR/patch/patch.diff $RPMOUT/MailScanner-$VERSION/
+cp $DEVBASEDIR/common/patch/patch.diff $RPMOUT/MailScanner-$VERSION/
 find $RPMOUT/MailScanner-$VERSION -name 'install.sh' -exec chmod 755 {} \;
 find $RPMOUT/MailScanner-$VERSION -name 'LICENSE' -exec chmod 644 {} \;
 find $RPMOUT/MailScanner-$VERSION -name 'README' -exec chmod 644 {} \;

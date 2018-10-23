@@ -112,7 +112,7 @@ cp $DEVBASEDIR/debian/install.sh 			$PKGTMP/MailScanner-${FULLMSVER}
 cp $DEVBASEDIR/changelog 						$PKGTMP/MailScanner-${FULLMSVER}
 cp $DEVBASEDIR/LICENSE 							$PKGTMP/MailScanner-${FULLMSVER}
 cp $DEVBASEDIR/README 							$PKGTMP/MailScanner-${FULLMSVER}
-cp $DEVBASEDIR/debian/patch/patch.diff 			$PKGTMP/MailScanner-${FULLMSVER}
+cp $DEVBASEDIR/common/patch/patch.diff 			$PKGTMP/MailScanner-${FULLMSVER}
 chmod +x $PKGTMP/MailScanner-${FULLMSVER}/install.sh
 cd $PKGTMP
 tar czf MailScanner-${FULLMSVER}.deb.tar.gz *
