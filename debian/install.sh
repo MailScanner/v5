@@ -588,7 +588,7 @@ if [ ${CPANOPTION} == 1 ]; then
 
     # Mail::ClamAV has broken version detection
     # Prepare to patch and install
-    if [[ $CAV -eq 1 && $CAVOPTION -eq 1 ]]; then
+    if [ $CAV -eq 1 ]; then
         cpan -g Mail::ClamAV
         package=$(find -name Mail-ClamAV*gz | tail -n1)
         tar xzvf $package
