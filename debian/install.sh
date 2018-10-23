@@ -235,10 +235,10 @@ if [ -z "${arg_installClamav+x}" ]; then
         # some of these options may result in a 'no package available' on
         # some distributions, but that is ok
         CAV=1
-        CAVOPTION="clamav-daemon libclamav-client-perl";
+        CAVOPTION="clamav-daemon libclamav-client-perl libclamav-dev";
     elif [ -z $response ]; then
         CAV=1
-        CAVOPTION="clamav-daemon libclamav-client-perl";
+        CAVOPTION="clamav-daemon libclamav-client-perl libclamav-dev";
     else
         # user does not want clam av
         CAV=0
@@ -248,7 +248,7 @@ else
     CAV=${arg_installClamav}
     CAVOPTION=
     if [ ${CAV} -eq 1 ]; then
-        CAVOPTION="clamav-daemon libclamav-client-perl";
+        CAVOPTION="clamav-daemon libclamav-client-perl libclamav-dev";
     fi
 fi
 
