@@ -568,7 +568,7 @@ for i in "${ARMOD[@]}"
 do
     perldoc -l $i >/dev/null 2>&1
     if [ $? -ne 0 ]; then
-        if [ $CPANOPTION == 1 ]; then
+        if [ $CPANOPTION -eq 1 ]; then
             clear
             echo "$i is missing. Installing via CPAN ..."; echo;
             timewait 1
@@ -588,7 +588,7 @@ done
 
 # Mail::ClamAV has broken version detection
 # Prepare to patch and install
-if [[ $CAV -eq 1 && $CPANOPTION -eq 1]; then
+if [[ $CAV -eq 1 && $CPANOPTION -eq 1 ]]; then
     cpan -g Mail::ClamAV
     package=$(find -name Mail-ClamAV*gz | tail -n1)
     tar xzvf $package
