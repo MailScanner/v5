@@ -728,6 +728,14 @@ sub Start {
     seek $$this{_handle}, 0, 0;
   }
 
+  # Locate predata header
+  while($data = MailScanner::Sendmail::ReadRecord($$this{_handle})) {
+    last if $data !~ /^(O<|S<)/;
+    $$this{_startpos}= tell $$this{_handle};
+  }
+
+  seek $$this{_handle}, $$this{_startpos}, 0;
+
   # IF they want the headers as well, then just get out now
   if ($entiremessage) {
     return;
