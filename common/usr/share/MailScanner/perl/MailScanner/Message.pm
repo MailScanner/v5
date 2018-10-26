@@ -5744,7 +5744,10 @@ sub DeliverModifiedBody {
   #print STDERR "Written the MIME body\n";
 
   # Set up the output envelope with its (possibly modified) headers
-  $global::MS->{mta}->AddHeadersToQf($this, $this->{entity}->stringify_header);
+  # Leave utf-8 encodings in place
+  # https://github.com/MailScanner/v5/issues/287
+  #$global::MS->{mta}->AddHeadersToQf($this, $this->{entity}->stringify_header);
+  $global::MS->{mta}->AddHeadersToQf($this);
 
   # Remove duplicate subject: lines
   $global::MS->{mta}->UniqHeader($this, 'Subject:');
