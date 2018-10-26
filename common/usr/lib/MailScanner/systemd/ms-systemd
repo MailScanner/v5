@@ -2,7 +2,7 @@
 Description=LSB: MailScanner daemon
 Documentation=man:systemd-sysv-generator(8)
 SourcePath=/usr/lib/MailScanner/init/ms-init
-After=network-online.target remote-fs.target rsyslog.service mariadb.service mysql.service postfix.service exim4.service clamav-daemon.service ms-sendmail.service
+After=network-online.target remote-fs.target rsyslog.service mariadb.service mysql.service postfix.service exim4.service ms-sendmail.service clamav-daemon.service clamd@scan.service
 Wants=network-online.target mariadb.service
 
 [Service]
