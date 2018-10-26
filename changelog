@@ -1,4 +1,12 @@
-10/20/2018 Changes in....v5.1.2-1
+10/26/2018 Changes in    v5.1.2-2
+==================================
+- Preserve utf-8 header data
+- Add additional services to systemd unit
+- Simplify esets output
+- Add newline to virus.scanners.conf
+- Exclude predata headers in quarantine files (milter)
+
+10/20/2018 Changes in    v5.1.2-1
 ==================================
 - Patch Mail::ClamAV to allow install for SuSE builds
 - 7zip handle spaces in filenames
