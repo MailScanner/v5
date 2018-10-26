@@ -47,6 +47,7 @@ use File::Temp;
 use MailScanner::FileInto;
 use IO::Pipe;
 use IO::File;
+#use Data::Dumper;
 
 # Install an extra MIME decoder for badly-header uue messages.
 install MIME::Decoder::UU 'uuencode';
@@ -742,7 +743,20 @@ sub IsSpam {
     return 0;
   }
 
-  if (!$iswhitelisted) {
+  my $isauthenticated = 0;
+  if (MailScanner::Config::Value('mta') == "postfix" && MailScanner::Config::Value('spamlistskipifauthenticated')) {
+#      MailScanner::Log::InfoLog(Dumper($metadata));
+    # Test if sender is authenticated on mta
+    foreach my $metadata (@{$this->{metadata}}) {
+      #Postfix
+      if ($metadata =~ m/^Asasl_method=(PLAIN|LOGIN)$/) {
+        MailScanner::Log::InfoLog("Sender was authenticated - Not checking RBLs");
+        $isauthenticated = 1;
+      }
+    }
+  }
+
+  if (!$iswhitelisted && !$isauthenticated) {
     # Not whitelisted, so do the RBL checks
     $0 = 'MailScanner: checking with Spam Lists';
     ($rblcounter, $rblspamheader) = MailScanner::RBLs::Checks($this);
