@@ -1926,10 +1926,7 @@ sub ProcessEsetsOutput {
   
   if($info == ''){ $info = 'none'; }
    
-  my $report = "Esets: found $threat in $file \n";
-     $report .= "Esets Actions: $action \n";
-     $report .= "Esets Additional Info: $info \n";
-  
+  my $report = "Esets: found $threat in $file";
   $infections->{"$id"}{"$part"} .= $report . "\n";
   $types->{"$id"}{"$part"} .= "v"; # it's a real virus
   MailScanner::Log::InfoLog("Esets::INFECTED::$threat");
