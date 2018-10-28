@@ -1,5 +1,6 @@
 10/26/2018 Changes in    v5.1.2-2
 ==================================
+- Disable rbl check if user is authenticated (postfix)
 - Preserve utf-8 header data
 - Add additional services to systemd unit
 - Simplify esets output
