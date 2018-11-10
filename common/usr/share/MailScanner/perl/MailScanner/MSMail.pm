@@ -887,6 +887,9 @@ sub new {
       $queuehandle = new FileHandle();
 
       foreach $file (@Files) {
+
+          undef(@recipient);
+
           my $filename = $file;
           my $file = $queuedirname . '/' . $file;
           # Open file
