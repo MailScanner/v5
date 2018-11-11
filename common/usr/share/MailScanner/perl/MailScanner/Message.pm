@@ -47,6 +47,7 @@ use File::Temp;
 use MailScanner::FileInto;
 use IO::Pipe;
 use IO::File;
+#use Data::Dumper;
 
 # Install an extra MIME decoder for badly-header uue messages.
 install MIME::Decoder::UU 'uuencode';
@@ -742,7 +743,20 @@ sub IsSpam {
     return 0;
   }
 
-  if (!$iswhitelisted) {
+  my $isauthenticated = 0;
+  if (MailScanner::Config::Value('mta') == "postfix" && MailScanner::Config::Value('spamlistskipifauthenticated')) {
+#      MailScanner::Log::InfoLog(Dumper($metadata));
+    # Test if sender is authenticated on mta
+    foreach my $metadata (@{$this->{metadata}}) {
+      #Postfix
+      if ($metadata =~ m/^Asasl_method=(PLAIN|LOGIN)$/) {
+        MailScanner::Log::InfoLog("Sender was authenticated - Not checking RBLs");
+        $isauthenticated = 1;
+      }
+    }
+  }
+
+  if (!$iswhitelisted && !$isauthenticated) {
     # Not whitelisted, so do the RBL checks
     $0 = 'MailScanner: checking with Spam Lists';
     ($rblcounter, $rblspamheader) = MailScanner::RBLs::Checks($this);
@@ -3126,15 +3140,25 @@ sub Unpack7zip {
       # MailScanner::Log::WarnLog("7z what: %s", $what);
       # If we are on line one then it's the file name with full path
       # otherwise we are on the info line containing the attributes
-      $what =~ s/ +/ /g;
-      my (@Zarray ) = split /\s/, $what;
-      my $Zname = pop @Zarray; # this is the most important value, other values are nice to have but this one we must have
+      ##$what =~ s/ +/ /g;
+      ##my (@Zarray ) = split /\s/, $what;
+
+      # Add support to filenames with spaces.
+      my @Zarray;
+      for (my $i=0; $i <= 4; $i++) {
+        $what =~ / +/;
+        $Zarray[$i]= substr($what, 0,     $-[0]),
+        $what=substr($what, $+[0]);
+      }
+      $Zarray[5]=$what;
+
+      # my $Zname = pop @Zarray; # this is the most important value, other values are nice to have but this one we must have
+      my $Zname = $Zarray[5]; # this is the most important value, other values are nice to have but this one we must have
       my $Zdate = $Zarray[0];
       my $Ztime = $Zarray[1];
       my $Zattr = $Zarray[2];
       #my $Zsize = $Zarray[3];
       #my $ZCsize = $Zarray[4];
-
       #MailScanner::Log::WarnLog("7z-members: [%s] [%s] [%s] [%s] [%s] [%s]", $Zdate, $Ztime, $Zattr, $Zsize, $ZCsize, $Zname);
 
       $memb .= "$Zname\n" if $Zattr !~ /^d|^D/;
@@ -4234,6 +4258,12 @@ sub BuildFile2EntityAndEntity2File {
   # JKF 20090327 None of the others do, they represent the real attach name.
   $headfile = $entity->head->recommended_filename || $namewithouttype; # $path;
   #print STDERR "rec filename for \"$headfile\" is \"" . $entity->head->recommended_filename . "\"\n";
+  
+  # Remove any wide characters so that WordDecoder can parse
+  # mime_to_perl_string is ignoring the built-in handler that was set earlier
+  # https://github.com/MailScanner/v5/issues/253
+  $headfile =~  tr/\x00-\xFF/#/c;
+  
   $headfile = MIME::WordDecoder::mime_to_perl_string($headfile);
   #print STDERR "headfile is $headfile\n";
   if ($headfile) {
@@ -5728,7 +5758,10 @@ sub DeliverModifiedBody {
   #print STDERR "Written the MIME body\n";
 
   # Set up the output envelope with its (possibly modified) headers
-  $global::MS->{mta}->AddHeadersToQf($this, $this->{entity}->stringify_header);
+  # Leave utf-8 encodings in place
+  # https://github.com/MailScanner/v5/issues/287
+  #$global::MS->{mta}->AddHeadersToQf($this, $this->{entity}->stringify_header);
+  $global::MS->{mta}->AddHeadersToQf($this);
 
   # Remove duplicate subject: lines
   $global::MS->{mta}->UniqHeader($this, 'Subject:');
@@ -7692,7 +7725,9 @@ sub DisarmEndtagCallback {
           if ($linkurl ne "") {
             if ($TheyMatch) {
               # Even though they are the same, still squeal if it's a raw IP
-              if ($numbertrap) {
+              # Ignore fax: and tel: (not ip but numeric)
+              # https://github.com/MailScanner/v5/issues/224
+              if ($numbertrap && $DisarmLinkURL !~ m/^(fax|tel)[:;]/i) {
                 print MailScanner::Config::LanguageValue(0, 'numericlinkwarning')
                       . ' '
                       if $PhishingHighlight && !$AlreadyReported; # && !InPhishingWhitelist($linkurl);
@@ -7733,13 +7768,15 @@ sub DisarmEndtagCallback {
         #
         # Strict Phishing Net Goes Here
         #
+        # Ignore fax: and tel: (not ip but numeric)
+        # https://github.com/MailScanner/v5/issues/224
         if ($alarm ||
           ($linkurl ne "" && $squashedtext !~ /^(w+\.)?\Q$linkurl\E\/?$/)
-          || ($linkurl ne "" && $numbertrap)) {
+          || ($linkurl ne "" && $numbertrap && $DisarmLinkURL !~ m/^(fax|tel)[:;]/i)) {
 
           unless (InPhishingWhitelist($linkurl)) {
             use bytes; # Don't send UTF16 to syslog, it breaks!
-            if ($linkurl ne "" && $numbertrap && $linkurl eq $squashedtext) {
+            if ($linkurl ne "" && $numbertrap && $linkurl eq $squashedtext && $DisarmLinkURL !~ m/^(fax|tel)[:;]/i) {
               # It's not a real phishing trap, just a use of numberic IP links
               print MailScanner::Config::LanguageValue(0, 'numericlinkwarning') .
                     ' ' if $PhishingHighlight && !$AlreadyReported;
@@ -7753,7 +7790,9 @@ sub DisarmEndtagCallback {
             $linkurl = substr $linkurl, 0, 80;
             $squashedtext = substr $squashedtext, 0, 80;
             $DisarmDoneSomething{'phishing'} = 1 if $PhishingHighlight; #JKF1 $PhishingSubjectTag;
-            if ($numbertrap) {
+            # Ignore fax: and tel: (not ip but numeric)
+            # https://github.com/MailScanner/v5/issues/224
+            if ($numbertrap && $DisarmLinkURL !~ m/^(fax|tel)[:;]/i) {
               MailScanner::Log::InfoLog('Found ip-based phishing fraud from ' .
                                         '%s in %s', $DisarmLinkURL, $id);
                                         #'%s in %s', $linkurl, $id);
@@ -7967,6 +8006,9 @@ sub CleanLinkURL {
        $linkurl !~ /^(https?|ftp|mailto|webcal):/i;
   $linkurl =~ s/^(https?:\/\/[^:]+):80($|\D)/$1$2/i; # Remove http://....:80
   $linkurl =~ s/^(https?|ftp|webcal)[:;]\/\///i;
+  # Remove fax and tel prefixes
+  # https://github.com/MailScanner/v5/issues/224
+  $linkurl =~ s/^(fax|tel)[:;]//i;
   return ("",0) if $linkurl =~ /^ma[il]+to[:;]/i;
   #$linkurl = "" if $linkurl =~ /^ma[il]+to[:;]/i;
   $linkurl =~ s/[?\/].*$//; # Only compare up to the first '/' or '?'

@@ -51,7 +51,7 @@ mkdir -p $RPM_BUILD_ROOT
 mkdir -p ${RPM_BUILD_ROOT}/usr/sbin/
 mkdir -p ${RPM_BUILD_ROOT}/etc/MailScanner/{conf.d,rules,mcp}
 mkdir -p ${RPM_BUILD_ROOT}/etc/{cron.hourly,cron.daily}
-mkdir -p ${RPM_BUILD_ROOT}/usr/share/MailScanner/reports/{hu,de,se,ca,cy+en,pt_br,fr,es,en,cz,it,dk,nl,ro,sk}
+mkdir -p ${RPM_BUILD_ROOT}/usr/share/MailScanner/reports/{hu,de,se,ca,cy+en,pt_br,fr,es,en,en_uk,cz,it,dk,nl,ro,sk}
 mkdir -p ${RPM_BUILD_ROOT}/usr/share/MailScanner/perl/{MailScanner,custom}
 mkdir -p ${RPM_BUILD_ROOT}/usr/{lib/MailScanner/wrapper,lib/MailScanner/init,lib/MailScanner/systemd}
 mkdir -p ${RPM_BUILD_ROOT}/var/spool/MailScanner/{archive,incoming,quarantine,milterin,milterout}
@@ -123,7 +123,7 @@ install usr/sbin/ms-upgrade-conf                    ${RPM_BUILD_ROOT}/usr/sbin/m
 
 ### usr/share/MailScanner
 
-for lang in ca cy+en cz de dk en es fr hu it nl pt_br ro se sk
+for lang in ca cy+en cz de dk en en_uk es fr hu it nl pt_br ro se sk
 do
   while read f 
   do
@@ -254,6 +254,8 @@ generic-autoupdate
 generic-wrapper
 sophos-autoupdate
 sophos-wrapper
+drweb-wrapper
+kaspersky-wrapper
 EOF
 
 %clean
@@ -740,6 +742,8 @@ exit 0
 %attr(755,root,root) /usr/lib/MailScanner/wrapper/generic-wrapper
 %attr(755,root,root) /usr/lib/MailScanner/wrapper/sophos-autoupdate
 %attr(755,root,root) /usr/lib/MailScanner/wrapper/sophos-wrapper
+%attr(755,root,root) /usr/lib/MailScanner/wrapper/drweb-wrapper
+%attr(755,root,root) /usr/lib/MailScanner/wrapper/kaspersky-wrapper
 
 %config(noreplace) /usr/share/MailScanner/perl/custom/CustomAction.pm
 %config(noreplace) /usr/share/MailScanner/perl/custom/GenericSpamScanner.pm
@@ -844,6 +848,34 @@ exit 0
 %config(noreplace) /usr/share/MailScanner/reports/en/stored.filename.message.txt
 %config(noreplace) /usr/share/MailScanner/reports/en/stored.size.message.txt
 %config(noreplace) /usr/share/MailScanner/reports/en/stored.virus.message.txt
+%config(noreplace) /usr/share/MailScanner/reports/en_uk/deleted.content.message.txt
+%config(noreplace) /usr/share/MailScanner/reports/en_uk/stored.content.message.txt
+%config(noreplace) /usr/share/MailScanner/reports/en_uk/sender.content.report.txt
+%config(noreplace) /usr/share/MailScanner/reports/en_uk/deleted.filename.message.txt
+%config(noreplace) /usr/share/MailScanner/reports/en_uk/deleted.size.message.txt
+%config(noreplace) /usr/share/MailScanner/reports/en_uk/deleted.virus.message.txt
+%config(noreplace) /usr/share/MailScanner/reports/en_uk/disinfected.report.txt
+%config(noreplace) /usr/share/MailScanner/reports/en_uk/inline.sig.html
+%config(noreplace) /usr/share/MailScanner/reports/en_uk/inline.sig.txt
+%config(noreplace) /usr/share/MailScanner/reports/en_uk/inline.spam.warning.txt
+%config(noreplace) /usr/share/MailScanner/reports/en_uk/inline.warning.html
+%config(noreplace) /usr/share/MailScanner/reports/en_uk/inline.warning.txt
+%config(noreplace) /usr/share/MailScanner/reports/en_uk/languages.conf
+%config(noreplace) /usr/share/MailScanner/reports/en_uk/languages.conf.strings
+%config(noreplace) /usr/share/MailScanner/reports/en_uk/recipient.spam.report.txt
+%config(noreplace) /usr/share/MailScanner/reports/en_uk/recipient.mcp.report.txt
+%config(noreplace) /usr/share/MailScanner/reports/en_uk/rejection.report.txt
+%config(noreplace) /usr/share/MailScanner/reports/en_uk/sender.error.report.txt
+%config(noreplace) /usr/share/MailScanner/reports/en_uk/sender.filename.report.txt
+%config(noreplace) /usr/share/MailScanner/reports/en_uk/sender.spam.rbl.report.txt
+%config(noreplace) /usr/share/MailScanner/reports/en_uk/sender.spam.report.txt
+%config(noreplace) /usr/share/MailScanner/reports/en_uk/sender.spam.sa.report.txt
+%config(noreplace) /usr/share/MailScanner/reports/en_uk/sender.mcp.report.txt
+%config(noreplace) /usr/share/MailScanner/reports/en_uk/sender.size.report.txt
+%config(noreplace) /usr/share/MailScanner/reports/en_uk/sender.virus.report.txt
+%config(noreplace) /usr/share/MailScanner/reports/en_uk/stored.filename.message.txt
+%config(noreplace) /usr/share/MailScanner/reports/en_uk/stored.size.message.txt
+%config(noreplace) /usr/share/MailScanner/reports/en_uk/stored.virus.message.txt
 %config(noreplace) /usr/share/MailScanner/reports/cy+en/deleted.content.message.txt
 %config(noreplace) /usr/share/MailScanner/reports/cy+en/stored.content.message.txt
 %config(noreplace) /usr/share/MailScanner/reports/cy+en/sender.content.report.txt
@@ -1237,8 +1269,13 @@ exit 0
 %config(noreplace) /usr/share/MailScanner/reports/ca/stored.size.message.txt
 %config(noreplace) /usr/share/MailScanner/reports/ca/stored.virus.message.txt
 
-
 %changelog
+* Sun Oct 21 2018 Shawn Iverson <shawniverson@efa-project.org>
+- Add en_uk reports and drweb-wrapper
+
+* Sat Oct 20 2018 Shawn Iverson <shawniverson@efa-project.org>
+- Add kaspersky-wrapper
+
 * Sat Aug 25 2018 Shawn Iverson <shawniverson@efa-project.org>
 - Add Milter support to MailScanner
 

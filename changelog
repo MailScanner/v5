@@ -1,3 +1,35 @@
+10/26/2018 Changes in    v5.1.2-2
+==================================
+- Disable rbl check if user is authenticated (postfix)
+- Preserve utf-8 header data
+- Add additional services to systemd unit
+- Simplify esets output
+- Add newline to virus.scanners.conf
+- Exclude predata headers in quarantine files (milter)
+
+10/20/2018 Changes in    v5.1.2-1
+==================================
+- Patch Mail::ClamAV to allow install for SuSE builds
+- 7zip handle spaces in filenames
+- Clamd full message scan
+- Detect fax and tel links
+- mime_perl_to_string fix for ignored handler
+- Add Kaspersky Linux Mail Server support
+- Ignore "archive damaged" in esets scanner output
+- Cleanup reports, add en_uk reports
+- Workaround MIME::Parser failing to decode UTF-8
+- Refactor milter to fully support multiple original recipients
+- Refactor milter to support large messages
+- Refactor milter to reject blacklisted emails early
+- Fix off by one header add in milter
+- Look for all recipient records in DeleteRecipients
+- Update milter doc to 1.3
+- Remove invalid Apparmor code in debian package
+- Fix condition concatenation in ms-update-phishing
+- Fix mktemp in clamav-wrapper for FreeBSD11
+- Add DrWeb virus scanner support
+- Fixes for clamav on rhel variants
+
 08/25/2018 Changes in    v5.1.1-1
 ==================================
 - Remove space in "Clam AV" 

@@ -202,13 +202,13 @@ if [ -z "${arg_MTA+x}" ]; then
     elif [ -z $response ]; then    
         # sendmail default
         MTAOPTION="sendmail";
-    elif [ $response == 1 ]; then    
+    elif [ $response -eq 1 ]; then    
         # sendmail 
         MTAOPTION="sendmail";    
-    elif [ $response == 2 ]; then    
+    elif [ $response -eq 2 ]; then    
         # sendmail 
         MTAOPTION="postfix";
-    elif [ $response == 3 ]; then    
+    elif [ $response -eq 3 ]; then    
         # sendmail 
         MTAOPTION="exim";        
     else
@@ -236,10 +236,10 @@ if [ -z "${arg_installClamav+x}" ]; then
         # some of these options may result in a 'no package available' on
         # some distributions, but that is ok
         CAV=1
-        CAVOPTION="pcre-devel clamav clamav-database clamav-nodb clamz";
+        CAVOPTION="pcre-devel clamav monitoring-plugins-clamav";
     elif [ -z $response ]; then  
         CAV=1
-        CAVOPTION="pcre-devel clamav clamav-database clamav-nodb clamz";
+        CAVOPTION="pcre-devel clamav monitoring-plugins-clamav";
     else
         # user does not want clam av
         CAV=0
@@ -249,7 +249,7 @@ else
     CAV=${arg_installClamav}
     CAVOPTION=
     if [ ${CAV} -eq 1 ]; then
-        CAVOPTION="pcre-devel clamav clamav-database clamav-nodb clamz";
+        CAVOPTION="pcre-devel clamav monitoring-plugins-clamav";
     fi
 fi
 
@@ -296,7 +296,7 @@ else
 fi
 
 # ask if the user wants to install the Mail::ClamAV module
-if [ $CPANOPTION = 1 ]; then
+if [ $CPANOPTION -eq 1 ]; then
     # Mail::ClamAV
     CAV=1
 
@@ -311,7 +311,7 @@ fi
 
 # ask if the user wants to ignore dependencies. they are automatically ignored
 # if the user elected the CPAN option as explained above
-if [ $CPANOPTION != 1 ]; then
+if [ $CPANOPTION -ne 1 ]; then
     clear
     echo;
     echo "Do you want to ignore MailScanner dependencies?"; echo;
@@ -437,13 +437,8 @@ ARMOD+=('Mail::SpamAssassin::Plugin::DCC');
 ARMOD+=('Mail::SpamAssassin::Plugin::Pyzor');
 
 # add to array if the user is installing spamassassin
-if [ $SA == 1 ]; then
+if [ $SA -eq 1 ]; then
     ARMOD+=('Mail::SpamAssassin');
-fi
-
-# add to array if the user is installing clam av
-if [ $CAV == 1 ]; then
-    ARMOD+=('Mail::ClamAV');
 fi
 
 # logging starts here
@@ -469,7 +464,7 @@ if [ "x$MTAOPTION" != "x" ]; then
         echo "Error installing $MTAOPTION MTA"
         echo "This usually means an MTA is already installed."
     fi
-    if [ $MTAOPTION = "sendmail" ]; then
+    if [ $MTAOPTION == "sendmail" ]; then
         mkdir -p /var/spool/mqueue
         mkdir -p /var/spool/mqueue.in
     fi
@@ -505,7 +500,7 @@ fi
 
 # create the cpan config if there isn't one and the user
 # elected to use CPAN
-if [ $CPANOPTION == 1 ]; then
+if [ $CPANOPTION -eq 1 ]; then
     # user elected to use CPAN option
     if [ ! -f '/root/.cpan/CPAN/MyConfig.pm' ]; then
         echo;
@@ -545,7 +540,7 @@ PMODWAIT=0
 for i in "${ARMOD[@]}"
 do
     perldoc -l $i >/dev/null 2>&1
-    if [ $? != 0 ]; then
+    if [ $? -ne 0 ]; then
         echo "$i is missing. Trying to install via Zypper ..."; echo;
         THING="perl($i)";
         $ZYPPER --non-interactive --ignore-unknown install $THING
@@ -572,8 +567,8 @@ fi
 for i in "${ARMOD[@]}"
 do
     perldoc -l $i >/dev/null 2>&1
-    if [ $? != 0 ]; then
-        if [ $CPANOPTION == 1 ]; then
+    if [ $? -ne 0 ]; then
+        if [ $CPANOPTION -eq 1 ]; then
             clear
             echo "$i is missing. Installing via CPAN ..."; echo;
             timewait 1
@@ -591,7 +586,20 @@ do
     fi
 done
 
-if [ $CPANOPTION -eq 1]; then
+# Mail::ClamAV has broken version detection
+# Prepare to patch and install
+if [[ $CAV -eq 1 && $CPANOPTION -eq 1 ]]; then
+    cpan -g Mail::ClamAV
+    package=$(find -name Mail-ClamAV*gz | tail -n1)
+    tar xzvf $package
+    packagedir=$(echo $package | sed -e 's/\.tar\.gz//')
+    patch -p1 $packagedir/Makefile.PL < patch.diff
+    cd $packagedir
+    perl Makefile.PL
+    make install
+fi
+
+if [ $CPANOPTION -eq 1 ]; then
   # Install MIME::Tools from CPAN even though rpm is present
   # Fixes outdated MIME::Tools causing MailScanner to crash
   clear
@@ -610,7 +618,7 @@ timewait $PMODWAIT
 cd "$THISCURRPMDIR"
 
 # Freshclam
-if [ $CAV == 1 ]; then
+if [ $CAV -eq 1 ]; then
     COUT='#Example';
     perl -pi -e 's/Example/'$COUT'/;' /etc/freshclam.conf
     systemctl enable clamd.service
@@ -626,7 +634,7 @@ echo "Installing the MailScanner RPM ... ";
 # as they are protected in the rpm spec file
 $RPM -Uvh $NODEPS MailScanner*noarch.rpm
 
-if [ $? != 0 ]; then
+if [ $? -ne 0 ]; then
     echo;
     echo '----------------------------------------------------------';
     echo 'Installation Error'; echo;
@@ -640,7 +648,7 @@ if [ $? != 0 ]; then
     echo;
 else
     # create ramdisk
-    if [ $RAMDISK == 1 ]; then
+    if [ $RAMDISK -eq 1 ]; then
         if [ -d '/var/spool/MailScanner/incoming' ]; then
             echo "Creating the ramdisk ...";
             echo;

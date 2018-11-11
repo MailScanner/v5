@@ -264,6 +264,7 @@ milterscanner                   = MilterScanner
 miltermaxchildren               = MilterMaxChildren
 milterport                      = MilterPort
 milterbind                      = MilterBind
+milterdispatcher                = MilterDispatcher
 
 #
 # Simple variables which can only have a single value, no rules allowed.
@@ -291,6 +292,7 @@ expandtnef		1	no	0	yes	1
 runinforeground		0	no	0	yes	1
 showscanner		1	no	0	yes	1
 spamassassinautowhitelist 1	no	0	yes	1
+spamlistskipifauthenticated	0       no      0       yes     1
 spliteximspool		0	no	0	yes	1
 storeentireasdfqf	0	no	0	yes	1
 syntaxcheck		1	no	0	yes	1

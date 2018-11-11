@@ -12,8 +12,7 @@
 # Updated By:
 # Manuel Dalla Lana < endelwar@aregar.it >
 # Shawn Iverson < shawniverson@gmail.com >
-# 17 JUN 2018
-
+# 22 OCT 2018
 # clear the screen. yay!
 clear
 
@@ -201,13 +200,13 @@ if [ -z "${arg_MTA+x}" ]; then
     elif [ -z $response ]; then
         # sendmail default
         MTAOPTION="sendmail sendmail-bin";
-    elif [ $response == 1 ]; then
+    elif [ $response -eq 1 ]; then
         # sendmail
         MTAOPTION="sendmail sendmail-bin";
-    elif [ $response == 2 ]; then
+    elif [ $response -eq 2 ]; then
         # sendmail
         MTAOPTION="postfix";
-    elif [ $response == 3 ]; then
+    elif [ $response -eq 3 ]; then
         # sendmail
         MTAOPTION="exim4-base";
     else
@@ -236,10 +235,10 @@ if [ -z "${arg_installClamav+x}" ]; then
         # some of these options may result in a 'no package available' on
         # some distributions, but that is ok
         CAV=1
-        CAVOPTION="clamav-daemon libclamav-client-perl";
+        CAVOPTION="clamav-daemon libclamav-client-perl libclamav-dev";
     elif [ -z $response ]; then
         CAV=1
-        CAVOPTION="clamav-daemon libclamav-client-perl";
+        CAVOPTION="clamav-daemon libclamav-client-perl libclamav-dev";
     else
         # user does not want clam av
         CAV=0
@@ -249,7 +248,7 @@ else
     CAV=${arg_installClamav}
     CAVOPTION=
     if [ ${CAV} -eq 1 ]; then
-        CAVOPTION="clamav-daemon libclamav-client-perl";
+        CAVOPTION="clamav-daemon libclamav-client-perl libclamav-dev";
     fi
 fi
 
@@ -341,7 +340,7 @@ if [ -z "${arg_ramdiskSize+x}" ]; then
     read -r -p "Specify a RAMDISK size? [0] : " RAMDISKSIZE
 
     if [[ $RAMDISKSIZE =~ ^[0-9]+$ ]]; then
-        if [ $RAMDISKSIZE != 0 ]; then
+        if [ $RAMDISKSIZE -ne 0 ]; then
             # user wants ramdisk
             RAMDISK=1
         else
@@ -478,7 +477,7 @@ if [ "x$MTAOPTION" != "x" ]; then
 fi
 
 # fix the stupid line in /etc/freshclam.conf that disables freshclam 
-if [ $CAV == 1 ]; then
+if [ $CAV -eq 1 ]; then
     clear
     echo;
     echo "Installing ClamAV via apt ... "; echo;
@@ -505,7 +504,7 @@ fi
 
 # create the cpan config if there isn't one and the user
 # elected to use CPAN
-if [ $CPANOPTION == 1 ]; then
+if [ $CPANOPTION -eq 1 ]; then
     # user elected to use CPAN option
     if [ ! -f '/root/.cpan/CPAN/MyConfig.pm' ]; then
         echo;
@@ -550,7 +549,7 @@ if [ ${CPANOPTION} == 1 ]; then
     for i in "${ARMOD[@]}"
     do
         perldoc -l ${i} >/dev/null 2>&1
-        if [ $? != 0 ]; then
+        if [ $? -ne 0 ]; then
             clear
             echo "${i} is missing. Installing via CPAN ..."; echo;
             timewait 1
@@ -564,7 +563,7 @@ if [ ${CPANOPTION} == 1 ]; then
 
     #Install SpamaAssassin, use standard cpan in normail install, or App::cpanminus in unattended install
     perldoc -l ${MODSA} >/dev/null 2>&1
-    if [ $? != 0 ]; then
+    if [ $? -ne 0 ]; then
         clear
         echo "${MODSA} is missing. Installing via CPAN ..."; echo;
         timewait 1
@@ -579,13 +578,26 @@ if [ ${CPANOPTION} == 1 ]; then
     for i in "${ARMODAFTERSA[@]}"
     do
         perldoc -l ${i} >/dev/null 2>&1
-        if [ $? != 0 ]; then
+        if [ $? -ne 0 ]; then
             clear
             echo "${i} is missing. Installing via CPAN ..."; echo;
             timewait 1
             perl -MCPAN -e "CPAN::Shell->force(qw(install ${i} ));"
         fi
     done
+
+    # Mail::ClamAV has broken version detection
+    # Prepare to patch and install
+    if [ $CAV -eq 1 ]; then
+        cpan -g Mail::ClamAV
+        package=$(find -name Mail-ClamAV*gz | tail -n1)
+        tar xzvf $package
+        packagedir=$(echo $package | sed -e 's/\.tar\.gz//')
+        patch -p1 $packagedir/Makefile.PL < patch.diff
+        cd $packagedir
+        perl Makefile.PL
+        make install
+    fi
 
     # Install MIME::Tools from CPAN even though rpm is present
     # Fixes outdated MIME::Tools causing MailScanner to crash
@@ -603,7 +615,7 @@ ARMODALL=("${ARMOD[@]}" "${MODSA}" "${ARMODAFTERSA[@]}")
 for i in "${ARMODALL[@]}"
 do
     perldoc -l ${i} >/dev/null 2>&1
-    if [ $? != 0 ]; then
+    if [ $? -ne 0 ]; then
 
         echo "WARNING: $i is missing.";
         PMODWAIT=5
@@ -623,7 +635,7 @@ echo "Installing the MailScanner .deb package ... ";
 # install the mailscanner package
 dpkg -i ${CONFFILES} ${NODEPS} "${THISCURRPMDIR}"/MailScanner-*-noarch.deb
 
-if [ $? != 0 ]; then
+if [ $? -ne 0 ]; then
     echo;
     echo '----------------------------------------------------------';
     echo 'Installation Error'; echo;
@@ -636,7 +648,7 @@ if [ $? != 0 ]; then
     echo;
 else
     # create ramdisk
-    if [ $RAMDISK == 1 ]; then
+    if [ $RAMDISK -eq 1 ]; then
         if [ -d '/var/spool/MailScanner/incoming' ]; then
             echo "Creating the ramdisk ...";
             echo;
