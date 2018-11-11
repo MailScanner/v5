@@ -428,6 +428,7 @@ MilterScanner            yes
 MilterMaxChildren        10
 MilterPort               33333
 MilterBind               127.0.0.1
+MilterDispatcher         postfork
 #
 # These variables match on any rule matching From:, else anything for To:
 #
