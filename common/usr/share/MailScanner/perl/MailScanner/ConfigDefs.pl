@@ -264,6 +264,7 @@ milterscanner                   = MilterScanner
 miltermaxchildren               = MilterMaxChildren
 milterport                      = MilterPort
 milterbind                      = MilterBind
+milterdispatcher                = MilterDispatcher
 
 #
 # Simple variables which can only have a single value, no rules allowed.

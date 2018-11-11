@@ -1,7 +1,7 @@
 #!/usr/bin/perl -U -I /usr/share/MailScanner/perl
 
 # (c) 2018 MailScanner Project <https://www.mailscanner.info>
-#          Version 1.1
+#          Version 1.2
 #
 #     This program is free software; you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -474,6 +474,7 @@ BEGIN {
         my $PidFile = MailScanner::Config::Value('milterpidfile');
         WritePIDFile($$,$PidFile);
         
+        my $dispatcher = MailScanner::Config::Value('milterdispatcher');
         my $children = MailScanner::Config::Value('miltermaxchildren');
         my $user = MailScanner::Config::Value('runasuser');
         my $group = MailScanner::Config::Value('workgroup');
@@ -496,7 +497,7 @@ BEGIN {
         );
         
         my $conn = 'inet:'. $port . '@' . $bind;
-        $ENV{PMILTER_DISPATCHER} = 'prefork';
+        $ENV{PMILTER_DISPATCHER} = $dispatcher;
         my $milter = Sendmail::PMilter->new();
         $milter->register('MSMilter',
                       \%my_callbacks,
@@ -505,7 +506,11 @@ BEGIN {
         $milter->setconn($conn);
         $< = $> = getpwnam($user);
         $( = $) = getgrnam($group);
-        $milter->main($children,$children);
+        if ( $dispatcher eq "prefork" ) {
+            $milter->main($children,100);
+        } else {
+            $milter->main();
+        }
     
         # Should never get here, if we did, it didn't work
         MailScanner::Log::WarnLog("Unable to spawn milter!");
