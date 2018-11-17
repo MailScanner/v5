@@ -7546,7 +7546,7 @@ sub DisarmEndtagCallback {
     #print STDERR "---------------------------\n";
     #print STDERR "Endtag Callback found link, " .
     #             "disarmlinktext = \"$DisarmLinkText\"\n";
-    my($squashedtext,$linkurl,$alarm,$numbertrap);
+    my($squashedtext,$linkurl,$alarm,$numbertrap,$emailuser);
     $DisarmInsideLink = 0;
     $squashedtext = lc($DisarmLinkText);
     if ($DisarmAreaURL) {
@@ -7571,7 +7571,14 @@ sub DisarmEndtagCallback {
     $squashedtext =~ tr/\n/ /; # Join multiple lines onto 1 line
     $squashedtext =~ s/(\<\/?[a-z][a-z0-9:._-]*((\s+[a-z][a-z0-9:._-]*(\s*=\s*(?:\".*?\"|\'.*?\'|[^\'\">\s]+))?)+\s*|\s*)\/?\>)*//ig; # Remove tags, better re from snifer_@hotmail.com
     $squashedtext =~ s/\s+//g; # Remove any whitespace
-    $squashedtext =~ s/^[^\/:]+\@//; # Remove username of email addresses
+    if ( $squashedtext =~ /@/ ) {
+       my @list = split(/@/, $squashedtext);
+       # Remove any leading or trailing text
+       $squashedtext =~ s/^.*\s+(?=.*\@)//;
+       $squashedtext =~ s/\s+.*$//;
+       $emailuser = $list[0];
+       $squashedtext = $list[1]; # Remove username of email addresses
+    }
     #$squashedtext =~ s/\&\w*\;//g; # Remove things like &lt; and &gt;
     $squashedtext =~ s/^.*(\&lt\;|\<)((https?|ftp|mailto|webcal):.+?)(\&gt\;|\>).*$/$2/i; # Turn blah-blah <http://link.here> blah-blah into "http://link.here"
     $squashedtext =~ s/^\&lt\;//g; # Remove leading &lt;
@@ -7666,6 +7673,15 @@ sub DisarmEndtagCallback {
 
       if (!$StrictPhishing) {
         my $TheyMatch = 0;
+
+        # Is this an email?  Prepare it to compare domains.
+        # https://github.com/MailScanner/v5/issues/229
+        MailScanner::Log::DebugLog("DisarmLinkURL = $DisarmLinkURL");
+        MailScanner::Log::DebugLog("linkurl = $linkurl");
+        if ($DisarmLinkURL =~ m/^ma[il]+to[:;]/i && $linkurl =~ /@/ ) {
+           my @list = split(/@/, $linkurl);
+           $linkurl = $list[1];
+        }
 
         unless (InPhishingWhitelist($linkurl)) {
           #print STDERR "Not strict phishing\n";
@@ -7768,7 +7784,20 @@ sub DisarmEndtagCallback {
       } else {
         #
         # Strict Phishing Net Goes Here
-        #
+
+        # Is this an email?
+        # https://github.com/MailScanner/v5/issues/229
+        MailScanner::Log::DebugLog("DisarmLinkURL = $DisarmLinkURL");
+        MailScanner::Log::DebugLog("linkurl = $linkurl");
+
+        if ($DisarmLinkURL =~ m/^ma[il]+to[:;]/i && $linkurl =~ /@/ ) {
+           my @list = split(/@/, $linkurl);
+           if ( $emailuser ne "" && $list[0] ne $emailuser) {
+             $alarm = 1;
+           }
+           $linkurl = $list[1];
+        }
+
         # Ignore fax: and tel: (not ip but numeric)
         # https://github.com/MailScanner/v5/issues/224
         if ($alarm ||
@@ -7991,8 +8020,9 @@ sub CleanLinkURL {
   #$linkurl = "" unless $linkurl =~ /[.\/]/; # Ignore if it is not a website at all
   $linkurl =~ s/\s+//g; # Remove any whitespace
   $linkurl =~ s/\\/\//g; # Change \ to / as many browsers do this
-  #print STDERR "Is $linkurl\n";
-  return ("",0) if $linkurl =~ /\@/ && $linkurl !~ /\//; # Ignore emails
+  # Don't ignore emails
+  # https://github.com/MailScanner/v5/issues/229
+  #return ("",0) if $linkurl =~ /\@/ && $linkurl !~ /\//; # Ignore emails
   #$linkurl = "" if $linkurl =~ /\@/ && $linkurl !~ /\//; # Ignore emails
   $linkurl =~ s/[,.]+$//; # Remove trailing dots, but also commas while at it
   $linkurl =~ s/^\[\d*\]//; # Remove leading [numbers]
@@ -8010,7 +8040,10 @@ sub CleanLinkURL {
   # Remove fax and tel prefixes
   # https://github.com/MailScanner/v5/issues/224
   $linkurl =~ s/^(fax|tel)[:;]//i;
-  return ("",0) if $linkurl =~ /^ma[il]+to[:;]/i;
+  # Don't ignore emails
+  # https://github.com/MailScanner/v5/issues/229
+  $linkurl =~ s/^ma[il]+to[:;]//i;
+  #return ("",0) if $linkurl =~ /^ma[il]+to[:;]/i;
   #$linkurl = "" if $linkurl =~ /^ma[il]+to[:;]/i;
   $linkurl =~ s/[?\/].*$//; # Only compare up to the first '/' or '?'
   $linkurl =~ s/(\<\/?(br|p|ul)\>)*$//ig; # Remove trailing br, p, ul tags
