@@ -43,6 +43,7 @@ use MailScanner::CustomConfig;
 use MailScanner::Message;
 
 my $ConfFile;
+my $PidFile;
 
 sub smtp_id {
   my $type = MailScanner::Config::Value('msmailqueuetype');
