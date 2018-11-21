@@ -481,7 +481,9 @@ sub new {
                 }
                 $InTo=0;
              }
-         } elsif ($recdata =~ m/^To: /i) {
+         }
+
+         if ($recdata =~ m/^To: /i) {
             # RFC 822 unfold address field
             $UnfoldBuffer = $recdata;
             $InTo = 1;
@@ -832,16 +834,43 @@ sub new {
       return 0;
   }
 
-  # Unused in MSMail
+  # Delete the original recipients from the message. We'll add some
+  # using AddRecipients later.
   sub DeleteRecipients {
-      return;
+    my $this = shift;
+    my($message) = @_;
+
+    my($linenum);
+    for ($linenum=0; $linenum<@{$message->{metadata}}; $linenum++) {
+      next unless $message->{metadata}[$linenum] =~ /^O/;
+      # Have found the right line
+      splice(@{$message->{metadata}}, $linenum, 1);
+      $linenum--; # Study the same line again
+    }
   }
 
-  # Unused in MSMail
+  # Add the recipient records back to the metadata
   sub AddRecipients {
-      return;
+    my $this = shift;
+    my($message, @recips) = @_;
+
+    # Remove all the duplicates @recips
+    my %uniqueto;
+    foreach (@recips) {
+      $uniqueto{$_} = 1;
+    }
+    @recips = keys %uniqueto;
+
+    #my $totallines = @{$message->{metadata}};
+
+    foreach (@recips) {
+      s/^/O/;
+    }
+
+    splice @{$message->{metadata}}, 0, 0, @recips;
+
   }
-  
+
   sub KickMessage {
       my($queue2ids, $sendmail2) = @_;
       my($queue);

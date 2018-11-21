@@ -1234,6 +1234,9 @@ sub WorkForHours {
     #$0 = 'MailScanner: quarantining infections';
     #$batch->QuarantineInfections();
 
+     # Quarantine all denial-of-service attempt
+    $batch->QuarantineDOS();
+
     # Quarantine all the disarmed HTML and others
     $batch->QuarantineModifiedBody();
 

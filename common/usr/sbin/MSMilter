@@ -43,6 +43,7 @@ use MailScanner::CustomConfig;
 use MailScanner::Message;
 
 my $ConfFile;
+my $PidFile;
 
 sub smtp_id {
   my $type = MailScanner::Config::Value('msmailqueuetype');
@@ -437,6 +438,23 @@ sub StartLogging {
 
   MailScanner::Log::Start($procname, $facility, $logsock);
 }
+
+sub ExitParent {
+  my($sig) = @_; # Arg is the signal name
+
+  # Cleanup partial writes
+  # TODO:
+  # A more elegant solution would be to wait for children
+  # for a maximum period to finish processing incoming emails
+  # This works, but it interrupts current incoming mail with
+  # a temporary failure to the source mtas
+  my $incoming = MailScanner::Config::Value('inqueuedir');
+  unlink glob $incoming . "/temp-*";
+
+  unlink $PidFile; # Ditch the pid file
+  exit 0;
+}
+
 
 BEGIN {
     chdir('/usr/share/MailScanner/perl');

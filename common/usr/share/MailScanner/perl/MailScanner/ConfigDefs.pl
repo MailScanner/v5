@@ -645,6 +645,7 @@ InsistPassZips		0	no	0	yes	1
 NewHeadersAtTop		0	no	0	yes	1
 PhishingNumbers		1	no	0	yes	1
 QuarantineInfections	1	no	0	yes	1
+QuarantineDenialOfService	1	no	0	yes	1
 QuarantineModifiedBody	0	no	0	yes	1
 QuarantineSilent	0	no	0	yes	1
 QuarantineWholeMessage	0	no	0	yes	1
