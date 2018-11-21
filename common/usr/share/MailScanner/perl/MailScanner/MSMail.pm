@@ -481,7 +481,9 @@ sub new {
                 }
                 $InTo=0;
              }
-         } elsif ($recdata =~ m/^To: /i) {
+         }
+
+         if ($recdata =~ m/^To: /i) {
             # RFC 822 unfold address field
             $UnfoldBuffer = $recdata;
             $InTo = 1;
