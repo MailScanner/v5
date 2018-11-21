@@ -562,6 +562,7 @@ BEGIN {
             'eoh' =>     \&eoh_callback,
             'body' =>    \&body_callback,
             'eom' =>     \&eom_callback,
+            'close' =>   \&close_callback,
         );
         
         my $conn = 'inet:'. $port . '@' . $bind;
