@@ -94,11 +94,18 @@ if [ ! -d '/var/spool/mqueue.in' ]; then
 fi
 
 # lock down some directory permissions
-install -d -omail -gmtagroup -m0775 /var/spool/MailScanner/archive
-install -d -omail -gmtagroup -m0775 /var/spool/MailScanner/incoming
-install -d -omail -gmtagroup -m0775 /var/spool/MailScanner/quarantine
-install -d -omail -gmtagroup -m0775 /var/spool/MailScanner/milterin
-install -d -omail -gmtagroup -m0775 /var/spool/MailScanner/milterout
+runasuser="mail"
+if [ -x /usr/sbin/ms-peek ]; then
+    runasuser=`/usr/sbin/ms-peek runasuser /etc/MailScanner/MailScanner.conf`
+fi
+if [ -z $runasuser ]; then
+    runasuser="mail"
+fi
+install -d -o$runasuser -gmtagroup -m0775 /var/spool/MailScanner/archive
+install -d -o$runasuser -gmtagroup -m0775 /var/spool/MailScanner/incoming
+install -d -o$runasuser -gmtagroup -m0775 /var/spool/MailScanner/quarantine
+install -d -o$runasuser -gmtagroup -m0775 /var/spool/MailScanner/milterin
+install -d -o$runasuser -gmtagroup -m0775 /var/spool/MailScanner/milterout
 
 if [ -d '/etc/MailScanner/custom' -o -L '/etc/MailScanner/custom' ]; then
     rm -f /etc/MailScanner/custom
