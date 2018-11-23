@@ -1,6 +1,6 @@
 #
 #   MailScanner - SMTP Email Processor
-#   Copyright (C) 2002  Julian Field
+#   Copyright (C) 2018  MailScanner project <https://www.mailscanner.info>
 #
 #   $Id: ConfigDefs.pl 5062 2010-11-09 21:56:06Z sysjkf $
 #
@@ -265,6 +265,10 @@ miltermaxchildren               = MilterMaxChildren
 milterport                      = MilterPort
 milterbind                      = MilterBind
 milterdispatcher                = MilterDispatcher
+milterignoreloopback            = MilterIgnoreLoopback
+msmaildeliverymethod            = MSMailDeliveryMethod
+msmailsockettype                = MSMailSocketType
+msmailsocketdir                 = MSMailSocketDir
 
 #
 # Simple variables which can only have a single value, no rules allowed.
@@ -299,6 +303,9 @@ syntaxcheck		1	no	0	yes	1
 usedefaultswithmanyrecips	0	no	0	yes	1
 #virusbeforespammcp	0	no	0	yes	1
 SQLDebug		0	no	0	yes	1
+MilterScanner	1	no	0	yes	1
+MilterIgnoreLoopback	1	no	0	yes	1
+
 
 # These should be checked for dir existence
 [Simple,Dir]
@@ -424,11 +431,14 @@ MSMailQueueType          short
 MSMailRelayPort          25
 MSMailRelayAddress       127.0.0.1
 MilterPIDFile            /var/run/MSMilter.pid
-MilterScanner            yes
 MilterMaxChildren        10
 MilterPort               33333
 MilterBind               127.0.0.1
 MilterDispatcher         postfork
+MSMailDeliveryMethod     SMTP
+MSMailSocketType         inet
+MSMailSocketDir          /var/spool/postfix/public/qmqp
+
 #
 # These variables match on any rule matching From:, else anything for To:
 #

@@ -883,6 +883,7 @@ sub new {
       my($line);
       my @recipient;
       my $recipientfound = 0;
+      my $permfail = 0;
       my($sender);
       my $messagesent = 0;
       my $InFrom = 0;
@@ -890,6 +891,9 @@ sub new {
       my $orgname = MailScanner::Config::DoPercentVars('%org-name%');
       my $port = MailScanner::Config::Value('msmailrelayport');
       my $address = MailScanner::Config::Value('msmailrelayaddress');
+      my $method = MailScanner::Config::Value('msmaildeliverymethod');
+      my $sockettype = MailScanner::Config::Value('msmailsockettype');
+      my $socketdir = MailScanner::Config::Value('msmailsocketdir');
 
       MailScanner::Log::DebugLog("MSMail: KickMessage:\n org = $orgname\n port = $port\n address = $address");
       foreach $queue (keys %$queue2ids) {
@@ -952,113 +956,173 @@ sub new {
 
           # Move to previous line
           seek $queuehandle, $msgstart, 0;
-          
-          # Process the rest of the header
-          while(!eof($queuehandle)) {
-              $line = readline $queuehandle;
-              $line =~ s/\n//;
-              if ($line eq '') {
-                    MailScanner::Log::DebugLog("MSMail: KickMessage: found end of header");
-                    # At end of header, bail out
-                    last;
-              }
-          }
 
-          # This is the safe approach using SMTP protocol for relay
-          # If relay bombs out or doesn't respond, messages are preserved
-          # and tried again on next attempt
-          if ($recipientfound) {
-              $messagesent = 0;
-              my $socket = new IO::Socket::INET (
-                  PeerHost => $address,
-                  PeerPort => $port,
-                  Proto => 'tcp',
-              );
-        
-              if(!defined($socket)) {
-                  MailScanner::Log::WarnLog("Cannot connect to Socket at $address on port $port, is MTA running?");
-                  MailScanner::Lock::unlockclose($queuehandle);
-                  last;
-              }
-              
-              my $server = hostfqdn();
-              if(!defined($server)) {
-                  MailScanner::Log::WarnLog("Cannot determine local fqdn! Unable to kick messages.");
-                  MailScanner::Lock::unlockclose($queuehandle);
-                  last;
-              }
-              $response = '';
-              $socket->recv($response, 1024);
-              if ($response =~ /^220/) {
-                 MailScanner::Log::DebugLog("MSMail: KickMessage: Connect success 220 received");
+          $permfail = 0;
+          # Determine delivery method
+          if ( $method =~ m/^SMTP$/i ) {
 
-                  my $req = 'ehlo ' . $server . "\n";
-                  $socket->send($req);
-    
+              # Process the rest of the header
+              while(!eof($queuehandle)) {
+                  $line = readline $queuehandle;
+                  $line =~ s/\n//;
+                  if ($line eq '') {
+                        MailScanner::Log::DebugLog("MSMail: KickMessage: found end of header");
+                        # At end of header, bail out
+                        last;
+                  }
+              }
+
+              # This is the safe approach using SMTP protocol for relay
+              # If relay bombs out or doesn't respond, messages are preserved
+              # and tried again on next attempt
+              if ($recipientfound) {
+                  $messagesent = 0;
+                  my $socket = new IO::Socket::INET (
+                      PeerHost => $address,
+                      PeerPort => $port,
+                      Proto => 'tcp',
+                  );
+
+                  if(!defined($socket)) {
+                      MailScanner::Log::WarnLog("Cannot connect to Socket at $address on port $port, is MTA running?");
+                      MailScanner::Lock::unlockclose($queuehandle);
+                      last;
+                  }
+
+                  my $server = hostfqdn();
+                  if(!defined($server)) {
+                      MailScanner::Log::WarnLog("Cannot determine local fqdn! Unable to kick messages.");
+                      MailScanner::Lock::unlockclose($queuehandle);
+                      last;
+                  }
+                  $response = '';
                   $socket->recv($response, 1024);
-                  if ($response =~ /^250/) {
-                      MailScanner::Log::DebugLog("MSMail: KickMessage: ehlo success 250 received");
-                      # ehlo receive success
-                      $req = 'MAIL FROM: ' . $sender . "\n";
+                  if ($response =~ /^220/) {
+                     MailScanner::Log::DebugLog("MSMail: KickMessage: Connect success 220 received");
+
+                      my $req = 'ehlo ' . $server . "\n";
                       $socket->send($req);
+
                       $socket->recv($response, 1024);
                       if ($response =~ /^250/) {
-                          MailScanner::Log::DebugLog("MSMail: KickMessage: MAIL FROM success 250 received");
-                          # From received success
-                          my $recipientsok = 1;
-                          foreach my $myrecipient (@recipient) {
-                              $req = 'RCPT TO: ' . $myrecipient . "\n";
-                              $socket->send($req);
-                              $socket->recv($response, 1024);
-                              if ($response =~ /^250/ ) {
-                                  MailScanner::Log::DebugLog("MSMail: KickMessage: RCPT TO success 250 received");
-                              } else {
-                                  $recipientsok = 0;
-                              }
-                          }
-
-                          if ($recipientsok == 1) {
-                              # Rcpt To success
-                              $req='DATA' . "\n";
-                              $socket->send($req);
-                              $socket->recv($response, 1024);
-                              if ($response =~ /^354/ ) {
-                                  MailScanner::Log::DebugLog("MSMail: KickMessage: DATA success 354 received");
-                                  # Ready to send data
-                                  # Position at start of message
-                                  seek $queuehandle, $msgstart, 0;
-    
-                                  while(!eof($queuehandle)) {
-                                      $req = readline $queuehandle;
-                                      # rfc 5321, section 4.5.2
-                                      # Handle dots in DATA \./ :D
-                                      if ($req =~ /^\./) {
-                                          $req = '.' . $req;
-                                      }
-                                      $socket->send($req);
-                                  }
-                                  $req = "\r\n.\r\n";
+                          MailScanner::Log::DebugLog("MSMail: KickMessage: ehlo success 250 received");
+                          # ehlo receive success
+                          $req = 'MAIL FROM: ' . $sender . "\n";
+                          $socket->send($req);
+                          $socket->recv($response, 1024);
+                          if ($response =~ /^250/) {
+                              MailScanner::Log::DebugLog("MSMail: KickMessage: MAIL FROM success 250 received");
+                              # From received success
+                              my $recipientsok = 1;
+                              foreach my $myrecipient (@recipient) {
+                                  $req = 'RCPT TO: ' . $myrecipient . "\n";
                                   $socket->send($req);
-    
                                   $socket->recv($response, 1024);
-                                  if ($response =~ /^250/ && !($response =~ /Error/)) {
-                                      MailScanner::Log::DebugLog("MSMail: KickMessage: Message send successful");
-                                      $messagesent = 1;
-                                  } 
-                              }   
+                                  if ($response =~ /^250/ ) {
+                                      MailScanner::Log::DebugLog("MSMail: KickMessage: RCPT TO success 250 received");
+                                  } else {
+                                      $recipientsok = 0;
+                                  }
+                              }
+
+                              if ($recipientsok == 1) {
+                                  # Rcpt To success
+                                  $req='DATA' . "\n";
+                                  $socket->send($req);
+                                  $socket->recv($response, 1024);
+                                  if ($response =~ /^354/ ) {
+                                      MailScanner::Log::DebugLog("MSMail: KickMessage: DATA success 354 received");
+                                      # Ready to send data
+                                      # Position at start of message
+                                      seek $queuehandle, $msgstart, 0;
+
+                                      while(!eof($queuehandle)) {
+                                          $req = readline $queuehandle;
+                                          # rfc 5321, section 4.5.2
+                                          # Handle dots in DATA \./ :D
+                                          if ($req =~ /^\./) {
+                                              $req = '.' . $req;
+                                          }
+                                          $socket->send($req);
+                                      }
+                                      $req = "\r\n.\r\n";
+                                      $socket->send($req);
+
+                                      $socket->recv($response, 1024);
+                                      if ($response =~ /^250/ && !($response =~ /Error/)) {
+                                          MailScanner::Log::DebugLog("MSMail: KickMessage: Message send successful");
+                                          $messagesent = 1;
+                                      }
+                                  }
+                              }
                           }
                       }
                   }
+                  $socket->close();
               }
-              $socket->close();
+              # Was message rejected?
+              if ($response =~ /^450/) {
+                  $permfail = 1;
+              }
+          } elsif ( $method =~ m/^QMQP$/i ) {
+              $messagesent = 0;
+              my $socket;
+              if ( $sockettype =~ m/^unix$/i ) {
+                  $socket = IO::Socket::UNIX->new (Peer => $socketdir);
+              } elsif ( $sockettype =~ m/^inet$/i ) {
+                  $socket = new IO::Socket::INET (
+                      PeerAddr => $address,
+                      PeerPort => $port,
+                  );
+              } else {
+                  MailScanner::Log::WarnLog("Unknown socket type, check MailScanner.conf MSMail Socket Type.");
+              }
+              if (!defined($socket)) {
+                  MailScanner::Log::WarnLog("Unable to open QMQP socket $socketdir");
+              } else {
+                  # Prepare to read rest of file
+                  local $/ = undef;
+                  # Remove backets
+                  $sender =~ s/^\<//;
+                  $sender =~ s/\>$//;
+                  foreach (@recipient) {
+                     s/^\<//;
+                     s/\>$//;
+                  }
+                  my $payload = join '', map {sprintf "%d:%s,", length $_, $_} <$queuehandle>, $sender, @recipient;
+                  MailScanner::Log::DebugLog("MSMail: payload ready");
+                  eval {
+                      $socket->printf ('%d:%s,', length $payload, $payload)
+                  };
+                  if ( $@ ) {
+                      MailScanner::Log::WarnLog("Unable to write to QMQP socket!");
+                  } else {
+                      MailScanner::Log::DebugLog("MSMail: Payload sent");
+                      my $response = $socket->getline;
+                      if (my ($length, $code, $detail) = $response =~ m/^(\d+):(\S)(.+),$/) {
+                          if ($code eq "K") {
+                              $messagesent = 1;
+                          } elsif ($code eq "D") {
+                              $messagesent = 0;
+                              $permfail = 1;
+                          }
+                      } else {
+                          $messagesent = 0;
+                      }
+                      $socket->close();
+                  }
+              }
+          } else {
+              MailScanner::Log::WarnLog("Unable to determine delivery method! No messages delivered. Check MailScanner.conf for MSMail Delivery Method.");
           }
+
           # Test reject logging
           # $messagesent = 0;
           if ($messagesent == 0) {
               # Look for a rejection
               # Debug rejection process
               # $response = "450 1.2.3 This is a test reject";
-              if ($response =~ /^450/) {
+              if ($permfail == 1) {
                  # Something went wrong cannot deliver message
                  # Prefix email with Reject header to flag for quarantine
                  MailScanner::Log::WarnLog("Unable to kick message $file, rejected by local relay, quarantining message");
