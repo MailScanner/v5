@@ -58,7 +58,7 @@ $Claminuse       = 0;
 # So we can kill virus scanners when we are HUPped
 $ScannerPID = 0;
 my $scannerlist = "";
-  
+
 #
 # Virus scanner definitions table
 #
@@ -520,7 +520,7 @@ sub ScanBatch {
     my $BaseDirH = new DirHandle;
     MailScanner::Log::WarnLog("Virus Scanning: Denial Of Service attack " .
                               "detected!");
-    $BaseDirH->open('.') 
+    $BaseDirH->open('.')
       or MailScanner::Log::DieLog("Can't open directory for scanning 1 message, $!");
     while(defined($id = $BaseDirH->read())) {
       next unless -d "$id";   # Only check directories
@@ -538,7 +538,7 @@ sub ScanBatch {
         MailScanner::Log::WarnLog("Virus Scanning: No virus scanners worked, so message batch was abandoned and retried!");
         $batch->DropBatch();
         last;
-      } 
+      }
 
       unless ($success) {
         # We have found the DoS attack message
@@ -1502,7 +1502,7 @@ sub ProcessSophosOutput {
       return 0;
     }
   }
-  
+
   #$infected =~ s/^Could not check\s*//i;
   # JKF 10/08/2000 Used to split into max 3 parts, but this doesn't handle
   # viruses in zip files in attachments. Now pull out first 3 parts instead.
@@ -1608,14 +1608,14 @@ sub ProcessFSecureOutput {
       # if we have square brackets and spaces in filenames)
       # Strip archive bits if present
       $line =~ s/^\[(.*?)\] .+(\tinfection:.*)/$1$2/;
-  
+
       # Get to the meat or die trying...
       $line =~ s/\tinfection:([^:]*).*$//
         or MailScanner::Log::DieLog("Dodgy things going on in F-Secure output:\n$report\n");
       $virus = $1;
       $virus =~ s/^\s*(\S+).*$/$1/; # 1st word after Infection: is the virus
       MailScanner::Log::NoticeLog("Virus Scanning: F-Secure found virus %s",$virus);
-  
+
       ($dot,$id,$part,@rest) = split(/\//, $line);
       my $notype = substr($part,1);
       $logout =~ s/\Q$part\E/$notype/;
@@ -1675,8 +1675,8 @@ sub ProcessClamAVOutput {
     return 0;
   }
 
-  return 0 if /OK$/; 
-  
+  return 0 if /OK$/;
+
   $logline = $line;
   $logline =~ s/\s{20,}/ /g;
 
@@ -1717,8 +1717,8 @@ sub ProcessClamAVOutput {
     else
     {
       $file = $2;
-    }     
-     
+    }
+
     $file =~ s/^(.\/)?$BaseDir\/?//;
     $file =~ s/^\.\///;
     my ($id,$part) = split /\//, $file, 2;
@@ -1806,6 +1806,15 @@ sub ProcessAvgOutput {
   #./1B978O-0000g2-Iq/eicar.com  Virus identified  EICAR_Test (+2)
   #./1B978O-0000g2-Iq/eicar.zip:\eicar.com  Virus identified  EICAR_Test (+2)
 
+  # 2018-11-23
+  #
+  # Darryl Sutherland <darryls@synaq.com>
+  # Willem Viljoen <willemv@synaq.com>
+  #
+  # Strip away everything before the base directory, to get rid of
+  # progress reporting artefacts from recent AVG builds.
+  $line =~ s/.*$BaseDir\///g;
+
   # Remove all the duff carriage-returns from the line
   $line =~ s/[\r\n]//g;
   # Removed the (+2) type stuff at the end of the virus name
@@ -1870,30 +1879,30 @@ sub ProcessAvgOutput {
 }
 
 sub ProcessAvastOutput {
-  use File::Basename;  
-  
-  my($line, $infections, $types, $BaseDir, $Name) = @_; 
+  use File::Basename;
+
+  my($line, $infections, $types, $BaseDir, $Name) = @_;
   chomp $line;
-  
+
   # informational [OK]
   return 0 if $line =~ m/\[OK\]/i;
-  
+
   # password protected
   return 0 if $line =~ m/protected/i;
-  
+
   # remove tabs
   $line =~ s/\t/ /g;
-  
+
   # break file from virus report
   my ($path, $threat) = split(/\s/, $line,2);
-  
+
   # avast adds full path to the file name
   $path =~ s/^$BaseDir//;
-  
+
   my ($dot, $id, $part, @rest) = split(/\//, $path);
-  my $file = substr($part,1); 
+  my $file = substr($part,1);
   my $report = "Avast: found $threat in $file";
-  
+
   $infections->{"$id"}{"$part"} .= $report . "\n";
   $types->{"$id"}{"$part"} .= "v"; # it's a real virus
   MailScanner::Log::InfoLog("Avast::INFECTED::$threat");
@@ -1902,30 +1911,30 @@ sub ProcessAvastOutput {
 
 sub ProcessEsetsOutput {
   use File::Basename;
-  
+
   my ($line, $infections, $types, $BaseDir, $Name) = @_;
   chomp $line;
-  
+
   # return if line does not had threat
   return 0 if $line !~ m/threat/i;
-  
+
   # password protected
   return 0 if $line =~ m/protected/i;
-  
+
   # archive damaged
   return 0 if $line =~ m/archive damaged/i;
-  
+
   my ($a, $b, $c, $d) = split(/,/, $line);
-  my ($filename) = $a =~ m/\"(.*)\"/; 
-  my ($threat) = $b =~ m/\"(.*)\"/; 
-  my ($action) = $c =~ m/\"(.*)\"/; 
-  my ($info) = $d =~ m/\"(.*)\"/; 
-  
+  my ($filename) = $a =~ m/\"(.*)\"/;
+  my ($threat) = $b =~ m/\"(.*)\"/;
+  my ($action) = $c =~ m/\"(.*)\"/;
+  my ($info) = $d =~ m/\"(.*)\"/;
+
   my ($dot, $id, $part, @rest) = split(/\//, $filename);
   my $file = substr($part,1);
-  
+
   if($info == ''){ $info = 'none'; }
-   
+
   my $report = "Esets: found $threat in $file";
   $infections->{"$id"}{"$part"} .= $report . "\n";
   $types->{"$id"}{"$part"} .= "v"; # it's a real virus
@@ -2043,10 +2052,10 @@ sub CheckCodeStatus {
   return 1 if $codestatus>=$allowedlevel;
 
   MailScanner::Log::WarnLog("FATAL: Encountered code that does not meet " .
-                            "configured acceptable stability"); 
+                            "configured acceptable stability");
   MailScanner::Log::DieLog("FATAL: *Please go and READ* " .
       "http://www.sng.ecs.soton.ac.uk/mailscanner/install/codestatus.shtml" .
-      " as it will tell you what to do."); 
+      " as it will tell you what to do.");
 }
 
 sub ClamdScan {
@@ -2399,4 +2408,3 @@ sub ProcessKasperskyOutput {
 }
 
 1;
-
