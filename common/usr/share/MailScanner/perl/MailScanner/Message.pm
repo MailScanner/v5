@@ -7858,7 +7858,6 @@ sub DisarmEndtagCallback {
    }
   }
 
-  }
 }
 
 my %CharToInternational = (
