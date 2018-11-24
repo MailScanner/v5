@@ -1,7 +1,7 @@
 #!/usr/bin/perl -U -I /usr/share/MailScanner/perl
 
 # (c) 2018 MailScanner Project <https://www.mailscanner.info>
-#          Version 1.2
+#          Version 1.3
 #
 #     This program is free software; you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -122,11 +122,13 @@ sub connect_callback
             $message .= ' [' . $ip . ']';
         }
 
-        # Localhost relaying email?  Accept the message for delivery
-        if ($ip =~ /^127/ || $ip =~ /^::1$/) {
+        # Localhost relaying email?  Accept the message for delivery if enabled
+        my $loopback = MailScanner::Config::Value('milterignoreloopback');
+        if ($loopback == 1 && ($ip =~ /^127/ || $ip =~ /^::1$/)) {
             MailScanner::Log::DebugLog("Localhost relay detected");
             return Sendmail::PMilter::SMFIS_ACCEPT;
         }
+
         
         MailScanner::Log::DebugLog("connect_callback: ip = $ip");
         
@@ -265,7 +267,7 @@ sub eoh_callback
         # Are we in scanner mode?
         my $scannermode = MailScanner::Config::Value('milterscanner');
         
-        MailScanner::Log::DebugLog("eom_callback: scannermode = $scannermode");
+        MailScanner::Log::DebugLog("eoh_callback: scannermode = $scannermode");
 
         while (${$message_ref} =~ /([^\n]+)\n?/g) {
             my $line = $1;
@@ -326,8 +328,8 @@ sub eoh_callback
         MailScanner::Lock::unlockclose($queuehandle);
 
         # Determine what to do next
-        if ($scannermode =~ /^yes$/) {
-           MailScanner::Log::DebugLog("eom_callback: scanner mode enabled");
+        if ($scannermode == 1) {
+           MailScanner::Log::DebugLog("eoh_callback: scanner mode enabled");
            # Blacklist test
            # Build a message object to test against
            my $message = {};
