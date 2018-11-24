@@ -7849,8 +7849,15 @@ sub DisarmEndtagCallback {
     # If inside a link, add the text to the link text to allow tags in links
     $DisarmLinkText .= $text;
   } else {
-    # It is not a tag we worry about, so just print the text and continue.
-    print $text;
+    # Highlight Hidden URL?
+    if ( MailScanner::Config::Value('highlighthiddenurls') =~ /1/ ) {
+      print MailScanner::Config::LanguageValue(0, 'hiddenlinkwarningstart') . $DisarmLinkURL . MailScanner::Config::LanguageValue(0, 'hiddenlinkwarningend') . $text;
+    } else {
+      # It is not a tag we worry about, so just print the text and continue.
+      print $text;
+   }
+  }
+
   }
 }
 
