@@ -109,3 +109,5 @@
 "HTMLParserAttack" = "MailScanner was attacked by a Denial Of Service attack, and has therefore \ndeleted this part of the message. Please contact your e-mail providers \nfor more information if you need it, giving them the whole of this report.";
 /* # Used in reports of messages that have caused MailScanner to crash */
 "KilledMailScanner" = "Message attempted to kill MailScanner";
+"HiddenLinkWarningStart" = "<font color=\"red\"><b>MailScanner has detected that this item links to ";
+"HiddenLinkWarningEnd" = ". Use Caution and only open this link if it is trustworthy.</b></font>";
