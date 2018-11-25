@@ -1069,17 +1069,19 @@ sub new {
               my $socket;
               if ( $sockettype =~ m/^unix$/i ) {
                   $socket = IO::Socket::UNIX->new (Peer => $socketdir);
+                  MailScanner::Log::WarnLog("Unable to open QMQP socket $socketdir")
+                    if !defined($socket);
               } elsif ( $sockettype =~ m/^inet$/i ) {
                   $socket = new IO::Socket::INET (
                       PeerAddr => $address,
                       PeerPort => $port,
                   );
+                  MailScanner::Log::WarnLog("Unable to open QMQP socket at $address on port $port")
+                    if !defined($socket);
               } else {
                   MailScanner::Log::WarnLog("Unknown socket type, check MailScanner.conf MSMail Socket Type.");
               }
-              if (!defined($socket)) {
-                  MailScanner::Log::WarnLog("Unable to open QMQP socket $socketdir");
-              } else {
+              if (defined($socket)) {
                   # Prepare to read rest of file
                   local $/ = undef;
                   # Remove backets
