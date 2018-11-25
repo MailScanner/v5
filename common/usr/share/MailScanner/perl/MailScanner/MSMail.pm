@@ -1089,7 +1089,13 @@ sub new {
                      s/^\<//;
                      s/\>$//;
                   }
-                  my $payload = join '', map {sprintf "%d:%s,", length $_, $_} <$queuehandle>, $sender, @recipient;
+                  # The queue file contains <CRLF> line terminators in the
+                  # message body instead of <LF>. SMTP delivery handles these,
+                  # but QMQP keeps them in the delivered message which breaks
+                  # signatures.
+                  my $messagetext = <$queuehandle>;
+                  $messagetext =~ s/\r\n/\n/g;
+                  my $payload = join '', map {sprintf "%d:%s,", length $_, $_} $messagetext, $sender, @recipient;
                   MailScanner::Log::DebugLog("MSMail: payload ready");
                   eval {
                       $socket->printf ('%d:%s,', length $payload, $payload)
