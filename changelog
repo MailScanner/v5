@@ -1,3 +1,17 @@
+11/25/2018 Changes in    v5.1.3-1
+==================================
+- Milter QMQP support added
+- Option to reveal URLs in links added
+- Add support to detect mailto: phishing
+- Get rid of artifacts in AVG output lines
+- Check for Run As User during postinst and use if defined (debian)
+- Refactor milter to support multiple emails per session
+- Fix missing subject field following a To: header
+- Quarantine support option for DOS protection added
+- Fix milter to allow modified recipients
+- Add postfork support to milter
+- Fix milter adding previous message recipients
+
 10/26/2018 Changes in    v5.1.2-2
 ==================================
 - Disable rbl check if user is authenticated (postfix)
