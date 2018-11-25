@@ -217,7 +217,6 @@ sub envrcpt_callback
 
             ${$message_ref} = 'S<' . $mailfrom . ">\n" . ${$message_ref};
 
-            my $id = smtp_id;
             my $datestring = strftime "%a, %e %b %Y %T %z (%Z)", localtime;
             if (defined($symbols->{'H'}) && defined($symbols->{'H'}->{'{tls_version}'}) && defined($symbols->{'H'}->{'{cipher}'}) && defined($symbols->{'H'}->{'{cipher_bits}'})) {
                 ${$message_ref} .= '        (using ' . $symbols->{'H'}->{'{tls_version}'} . ' with cipher ' . $symbols->{'H'}->{'{cipher}'} . ' (' . $symbols->{'H'}->{'{cipher_bits}'} . '/' . $symbols->{'H'}->{'{cipher_bits}'} . ' bits))' . "\n";
@@ -227,9 +226,9 @@ sub envrcpt_callback
                 ${$message_ref} .= '        (no client certificate requested)' . "\n";
                 MailScanner::Log::DebugLog("envrcpt_callback: no client certificate requested");
             }
-            ${$message_ref} .= '        by ' . hostname . ' (MailScanner Milter) with SMTP id ' . $id . "\n";
+            ${$message_ref} .= '        by ' . hostname . ' (MailScanner Milter) with SMTP id ';
 
-            MailScanner::Log::DebugLog("envrcpt_callback: id = $id datestring = $datestring");
+            MailScanner::Log::DebugLog("envrcpt_callback: datestring = $datestring");
         }
 
         # Build original recipient milter header
@@ -246,6 +245,23 @@ sub header_callback
         my $headerf = shift;
         my $headerv = shift;
         my $message_ref = $ctx->getpriv();
+        my $symbols = $ctx->{symbols};
+        my $id;
+
+        # Postfix queue id revealed during this phase, capture it if defined
+        # and populate the rest of the Received: header
+        if (${$message_ref} =~ /SMTP\sid\s$/ ) {
+            if (defined($symbols->{'L'}) && defined($symbols->{'L'}->{'i'}) ) {
+                $id = $symbols->{'L'}->{'i'};
+                MailScanner::Log::DebugLog("Postfix ID captured: $id");
+            } else {
+                $id = smtp_id;
+                MailScanner::Log::DebugLog("Unable to capture real postfix id, generated one instead: $id");
+            }
+
+            ${$message_ref} .= $id . "\n";
+        }
+
 
         ${$message_ref} .= $headerf . ': ' . $headerv . "\n";
         $ctx->setpriv($message_ref);
