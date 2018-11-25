@@ -282,6 +282,8 @@ sub WriteHeader {
     if ($b) {
       $b->Start();
       while(defined($line = $b->Next())) {
+          # Remove CRs to prep for delivery
+          $line =~ s/\r+$//g;
           $Tf->print($line . "\n");
       }
       $b->Done();
@@ -303,6 +305,8 @@ sub WriteHeader {
           # Read the pipe a line at a time and write an N record for each line.
           while(<$pipe>) {
               chomp;
+              # Remove CRs to prep for delivery
+              s/\r+$//g;
               $Tf->print($_ . "\n");
           }
           # We have to tell the caller what the child's pid is in order to
