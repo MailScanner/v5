@@ -7571,11 +7571,14 @@ sub DisarmEndtagCallback {
     $squashedtext =~ tr/\n/ /; # Join multiple lines onto 1 line
     $squashedtext =~ s/(\<\/?[a-z][a-z0-9:._-]*((\s+[a-z][a-z0-9:._-]*(\s*=\s*(?:\".*?\"|\'.*?\'|[^\'\">\s]+))?)+\s*|\s*)\/?\>)*//ig; # Remove tags, better re from snifer_@hotmail.com
     $squashedtext =~ s/\s+//g; # Remove any whitespace
-    if ( $squashedtext =~ /@/ ) {
-       my @list = split(/@/, $squashedtext);
+    if ( $DisarmLinkURL =~ m/^ma[il]+to[:;]/i && $squashedtext =~ /@/ ) {
        # Remove any leading or trailing text
        $squashedtext =~ s/^.*\s+(?=.*\@)//;
        $squashedtext =~ s/\s+.*$//;
+       # Remove &gt; and &lt; tags, if present
+       # https://github.com/MailScanner/v5/issues/320
+       $squashedtext =~ s/(?:&lt;|&gt;)//g; 
+       my @list = split(/@/, $squashedtext);
        $emailuser = $list[0];
        $squashedtext = $list[1]; # Remove username of email addresses
     }
