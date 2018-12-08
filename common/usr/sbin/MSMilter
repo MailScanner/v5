@@ -223,8 +223,14 @@ sub envrcpt_callback
                  MailScanner::Log::DebugLog("envrcpt_callback: ssl/tls detected");
             }
             if (!defined($symbols->{'H'}->{'{cert_subject}'})) {
-                ${$message_ref} .= '        (no client certificate requested)' . "\n";
+                ${$message_ref} .= '        (no client certificate requested)';
                 MailScanner::Log::DebugLog("envrcpt_callback: no client certificate requested");
+            }
+            if (defined($symbols->{'M'}->{'{auth_type}'}) && defined($symbols->{'M'}->{'{auth_authen}'})) {
+                ${$message_ref} .= ' (Authenticated sender: ' . $symbols->{'M'}->{'{auth_authen}'} . ")\n";
+                MailScanner::Log::DebugLog("envrcpt_callback: Authenticated sender: " . $symbols->{'M'}->{'{auth_authen}'});
+            } else {
+                ${$message_ref} .= "\n";
             }
             ${$message_ref} .= '        by ' . hostname . ' (MailScanner Milter) with SMTP id ';
 
