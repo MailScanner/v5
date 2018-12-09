@@ -384,7 +384,7 @@ BASEPACKAGES+=('arj');              BASEPACKAGES+=('lhasa');                    
 BASEPACKAGES+=('cabextract');       BASEPACKAGES+=('cpio');                         BASEPACKAGES+=('file');  
 BASEPACKAGES+=('gzip');             BASEPACKAGES+=('nomarch');                      BASEPACKAGES+=('pax');  
 BASEPACKAGES+=('rar');              BASEPACKAGES+=('unrar');                        BASEPACKAGES+=('unzip');  
-BASEPACKAGES+=('zip');              BASEPACKAGES+=('zoo');  
+BASEPACKAGES+=('zip');              BASEPACKAGES+=('zoo');                          BASEPACKAGES+=('libemail-mime-perl');
 
 if [ "$parsedCommands" -gt 0 ]; then
     BASEPACKAGES+=('cpanminus');
@@ -419,7 +419,7 @@ ARMOD+=('Pod::Simple');			ARMOD+=('POSIX');				ARMOD+=('Scalar::Util');
 ARMOD+=('Socket');				ARMOD+=('Storable');			ARMOD+=('Test::Harness');
 ARMOD+=('Test::Pod');			ARMOD+=('Test::Simple');		ARMOD+=('Time::HiRes');
 ARMOD+=('Time::localtime');		ARMOD+=('Sys::Hostname::Long');	ARMOD+=('Sys::SigAction');
-ARMOD+=('Sys::Syslog');			ARMOD+=('Env');
+ARMOD+=('Sys::Syslog');			ARMOD+=('Env');					ARMOD+=('Email::MIME');
 
 MODSA='Mail::SpamAssassin';
 

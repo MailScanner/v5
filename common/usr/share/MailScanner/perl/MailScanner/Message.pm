@@ -31,6 +31,7 @@ use DirHandle;
 use Time::localtime qw/ctime/;
 use Time::HiRes qw/time/;
 use MIME::Parser;
+use Email::MIME;
 use MIME::Decoder::UU;
 use MIME::Decoder::BinHex;
 use MIME::WordDecoder;
@@ -2249,102 +2250,149 @@ sub ZipAttachments {
 sub Explode {
   my $this = shift;
 
-  # $handle is Sendmail only
   my($entity, $pipe, $handle, $pid, $workarea, $mailscannername);
 
   return if $this->{deleted};
 
-  # Get the translation of MailScanner, we use it a lot
   $mailscannername = MailScanner::Config::LanguageValue($this, 'mailscanner');
 
-  # Set up something so that the hash exists
   $this->{file2parent}{""} = "";
 
-  # df file is already locked
   $workarea = $global::MS->{work};
-  my $explodeinto = $workarea->{dir} . "/" . $this->{id};
-  #print STDERR "Going to explode message " . $this->{id} .
-  #             " into $explodeinto\n";
+  my $workdir = $workarea->{dir};
+  #my $explodeinto = $workarea->{dir} . "/" . $this->{id};
+  my $explodeinto = $workdir . "/" . $this->{id};
 
-  # Setup everything for the MIME parser
-  my $parser = MIME::Parser->new;
-  my $filer  = MIME::Parser::MailScanner->new($explodeinto);
+  #  https://github.com/MailScanner/v5/issues/233
+  #  Replace MIME::Parser here with Email::MIME
+  #  to resolve parsing of attachments with unicode names
+  #
+  #  #print STDERR "Going to explode message " . $this->{id} .
+  #  #          " into $explodeinto\n";
+  #
+  #  # Setup everything for the MIME parser
+  #  my $parser = MIME::Parser->new;
+  #  my $filer  = MIME::Parser::MailScanner->new($explodeinto);
+  #  # Over-ride the default default character set handler so it does it
+  #  # much better than the MIME-tools default handling.
+  #  MIME::WordDecoder->default->handler('*' => \&WordDecoderKeep7Bit);
+  #
+  #  #print STDERR "Exploding message " . $this->{id} . " into " .
+  #  #             $explodeinto . "\n";
+  #  $parser->filer($filer);
+  #  $parser->extract_uuencode(1); # uue is off by default
+  #  $parser->output_to_core('NONE'); # everything into files
+  #  # 101318 Bug workaround in MIME::Parser not writing UTF8 encoded MIME Parts
+  #  # MIME attachments not parsing with certain unicode characters
+  #  # See https://github.com/MailScanner/v5/issues/233
+  #  $parser->decode_headers(1);
+  #  
+  #  # The whole parsing thing is totally different for sendmail & Exim for speed.
+  #  # Many thanks for those who know themselves for this great improvement!
+  #  #20090327 if (MailScanner::Config::Value('mta') =~ /sendmail|exim|postfix|zmailer/i) {
+  #
+  #    #
+  #    # This is for sendmail and Exim systems
+  #    # -- CORRECTION: Now *all* systems. The "else" block is never used.
+  #    #
+  #
 
-  # Over-ride the default default character set handler so it does it
-  # much better than the MIME-tools default handling.
-  MIME::WordDecoder->default->handler('*' => \&WordDecoderKeep7Bit);
+  $handle = IO::File->new_tmpfile or die "Your /tmp needs to be set to \"chmod 1777 /tmp\"";
+  binmode($handle);
+  $this->{store}->ReadMessageHandle($this, $handle) or return;
 
-  #print STDERR "Exploding message " . $this->{id} . " into " .
-  #             $explodeinto . "\n";
-  $parser->filer($filer);
-  $parser->extract_uuencode(1); # uue is off by default
-  $parser->output_to_core('NONE'); # everything into files
-  # 101318 Bug workaround in MIME::Parser not writing UTF8 encoded MIME Parts
-  # MIME attachments not parsing with certain unicode characters
-  # See https://github.com/MailScanner/v5/issues/233
-  $parser->decode_headers(1);
-  
-  # The whole parsing thing is totally different for sendmail & Exim for speed.
-  # Many thanks for those who know themselves for this great improvement!
-  #20090327 if (MailScanner::Config::Value('mta') =~ /sendmail|exim|postfix|zmailer/i) {
+  # Do the actual parsing
+  my $maxparts = MailScanner::Config::Value('maxparts', $this) || 200;
+  #MIME::Entity::ResetMailScannerCounter($maxparts);
+  my $partscounter = 0;
 
-    #
-    # This is for sendmail and Exim systems
-    # -- CORRECTION: Now *all* systems. The "else" block is never used.
-    #
+  mkdir $explodeinto;
 
-    $handle = IO::File->new_tmpfile or die "Your /tmp needs to be set to \"chmod 1777 /tmp\"";
-    binmode($handle);
-    $this->{store}->ReadMessageHandle($this, $handle) or return;
+  my $failed = 0;
+  if (open my $headerfh, '>', $workdir . '/' . $this->{id} . '.header') {
+    my $header = <$handle>;
+    my $source .= $header;
+    while ( $header !~ /^\n$/ ) {
+      print $headerfh $header;
+      $header = <$handle>;
+      $source .= $header;
+    }
 
-    ## Do the actual parsing
-    my $maxparts = MailScanner::Config::Value('maxparts', $this) || 200;
-    MIME::Entity::ResetMailScannerCounter($maxparts);
+    close($headerfh);
 
-    # Inform MIME::Parser about our maximum
-    $parser->max_parts($maxparts * 3);
-    $entity = eval { $parser->parse($handle) };
+    $source .= do { local $/; <$handle> };
 
-    # close and delete tmpfile
-    close($handle);
+    my $msg = Email::MIME->new($source);
 
-    if (!$entity && !MIME::Entity::MailScannerCounter()>=$maxparts) {
-      unless ($this->{dpath}) {
-        # It probably ran out of disk space, drop this message from the batch
-        MailScanner::Log::WarnLog("Failed to create message structures for %s" .
-          ", dropping it from the batch", $this->{id});
-        my @toclear = ( $this->{id} );
-        $workarea->ClearIds(\@toclear); # Delete attachments we might have made
-        $this->DropFromBatch();
-        return;                                                         
+    $msg->walk_parts(sub {
+      my $part = shift;
+
+      $partscounter += 1;
+
+      return if $part->subparts;
+
+      my $filename = $part->filename(1);
+
+      if (open my $fh, ">", $explodeinto . '/' . $filename) {
+        print $fh $part->body_raw;
+
+        close($fh);
+      } else {
+        $failed = 1;
       }
+    });
+  } else {
+    $failed = 1;
+  }
 
-      MailScanner::Log::WarnLog("Cannot parse " . $this->{headerspath} . " and " .
-                   $this->{dpath} . ", $@");
-      $this->{entity} = $entity; # In case it failed due to too many attachments
-      $this->{cantparse} = 1;
-      $this->{otherinfected} = 1;
-      return;
+  #  # Inform MIME::Parser about our maximum
+  #  $parser->max_parts($maxparts * 3);
+  #  $entity = eval { $parser->parse($handle) };
+
+  # close and delete tmpfile
+  close($handle);
+
+  #if (!$entity && !MIME::Entity::MailScannerCounter()>=$maxparts) {
+  if ($failed && !$partscounter>=$maxparts) {
+    unless ($this->{dpath}) {
+      # It probably ran out of disk space, drop this message from the batch
+      MailScanner::Log::WarnLog("Failed to create message structures for %s" .
+        ", dropping it from the batch", $this->{id});
+      my @toclear = ( $this->{id} );
+      $workarea->ClearIds(\@toclear); # Delete attachments we might have made
+      $this->DropFromBatch();
+      return;                                                         
     }
 
-    # Too many attachments in the message?
-    if ($maxparts>0 && MIME::Entity::MailScannerCounter()>=$maxparts) {
-      #print STDERR "Found an error!\n";
-      #Not with sendmail: $pipe->close();
-      #Not with sendmail: kill 9, $pid; # Make sure we are reaping a dead'un
-      #Not with sendmail: waitpid $pid, 0;
-      MailScanner::Log::WarnLog("Too many attachments (%d) in %s",
-                              MIME::Entity::MailScannerCounter(), $this->{id});
-      $this->{entity} = $entity; # In case it failed due to too many attachments
-      $this->{toomanyattach} = 1;
-      $this->{otherinfected} = 1;
-      return;
-    }
+    MailScanner::Log::WarnLog("Cannot parse " . $this->{headerspath} . " and " .
+                 $this->{dpath} . ", $@");
+    $this->{entity} = $entity; # In case it failed due to too many attachments
+    $this->{cantparse} = 1;
+    $this->{otherinfected} = 1;
+    return;
+  }
 
-    # Closing the pipe this way will reap the child, apparently!
-    #Not with sendmail: $pipe->close;
+  # Too many attachments in the message?
+  #if ($maxparts>0 && MIME::Entity::MailScannerCounter()>=$maxparts) {
+  if ($maxparts>0 && $partscounter>=$maxparts) {
+    #print STDERR "Found an error!\n";
+    #Not with sendmail: $pipe->close();
     #Not with sendmail: kill 9, $pid; # Make sure we are reaping a dead'un
-    $this->{entity} = $entity;
+    #Not with sendmail: waitpid $pid, 0;
+    #MailScanner::Log::WarnLog("Too many attachments (%d) in %s",
+    #                        MIME::Entity::MailScannerCounter(), $this->{id});
+    MailScanner::Log::WarnLog("Too many attachments (%d) in %s",
+                            $partscounter, $this->{id});
+    $this->{entity} = $entity; # In case it failed due to too many attachments
+    $this->{toomanyattach} = 1;
+    $this->{otherinfected} = 1;
+    return;
+  }
+
+  # Closing the pipe this way will reap the child, apparently!
+  #Not with sendmail: $pipe->close;
+  #Not with sendmail: kill 9, $pid; # Make sure we are reaping a dead'un
+  $this->{entity} = $entity;
 
   # 20090327 } else {
 
