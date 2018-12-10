@@ -1924,6 +1924,9 @@ sub ProcessEsetsOutput {
   # archive damaged
   return 0 if $line =~ m/archive damaged/i;
 
+  # error reading archive
+  return 0 if $line =~ m/error reading archive/i;
+
   my ($a, $b, $c, $d) = split(/,/, $line);
   my ($filename) = $a =~ m/\"(.*)\"/;
   my ($threat) = $b =~ m/\"(.*)\"/;
