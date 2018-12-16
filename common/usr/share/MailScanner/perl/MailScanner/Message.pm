@@ -4263,7 +4263,8 @@ sub BuildFile2EntityAndEntity2File {
   # Remove any wide characters so that WordDecoder can parse
   # mime_to_perl_string is ignoring the built-in handler that was set earlier
   # https://github.com/MailScanner/v5/issues/253
-  $headfile =~  tr/\x00-\xFF/#/c;
+  # Also enforce 7 bit characters for filenames
+  $headfile =~  tr/\x00-\x7F/#/c;
   
   $headfile = MIME::WordDecoder::mime_to_perl_string($headfile);
   #print STDERR "headfile is $headfile\n";

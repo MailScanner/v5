@@ -26,8 +26,9 @@ sub output_path {
     # Remove any wide characters so that WordDecoder can parse
     # no handler was set here, but that's okay, let's play it safe anyway
     # https://github.com/MailScanner/v5/issues/253
+    # Also enforce 7 bit characters in filenames
     my $safefilename = $head->recommended_filename;
-    $safefilename =~  tr/\x00-\xFF/#/c;
+    $safefilename =~  tr/\x00-\x7F/#/c;
 
     my $fname = mime_to_perl_string $safefilename;
 
