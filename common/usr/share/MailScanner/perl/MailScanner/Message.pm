@@ -7573,16 +7573,21 @@ sub DisarmEndtagCallback {
     $squashedtext =~ tr/\n/ /; # Join multiple lines onto 1 line
     $squashedtext =~ s/(\<\/?[a-z][a-z0-9:._-]*((\s+[a-z][a-z0-9:._-]*(\s*=\s*(?:\".*?\"|\'.*?\'|[^\'\">\s]+))?)+\s*|\s*)\/?\>)*//ig; # Remove tags, better re from snifer_@hotmail.com
     $squashedtext =~ s/\s+//g; # Remove any whitespace
-    if ( $DisarmLinkURL =~ m/^ma[il]+to[:;]/i && $squashedtext =~ /@/ ) {
-       # Remove any leading or trailing text
-       $squashedtext =~ s/^.*\s+(?=.*\@)//;
-       $squashedtext =~ s/\s+.*$//;
-       # Remove &gt; and &lt; tags, if present
-       # https://github.com/MailScanner/v5/issues/320
-       $squashedtext =~ s/(?:&lt;|&gt;)//g; 
-       my @list = split(/@/, $squashedtext);
-       $emailuser = $list[0];
-       $squashedtext = $list[1]; # Remove username of email addresses
+    if ( $DisarmLinkURL =~ m/^ma[il]+to[:;]/i ) {
+       # Convert HTML entity, if present
+       # https://github.com/MailScanner/v5/issues/335
+       $squashedtext =~ s/&#064;/@/g;
+       if ( $squashedtext =~ /@/ ) {
+         $squashedtext =~ s/^.*\s+(?=.*\@)//;
+         $squashedtext =~ s/\s+.*$//;
+         # Remove any leading or trailing text
+         # Remove &gt; and &lt; tags, if present
+         # https://github.com/MailScanner/v5/issues/320
+         $squashedtext =~ s/(?:&lt;|&gt;)//g; 
+         my @list = split(/@/, $squashedtext);
+         $emailuser = $list[0];
+         $squashedtext = $list[1]; # Remove username of email addresses
+       }
     }
     #$squashedtext =~ s/\&\w*\;//g; # Remove things like &lt; and &gt;
     $squashedtext =~ s/^.*(\&lt\;|\<)((https?|ftp|mailto|webcal):.+?)(\&gt\;|\>).*$/$2/i; # Turn blah-blah <http://link.here> blah-blah into "http://link.here"
@@ -7683,9 +7688,14 @@ sub DisarmEndtagCallback {
         # https://github.com/MailScanner/v5/issues/229
         MailScanner::Log::DebugLog("DisarmLinkURL = $DisarmLinkURL");
         MailScanner::Log::DebugLog("linkurl = $linkurl");
-        if ($DisarmLinkURL =~ m/^ma[il]+to[:;]/i && $linkurl =~ /@/ ) {
-           my @list = split(/@/, $linkurl);
-           $linkurl = $list[1];
+        if ($DisarmLinkURL =~ m/^ma[il]+to[:;]/i ) {
+          # Convert HTML entity, if present
+          # https://github.com/MailScanner/v5/issues/335
+          $linkurl =~ s/&#064;/@/g;
+          if ( $linkurl =~ /@/ ) {
+            my @list = split(/@/, $linkurl);
+            $linkurl = $list[1];
+          }
         }
 
         unless (InPhishingWhitelist($linkurl)) {
@@ -7795,12 +7805,17 @@ sub DisarmEndtagCallback {
         MailScanner::Log::DebugLog("DisarmLinkURL = $DisarmLinkURL");
         MailScanner::Log::DebugLog("linkurl = $linkurl");
 
-        if ($DisarmLinkURL =~ m/^ma[il]+to[:;]/i && $linkurl =~ /@/ ) {
-           my @list = split(/@/, $linkurl);
-           if ( $emailuser ne "" && $list[0] ne $emailuser) {
-             $alarm = 1;
-           }
-           $linkurl = $list[1];
+        if ($DisarmLinkURL =~ m/^ma[il]+to[:;]/i ) {
+          # Convert HTML entity, if present
+          # https://github.com/MailScanner/v5/issues/335
+          $linkurl =~ s/&#064;/@/g;
+          if ( $linkurl =~ /@/ ) {
+            my @list = split(/@/, $linkurl);
+            if ( $emailuser ne "" && $list[0] ne $emailuser) {
+              $alarm = 1;
+            }
+            $linkurl = $list[1];
+          }
         }
 
         # Ignore fax: and tel: (not ip but numeric)
