@@ -7576,7 +7576,7 @@ sub DisarmEndtagCallback {
     if ( $DisarmLinkURL =~ m/^ma[il]+to[:;]/i ) {
        # Convert HTML entities, if present
        # https://github.com/MailScanner/v5/issues/335
-       $squashedtext =~ decode_entities($squashedtext);
+       $squashedtext = decode_entities($squashedtext);
        if ( $squashedtext =~ /@/ ) {
          $squashedtext =~ s/^.*\s+(?=.*\@)//;
          $squashedtext =~ s/\s+.*$//;
