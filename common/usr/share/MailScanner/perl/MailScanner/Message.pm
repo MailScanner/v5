@@ -37,6 +37,7 @@ use MIME::WordDecoder;
 use POSIX qw(:signal_h setsid);
 use HTML::TokeParser;
 use HTML::Parser;
+use HTML::Entities qw(decode_entities);
 use Archive::Zip qw( :ERROR_CODES );
 use Filesys::Df;
 use Digest::MD5;
