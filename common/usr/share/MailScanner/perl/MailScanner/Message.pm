@@ -7582,9 +7582,9 @@ sub DisarmEndtagCallback {
          $squashedtext =~ s/^.*\s+(?=.*\@)//;
          $squashedtext =~ s/\s+.*$//;
          # Remove any leading or trailing text
-         # Remove &gt; and &lt; tags, if present
+         # Remove < and > tags, if present
          # https://github.com/MailScanner/v5/issues/320
-         $squashedtext =~ s/(?:&lt;|&gt;)//g; 
+         $squashedtext =~ s/(?:\<|\>)//g; 
          my @list = split(/@/, $squashedtext);
          $emailuser = $list[0];
          $squashedtext = $list[1]; # Remove username of email addresses
