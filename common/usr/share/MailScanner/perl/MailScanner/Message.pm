@@ -7574,7 +7574,7 @@ sub DisarmEndtagCallback {
     $squashedtext =~ tr/\n/ /; # Join multiple lines onto 1 line
     $squashedtext =~ s/(\<\/?[a-z][a-z0-9:._-]*((\s+[a-z][a-z0-9:._-]*(\s*=\s*(?:\".*?\"|\'.*?\'|[^\'\">\s]+))?)+\s*|\s*)\/?\>)*//ig; # Remove tags, better re from snifer_@hotmail.com
     $squashedtext =~ s/\s+//g; # Remove any whitespace
-    if ( $DisarmLinkURL =~ m/^ma[il]+to[:;]/i ) {
+    if ( $DisarmLinkURL =~ m/^mailto:/i ) {
        # Convert HTML entities, if present
        # https://github.com/MailScanner/v5/issues/335
        $squashedtext = decode_entities($squashedtext);
@@ -7689,7 +7689,7 @@ sub DisarmEndtagCallback {
         # https://github.com/MailScanner/v5/issues/229
         MailScanner::Log::DebugLog("DisarmLinkURL = $DisarmLinkURL");
         MailScanner::Log::DebugLog("linkurl = $linkurl");
-        if ($DisarmLinkURL =~ m/^ma[il]+to[:;]/i ) {
+        if ($DisarmLinkURL =~ m/^mailto:/i ) {
           # Convert HTML entities, if present
           # https://github.com/MailScanner/v5/issues/335
           $linkurl = decode_entities($linkurl);
@@ -7806,7 +7806,7 @@ sub DisarmEndtagCallback {
         MailScanner::Log::DebugLog("DisarmLinkURL = $DisarmLinkURL");
         MailScanner::Log::DebugLog("linkurl = $linkurl");
 
-        if ($DisarmLinkURL =~ m/^ma[il]+to[:;]/i ) {
+        if ($DisarmLinkURL =~ m/^mailto:/i ) {
           # Convert HTML entities, if present
           # https://github.com/MailScanner/v5/issues/335
           $linkurl = decode_entities($linkurl);
