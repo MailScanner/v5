@@ -1,5 +1,8 @@
-12/16/2018 Changes in    v5.1.3-1
+12/23/2018 Changes in    v5.1.3-1
 ==================================
+- Use literal 'mailto:' for mailto phishing detection
+- Handle HTML entities in mailto phishing detections
+- Enforce 7 bit characters for filename checks
 - Revert decode_headers workaround
 - Esets catch error reading archive
 - FixSubstringBoundaries removed
