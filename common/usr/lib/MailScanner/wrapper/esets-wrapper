@@ -3,7 +3,7 @@
 # esets-wrapper --	invoke esets for use with mailscanner
 #
 #   MailScanner - SMTP Email Processor
-#   Copyright (C) 2001  Julian Field
+#   Copyright (C) 2019 MailScanner Team <https://mailscanner.info>
 #
 #	written by: Jerry Benton <mailscanner@mailborder.com>
 #
@@ -35,4 +35,4 @@ if [ "x$1" = "x-IsItInstalled" ]; then
   exit 1
 fi
 
-exec ${PackageDir}/$Prog "$@"
+exec sudo ${PackageDir}/$Prog "$@"
