@@ -32,6 +32,7 @@ use IO::File;
 use IO::Pipe;
 use Sendmail::PMilter;
 use Socket;
+use Socket qw(inet_ntop);
 use POSIX qw(strftime);
 use Sys::Hostname;
 use Time::HiRes qw( gettimeofday );
@@ -117,9 +118,19 @@ sub connect_callback
 
         if (defined $sockaddr_in)
         {
-            ($port, $iaddr) = sockaddr_in($sockaddr_in);
-            $ip = inet_ntoa($iaddr);
-            $message .= ' [' . $ip . ']';
+            my $family = sockaddr_family($sockaddr_in);
+            if ($family eq AF_INET) {
+                ($port, $iaddr) = sockaddr_in($sockaddr_in);
+                $ip = inet_ntop(AF_INET, $iaddr);
+                $message .= ' [' . $ip . ']';
+            } elsif ($family eq AF_INET6) {
+                ($port, $iaddr) = sockaddr_in6($sockaddr_in);
+                $ip = inet_ntop(AF_INET6, $iaddr);
+                $message .= ' [' . $ip . ']';
+            } else {
+                $ip = '';
+            }
+
         }
 
         # Localhost relaying email?  Accept the message for delivery if enabled
