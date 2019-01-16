@@ -1,6 +1,6 @@
 #
 #   MailScanner - SMTP Email Processor
-#   Copyright (C) 2002  Julian Field
+#   Copyright (C) 2019 MailScanner Team <https://mailscanner.info>
 #
 #   $Id: SweepViruses.pm 5086 2011-03-16 19:37:02Z sysjkf $
 #
@@ -1506,6 +1506,14 @@ sub ProcessSophosOutput {
   #$infected =~ s/^Could not check\s*//i;
   # JKF 10/08/2000 Used to split into max 3 parts, but this doesn't handle
   # viruses in zip files in attachments. Now pull out first 3 parts instead.
+
+  # https://github.com/MailScanner/v5/issues/348
+  # Check for absolute path in Sophos Output (forward compatibility)
+  my $path = MailScanner::Config::Value("incomingworkdir");
+  if ( $infected =~ /$path/ ) {
+    $infected =~ s|$path/\d+(?=/)|\.|;
+  }
+
   ($dot, $id, $part, @rest) = split(/\//, $infected);
   #system("echo $dot, $id, $part, @rest >> /tmp/jkf");
   #system("echo $infections >> /tmp/jkf");
