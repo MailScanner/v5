@@ -1811,7 +1811,7 @@ sub ProcessAvgOutput {
   #./1B978O-0000g2-Iq/eicar.com  Virus identified  EICAR_Test (+2)
   #./1B978O-0000g2-Iq/eicar.zip:\eicar.com  Virus identified  EICAR_Test (+2)
 
-  my ($id, $part, @rest, $notype)
+  my ($id, $part, @rest, $notype);
 
   # 2018-11-23
   #
