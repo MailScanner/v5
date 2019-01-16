@@ -1811,6 +1811,8 @@ sub ProcessAvgOutput {
   #./1B978O-0000g2-Iq/eicar.com  Virus identified  EICAR_Test (+2)
   #./1B978O-0000g2-Iq/eicar.zip:\eicar.com  Virus identified  EICAR_Test (+2)
 
+  my ($id, $part, @rest, $notype);
+
   # 2018-11-23
   #
   # Darryl Sutherland <darryls@synaq.com>
@@ -1861,7 +1863,7 @@ sub ProcessAvgOutput {
     $line =~ s/:\\/\//g;
     $line =~ s/:\//\//g; # JKF AVG8 :/ separates archives now too.
     $line =~ s/\.\///;
-    my($id, $part, @rest) = split(/\//, $line);
+    ($id, $part, @rest) = split(/\//, $line);
     $part =~ s/\t.*$//;
     $part =~ s/=\>.*$//;
     #print STDERR "id:$id:part = $part\n";
@@ -1871,7 +1873,7 @@ sub ProcessAvgOutput {
     # exists in more than one (because of SafeName) archive the archive is
     # reported twice so check and make sure the archive is only reported once
 
-    my $notype = substr($part,1);
+    $notype = substr($part,1);
     $logout =~ s/\Q$part\E/$notype/;
 
     $logout =~ /^.+\/(.+?)\s+(.+)\s*$/;
