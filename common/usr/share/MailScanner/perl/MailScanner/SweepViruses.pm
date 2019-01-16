@@ -1846,35 +1846,59 @@ sub ProcessAvgOutput {
   #print STDERR "Line: $line\n";
   #print STDERR "virus = \"$virus\"\n";
   my $logout = $line;
-  $logout =~ s/\s{2,}/ /gs;
-  $logout =~ s/:./->/;
 
-  # Change all the spaces into / for the split coming up
-  # Also the second variant prepends the archive name to the
-  # infected filename with a:\ so we need to change that to
-  # something else. I chose another / so it would end up in the
-  # @rest wich is also why I changed the \s+ to /
-  # then Remove path elements before /./ leaving just id/part/rest
+  # Full message scanning fix
+  # https://github.com/MailScanner/v5/issues/348
+  if ( $logout !~ /message[:\s].*(?:virus|trojan)/ ) {
+    $logout =~ s/\s{2,}/ /gs;
+    $logout =~ s/:./->/;
 
-  $line =~ s/\s+/\//g;
-  $line =~ s/:\\/\//g;
-  $line =~ s/:\//\//g; # JKF AVG8 :/ separates archives now too.
-  $line =~ s/\.\///;
-  my($id, $part, @rest) = split(/\//, $line);
-  $part =~ s/\t.*$//;
-  $part =~ s/=\>.*$//;
-  #print STDERR "id:$id:part = $part\n";
-  #print STDERR "$Name : Found virus $virus in file $part ID:$id\n";
+    # Change all the spaces into / for the split coming up
+    # Also the second variant prepends the archive name to the
+    # infected filename with a:\ so we need to change that to
+    # something else. I chose another / so it would end up in the
+    # @rest wich is also why I changed the \s+ to /
+    # then Remove path elements before /./ leaving just id/part/rest
 
-  # If avg finds both the archive and file to be infected and the file
-  # exists in more than one (because of SafeName) archive the archive is
-  # reported twice so check and make sure the archive is only reported once
+    $line =~ s/\s+/\//g;
+    $line =~ s/:\\/\//g;
+    $line =~ s/:\//\//g; # JKF AVG8 :/ separates archives now too.
+    $line =~ s/\.\///;
+    my($id, $part, @rest) = split(/\//, $line);
+    $part =~ s/\t.*$//;
+    $part =~ s/=\>.*$//;
+    #print STDERR "id:$id:part = $part\n";
+    #print STDERR "$Name : Found virus $virus in file $part ID:$id\n";
 
-  my $notype = substr($part,1);
-  $logout =~ s/\Q$part\E/$notype/;
+    # If avg finds both the archive and file to be infected and the file
+    # exists in more than one (because of SafeName) archive the archive is
+    # reported twice so check and make sure the archive is only reported once
 
-  $logout =~ /^.+\/(.+?)\s+(.+)\s*$/;
-  MailScanner::Log::InfoLog("Avg: %s in %s", $2,$1);
+    my $notype = substr($part,1);
+    $logout =~ s/\Q$part\E/$notype/;
+
+    $logout =~ /^.+\/(.+?)\s+(.+)\s*$/;
+    MailScanner::Log::InfoLog("Avg: %s in %s", $2,$1);
+  } else {
+    # Parse ./id.message:/eicar.com Virus identified EICAR_Test
+    # Parse ./id.message Virus identified EICAR_Test
+    $line =~ s/\.\///;
+    $id = $line;
+    $id =~ s/^(.*)\.message.*$/$1/;
+
+    $part = $line;
+    $part =~ s/^.*\.message//;
+    $part =~ s/^:\///;
+    $part =~ s/\s.*$//;
+    if ( $part eq "" ) {
+      $part = "message";
+      $logout =~ /^.+message\s+(.+)\s*$/;
+      MailScanner::Log::InfoLog("Avg: %s in %s", $1,$part);
+    } else {
+      $logout =~ /^.+\/(.+?)\s+(.+)\s*$/;
+      MailScanner::Log::InfoLog("Avg: %s in %s", $2,$1);
+    }
+  }
 
   my $Report = $Name . ': ' if $Name;
   $Report .= "Found virus $virus in file $notype";
