@@ -1509,10 +1509,7 @@ sub ProcessSophosOutput {
 
   # https://github.com/MailScanner/v5/issues/348
   # Check for absolute path in Sophos Output (forward compatibility)
-  my $path = MailScanner::Config::Value("incomingworkdir");
-  if ( $infected =~ /$path/ ) {
-    $infected =~ s|$path/\d+(?=/)|\.|;
-  }
+  $infected =~ s|$BaseDir(?=/)|\.|;
 
   ($dot, $id, $part, @rest) = split(/\//, $infected);
   #system("echo $dot, $id, $part, @rest >> /tmp/jkf");
