@@ -1,9 +1,9 @@
 # Welcome to MailScanner!
 #
-# Current version: 5.1.3-1 Release
+# Current version: 5.1.3-1 Release (5.1.3-2 pending testing)
 #
-# Shawn Iverson - 23 December 2018
-# <shawniverson@efa-project.org>
+# 23 December 2018
+# MailScanner Team <https://www.mailscanner.info>
 #
 #
 # MailScanner is an open source email gateway that processes email for
@@ -14,7 +14,7 @@
 # SUSE in addition to any generic NIX package.
 #
 #
-#	Info: 		http://www.mailscanner.info
+#	Info: 		https://www.mailscanner.info
 #	Release: 	https://www.mailscanner.info/downloads
 #	Github: 	https://github.com/MailScanner/v5
 # 	Manual: 	https://s3.amazonaws.com/msv5/docs/ms-admin-guide.pdf
@@ -36,7 +36,7 @@
 #	MTA Guides:
 #		sendmail - https://www.mailscanner.info/sendmail
 #		postfix  - https://www.mailscanner.info/postfix
-#		exim     - https://www.mailscanner.info/exim 
+#		exim     - https://www.mailscanner.info/exim
 #
 #	Setup:
 # 		Edit /etc/MailScanner/defaults and set options
@@ -44,12 +44,12 @@
 #		service mailscanner start
 #
 #	NIX:
-#		For generic NIX systems, create a symlink for controlling the 
+#		For generic NIX systems, create a symlink for controlling the
 #		start/stop/restart of the program to:
 #
 #		/usr/lib/MailScanner/init/ms-init
 #
-#		* This is not required for RHEL, CentOS, Debian, Ubuntu, SUSE	
+#		* This is not required for RHEL, CentOS, Debian, Ubuntu, SUSE
 #
 #	File Locations:
 #		/etc/MailScanner
