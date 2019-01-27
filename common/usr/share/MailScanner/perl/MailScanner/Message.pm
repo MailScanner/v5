@@ -8028,7 +8028,8 @@ sub CleanLinkURL {
 
   use bytes;
 
-  my($linkurl,$alarm);
+  my($linkurl,$alarm,$mailto);
+  $mailto = MailScanner::Config::Value("highlightmailtophishing");
   $alarm = 0;
   $linkurl = $DisarmLinkURL;
   $linkurl = lc($linkurl);
@@ -8049,7 +8050,9 @@ sub CleanLinkURL {
   $linkurl =~ s/\\/\//g; # Change \ to / as many browsers do this
   # Don't ignore emails
   # https://github.com/MailScanner/v5/issues/229
-  #return ("",0) if $linkurl =~ /\@/ && $linkurl !~ /\//; # Ignore emails
+  if ( $mailto =~ /0/) {
+    return ("",0) if $linkurl =~ /\@/ && $linkurl !~ /\//; # Ignore emails
+  }
   #$linkurl = "" if $linkurl =~ /\@/ && $linkurl !~ /\//; # Ignore emails
   $linkurl =~ s/[,.]+$//; # Remove trailing dots, but also commas while at it
   $linkurl =~ s/^\[\d*\]//; # Remove leading [numbers]
@@ -8069,7 +8072,10 @@ sub CleanLinkURL {
   $linkurl =~ s/^(fax|tel)[:;]//i;
   # Don't ignore emails
   # https://github.com/MailScanner/v5/issues/229
-  $linkurl =~ s/^ma[il]+to[:;]//i;
+  if ( $mailto =~ /0/) {
+    return ("",0) if $linkurl =~ /^mailto:/i;
+  }
+  $linkurl =~ s/^mailto://i;
   #return ("",0) if $linkurl =~ /^ma[il]+to[:;]/i;
   #$linkurl = "" if $linkurl =~ /^ma[il]+to[:;]/i;
   $linkurl =~ s/[?\/].*$//; # Only compare up to the first '/' or '?'

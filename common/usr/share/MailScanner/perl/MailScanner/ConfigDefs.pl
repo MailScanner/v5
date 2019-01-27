@@ -651,6 +651,7 @@ FindPhishing		1	no	0	yes	1
 markinfectedmessages	1	no	0	yes	1
 PhishingHighlight	1	no	0	yes	1
 HighlightHiddenURLs	0	no	0	yes	1
+HighlightMailtoPhishing	1	no	0	yes	1
 HtmlToText		0	no	0	yes	1
 InsistPassZips		0	no	0	yes	1
 NewHeadersAtTop		0	no	0	yes	1
@@ -664,7 +665,7 @@ ReplaceTNEF		2	no	0	add	1	replace	2
 sadecodebins		0	no	0	yes	1
 ScanMail		1	no	0	yes	1	virus	2
 SpamStars		1	no	0	yes	1
-StrictPhishing          1       no      0       yes     1
+StrictPhishing		1	no	0	yes	1
 TagPhishingSubject	0	no	0 	yes	1	start	start	end	end
 MCPUseSpamAssassin	1	no	0	yes	1
 UseSpamAssassin		1	no	0	yes	1
