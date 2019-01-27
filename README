@@ -1,8 +1,8 @@
 # Welcome to MailScanner!
 #
-# Current version: 5.1.3-1 Release (5.1.3-2 pending testing)
+# Current version: 5.1.3-2 Release
 #
-# 23 December 2018
+# 27 January 2019
 # MailScanner Team <https://www.mailscanner.info>
 #
 #
@@ -55,6 +55,5 @@
 #		/etc/MailScanner
 #		/usr/share/MailScanner
 #		/usr/lib/MailScanner
-#
 #
 

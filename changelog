@@ -1,3 +1,12 @@
+01/27/2019 Changes in    v5.1.3-2
+==================================
+- Add sudo and README for esets-wrapper
+- Handle ipv6 packed socket properly in MSMilter
+- Fix path for avg-wrapper in virus.scanners.conf
+- Fix AVG output parsing in SweepViruses.pm
+- Fix absolute path in Sophos output parsing in SweepViruses.pm
+- Add config option for mailto phishing highlighting
+
 12/23/2018 Changes in    v5.1.3-1
 ==================================
 - Use literal 'mailto:' for mailto phishing detection
