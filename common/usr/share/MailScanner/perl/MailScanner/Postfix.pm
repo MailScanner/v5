@@ -484,7 +484,9 @@ sub new {
         # Recipient address
         $recdata =~ s/^\<//;
         $recdata =~ s/\<$//;
+        # If recipient is empty only add metadata
         push @{$message->{to}}, lc($recdata);
+        next unless $recdata ne '';
         push @{$message->{metadata}}, "$rectype$recdata";
         $TOFound = 1;
         $ORIGFound = 1;
@@ -941,9 +943,16 @@ sub new {
     # Over-ride the default default character set handler so it does it
     # much better than the MIME-tools default handling.
     MIME::WordDecoder->default->handler('*' => \&MailScanner::Message::WordDecoderKeep7Bit);
-    my $TmpSubject = MIME::WordDecoder::unmime($message->{subject});
+
+    # Remove any wide characters so that WordDecoder can parse
+    # mime_to_perl_string is ignoring the built-in handler that was set earlier
+    # https://github.com/MailScanner/v5/issues/253
+    my $safesubject = $message->{subject};
+    $safesubject =~  tr/\x00-\xFF/#/c;
+
+    my $TmpSubject = MIME::WordDecoder::mime_to_perl_string($safesubject);
     if ($TmpSubject ne $message->{subject}) {
-      # The unmime function dealt with an encoded subject, as it did
+      # The mime_to_perl_string function dealt with an encoded subject, as it did
       # something. Allow up to 10 trailing spaces so that SweepContent
       # is more kind to us and doesn't go and replace the whole subject,
       # thinking that it is malicious. Total replacement and hence
@@ -1353,13 +1362,9 @@ sub new {
     #print STDERR "Deleting Recipients!\n";
     my($linenum);
     for ($linenum=0; $linenum<@{$message->{metadata}}; $linenum++) {
-      # Looking for "recipient" lines
-      # Should allow 'O' here as well
-      # JKF 30/08/2006 next unless $message->{metadata}[$linenum] =~ /^[RO]/;
-      # Thanks to Holger Gebhard for this.
-      #BUGGY: next unless $message->{metadata}[$linenum] =~ /^[ARO].+@(?:\w|-|\.)+\.\w{2,})/;
-      #next unless $message->{metadata}[$linenum] =~ /^[ARO]/;
-      next unless $message->{metadata}[$linenum] =~ /^[ARO].+@(?:\w|-|\.)+\.\w{2,}/;
+      # Looking for all type of "recipient" records interpreted by Postfix
+      # See https://github.com/MailScanner/v5/pull/239
+      next unless $message->{metadata}[$linenum] =~ /^(?:R|O|Adsn_orig_rcpt)/;
       # Have found the right line
       #print STDERR "Deleting recip " . $message->{metadata}[$linenum] . "\n";
       splice(@{$message->{metadata}}, $linenum, 1);
@@ -1877,7 +1882,14 @@ sub FindHashDirDepth {
         # Don't put a random number on the end, put a reasonable hash of
         # the file on the end.
         # JKF 20090423 Add a "P" in the middle of so it cannot be a number.
-        my $id = $idtemp . '.' . PostfixKey($fullpath);
+        # Don't do this with long queue ids
+        # Apply to short queue ids
+        my $id;
+        if ($idtemp =~ /^[A-F0-9]+$/) {
+            $id = $idtemp . '.' . PostfixKey($fullpath);
+        } else {
+            $id = $idtemp;
+        }
         #print STDERR "ID = $id\n";
         my $idorig = $idtemp;
 

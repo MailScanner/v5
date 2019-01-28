@@ -51,10 +51,10 @@ mkdir -p $RPM_BUILD_ROOT
 mkdir -p ${RPM_BUILD_ROOT}/usr/sbin/
 mkdir -p ${RPM_BUILD_ROOT}/etc/MailScanner/{conf.d,rules,mcp}
 mkdir -p ${RPM_BUILD_ROOT}/etc/{cron.hourly,cron.daily}
-mkdir -p ${RPM_BUILD_ROOT}/usr/share/MailScanner/reports/{hu,de,se,ca,cy+en,pt_br,fr,es,en,cz,it,dk,nl,ro,sk}
+mkdir -p ${RPM_BUILD_ROOT}/usr/share/MailScanner/reports/{hu,de,se,ca,cy+en,pt_br,fr,es,en,en_uk,cz,it,dk,nl,ro,sk}
 mkdir -p ${RPM_BUILD_ROOT}/usr/share/MailScanner/perl/{MailScanner,custom}
 mkdir -p ${RPM_BUILD_ROOT}/usr/{lib/MailScanner/wrapper,lib/MailScanner/init,lib/MailScanner/systemd}
-mkdir -p ${RPM_BUILD_ROOT}/var/spool/MailScanner/{archive,incoming,quarantine}
+mkdir -p ${RPM_BUILD_ROOT}/var/spool/MailScanner/{archive,incoming,quarantine,milterin,milterout}
 
 ### etc
 install etc/cron.daily/mailscanner ${RPM_BUILD_ROOT}/etc/cron.daily/
@@ -103,6 +103,7 @@ EOF
 ### usr/sbin
 
 install usr/sbin/MailScanner                        ${RPM_BUILD_ROOT}/usr/sbin/MailScanner
+install usr/sbin/MSMilter                           ${RPM_BUILD_ROOT}/usr/sbin/MSMilter
 install usr/sbin/ms-check                           ${RPM_BUILD_ROOT}/usr/sbin/ms-check
 install usr/sbin/ms-clean-quarantine                ${RPM_BUILD_ROOT}/usr/sbin/ms-clean-quarantine
 install usr/sbin/ms-create-locks                    ${RPM_BUILD_ROOT}/usr/sbin/ms-create-locks
@@ -122,7 +123,7 @@ install usr/sbin/ms-upgrade-conf                    ${RPM_BUILD_ROOT}/usr/sbin/m
 
 ### usr/share/MailScanner
 
-for lang in ca cy+en cz de dk en es fr hu it nl pt_br ro se sk
+for lang in ca cy+en cz de dk en en_uk es fr hu it nl pt_br ro se sk
 do
   while read f 
   do
@@ -182,6 +183,8 @@ MCP.pm
 MCPMessage.pm
 Message.pm
 MessageBatch.pm
+MSDiskStore.pm
+MSMail.pm
 PFDiskStore.pm
 Postfix.pm
 Qmail.pm
@@ -219,12 +222,14 @@ EOF
 ### usr/lib/MailScanner
 
 install usr/lib/MailScanner/init/ms-init ${RPM_BUILD_ROOT}/usr/lib/MailScanner/init/
+install usr/lib/MailScanner/init/msmilter-init ${RPM_BUILD_ROOT}/usr/lib/MailScanner/init/
 install usr/lib/MailScanner/init/ms-sendmail-init ${RPM_BUILD_ROOT}/usr/lib/MailScanner/init/
 
 while read f
 do
   install usr/lib/MailScanner/systemd/$f ${RPM_BUILD_ROOT}/usr/lib/MailScanner/systemd
 done << EOF
+ms-milter
 ms-systemd
 ms-sendmail
 ms-sendmail-in
@@ -249,6 +254,8 @@ generic-autoupdate
 generic-wrapper
 sophos-autoupdate
 sophos-wrapper
+drweb-wrapper
+kaspersky-wrapper
 EOF
 
 %clean
@@ -267,6 +274,17 @@ fi
 # remove old file if present
 if [ -f '/etc/init.d/mailscanner' ]; then
     rm -f /etc/init.d/mailscanner
+fi
+
+# remove old symlink if present
+if [ -L '/etc/init.d/msmilter' ]; then
+    chkconfig --del msmilter >/dev/null 2>&1
+    rm -f /etc/init.d/msmilter
+fi
+
+# remove old file if present
+if [ -f '/etc/init.d/msmilter' ]; then
+    rm -f /etc/init.d/msmilter
 fi
 
 # remove old symlink if present
@@ -410,6 +428,14 @@ if [ ! -d '/var/spool/MailScanner/quarantine' ]; then
     mkdir -p /var/spool/MailScanner/quarantine
 fi
 
+if [ ! -d '/var/spool/MailScanner/milterin' ]; then
+    mkdir -p /var/spool/MailScanner/milterin
+fi
+
+if [ ! -d '/var/spool/MailScanner/milterout' ]; then
+    mkdir -p /var/spool/MailScanner/milterout
+fi
+
 # remove old link if present
 if [ -L '/etc/mail/spamassassin/mailscanner.cf' ]; then
     rm -f /etc/mail/spamassassin/mailscanner.cf
@@ -426,6 +452,12 @@ fi
 # create symlink for spamasassin
 if [ -d '/etc/mail/spamassassin' -a ! -L '/etc/mail/spamassassin/MailScanner.cf' -a -f '/etc/MailScanner/spamassassin.conf' -a ! -f '/etc/mail/spamassassin/MailScanner.cf' ]; then
     ln -s /etc/MailScanner/spamassassin.conf /etc/mail/spamassassin/MailScanner.cf 
+fi
+
+# check for rpmnew, if present, and move in place for upgrade
+if [ -f /etc/MailScanner/MailScanner.conf.rpmnew ]; then
+  cp -f /etc/MailScanner/MailScanner.conf.rpmnew /etc/MailScanner/MailScanner.conf
+  rm -f /etc/MailScanner/MailScanner.conf.rpmnew
 fi
 
 # upgrade the old config
@@ -519,7 +551,7 @@ fi
 
 # RHEL/CentOS7/Fedora >14
 if [ -f '/lib/systemd/systemd' -o -f '/usr/lib/systemd/systemd' ]; then
-   # copy in systemd wrapper and sendmail services
+   # copy in systemd wrapper, sendmail services, and msmilter
     if [ -d '/usr/lib/systemd/system' -a ! -e '/usr/lib/systemd/system/mailscanner' -a -f '/usr/lib/MailScanner/systemd/ms-systemd' ]; then
         cp /usr/lib/MailScanner/systemd/ms-systemd /usr/lib/systemd/system/mailscanner.service
     fi
@@ -532,6 +564,9 @@ if [ -f '/lib/systemd/systemd' -o -f '/usr/lib/systemd/systemd' ]; then
     if [ -d '/usr/lib/systemd/system' -a ! -e '/usr/lib/systemd/system/ms-sendmail-out' -a -f '/usr/lib/MailScanner/systemd/ms-sendmail-out' ]; then
         cp /usr/lib/MailScanner/systemd/ms-sendmail-out /usr/lib/systemd/system/ms-sendmail-out.service
     fi
+    if [ -d '/usr/lib/systemd/system' -a ! -e '/usr/lib/systemd/system/msmilter' -a -f '/usr/lib/MailScanner/systemd/ms-milter' ]; then
+        cp /usr/lib/MailScanner/systemd/ms-milter /usr/lib/systemd/system/msmilter.service
+    fi
 # RHEL/CentOS6/Fedora <15
 else
     # create init.d symlink
@@ -540,6 +575,9 @@ else
     fi
     if [ -d '/etc/init.d' -a ! -L '/etc/init.d/ms-sendmail' -a -f '/usr/lib/MailScanner/init/ms-sendmail-init' ]; then
         ln -s /usr/lib/MailScanner/init/ms-sendmail-init /etc/init.d/ms-sendmail
+    fi
+    if [ -d '/etc/init.d' -a ! -L '/etc/init.d/msmilter' -a -f '/usr/lib/MailScanner/init/msmilter-init' ]; then
+        ln -s /usr/lib/MailScanner/init/msmilter-init /etc/init.d/msmilter
     fi
 
     # Sort out the rc.d directories
@@ -552,6 +590,11 @@ else
     if [ $? -ne 0 ]; then
         chkconfig --add ms-sendmail
         chkconfig ms-sendmail off
+    fi
+    chkconfig --list msmilter >/dev/null 2>&1
+    if [ $? -ne 0 ]; then
+        chkconfig --add msmilter
+        chkconfig msmilter off
     fi
 fi
 
@@ -586,7 +629,16 @@ echo    systemctl disable sendmail.service
 echo    systemctl disable sm-client.service
 echo    systemctl enable ms-sendmail.service
 echo    systemctl start ms-sendmail.service
-
+echo
+echo To activate MSMilter for Mailscanner \(if in use\) run the following commands:
+echo
+echo    --SysV Init--
+echo    chkconfig msmilter on
+echo    service msmilter start
+echo
+echo    --Systemd--
+echo    systemctl enable msmilter.service
+echo    systemctl start msmilter.service
 echo
 
 exit 0 
@@ -603,15 +655,21 @@ if [ $1 = 0 ]; then
         rm -f /usr/lib/systemd/system/ms-sendmail.service
         rm -f /usr/lib/systemd/system/ms-sendmail-in.service
         rm -f /usr/lib/systemd/system/ms-sendmail-out.service
+        systemctl stop msmilter.service >/dev/null 2>&1
+        systemctl disable msmilter.service >/dev/null 2>&1
     else
         service mailscanner stop >/dev/null 2>&1
         service ms-sendmail stop >/dev/null 2>&1
+        service msmilter stop >/dev/null 2>&1
         chkconfig mailscanner off
         chkconfig ms-sendmail off
+        chkconfig msmilter off
         chkconfig --del mailscanner
         rm -f /etc/init.d/mailscanner
         chkconfig --del ms-sendmail
         rm -f /etc/init.d/ms-sendmail
+        chkconfig --del msmilter
+        rm -f /etc/init.d/msmilter
     fi
 fi
 exit 0
@@ -634,6 +692,8 @@ exit 0
 %attr(755,root,root) %dir /usr/lib/MailScanner/systemd
 %attr(755,root,root) %dir /var/spool/MailScanner/archive
 %attr(755,root,root) %dir /var/spool/MailScanner/incoming
+%attr(755,root,root) %dir /var/spool/MailScanner/milterin
+%attr(755,root,root) %dir /var/spool/MailScanner/milterout
 #%attr(755,root,root) %dir /var/spool/MailScanner/quarantine
 %attr(755,root,root) %dir /usr/share/MailScanner
 %attr(755,root,root) %dir /usr/share/MailScanner/perl
@@ -642,6 +702,7 @@ exit 0
 %attr(755,root,root) %dir /usr/share/MailScanner/reports
 
 %attr(755,root,root) /usr/sbin/MailScanner
+%attr(755,root,root) /usr/sbin/MSMilter
 %attr(755,root,root) /usr/sbin/ms-check
 %attr(755,root,root) /usr/sbin/ms-clean-quarantine
 %attr(755,root,root) /usr/sbin/ms-create-locks
@@ -660,7 +721,9 @@ exit 0
 
 %attr(755,root,root) /usr/lib/MailScanner/init/ms-init
 %attr(755,root,root) /usr/lib/MailScanner/init/ms-sendmail-init
+%attr(755,root,root) /usr/lib/MailScanner/init/msmilter-init
 %attr(644,root,root) /usr/lib/MailScanner/systemd/ms-systemd
+%attr(644,root,root) /usr/lib/MailScanner/systemd/ms-milter
 %attr(644,root,root) /usr/lib/MailScanner/systemd/ms-sendmail
 %attr(644,root,root) /usr/lib/MailScanner/systemd/ms-sendmail-in
 %attr(644,root,root) /usr/lib/MailScanner/systemd/ms-sendmail-out
@@ -679,6 +742,8 @@ exit 0
 %attr(755,root,root) /usr/lib/MailScanner/wrapper/generic-wrapper
 %attr(755,root,root) /usr/lib/MailScanner/wrapper/sophos-autoupdate
 %attr(755,root,root) /usr/lib/MailScanner/wrapper/sophos-wrapper
+%attr(755,root,root) /usr/lib/MailScanner/wrapper/drweb-wrapper
+%attr(755,root,root) /usr/lib/MailScanner/wrapper/kaspersky-wrapper
 
 %config(noreplace) /usr/share/MailScanner/perl/custom/CustomAction.pm
 %config(noreplace) /usr/share/MailScanner/perl/custom/GenericSpamScanner.pm
@@ -706,6 +771,8 @@ exit 0
 %attr(644,root,root) /usr/share/MailScanner/perl/MailScanner/MCPMessage.pm
 %attr(644,root,root) /usr/share/MailScanner/perl/MailScanner/Message.pm
 %attr(644,root,root) /usr/share/MailScanner/perl/MailScanner/MessageBatch.pm
+%attr(644,root,root) /usr/share/MailScanner/perl/MailScanner/MSDiskStore.pm
+%attr(644,root,root) /usr/share/MailScanner/perl/MailScanner/MSMail.pm
 %attr(644,root,root) /usr/share/MailScanner/perl/MailScanner/PFDiskStore.pm
 %attr(644,root,root) /usr/share/MailScanner/perl/MailScanner/Postfix.pm
 %attr(644,root,root) /usr/share/MailScanner/perl/MailScanner/Qmail.pm
@@ -735,7 +802,7 @@ exit 0
 %config(noreplace) /etc/MailScanner/defaults
 %config(noreplace) /etc/MailScanner/filename.rules.conf
 %config(noreplace) /etc/MailScanner/filetype.rules.conf
-%attr(644,root,root) /etc/MailScanner/MailScanner.conf
+%config(noreplace) /etc/MailScanner/MailScanner.conf
 %attr(644,root,root) /etc/MailScanner/phishing.safe.sites.conf
 %attr(644,root,root) /etc/MailScanner/phishing.bad.sites.conf
 %attr(644,root,root) /etc/MailScanner/spam.lists.conf
@@ -781,6 +848,34 @@ exit 0
 %config(noreplace) /usr/share/MailScanner/reports/en/stored.filename.message.txt
 %config(noreplace) /usr/share/MailScanner/reports/en/stored.size.message.txt
 %config(noreplace) /usr/share/MailScanner/reports/en/stored.virus.message.txt
+%config(noreplace) /usr/share/MailScanner/reports/en_uk/deleted.content.message.txt
+%config(noreplace) /usr/share/MailScanner/reports/en_uk/stored.content.message.txt
+%config(noreplace) /usr/share/MailScanner/reports/en_uk/sender.content.report.txt
+%config(noreplace) /usr/share/MailScanner/reports/en_uk/deleted.filename.message.txt
+%config(noreplace) /usr/share/MailScanner/reports/en_uk/deleted.size.message.txt
+%config(noreplace) /usr/share/MailScanner/reports/en_uk/deleted.virus.message.txt
+%config(noreplace) /usr/share/MailScanner/reports/en_uk/disinfected.report.txt
+%config(noreplace) /usr/share/MailScanner/reports/en_uk/inline.sig.html
+%config(noreplace) /usr/share/MailScanner/reports/en_uk/inline.sig.txt
+%config(noreplace) /usr/share/MailScanner/reports/en_uk/inline.spam.warning.txt
+%config(noreplace) /usr/share/MailScanner/reports/en_uk/inline.warning.html
+%config(noreplace) /usr/share/MailScanner/reports/en_uk/inline.warning.txt
+%config(noreplace) /usr/share/MailScanner/reports/en_uk/languages.conf
+%config(noreplace) /usr/share/MailScanner/reports/en_uk/languages.conf.strings
+%config(noreplace) /usr/share/MailScanner/reports/en_uk/recipient.spam.report.txt
+%config(noreplace) /usr/share/MailScanner/reports/en_uk/recipient.mcp.report.txt
+%config(noreplace) /usr/share/MailScanner/reports/en_uk/rejection.report.txt
+%config(noreplace) /usr/share/MailScanner/reports/en_uk/sender.error.report.txt
+%config(noreplace) /usr/share/MailScanner/reports/en_uk/sender.filename.report.txt
+%config(noreplace) /usr/share/MailScanner/reports/en_uk/sender.spam.rbl.report.txt
+%config(noreplace) /usr/share/MailScanner/reports/en_uk/sender.spam.report.txt
+%config(noreplace) /usr/share/MailScanner/reports/en_uk/sender.spam.sa.report.txt
+%config(noreplace) /usr/share/MailScanner/reports/en_uk/sender.mcp.report.txt
+%config(noreplace) /usr/share/MailScanner/reports/en_uk/sender.size.report.txt
+%config(noreplace) /usr/share/MailScanner/reports/en_uk/sender.virus.report.txt
+%config(noreplace) /usr/share/MailScanner/reports/en_uk/stored.filename.message.txt
+%config(noreplace) /usr/share/MailScanner/reports/en_uk/stored.size.message.txt
+%config(noreplace) /usr/share/MailScanner/reports/en_uk/stored.virus.message.txt
 %config(noreplace) /usr/share/MailScanner/reports/cy+en/deleted.content.message.txt
 %config(noreplace) /usr/share/MailScanner/reports/cy+en/stored.content.message.txt
 %config(noreplace) /usr/share/MailScanner/reports/cy+en/sender.content.report.txt
@@ -1174,8 +1269,19 @@ exit 0
 %config(noreplace) /usr/share/MailScanner/reports/ca/stored.size.message.txt
 %config(noreplace) /usr/share/MailScanner/reports/ca/stored.virus.message.txt
 
-
 %changelog
+* Sun Oct 21 2018 Shawn Iverson <shawniverson@efa-project.org>
+- Add en_uk reports and drweb-wrapper
+
+* Sat Oct 20 2018 Shawn Iverson <shawniverson@efa-project.org>
+- Add kaspersky-wrapper
+
+* Sat Aug 25 2018 Shawn Iverson <shawniverson@efa-project.org>
+- Add Milter support to MailScanner
+
+* Sun Jun 17 2018 Shawn Iverson <shawniverson@efa-project.org>
+- Preseve MailScanner.conf during uninstall of MailScanner
+
 * Sun Sep 03 2017 Shawn Iverson <shawniverson@gmail.com>
 - Preserve quarantine perms and better init runlevel handling
 

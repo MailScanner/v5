@@ -12,8 +12,7 @@
 # Updated By:
 # Manuel Dalla Lana < endelwar@aregar.it >
 # Shawn Iverson < shawniverson@gmail.com >
-# 18 JAN 2018
-
+# 22 OCT 2018
 # clear the screen. yay!
 clear
 
@@ -103,7 +102,7 @@ while [ $# -gt 0 ]; do
             printf    "                        --ramdiskSize=0   (assumed already configured)\n\n"
             printf -- "--MTA=value           Select the Mail Transfer Agent (MTA) to be installed            (sendmail|postfix|exim|none)\n"
             printf    "                      Recommended: sendmail\n\n"
-            printf -- "--installClamav=Y|N   Install or update Clam AV during installation                   (Y or N)\n"
+            printf -- "--installClamav=Y|N   Install or update ClamAV during installation                   (Y or N)\n"
             printf    "                      Recommended: Y (yes)\n\n"
             printf -- "--installCPAN=Y|N     Install missing perl modules via CPAN                           (Y or N)\n"
             printf    "                      Recommended: Y (yes)\n\n"
@@ -201,13 +200,13 @@ if [ -z "${arg_MTA+x}" ]; then
     elif [ -z $response ]; then
         # sendmail default
         MTAOPTION="sendmail sendmail-bin";
-    elif [ $response == 1 ]; then
+    elif [ $response -eq 1 ]; then
         # sendmail
         MTAOPTION="sendmail sendmail-bin";
-    elif [ $response == 2 ]; then
+    elif [ $response -eq 2 ]; then
         # sendmail
         MTAOPTION="postfix";
-    elif [ $response == 3 ]; then
+    elif [ $response -eq 3 ]; then
         # sendmail
         MTAOPTION="exim4-base";
     else
@@ -220,26 +219,26 @@ fi
 # clamav
 clear
 echo;
-echo "Do you want to install or update Clam AV during this installation process?"; echo;
+echo "Do you want to install or update ClamAV during this installation process?"; echo;
 echo "This package is recommended unless you plan on using a different virus scanner.";
 echo "Note that you may use more than one virus scanner at once with MailScanner.";
 echo;
-echo "Even if you already have Clam AV installed you should select this option so I";
+echo "Even if you already have ClamAV installed you should select this option so I";
 echo "will know to check the clamav-wrapper and make corrections if required.";
 echo;
 echo "Recommended: Y (yes)"; echo;
 if [ -z "${arg_installClamav+x}" ]; then
-    read -r -p "Install or update Clam AV? [n/Y] : " response
+    read -r -p "Install or update ClamAV? [n/Y] : " response
 
     if [[ $response =~ ^([yY][eE][sS]|[yY])$ ]]; then
         # user wants clam av installed
         # some of these options may result in a 'no package available' on
         # some distributions, but that is ok
         CAV=1
-        CAVOPTION="clamav-daemon libclamav-client-perl";
+        CAVOPTION="clamav-daemon libclamav-client-perl libclamav-dev";
     elif [ -z $response ]; then
         CAV=1
-        CAVOPTION="clamav-daemon libclamav-client-perl";
+        CAVOPTION="clamav-daemon libclamav-client-perl libclamav-dev";
     else
         # user does not want clam av
         CAV=0
@@ -249,7 +248,7 @@ else
     CAV=${arg_installClamav}
     CAVOPTION=
     if [ ${CAV} -eq 1 ]; then
-        CAVOPTION="clamav-daemon libclamav-client-perl";
+        CAVOPTION="clamav-daemon libclamav-client-perl libclamav-dev";
     fi
 fi
 
@@ -341,7 +340,7 @@ if [ -z "${arg_ramdiskSize+x}" ]; then
     read -r -p "Specify a RAMDISK size? [0] : " RAMDISKSIZE
 
     if [[ $RAMDISKSIZE =~ ^[0-9]+$ ]]; then
-        if [ $RAMDISKSIZE != 0 ]; then
+        if [ $RAMDISKSIZE -ne 0 ]; then
             # user wants ramdisk
             RAMDISK=1
         else
@@ -364,7 +363,7 @@ fi
 # base system packages
 BASEPACKAGES=();
 BASEPACKAGES+=('perl-doc');			BASEPACKAGES+=('libmailtools-perl');			BASEPACKAGES+=('re2c');
-BASEPACKAGES+=('curl');				BASEPACKAGES+=('libnet-cidr-lite-perl');		BASEPACKAGES+=('libmime-tools-perl');
+BASEPACKAGES+=('curl');				BASEPACKAGES+=('libnet-cidr-lite-perl');        BASEPACKAGES+=('libmime-tools-perl');
 BASEPACKAGES+=('wget');				BASEPACKAGES+=('libtest-manifest-perl');		BASEPACKAGES+=('libnet-cidr-perl');
 BASEPACKAGES+=('tar');				BASEPACKAGES+=('libdata-dump-perl');			BASEPACKAGES+=('libsys-syslog-perl');
 BASEPACKAGES+=('binutils');			BASEPACKAGES+=('libbusiness-isbn-perl');		BASEPACKAGES+=('libio-stringy-perl');
@@ -394,7 +393,7 @@ fi
 # install these from array above in case one of the 
 # packages produce an error
 #
-#"curl wget tar binutils libc6-dev gcc make patch gzip unzip openssl perl perl-doc libdbd-mysql-perl libconvert-tnef-perl libdbd-sqlite3-perl libfilesys-df-perl libmailtools-perl libmime-tools-perl libnet-cidr-perl libsys-syslog-perl libio-stringy-perl perl-modules libdbd-mysql-perl libencode-detect-perl unrar antiword libarchive-zip-perl libconfig-yaml-perl libole-storage-lite-perl libsys-sigaction-perl pyzor razor tnef libinline-perl libmail-imapclient-perl libtest-pod-coverage-perl libfile-sharedir-install-perl libmail-spf-perl libnetaddr-ip-perl libsys-hostname-long-perl libhtml-tokeparser-simple-perl libmail-dkim-perl libnet-ldap-perl libnet-dns-resolver-programmable-perl libnet-cidr-lite-perl libtest-manifest-perl libdata-dump-perl libbusiness-isbn-data-perl libbusiness-isbn-perl";
+#"curl wget tar binutils libc6-dev gcc make patch gzip unzip openssl perl perl-doc libdbd-mysql-perl libconvert-tnef-perl libdbd-sqlite3-perl libfilesys-df-perl libmailtools-perl libmime-tools-perl libnet-cidr-perl libsys-syslog-perl libio-stringy-perl perl-modules libdbd-mysql-perl libencode-detect-perl unrar antiword libarchive-zip-perl libconfig-yaml-perl libole-storage-lite-perl libsys-sigaction-perl pyzor razor tnef libinline-perl libmail-imapclient-perl libtest-pod-coverage-perl libfile-sharedir-install-perl libmail-spf-perl libnetaddr-ip-perl libsys-hostname-long-perl libhtml-tokeparser-simple-perl libmail-dkim-perl libnet-ldap-perl libnet-dns-resolver-programmable-perl libnet-cidr-lite-perl libtest-manifest-perl libdata-dump-perl libbusiness-isbn-data-perl libbusiness-isbn-perl libtest-simple-perl";
 
 # the array of perl modules needed
 ARMOD=();
@@ -436,7 +435,7 @@ ARMODAFTERSA+=('Mail::SPF::Query');	ARMODAFTERSA+=('Module::Build');		ARMODAFTER
 ARMODAFTERSA+=('Net::DNS');			ARMODAFTERSA+=('Net::LDAP');			ARMODAFTERSA+=('Net::DNS::Resolver::Programmable');
 ARMODAFTERSA+=('NetAddr::IP');		ARMODAFTERSA+=('Parse::RecDescent');	ARMODAFTERSA+=('Test::Harness');
 ARMODAFTERSA+=('Test::Manifest');	ARMODAFTERSA+=('Text::Balanced');		ARMODAFTERSA+=('URI');
-ARMODAFTERSA+=('version');			ARMODAFTERSA+=('IO::Compress::Bzip2');
+ARMODAFTERSA+=('version');			ARMODAFTERSA+=('IO::Compress::Bzip2');  ARMODAFTERSA+=('Sendmail::PMilter');
 
 # additional spamassassin plugins
 ARMODAFTERSA+=('Mail::SpamAssassin::Plugin::Rule2XSBody');
@@ -465,7 +464,7 @@ $APTGET update
 
 for i in "${BASEPACKAGES[@]}"
 do
-    $APTGET -yf install $i	
+    $APTGET -yf install $i
 done
 
 # install this separate in case it conflicts
@@ -478,10 +477,10 @@ if [ "x$MTAOPTION" != "x" ]; then
 fi
 
 # fix the stupid line in /etc/freshclam.conf that disables freshclam 
-if [ $CAV == 1 ]; then
+if [ $CAV -eq 1 ]; then
     clear
     echo;
-    echo "Installing Clam AV via apt ... "; echo;
+    echo "Installing ClamAV via apt ... "; echo;
     timewait 3
     $APTGET -y install $CAVOPTION
     COUT='#Example';
@@ -505,7 +504,7 @@ fi
 
 # create the cpan config if there isn't one and the user
 # elected to use CPAN
-if [ $CPANOPTION == 1 ]; then
+if [ $CPANOPTION -eq 1 ]; then
     # user elected to use CPAN option
     if [ ! -f '/root/.cpan/CPAN/MyConfig.pm' ]; then
         echo;
@@ -550,7 +549,7 @@ if [ ${CPANOPTION} == 1 ]; then
     for i in "${ARMOD[@]}"
     do
         perldoc -l ${i} >/dev/null 2>&1
-        if [ $? != 0 ]; then
+        if [ $? -ne 0 ]; then
             clear
             echo "${i} is missing. Installing via CPAN ..."; echo;
             timewait 1
@@ -564,7 +563,7 @@ if [ ${CPANOPTION} == 1 ]; then
 
     #Install SpamaAssassin, use standard cpan in normail install, or App::cpanminus in unattended install
     perldoc -l ${MODSA} >/dev/null 2>&1
-    if [ $? != 0 ]; then
+    if [ $? -ne 0 ]; then
         clear
         echo "${MODSA} is missing. Installing via CPAN ..."; echo;
         timewait 1
@@ -579,7 +578,7 @@ if [ ${CPANOPTION} == 1 ]; then
     for i in "${ARMODAFTERSA[@]}"
     do
         perldoc -l ${i} >/dev/null 2>&1
-        if [ $? != 0 ]; then
+        if [ $? -ne 0 ]; then
             clear
             echo "${i} is missing. Installing via CPAN ..."; echo;
             timewait 1
@@ -587,6 +586,28 @@ if [ ${CPANOPTION} == 1 ]; then
         fi
     done
 
+    # Mail::ClamAV has broken version detection
+    # Prepare to patch and install
+    if [ $CAV -eq 1 ]; then
+        cpan -g Mail::ClamAV
+        package=$(find -name Mail-ClamAV*gz | tail -n1)
+        tar xzvf $package
+        packagedir=$(echo $package | sed -e 's/\.tar\.gz//')
+        patch -p1 $packagedir/Makefile.PL < patch.diff
+        cd $packagedir
+        perl Makefile.PL
+        make install
+    fi
+
+    # Install MIME::Tools from CPAN even though rpm is present
+    # Fixes outdated MIME::Tools causing MailScanner to crash
+    clear
+    echo "Latest MIME::Tools is needed, Installing via CPAN ..."; echo;
+    timewait 1
+    perl -MCPAN -e "CPAN::Shell->force(qw(install MIME::Tools));"
+else
+  echo "WARNING: Outdated MIME::Tools may be present. You should fix this.";
+  PMODWAIT=5
 fi
 
 # check and notify of any missing modules
@@ -594,7 +615,7 @@ ARMODALL=("${ARMOD[@]}" "${MODSA}" "${ARMODAFTERSA[@]}")
 for i in "${ARMODALL[@]}"
 do
     perldoc -l ${i} >/dev/null 2>&1
-    if [ $? != 0 ]; then
+    if [ $? -ne 0 ]; then
 
         echo "WARNING: $i is missing.";
         PMODWAIT=5
@@ -614,7 +635,7 @@ echo "Installing the MailScanner .deb package ... ";
 # install the mailscanner package
 dpkg -i ${CONFFILES} ${NODEPS} "${THISCURRPMDIR}"/MailScanner-*-noarch.deb
 
-if [ $? != 0 ]; then
+if [ $? -ne 0 ]; then
     echo;
     echo '----------------------------------------------------------';
     echo 'Installation Error'; echo;
@@ -627,7 +648,7 @@ if [ $? != 0 ]; then
     echo;
 else
     # create ramdisk
-    if [ $RAMDISK == 1 ]; then
+    if [ $RAMDISK -eq 1 ]; then
         if [ -d '/var/spool/MailScanner/incoming' ]; then
             echo "Creating the ramdisk ...";
             echo;
@@ -648,7 +669,7 @@ else
             fi
         fi
     fi
-        
+
     /usr/sbin/ms-update-phishing >/dev/null 2>&1
     
     if [ -d '/etc/clamav' ]; then
@@ -657,7 +678,9 @@ else
             /usr/bin/freshclam 2>/dev/null
         fi
     fi
-    
+
+    ldconfig
+
     echo;
     echo '----------------------------------------------------------';
     echo 'Installation Complete'; echo;

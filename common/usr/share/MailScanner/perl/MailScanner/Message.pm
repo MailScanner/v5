@@ -37,6 +37,7 @@ use MIME::WordDecoder;
 use POSIX qw(:signal_h setsid);
 use HTML::TokeParser;
 use HTML::Parser;
+use HTML::Entities qw(decode_entities);
 use Archive::Zip qw( :ERROR_CODES );
 use Filesys::Df;
 use Digest::MD5;
@@ -47,6 +48,7 @@ use File::Temp;
 use MailScanner::FileInto;
 use IO::Pipe;
 use IO::File;
+#use Data::Dumper;
 
 # Install an extra MIME decoder for badly-header uue messages.
 install MIME::Decoder::UU 'uuencode';
@@ -199,6 +201,10 @@ sub new {
   my $this = {};
   my($mta, $addr, $user, $domain);
   my($archiveplaces);
+  my $rejectflag = 0;
+  my $rejectmsg = '';
+  my $rejectheader = '';
+  my $orgname = '';
 
   #print STDERR "Creating message $id\n";
 
@@ -235,6 +241,30 @@ sub new {
     return $this;
   }
   #  or return 'INVALID'; # Return empty if fails
+
+  # Are we in milter mode, and has the message been requeued
+  # from a local relay reject?
+  my $mta = MailScanner::Config::Value('mta');
+  if ($mta =~ /^msmail/i) {
+      my($header_line);
+      $orgname = MailScanner::Config::DoPercentVars('%org-name%');
+      $rejectheader = "X-$orgname-MailScanner-Relay-Reject:";
+      my $pos = 0;
+      foreach $header_line (@{$this->{headers}}) {
+          if($header_line =~ /^$rejectheader/) {
+              # Message was rejected at relay
+              # Rewrite header for quarantine so that it doesn't get
+              # flagged if released and allows for easy troubleshooting
+              $header_line =~ s/^.*: //;
+              $rejectmsg = $header_line;
+              splice @{$this->{headers}}, $pos, 1, 0, 'X-' . $orgname . "-MailScanner-Relay-Quarantine: " . $rejectmsg;
+              # Flag and carry on
+              $rejectflag = 1;
+          }
+          $pos++;
+      }
+  }
+
 
   # Work out the user @ domain components
   ($user, $domain) = address2userdomain($this->{from});
@@ -306,8 +336,6 @@ sub new {
     $addmshmac = ($addmshmac =~ /1/)?1:0;
     my $mshmacheader = MailScanner::Config::Value('mshmacheader', $this);
     $mshmacheader .= ':' unless $mshmacheader =~ /:$/;
-
-
 
     # So do we need to look for a header in the message body?
     # Don't check if there was no client IP address, as we must have made it.
@@ -423,6 +451,10 @@ sub new {
   $ArchivesAre    = '[' . $ArchivesAre . ']' if $ArchivesAre;
   $this->{archivesare} = $ArchivesAre;
 
+  if ($rejectflag == 1) {
+      # Log Relay rejects as other
+      $this->{otherinfected} = 1;
+  }
 
   bless $this, $type;
   return $this;
@@ -639,6 +671,7 @@ sub IsSpam {
     elsif (($mshmacnull+0.0) > 0.01) {
       $this->{sascore} += $mshmacnull+0.0;
       MailScanner::Log::InfoLog("Message %s had bad watermark, added %s to spam score", $this->{id}, $mshmacnull+0.0) if $LogSpam;
+
       my($mshspam, $mshhigh) = MailScanner::SA::SATest_spam($this, 0.0, $this->{sascore}+0.0);
       $this->{isspam} = 1 if $mshspam;
       $this->{ishigh} = 1 if $mshhigh;
@@ -711,7 +744,20 @@ sub IsSpam {
     return 0;
   }
 
-  if (!$iswhitelisted) {
+  my $isauthenticated = 0;
+  if (MailScanner::Config::Value('mta') == "postfix" && MailScanner::Config::Value('spamlistskipifauthenticated')) {
+#      MailScanner::Log::InfoLog(Dumper($metadata));
+    # Test if sender is authenticated on mta
+    foreach my $metadata (@{$this->{metadata}}) {
+      #Postfix
+      if ($metadata =~ m/^Asasl_method=(PLAIN|LOGIN)$/) {
+        MailScanner::Log::InfoLog("Sender was authenticated - Not checking RBLs");
+        $isauthenticated = 1;
+      }
+    }
+  }
+
+  if (!$iswhitelisted && !$isauthenticated) {
     # Not whitelisted, so do the RBL checks
     $0 = 'MailScanner: checking with Spam Lists';
     ($rblcounter, $rblspamheader) = MailScanner::RBLs::Checks($this);
@@ -735,6 +781,7 @@ sub IsSpam {
   #print STDERR "In Message.pm about to look at gsscanner\n";
   if ($usegsscanner) {
     #print STDERR "In Message.pm about to run gsscanner\n";
+
     ($gsscore, $gsreport) = MailScanner::GenericSpam::Checks($this);
     #print STDERR "In Message.pm we got $gsscore, $gsreport\n";
     $this->{gshits} = $gsscore;
@@ -2233,6 +2280,11 @@ sub Explode {
   $parser->filer($filer);
   $parser->extract_uuencode(1); # uue is off by default
   $parser->output_to_core('NONE'); # everything into files
+  # 101318 Bug workaround in MIME::Parser not writing UTF8 encoded MIME Parts
+  # MIME attachments not parsing with certain unicode characters
+  # See https://github.com/MailScanner/v5/issues/233
+  # Observed on MIME:Tools 5.505/Resolved in MIME::Tools 5.509
+  # $parser->decode_headers(1);
   
   # The whole parsing thing is totally different for sendmail & Exim for speed.
   # Many thanks for those who know themselves for this great improvement!
@@ -3090,15 +3142,25 @@ sub Unpack7zip {
       # MailScanner::Log::WarnLog("7z what: %s", $what);
       # If we are on line one then it's the file name with full path
       # otherwise we are on the info line containing the attributes
-      $what =~ s/ +/ /g;
-      my (@Zarray ) = split /\s/, $what;
-      my $Zname = pop @Zarray; # this is the most important value, other values are nice to have but this one we must have
+      ##$what =~ s/ +/ /g;
+      ##my (@Zarray ) = split /\s/, $what;
+
+      # Add support to filenames with spaces.
+      my @Zarray;
+      for (my $i=0; $i <= 4; $i++) {
+        $what =~ / +/;
+        $Zarray[$i]= substr($what, 0,     $-[0]),
+        $what=substr($what, $+[0]);
+      }
+      $Zarray[5]=$what;
+
+      # my $Zname = pop @Zarray; # this is the most important value, other values are nice to have but this one we must have
+      my $Zname = $Zarray[5]; # this is the most important value, other values are nice to have but this one we must have
       my $Zdate = $Zarray[0];
       my $Ztime = $Zarray[1];
       my $Zattr = $Zarray[2];
       #my $Zsize = $Zarray[3];
       #my $ZCsize = $Zarray[4];
-
       #MailScanner::Log::WarnLog("7z-members: [%s] [%s] [%s] [%s] [%s] [%s]", $Zdate, $Ztime, $Zattr, $Zsize, $ZCsize, $Zname);
 
       $memb .= "$Zname\n" if $Zattr !~ /^d|^D/;
@@ -3275,11 +3337,11 @@ sub UnpackRar {
   return 1 unless $UnrarVersion =~ /^\d+\.\d*$/ && ( $UnrarVersion >= 4.0 && $UnrarVersion < 6.0 );
 
   # Escape spaces in filename
-  $zipname =~ s/\ /\\\ /g;
+  # $zipname =~ s/\ /\\\ /g;
 
+  #MailScanner::Log::WarnLog("UnPackRar Testing : %s", $zipname);
   # Unrar Version 4x file parse
   if ($UnrarVersion >= 4.0 && $UnrarVersion < 5.0) {
-    #MailScanner::Log::WarnLog("UnPackRar Testing : %s", $zipname);
 
     # This part lists the archive contents and makes the list of
     # file names within. "This is a list verbose option"
@@ -3359,8 +3421,8 @@ sub UnpackRar {
                 $memb =~ /(No files to extract|^COMMAND_TIMED_OUT$)/si;
 
     return 0 if $memb eq ''; # JKF If no members it probably wasn't a Rar self-ext
-    #MailScanner::Log::DebugLog("Unrar : Archive Testing Completed On : %s",
-    #                           $memb);
+    MailScanner::Log::DebugLog("Unrar : Archive Testing Completed On : %s",
+                               $memb);
 
     @members = split /\n/, $memb;
 
@@ -3398,6 +3460,8 @@ sub UnpackRar {
 
     # Have to parse the output from the 'vt' command
     foreach $what (@test) {
+      #print STDERR "Processing \"$what\"\n";
+      #MailScanner::Log::WarnLog("UnPackRar Processing : %s", $what);
       $what =~ s/^\s+|\s+$//mg;
 
       # compatibility with "unrar vta"
@@ -4196,7 +4260,14 @@ sub BuildFile2EntityAndEntity2File {
   # JKF 20090327 None of the others do, they represent the real attach name.
   $headfile = $entity->head->recommended_filename || $namewithouttype; # $path;
   #print STDERR "rec filename for \"$headfile\" is \"" . $entity->head->recommended_filename . "\"\n";
-  $headfile = MIME::WordDecoder::unmime($headfile);
+  
+  # Remove any wide characters so that WordDecoder can parse
+  # mime_to_perl_string is ignoring the built-in handler that was set earlier
+  # https://github.com/MailScanner/v5/issues/253
+  # Also enforce 7 bit characters for filenames
+  $headfile =~  tr/\x00-\x7F/#/c;
+  
+  $headfile = MIME::WordDecoder::mime_to_perl_string($headfile);
   #print STDERR "headfile is $headfile\n";
   if ($headfile) {
     # headfile does *NOT* have the type indicator character on it.
@@ -5273,7 +5344,6 @@ sub AppendSignCleanEntity {
 # the outgoing queue.
 sub DeliverUninfected {
   my $this = shift;
-  
   if ($this->{bodymodified}) {
     # The body of this message has been modified, so reconstruct
     # it from the MIME structure and deliver that.
@@ -5303,7 +5373,6 @@ my($DisarmFormTag, $DisarmScriptTag, $DisarmCodebaseTag, $DisarmIframeTag,
 sub DeliverUnmodifiedBody {
   my $this = shift;
   my($headervalue) = @_;
-
   #print STDERR "DisarmPhishingFound = " . $DisarmPhishingFound . " for message " . $this->{id} . "\n";
 
   return if $this->{deleted}; # This should never happen
@@ -5692,7 +5761,10 @@ sub DeliverModifiedBody {
   #print STDERR "Written the MIME body\n";
 
   # Set up the output envelope with its (possibly modified) headers
-  $global::MS->{mta}->AddHeadersToQf($this, $this->{entity}->stringify_header);
+  # Leave utf-8 encodings in place
+  # https://github.com/MailScanner/v5/issues/287
+  #$global::MS->{mta}->AddHeadersToQf($this, $this->{entity}->stringify_header);
+  $global::MS->{mta}->AddHeadersToQf($this);
 
   # Remove duplicate subject: lines
   $global::MS->{mta}->UniqHeader($this, 'Subject:');
@@ -7066,6 +7138,7 @@ sub DisarmHTMLTree {
     #print STDERR "Disarmed = " . join(', ',@disarmed) . "\n";
     if (@disarmed) {
       $this->{bodymodified} = 1;
+      $this->{denialofservice} = 1 if grep(/^denialofservice$/, @disarmed);
       $DisarmHTMLChangedMessage = 1;
       $counter++;
     }
@@ -7182,6 +7255,7 @@ sub DisarmHTMLEntity {
                                 $newname);
       exit 1;
     }
+
     select $outfh;
     if ($DisarmPhishing) {
       HTML::Parser->new(api_version => 3,
@@ -7290,9 +7364,8 @@ sub DisarmHTMLEntity {
     $report = $report2 if $report2 && $report2 ne 'htmlparserattack';
     print $outfh $report . "\n\nAttack in: $oldname\n";
     $outfh->close;
-    #print STDERR "HTML::Parser was killed by the message, " .
-    #             "$newname has been overwritten\n";
-    return ('KILLED');
+
+    push @DisarmDoneSomething, 'denialofservice';
   }
 
   #print STDERR "Results of HTML::Parser are " . join(',',@DisarmDoneSomething) . "\n";
@@ -7476,7 +7549,7 @@ sub DisarmEndtagCallback {
     #print STDERR "---------------------------\n";
     #print STDERR "Endtag Callback found link, " .
     #             "disarmlinktext = \"$DisarmLinkText\"\n";
-    my($squashedtext,$linkurl,$alarm,$numbertrap);
+    my($squashedtext,$linkurl,$alarm,$numbertrap,$emailuser);
     $DisarmInsideLink = 0;
     $squashedtext = lc($DisarmLinkText);
     if ($DisarmAreaURL) {
@@ -7501,7 +7574,22 @@ sub DisarmEndtagCallback {
     $squashedtext =~ tr/\n/ /; # Join multiple lines onto 1 line
     $squashedtext =~ s/(\<\/?[a-z][a-z0-9:._-]*((\s+[a-z][a-z0-9:._-]*(\s*=\s*(?:\".*?\"|\'.*?\'|[^\'\">\s]+))?)+\s*|\s*)\/?\>)*//ig; # Remove tags, better re from snifer_@hotmail.com
     $squashedtext =~ s/\s+//g; # Remove any whitespace
-    $squashedtext =~ s/^[^\/:]+\@//; # Remove username of email addresses
+    if ( $DisarmLinkURL =~ m/^mailto:/i ) {
+       # Convert HTML entities, if present
+       # https://github.com/MailScanner/v5/issues/335
+       $squashedtext = decode_entities($squashedtext);
+       if ( $squashedtext =~ /@/ ) {
+         $squashedtext =~ s/^.*\s+(?=.*\@)//;
+         $squashedtext =~ s/\s+.*$//;
+         # Remove any leading or trailing text
+         # Remove < and > tags, if present
+         # https://github.com/MailScanner/v5/issues/320
+         $squashedtext =~ s/(?:\<|\>)//g; 
+         my @list = split(/@/, $squashedtext);
+         $emailuser = $list[0];
+         $squashedtext = $list[1]; # Remove username of email addresses
+       }
+    }
     #$squashedtext =~ s/\&\w*\;//g; # Remove things like &lt; and &gt;
     $squashedtext =~ s/^.*(\&lt\;|\<)((https?|ftp|mailto|webcal):.+?)(\&gt\;|\>).*$/$2/i; # Turn blah-blah <http://link.here> blah-blah into "http://link.here"
     $squashedtext =~ s/^\&lt\;//g; # Remove leading &lt;
@@ -7597,6 +7685,20 @@ sub DisarmEndtagCallback {
       if (!$StrictPhishing) {
         my $TheyMatch = 0;
 
+        # Is this an email?  Prepare it to compare domains.
+        # https://github.com/MailScanner/v5/issues/229
+        MailScanner::Log::DebugLog("DisarmLinkURL = $DisarmLinkURL");
+        MailScanner::Log::DebugLog("linkurl = $linkurl");
+        if ($DisarmLinkURL =~ m/^mailto:/i ) {
+          # Convert HTML entities, if present
+          # https://github.com/MailScanner/v5/issues/335
+          $linkurl = decode_entities($linkurl);
+          if ( $linkurl =~ /@/ ) {
+            my @list = split(/@/, $linkurl);
+            $linkurl = $list[1];
+          }
+        }
+
         unless (InPhishingWhitelist($linkurl)) {
           #print STDERR "Not strict phishing\n";
           # We are just looking at the domain name and country code (more or less)
@@ -7656,7 +7758,9 @@ sub DisarmEndtagCallback {
           if ($linkurl ne "") {
             if ($TheyMatch) {
               # Even though they are the same, still squeal if it's a raw IP
-              if ($numbertrap) {
+              # Ignore fax: and tel: (not ip but numeric)
+              # https://github.com/MailScanner/v5/issues/224
+              if ($numbertrap && $DisarmLinkURL !~ m/^(fax|tel)[:;]/i) {
                 print MailScanner::Config::LanguageValue(0, 'numericlinkwarning')
                       . ' '
                       if $PhishingHighlight && !$AlreadyReported; # && !InPhishingWhitelist($linkurl);
@@ -7696,14 +7800,34 @@ sub DisarmEndtagCallback {
       } else {
         #
         # Strict Phishing Net Goes Here
-        #
+
+        # Is this an email?
+        # https://github.com/MailScanner/v5/issues/229
+        MailScanner::Log::DebugLog("DisarmLinkURL = $DisarmLinkURL");
+        MailScanner::Log::DebugLog("linkurl = $linkurl");
+
+        if ($DisarmLinkURL =~ m/^mailto:/i ) {
+          # Convert HTML entities, if present
+          # https://github.com/MailScanner/v5/issues/335
+          $linkurl = decode_entities($linkurl);
+          if ( $linkurl =~ /@/ ) {
+            my @list = split(/@/, $linkurl);
+            if ( $emailuser ne "" && $list[0] ne $emailuser) {
+              $alarm = 1;
+            }
+            $linkurl = $list[1];
+          }
+        }
+
+        # Ignore fax: and tel: (not ip but numeric)
+        # https://github.com/MailScanner/v5/issues/224
         if ($alarm ||
           ($linkurl ne "" && $squashedtext !~ /^(w+\.)?\Q$linkurl\E\/?$/)
-          || ($linkurl ne "" && $numbertrap)) {
+          || ($linkurl ne "" && $numbertrap && $DisarmLinkURL !~ m/^(fax|tel)[:;]/i)) {
 
           unless (InPhishingWhitelist($linkurl)) {
             use bytes; # Don't send UTF16 to syslog, it breaks!
-            if ($linkurl ne "" && $numbertrap && $linkurl eq $squashedtext) {
+            if ($linkurl ne "" && $numbertrap && $linkurl eq $squashedtext && $DisarmLinkURL !~ m/^(fax|tel)[:;]/i) {
               # It's not a real phishing trap, just a use of numberic IP links
               print MailScanner::Config::LanguageValue(0, 'numericlinkwarning') .
                     ' ' if $PhishingHighlight && !$AlreadyReported;
@@ -7717,7 +7841,9 @@ sub DisarmEndtagCallback {
             $linkurl = substr $linkurl, 0, 80;
             $squashedtext = substr $squashedtext, 0, 80;
             $DisarmDoneSomething{'phishing'} = 1 if $PhishingHighlight; #JKF1 $PhishingSubjectTag;
-            if ($numbertrap) {
+            # Ignore fax: and tel: (not ip but numeric)
+            # https://github.com/MailScanner/v5/issues/224
+            if ($numbertrap && $DisarmLinkURL !~ m/^(fax|tel)[:;]/i) {
               MailScanner::Log::InfoLog('Found ip-based phishing fraud from ' .
                                         '%s in %s', $DisarmLinkURL, $id);
                                         #'%s in %s', $linkurl, $id);
@@ -7744,9 +7870,15 @@ sub DisarmEndtagCallback {
     # If inside a link, add the text to the link text to allow tags in links
     $DisarmLinkText .= $text;
   } else {
-    # It is not a tag we worry about, so just print the text and continue.
-    print $text;
+    # Highlight Hidden URL?
+    if ( MailScanner::Config::Value('highlighthiddenurls') =~ /1/ ) {
+      print MailScanner::Config::LanguageValue(0, 'hiddenlinkwarningstart') . $DisarmLinkURL . MailScanner::Config::LanguageValue(0, 'hiddenlinkwarningend') . $text;
+    } else {
+      # It is not a tag we worry about, so just print the text and continue.
+      print $text;
+   }
   }
+
 }
 
 my %CharToInternational = (
@@ -7896,7 +8028,8 @@ sub CleanLinkURL {
 
   use bytes;
 
-  my($linkurl,$alarm);
+  my($linkurl,$alarm,$mailto);
+  $mailto = MailScanner::Config::Value("highlightmailtophishing");
   $alarm = 0;
   $linkurl = $DisarmLinkURL;
   $linkurl = lc($linkurl);
@@ -7915,8 +8048,11 @@ sub CleanLinkURL {
   #$linkurl = "" unless $linkurl =~ /[.\/]/; # Ignore if it is not a website at all
   $linkurl =~ s/\s+//g; # Remove any whitespace
   $linkurl =~ s/\\/\//g; # Change \ to / as many browsers do this
-  #print STDERR "Is $linkurl\n";
-  return ("",0) if $linkurl =~ /\@/ && $linkurl !~ /\//; # Ignore emails
+  # Don't ignore emails
+  # https://github.com/MailScanner/v5/issues/229
+  if ( $mailto =~ /0/) {
+    return ("",0) if $linkurl =~ /\@/ && $linkurl !~ /\//; # Ignore emails
+  }
   #$linkurl = "" if $linkurl =~ /\@/ && $linkurl !~ /\//; # Ignore emails
   $linkurl =~ s/[,.]+$//; # Remove trailing dots, but also commas while at it
   $linkurl =~ s/^\[\d*\]//; # Remove leading [numbers]
@@ -7931,7 +8067,16 @@ sub CleanLinkURL {
        $linkurl !~ /^(https?|ftp|mailto|webcal):/i;
   $linkurl =~ s/^(https?:\/\/[^:]+):80($|\D)/$1$2/i; # Remove http://....:80
   $linkurl =~ s/^(https?|ftp|webcal)[:;]\/\///i;
-  return ("",0) if $linkurl =~ /^ma[il]+to[:;]/i;
+  # Remove fax and tel prefixes
+  # https://github.com/MailScanner/v5/issues/224
+  $linkurl =~ s/^(fax|tel)[:;]//i;
+  # Don't ignore emails
+  # https://github.com/MailScanner/v5/issues/229
+  if ( $mailto =~ /0/) {
+    return ("",0) if $linkurl =~ /^mailto:/i;
+  }
+  $linkurl =~ s/^mailto://i;
+  #return ("",0) if $linkurl =~ /^ma[il]+to[:;]/i;
   #$linkurl = "" if $linkurl =~ /^ma[il]+to[:;]/i;
   $linkurl =~ s/[?\/].*$//; # Only compare up to the first '/' or '?'
   $linkurl =~ s/(\<\/?(br|p|ul)\>)*$//ig; # Remove trailing br, p, ul tags
@@ -7954,11 +8099,12 @@ sub InPhishingWhitelist {
   return 1 if $MailScanner::Config::PhishingWhitelist{$linkurl};
 
   # Trim host. off the front of the hostname
-  #while ($linkurl ne "" && $linkurl =~ s/^[^.]+\.//) {
+  # This is needed to process wildcards in the whitelist
+  while ($linkurl ne "" && $linkurl =~ s/^[^.]+\.//) {
     # And replace it with *. then look it up
     #print STDERR "Looking up *.$linkurl\n";
-  #  return 1 if $MailScanner::Config::PhishingWhitelist{'*.' . $linkurl};
-  #}
+    return 1 if $MailScanner::Config::PhishingWhitelist{'*.' . $linkurl};
+  }
 
   return 0;
 }
@@ -7971,11 +8117,12 @@ sub InPhishingBlacklist {
   return 1 if $MailScanner::Config::PhishingBlacklist{$linkurl};
 
   # Trim host. off the front of the hostname
-  #while ($linkurl ne "" && $linkurl =~ s/^[^.]+\.//) {
+  # This is needed to process wildcards in the blacklist
+  while ($linkurl ne "" && $linkurl =~ s/^[^.]+\.//) {
     # And replace it with *. then look it up
     #print STDERR "Looking up *.$linkurl\n";
-  #  return 1 if $MailScanner::Config::PhishingBlacklist{'*.' . $linkurl};
-  #}
+    return 1 if $MailScanner::Config::PhishingBlacklist{'*.' . $linkurl};
+  }
 
   return 0;
 }
@@ -8047,11 +8194,17 @@ sub DeleteAllRecipients {
 # MailScanner several times in the past.
 sub QuarantineDOS {
     my($message) = @_;
+    
+    if (MailScanner::Config::Value ('quarantinedenialofservice', $message) !~ /1/) {
+        MailScanner::Log::WarnLog('Dropping message %s as it caused MailScanner to crash several times', $message->{id});
+        last;
+    };
 
     MailScanner::Log::WarnLog('Quarantined message %s as it caused MailScanner to crash several times', $message->{id});
 
     $message->{quarantinedinfections} = 1; # Stop it quarantining it twice
     $message->{deleted} = 1;
+    $message->{denialofservice} = 1;
     $message->{abandoned} = 1;
     $message->{stillwarn} = 1;
     $message->{infected} = 1;

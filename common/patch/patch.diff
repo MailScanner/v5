@@ -1,0 +1,11 @@
+--- Mail-ClamAV-0.29/Makefile.PL	2009-04-29 19:06:39.000000000 +0000
++++ Mail-ClamAV-0.29/Makefile.PL2	2018-10-23 21:08:58.276867474 +0000
+@@ -51,7 +51,7 @@
+     }
+ 
+     my $clver = get_cl_version();
+-    return warn_cl_version_bad() if $clver lt $minclversion;
++    # return warn_cl_version_bad() if $clver lt $minclversion;
+ 
+     my $inc = get_cl_inc_paths();
+     my $libs = get_cl_libs();

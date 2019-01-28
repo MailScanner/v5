@@ -13,7 +13,7 @@
 # Updated by:
 # Manuel Dalla Lana < endelwar@aregar.it >
 # Shawn Iverson < shawniverson@efa-project.org >
-# 18 JAN 2018
+# 17 JUN 2018
 
 # clear the screen. yay!
 clear
@@ -104,7 +104,7 @@ while [ $# -gt 0 ]; do
             printf    "                        --ramdiskSize=0   (assumed already configured)\n\n"
             printf -- "--MTA=value           Select the Mail Transfer Agent (MTA) to be installed            (sendmail|postfix|exim|none)\n"
             printf    "                      Recommended: sendmail\n\n"
-            printf -- "--installClamav=Y|N   Install or update Clam AV during installation                   (Y or N)\n"
+            printf -- "--installClamav=Y|N   Install or update ClamAV during installation                   (Y or N)\n"
             printf    "                      Recommended: Y (yes)\n\n"
             printf -- "--installCPAN=Y|N     Install missing perl modules via CPAN                           (Y or N)\n"
             printf    "                      Recommended: Y (yes)\n\n"
@@ -202,13 +202,13 @@ if [ -z "${arg_MTA+x}" ]; then
     elif [ -z $response ]; then    
         # sendmail default
         MTAOPTION="sendmail";
-    elif [ $response == 1 ]; then    
+    elif [ $response -eq 1 ]; then    
         # sendmail 
         MTAOPTION="sendmail";    
-    elif [ $response == 2 ]; then    
+    elif [ $response -eq 2 ]; then    
         # sendmail 
         MTAOPTION="postfix";
-    elif [ $response == 3 ]; then    
+    elif [ $response -eq 3 ]; then    
         # sendmail 
         MTAOPTION="exim";        
     else
@@ -221,25 +221,25 @@ fi
 # clamav
 clear
 echo;
-echo "Do you want to install or update Clam AV during this installation process?"; echo;
+echo "Do you want to install or update ClamAV during this installation process?"; echo;
 echo "This package is recommended unless you plan on using a different virus scanner.";
 echo "Note that you may use more than one virus scanner at once with MailScanner.";
 echo;
-echo "Even if you already have Clam AV installed you should select this option so I";
+echo "Even if you already have ClamAV installed you should select this option so I";
 echo "will know to check the clamav-wrapper and make corrections if required.";
 echo;
 echo "Recommended: Y (yes)"; echo;
 if [ -z "${arg_installClamav+x}" ]; then
-    read -r -p "Install or update Clam AV? [n/Y] : " response
+    read -r -p "Install or update ClamAV? [n/Y] : " response
     if [[ $response =~ ^([yY][eE][sS]|[yY])$ ]]; then
         # user wants clam av installed
         # some of these options may result in a 'no package available' on
         # some distributions, but that is ok
         CAV=1
-        CAVOPTION="pcre-devel clamav clamav-database clamav-nodb clamz";
+        CAVOPTION="pcre-devel clamav monitoring-plugins-clamav";
     elif [ -z $response ]; then  
         CAV=1
-        CAVOPTION="pcre-devel clamav clamav-database clamav-nodb clamz";
+        CAVOPTION="pcre-devel clamav monitoring-plugins-clamav";
     else
         # user does not want clam av
         CAV=0
@@ -249,7 +249,7 @@ else
     CAV=${arg_installClamav}
     CAVOPTION=
     if [ ${CAV} -eq 1 ]; then
-        CAVOPTION="pcre-devel clamav clamav-database clamav-nodb clamz";
+        CAVOPTION="pcre-devel clamav monitoring-plugins-clamav";
     fi
 fi
 
@@ -296,7 +296,7 @@ else
 fi
 
 # ask if the user wants to install the Mail::ClamAV module
-if [ $CPANOPTION = 1 ]; then
+if [ $CPANOPTION -eq 1 ]; then
     # Mail::ClamAV
     CAV=1
 
@@ -311,7 +311,7 @@ fi
 
 # ask if the user wants to ignore dependencies. they are automatically ignored
 # if the user elected the CPAN option as explained above
-if [ $CPANOPTION != 1 ]; then
+if [ $CPANOPTION -ne 1 ]; then
     clear
     echo;
     echo "Do you want to ignore MailScanner dependencies?"; echo;
@@ -389,7 +389,7 @@ BASEPACKAGES="binutils gcc glibc-devel libaio1 make man-pages patch rpm tar time
 # Packages available in the suse base 13.2. If the user elects not to use EPEL or if the 
 # package is not available for their distro release it will be ignored during the install.
 #
-MOREPACKAGES="perl-Archive-Zip perl-Convert-BinHex perl-Convert-TNEF perl-DBD-SQLite perl-DBI perl-Digest-HMAC perl-Digest-SHA1 perl-ExtUtils-MakeMaker perl-File-ShareDir-Install perl-File-Temp perl-Filesys-Df perl-Getopt-Long-Descriptive perl-IO-stringy perl-HTML-Parser perl-HTML-Tagset perl-Inline perl-Mail-DKIM perl-Mail-SPF perl-MailTools perl-MIME-tools perl-Net-CIDR-Set perl-Net-DNS perl-Net-IP perl-OLE-Storage_Lite perl-Scalar-List-Utils perl-razor-agents perl-Sys-Hostname-Long perl-Sys-SigAction perl-Test-Pod perl-TimeDate perl-URI re2c perl-Encode-Detect perl-LDAP perl-IO-Compress-Bzip2 p7zip";
+MOREPACKAGES="perl-Archive-Zip perl-Convert-BinHex perl-Convert-TNEF perl-DBD-SQLite perl-DBI perl-MIME-tools perl-Digest-HMAC perl-Digest-SHA1 perl-ExtUtils-MakeMaker perl-File-ShareDir-Install perl-File-Temp perl-Filesys-Df perl-Getopt-Long-Descriptive perl-IO-stringy perl-HTML-Parser perl-HTML-Tagset perl-Inline perl-Mail-DKIM perl-Mail-SPF perl-MailTools perl-Net-CIDR-Set perl-Net-DNS perl-Net-IP perl-OLE-Storage_Lite perl-Scalar-List-Utils perl-razor-agents perl-Sys-Hostname-Long perl-Sys-SigAction perl-Test-Pod perl-TimeDate perl-URI re2c perl-Encode-Detect perl-LDAP perl-IO-Compress-Bzip2 perl-Test-Simple p7zip";
 
 # the array of perl modules needed
 ARMOD=();
@@ -415,7 +415,7 @@ ARMOD+=('Pod::Simple');			ARMOD+=('POSIX');				ARMOD+=('Scalar::Util');
 ARMOD+=('Socket'); 				ARMOD+=('Storable'); 	 	 	ARMOD+=('Test::Harness');		
 ARMOD+=('Test::Pod');			ARMOD+=('Test::Simple');		ARMOD+=('Time::HiRes');			
 ARMOD+=('Time::localtime'); 	ARMOD+=('Sys::Hostname::Long');	ARMOD+=('Sys::SigAction');		
-ARMOD+=('Sys::Syslog'); 		ARMOD+=('Env'); 				
+ARMOD+=('Sys::Syslog'); 		ARMOD+=('Env'); 
 ARMOD+=('Mail::SpamAssassin');
 
 # not required but nice to have
@@ -428,22 +428,17 @@ ARMOD+=('IO::Zlib');			ARMOD+=('IP::Country');			ARMOD+=('Mail::SPF');
 ARMOD+=('Mail::SPF::Query');	ARMOD+=('Module::Build');		ARMOD+=('Net::CIDR::Lite');
 ARMOD+=('Net::DNS');			ARMOD+=('Net::LDAP');			ARMOD+=('Net::DNS::Resolver::Programmable');
 ARMOD+=('NetAddr::IP');			ARMOD+=('Parse::RecDescent');	ARMOD+=('Test::Harness');
-ARMOD+=('Test::Manifest');		ARMOD+=('Text::Balanced');		ARMOD+=('URI');	
-ARMOD+=('version');				ARMOD+=('IO::Compress::Bzip2');
+ARMOD+=('Test::Manifest');		ARMOD+=('Text::Balanced');		ARMOD+=('URI');
+ARMOD+=('version');				ARMOD+=('IO::Compress::Bzip2'); ARMOD+=('Sendmail::PMilter');
 
-# additional spamassassin plugins				
-ARMOD+=('Mail::SpamAssassin::Plugin::Rule2XSBody');		
-ARMOD+=('Mail::SpamAssassin::Plugin::DCC');				
+# additional spamassassin plugins
+ARMOD+=('Mail::SpamAssassin::Plugin::Rule2XSBody');
+ARMOD+=('Mail::SpamAssassin::Plugin::DCC');
 ARMOD+=('Mail::SpamAssassin::Plugin::Pyzor');
 
 # add to array if the user is installing spamassassin
-if [ $SA == 1 ]; then
+if [ $SA -eq 1 ]; then
     ARMOD+=('Mail::SpamAssassin');
-fi
-
-# add to array if the user is installing clam av
-if [ $CAV == 1 ]; then
-    ARMOD+=('Mail::ClamAV');
 fi
 
 # logging starts here
@@ -469,7 +464,7 @@ if [ "x$MTAOPTION" != "x" ]; then
         echo "Error installing $MTAOPTION MTA"
         echo "This usually means an MTA is already installed."
     fi
-    if [ $MTAOPTION = "sendmail" ]; then
+    if [ $MTAOPTION == "sendmail" ]; then
         mkdir -p /var/spool/mqueue
         mkdir -p /var/spool/mqueue.in
     fi
@@ -505,7 +500,7 @@ fi
 
 # create the cpan config if there isn't one and the user
 # elected to use CPAN
-if [ $CPANOPTION == 1 ]; then
+if [ $CPANOPTION -eq 1 ]; then
     # user elected to use CPAN option
     if [ ! -f '/root/.cpan/CPAN/MyConfig.pm' ]; then
         echo;
@@ -525,7 +520,7 @@ fi
 # via cpan if the user elected to do so.
 clear
 echo;
-echo "Installing available Perl packages, Clam AV (if elected), and ";
+echo "Installing available Perl packages, ClamAV (if elected), and ";
 echo "Spamassassin (if elected) via zypper. You can safely ignore any";
 echo "subsequent warnings from zypper."; echo;
 timewait 3
@@ -545,7 +540,7 @@ PMODWAIT=0
 for i in "${ARMOD[@]}"
 do
     perldoc -l $i >/dev/null 2>&1
-    if [ $? != 0 ]; then
+    if [ $? -ne 0 ]; then
         echo "$i is missing. Trying to install via Zypper ..."; echo;
         THING="perl($i)";
         $ZYPPER --non-interactive --ignore-unknown install $THING
@@ -572,8 +567,8 @@ fi
 for i in "${ARMOD[@]}"
 do
     perldoc -l $i >/dev/null 2>&1
-    if [ $? != 0 ]; then
-        if [ $CPANOPTION == 1 ]; then
+    if [ $? -ne 0 ]; then
+        if [ $CPANOPTION -eq 1 ]; then
             clear
             echo "$i is missing. Installing via CPAN ..."; echo;
             timewait 1
@@ -591,6 +586,31 @@ do
     fi
 done
 
+# Mail::ClamAV has broken version detection
+# Prepare to patch and install
+if [[ $CAV -eq 1 && $CPANOPTION -eq 1 ]]; then
+    cpan -g Mail::ClamAV
+    package=$(find -name Mail-ClamAV*gz | tail -n1)
+    tar xzvf $package
+    packagedir=$(echo $package | sed -e 's/\.tar\.gz//')
+    patch -p1 $packagedir/Makefile.PL < patch.diff
+    cd $packagedir
+    perl Makefile.PL
+    make install
+fi
+
+if [ $CPANOPTION -eq 1 ]; then
+  # Install MIME::Tools from CPAN even though rpm is present
+  # Fixes outdated MIME::Tools causing MailScanner to crash
+  clear
+  echo "Latest MIME::Tools is needed, Installing via CPAN ..."; echo;
+  timewait 1
+  perl -MCPAN -e "CPAN::Shell->force(qw(install MIME::Tools));"
+else
+  echo "WARNING: Outdated MIME::Tools may be present. You should fix this.";
+  PMODWAIT=5
+fi
+
 # will pause if a perl module was missing
 timewait $PMODWAIT
 
@@ -598,7 +618,7 @@ timewait $PMODWAIT
 cd "$THISCURRPMDIR"
 
 # Freshclam
-if [ $CAV == 1 ]; then
+if [ $CAV -eq 1 ]; then
     COUT='#Example';
     perl -pi -e 's/Example/'$COUT'/;' /etc/freshclam.conf
     systemctl enable clamd.service
@@ -614,7 +634,7 @@ echo "Installing the MailScanner RPM ... ";
 # as they are protected in the rpm spec file
 $RPM -Uvh $NODEPS MailScanner*noarch.rpm
 
-if [ $? != 0 ]; then
+if [ $? -ne 0 ]; then
     echo;
     echo '----------------------------------------------------------';
     echo 'Installation Error'; echo;
@@ -628,7 +648,7 @@ if [ $? != 0 ]; then
     echo;
 else
     # create ramdisk
-    if [ $RAMDISK == 1 ]; then
+    if [ $RAMDISK -eq 1 ]; then
         if [ -d '/var/spool/MailScanner/incoming' ]; then
             echo "Creating the ramdisk ...";
             echo;
@@ -667,7 +687,9 @@ else
             chown vscan:vscan /var/run/clamav
         fi
     fi
-    
+
+    ldconfig
+
     echo;
     echo '----------------------------------------------------------';
     echo 'Installation Complete'; echo;

@@ -208,11 +208,14 @@ sub ScanBatch {
                                 '%s message in %s', $reason, $id);
     }
 
+    # https://github.com/MailScanner/v5/issues/324
+    # This code attempts to fix an issue that no longer exists
+    # and has long since been patched in affected products
     # Replace the MIME boundary string, for any multipart/alternative
     # sections inside multipart/mixed sections, where the outer
     # boundary is a substring of the inner boundary. Works around bugs
     # in the Cyrus IMAP server, and some old versions of Eudora.
-    FixSubstringBoundaries($message, $id);
+    # FixSubstringBoundaries($message, $id);
 
     # Check for nasty subject lines and quietly fix them
     FixMaliciousSubjects($message);
@@ -779,60 +782,63 @@ sub SavePublicKey {
 }
 
 
+# https://github.com/MailScanner/v5/issues/324
+# This code attempts to fix an issue that no longer exists
+# and has long since been patched in affected products
 #
 # Search for multipart/alternative sections inside multipart/mixed
 # sections, where the outer boundary is a substring of the inner boundary.
 # This causes a problem for the Cyrus IMAP server and some old versions of
 # Eudora, so make sure the 2 boundary strings are distinct.
 #
-sub FixSubstringBoundaries {
-  my($message, $id) = @_;
-
-  # Avoid messages with no MIME structure at all
-  my $root = $message->{entity};
-  return unless $root;
-
-  # The top level must be multipart/mixed
-  return unless $root->is_multipart && $root->head;
-
-  my($topboundary, $innerboundary);
-
-  # Read the top-level multipart boundary
-  $topboundary = $root->head->multipart_boundary;
-  $topboundary = quotemeta($topboundary); # We're going to use it in a regexp
-
-  # Loop through all the top-level parts
-  my($firstlevel, @toplevel, $changedit);
-  @toplevel = $root->parts;
-  $changedit = 0;
-  foreach $firstlevel (@toplevel) {
-    # Now look at $toplevel to find multipart sections within it
-    next unless $firstlevel->is_multipart && $firstlevel->head;
-
-    # This is a multipart section, so read its boundary
-    $innerboundary = $firstlevel->head->multipart_boundary;
-    #print STDERR "Inner boundary = \"$innerboundary\"\n";
-    #print STDERR "Top   boundary = \"$topboundary\"\n";
-    next unless $innerboundary =~ /$topboundary/;
-    #print STDERR "top is a substring of inner\n";
-
-    # We now know that topboundary is a substring of innerboundary
-    $root->head->mime_attr("Content-type.boundary" =>
-                   "__MailScanner_found_Cyrus_boundary_substring_problem__");
-    # We need to build a report of it. This is special as it is just
-    # a modification to the body, not actually a security problem.
-    $changedit = 1;
-    #$message->{otherreports}{""} .= "Eudora boundary substring bug\n";
-    #$message->{othertypes}{""} .= "m"; # Modified body, but no infection
-    #print STDERR "Fixed boundary.\n";
-    last;
-  }
-  if ($changedit) {
-    MailScanner::Log::WarnLog('Content Checks: Fixed awkward MIME boundary ' .
-         'for Cyrus IMAP server in %s', $id);
-    $message->{bodymodified} = 1;
-  }
-}
+#sub FixSubstringBoundaries {
+#  my($message, $id) = @_;
+#
+#  # Avoid messages with no MIME structure at all
+#  my $root = $message->{entity};
+#  return unless $root;
+#
+#  # The top level must be multipart/mixed
+#  return unless $root->is_multipart && $root->head;
+#
+#  my($topboundary, $innerboundary);
+#
+#  # Read the top-level multipart boundary
+#  $topboundary = $root->head->multipart_boundary;
+#  $topboundary = quotemeta($topboundary); # We're going to use it in a regexp
+#
+#  # Loop through all the top-level parts
+#  my($firstlevel, @toplevel, $changedit);
+#  @toplevel = $root->parts;
+#  $changedit = 0;
+#  foreach $firstlevel (@toplevel) {
+#    # Now look at $toplevel to find multipart sections within it
+#    next unless $firstlevel->is_multipart && $firstlevel->head;
+#
+#    # This is a multipart section, so read its boundary
+#    $innerboundary = $firstlevel->head->multipart_boundary;
+#    #print STDERR "Inner boundary = \"$innerboundary\"\n";
+#    #print STDERR "Top   boundary = \"$topboundary\"\n";
+#    next unless $innerboundary =~ /$topboundary/;
+#    #print STDERR "top is a substring of inner\n";
+#
+#    # We now know that topboundary is a substring of innerboundary
+#    $root->head->mime_attr("Content-type.boundary" =>
+#                   "__MailScanner_found_Cyrus_boundary_substring_problem__");
+#    # We need to build a report of it. This is special as it is just
+#    # a modification to the body, not actually a security problem.
+#    $changedit = 1;
+#    #$message->{otherreports}{""} .= "Eudora boundary substring bug\n";
+#    #$message->{othertypes}{""} .= "m"; # Modified body, but no infection
+#    #print STDERR "Fixed boundary.\n";
+#    last;
+#  }
+#  if ($changedit) {
+#    MailScanner::Log::WarnLog('Content Checks: Fixed awkward MIME boundary ' .
+#         'for Cyrus IMAP server in %s', $id);
+#    $message->{bodymodified} = 1;
+#  }
+#}
 
 1;
 

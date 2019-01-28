@@ -1,3 +1,104 @@
+01/27/2019 Changes in    v5.1.3-2
+==================================
+- Add sudo and README for esets-wrapper
+- Handle ipv6 packed socket properly in MSMilter
+- Fix path for avg-wrapper in virus.scanners.conf
+- Fix AVG output parsing in SweepViruses.pm
+- Fix absolute path in Sophos output parsing in SweepViruses.pm
+- Add config option for mailto phishing highlighting
+
+12/23/2018 Changes in    v5.1.3-1
+==================================
+- Use literal 'mailto:' for mailto phishing detection
+- Handle HTML entities in mailto phishing detections
+- Enforce 7 bit characters for filename checks
+- Revert decode_headers workaround
+- Esets catch error reading archive
+- FixSubstringBoundaries removed
+- Add "for <...>; date-time" to MSMilter Received: header.
+- Milter add 'Authenticated' note to Received: header for SASL auth mail
+- Milter refactor to capture real postfix id
+- Remove CRs for QMQP processing
+- Display correct log warning for QMQP socket
+- Milter QMQP support added
+- Option to reveal URLs in links added
+- Add support to detect mailto: phishing
+- Get rid of artifacts in AVG output lines
+- Check for Run As User during postinst and use if defined (debian)
+- Refactor milter to support multiple emails per session
+- Fix missing subject field following a To: header
+- Quarantine support option for DOS protection added
+- Fix milter to allow modified recipients
+- Add postfork support to milter
+- Fix milter adding previous message recipients
+
+10/26/2018 Changes in    v5.1.2-2
+==================================
+- Disable rbl check if user is authenticated (postfix)
+- Preserve utf-8 header data
+- Add additional services to systemd unit
+- Simplify esets output
+- Add newline to virus.scanners.conf
+- Exclude predata headers in quarantine files (milter)
+
+10/20/2018 Changes in    v5.1.2-1
+==================================
+- Patch Mail::ClamAV to allow install for SuSE builds
+- 7zip handle spaces in filenames
+- Clamd full message scan
+- Detect fax and tel links
+- mime_perl_to_string fix for ignored handler
+- Add Kaspersky Linux Mail Server support
+- Ignore "archive damaged" in esets scanner output
+- Cleanup reports, add en_uk reports
+- Workaround MIME::Parser failing to decode UTF-8
+- Refactor milter to fully support multiple original recipients
+- Refactor milter to support large messages
+- Refactor milter to reject blacklisted emails early
+- Fix off by one header add in milter
+- Look for all recipient records in DeleteRecipients
+- Update milter doc to 1.3
+- Remove invalid Apparmor code in debian package
+- Fix condition concatenation in ms-update-phishing
+- Fix mktemp in clamav-wrapper for FreeBSD11
+- Add DrWeb virus scanner support
+- Fixes for clamav on rhel variants
+
+08/25/2018 Changes in    v5.1.1-1
+==================================
+- Remove space in "Clam AV" 
+- Support enable_original_recipient=no in postfix
+- Check CPANOPTION and add verbosity
+- Better AV scanning loop with retry attempts
+- Refactor AV scanning loop
+- Revert escaping spaces in unrar (already strict quoted)
+- Cluster friendly update scripts (check for PID before restarting)
+- Milter support option for MailScanner
+- Fix postfix long queue ids getting suffixed with key
+- Support ClamAV 0.100.1+ configuration change in RHEL/CentOS 7
+
+06/17/2018 Changes in    v5.0.7-4
+==================================
+- Switch to gzipped phishing update files
+- Fix for no virus scanner defined
+- Fix configuration chaining for SA rules actions in rulesets
+- Fix mime decoding deprecation
+- Allow wildcards in phishing lists
+- Update MIME::Tools using CPAN
+- Fix removal of MailScanner.conf if MailScanner is removed
+- Add support for Fedora 28
+- Add perl-LWP-Protocol-https (RHEL Variants)
+
+04/29/2018 Changes in    v5.0.7-3
+==================================
+
+- Fix copy of CustomFunctions directory in debian install
+- Fix untaint of $safename var in unpack7zip
+- Respect process exit code of Message::SafePipe
+- Fix systemd file syntax in RHEL/CentOS
+- Remove rotating indication in ms-init
+- Add ldconfig to end of install.sh
+
 02/03/2018 Changes in    v5.0.7-2
 ==================================
 

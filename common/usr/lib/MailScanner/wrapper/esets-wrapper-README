@@ -1,0 +1,6 @@
+Add the following line to sudoers for esets wrapper:
+
+postfix ALL=(ALL) NOPASSWD: /opt/eset/esets/sbin/esets_scan
+
+where /opt/eset/esets/sbin/ is the real path to your esets scan binary
+and postfix is the real Run As user for MailScanner

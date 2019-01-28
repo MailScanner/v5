@@ -99,8 +99,8 @@ ARMOD+=('IO::Zlib');			ARMOD+=('IP::Country');			ARMOD+=('Mail::SPF');
 ARMOD+=('Mail::SPF::Query');	ARMOD+=('Module::Build');		ARMOD+=('Net::CIDR::Lite');
 ARMOD+=('Net::DNS');			ARMOD+=('Net::LDAP');			ARMOD+=('Net::DNS::Resolver::Programmable');
 ARMOD+=('NetAddr::IP');			ARMOD+=('Parse::RecDescent');	ARMOD+=('Test::Harness');
-ARMOD+=('Test::Manifest');		ARMOD+=('Text::Balanced');		ARMOD+=('URI');	
-ARMOD+=('version');				ARMOD+=('IO::Compress::Bzip2');
+ARMOD+=('Test::Manifest');		ARMOD+=('Text::Balanced');		ARMOD+=('URI');
+ARMOD+=('version');				ARMOD+=('IO::Compress::Bzip2'); ARMOD+=('Sendmail::PMilter');
 
 # additional spamassassin plugins				
 ARMOD+=('Mail::SpamAssassin::Plugin::Rule2XSBody');		

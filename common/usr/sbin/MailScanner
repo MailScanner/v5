@@ -386,6 +386,9 @@ if (/exim/i) {
 } elsif(/qmail/i) {
   $MTAmod = 'Qmail.pm';
   $MTADSmod = 'QMDiskStore.pm';
+} elsif(/msmail/i) {
+  $MTAmod = 'MSMail.pm';
+  $MTADSmod = 'MSDiskStore.pm';
 } else {
   $MTAmod = 'Sendmail.pm';
   $MTADSmod = 'SMDiskStore.pm';
@@ -1231,6 +1234,9 @@ sub WorkForHours {
     #$0 = 'MailScanner: quarantining infections';
     #$batch->QuarantineInfections();
 
+     # Quarantine all denial-of-service attempt
+    $batch->QuarantineDOS();
+
     # Quarantine all the disarmed HTML and others
     $batch->QuarantineModifiedBody();
 
@@ -1248,7 +1254,6 @@ sub WorkForHours {
     # Zip up all the attachments to compress them
     $0 = 'MailScanner: compressing attachments';
     $batch->ZipAttachments();
-
     # Encapsulate the messages into message/rfc822 attachments as needed
     $batch->Encapsulate();
 

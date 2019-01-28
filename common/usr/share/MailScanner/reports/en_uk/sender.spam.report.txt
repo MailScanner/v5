@@ -1,0 +1,28 @@
+From: "$postmastername" <$localpostmaster>
+To: $from
+Subject: {Bounce} Unsolicited commercial email rejected
+X-%org-name%-MailScanner: generated
+
+Our UCE (spam) detectors have been triggered by a message you sent:-
+  To: $to
+  Subject: $subject
+  Date: $date
+This message has been rejected. The detectors that were triggered are
+$spamreport.
+
+Your message has been detected as spam based on both its contents and
+the mail server which has sent the message to us.
+
+We do not accept unsolicited commercial (spam) e-mail and actively
+work to stop it.
+
+If you have any questions about this, or you believe you have received
+this message in error, please contact the site system administrators.
+
+-- 
+MailScanner
+Email Virus Scanner
+%org-long-name%
+%web-site%
+
+

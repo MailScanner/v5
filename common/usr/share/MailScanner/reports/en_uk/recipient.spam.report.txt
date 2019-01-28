@@ -1,0 +1,33 @@
+From: "$postmastername" <$localpostmaster>
+To: $to
+Subject: {Spam not delivered} $subject
+X-%org-name%-MailScanner: generated
+
+Our UCE (spam) detectors have been triggered by a message you received:-
+  From: $from
+  Subject: $subject
+  Date: $date
+This message has not been delivered. The detectors that were triggered are
+$spamreport.
+
+The message to you has been detected as spam based on either its contents or
+the mail server which sent the message to us, or both.
+
+We do not accept unsolicited commercial (spam) e-mail and actively
+work to stop it.
+
+If you have any questions about this, or you believe you have received
+this message in error, please contact the site system administrators.
+
+Your system administrators will need the following information:
+  Server name: $hostname
+  Message id: $id
+  Date code: $datenumber
+
+-- 
+MailScanner
+Email Virus Scanner
+%org-long-name%
+%web-site%
+
+

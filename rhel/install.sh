@@ -7,7 +7,7 @@
 #
 # Tested distributions:     CentOS 5,6,7
 #                           RHEL 6,7
-#                           Fedora 26,27
+#                           Fedora 26,27,28
 #
 # Written by:
 # Jerry Benton < mailscanner@mailborder.com >
@@ -15,7 +15,7 @@
 # Updated by:
 # Manuel Dalla Lana < endelwar@aregar.it >
 # Shawn Iverson < shawniverson@efa-project.org >
-# 18 JAN 2018
+# 17 JUN 2018
 
 # clear the screen. yay!
 clear
@@ -198,9 +198,9 @@ while [ $# -gt 0 ]; do
             printf    "                      Recommended: sendmail\n\n"
             printf -- "--installEPEL=Y|N     Install and use EPEL repository                                 (Y or N)\n"
             printf    "                      Recommended: Y (yes)\n\n"
-            printf -- "--installClamav=Y|N   Install or update Clam AV during installation (requires EPEL)   (Y or N)\n"
+            printf -- "--installClamav=Y|N   Install or update ClamAV during installation (requires EPEL)   (Y or N)\n"
             printf    "                      Recommended: Y (yes)\n\n"
-            printf -- "--configClamav=Y|N    Configure Clam AV (CentOS 7 only)                               (Y or N)\n"
+            printf -- "--configClamav=Y|N    Configure ClamAV (CentOS 7 only)                               (Y or N)\n"
             printf    "                      Recommended: Y (yes)\n\n"
             printf -- "--installTNEF=Y|N     Install tnef via RPM                                            (Y or N)\n"
             printf    "                      Recommended: Y (yes)\n\n"
@@ -291,6 +291,9 @@ if [ -f /etc/fedora-release ]; then
     elif grep -qs 'release 27' /etc/fedora-release ; then
         # Fedora 27
         FEDORA=27
+    elif grep -qs 'release 28' /etc/fedora-release ; then
+        # Fedora 28
+        FEDORA=28
     else
         # Unsupported release
         FEDORA=0
@@ -337,13 +340,13 @@ if [ -z "${arg_MTA+x}" ]; then
     elif [ -z $response ]; then
         # sendmail default
         MTAOPTION="sendmail";
-    elif [ $response == 1 ]; then
+    elif [ $response -eq 1 ]; then
         # sendmail 
         MTAOPTION="sendmail";
-    elif [ $response == 2 ]; then
+    elif [ $response -eq 2 ]; then
         # sendmail 
         MTAOPTION="postfix";
-    elif [ $response == 3 ]; then
+    elif [ $response -eq 3 ]; then
         # sendmail 
         MTAOPTION="exim";
     else
@@ -363,7 +366,7 @@ if [ -z $FEDORA ]; then
     echo;
     echo "Do you want to install EPEL? (Extra Packages for Enterprise Linux)"; echo;
     echo "Installing EPEL will make more yum packages available, such as extra perl modules"; 
-    echo "and Clam AV, which is recommended. This will also reduce the number of Perl modules";
+    echo "and ClamAV, which is recommended. This will also reduce the number of Perl modules";
     echo "installed via CPAN. Note that EPEL is considered a third party repository."; 
     echo;
     echo "Recommended: Y (yes)"; echo;
@@ -390,17 +393,17 @@ if [ -z $FEDORA ]; then
     fi
 fi
 
-# ask if the user wants Clam AV installed if they selected EPEL or if this is a Fedora Server
+# ask if the user wants ClamAV installed if they selected EPEL or if this is a Fedora Server
 if [[ $EPEL -eq 1 || -n $FEDORA ]]; then
     clear
     echo;
-    echo "Do you want to install or update Clam AV during this installation process?"; echo;
+    echo "Do you want to install or update ClamAV during this installation process?"; echo;
     echo "This package is recommended unless you plan on using a different virus scanner.";
     echo "Note that you may use more than one virus scanner at once with MailScanner.";
     echo;
     echo "Recommended: Y (yes)"; echo;
     if [ -z "${arg_installClamav+x}" ]; then
-        read -r -p "Install or update Clam AV? [n/Y] : " response
+        read -r -p "Install or update ClamAV? [n/Y] : " response
 
         if [[ $response =~ ^([yY][eE][sS]|[yY])$ ]]; then
             # user wants clam av installed
@@ -436,11 +439,11 @@ if [[ $RHEL -eq 7 && $CAV -eq 1 ]]; then
     echo "Do you want to configure clam AV during this installation process?"; echo;
     echo;
     echo "Choosing yes will install required configuration files and settings for";
-    echo "Clam AV to function out of the box on CentOS 7 installations";
+    echo "ClamAV to function out of the box on CentOS 7 installations";
     echo;
     echo "Recommended: Y (yes)"; echo;
     if [ -z "${arg_configClamav+x}" ]; then
-        read -r -p "Configure Clam AV? [n/Y] : " response
+        read -r -p "Configure ClamAV? [n/Y] : " response
 
         if [[ $response =~ ^([yY][eE][sS]|[yY])$ ]]; then
             # user wants clam av configured
@@ -577,7 +580,7 @@ fi
 
 # ask if the user wants to ignore dependencies. they are automatically ignored
 # if the user elected the CPAN option as explained above
-if [ $CPANOPTION != 1 ]; then
+if [ $CPANOPTION -ne 1 ]; then
     clear
     echo;
     echo "Do you want to ignore MailScanner dependencies?"; echo;
@@ -657,7 +660,7 @@ if [ -z "${arg_ramdiskSize+x}" ]; then
     read -r -p "Specify a RAMDISK size? [0] : " RAMDISKSIZE
 
     if [[ $RAMDISKSIZE =~ ^[0-9]+$ ]]; then
-        if [ $RAMDISKSIZE != 0 ]; then
+        if [ $RAMDISKSIZE -ne 0 ]; then
             # user wants ramdisk
             RAMDISK=1
         else
@@ -685,7 +688,7 @@ BASEPACKAGES="binutils gcc glibc-devel libaio make man-pages man-pages-overrides
 # package is not available for their distro release it
 # will be ignored during the install.
 #
-MOREPACKAGES="perl-Archive-Tar perl-Archive-Zip perl-Compress-Raw-Zlib perl-Compress-Zlib perl-Convert-BinHex perl-Convert-TNEF perl-CPAN perl-Data-Dump perl-DBD-SQLite perl-DBI perl-Digest-HMAC perl-Digest-SHA1 perl-Env perl-ExtUtils-MakeMaker perl-File-ShareDir-Install perl-File-Temp perl-Filesys-Df perl-Getopt-Long perl-IO-String perl-IO-stringy perl-HTML-Parser perl-HTML-Tagset perl-Inline perl-IO-Zlib perl-Mail-DKIM perl-Mail-IMAPClient perl-Mail-SPF perl-MailTools perl-MIME-tools perl-Net-CIDR perl-Net-DNS perl-Net-DNS-Resolver-Programmable perl-Net-IP perl-OLE-Storage_Lite perl-Pod-Escapes perl-Pod-Simple perl-Scalar-List-Utils perl-Storable perl-Pod-Escapes perl-Pod-Simple perl-Razor-Agent perl-Sys-Hostname-Long perl-Sys-SigAction perl-Test-Manifest perl-Test-Pod perl-Time-HiRes perl-TimeDate perl-URI perl-YAML pyzor re2c unrar tnef perl-Encode-Detect perl-LDAP perl-IO-Compress-Bzip2 p7zip p7zip-plugins";
+MOREPACKAGES="perl-Archive-Tar perl-Archive-Zip perl-Compress-Raw-Zlib perl-Compress-Zlib perl-Convert-BinHex perl-CPAN perl-Data-Dump perl-DBD-SQLite perl-DBI perl-Digest-HMAC perl-Digest-SHA1 perl-Env perl-ExtUtils-MakeMaker perl-File-ShareDir-Install perl-File-Temp perl-Filesys-Df perl-Getopt-Long perl-IO-String perl-IO-stringy perl-HTML-Parser perl-HTML-Tagset perl-Inline perl-IO-Zlib perl-Mail-DKIM perl-Mail-IMAPClient perl-Mail-SPF perl-MailTools perl-Net-CIDR perl-Net-DNS perl-Net-DNS-Resolver-Programmable perl-MIME-tools perl-Convert-TNEF perl-Net-IP perl-OLE-Storage_Lite perl-Pod-Escapes perl-Pod-Simple perl-Scalar-List-Utils perl-Storable perl-Pod-Escapes perl-Pod-Simple perl-Razor-Agent perl-Sys-Hostname-Long perl-Sys-SigAction perl-Test-Manifest perl-Test-Pod perl-Time-HiRes perl-TimeDate perl-URI perl-YAML pyzor re2c unrar tnef perl-Encode-Detect perl-LDAP perl-IO-Compress-Bzip2 p7zip p7zip-plugins perl-LWP-Protocol-https perl-Test-Simple";
 
 # the array of perl modules needed
 ARMOD=();
@@ -711,7 +714,7 @@ ARMOD+=('Pod::Simple');			ARMOD+=('POSIX');				ARMOD+=('Scalar::Util');
 ARMOD+=('Socket'); 				ARMOD+=('Storable'); 	 	 	ARMOD+=('Test::Harness');		
 ARMOD+=('Test::Pod');			ARMOD+=('Test::Simple');		ARMOD+=('Time::HiRes');			
 ARMOD+=('Time::localtime'); 	ARMOD+=('Sys::Hostname::Long');	ARMOD+=('Sys::SigAction');		
-ARMOD+=('Sys::Syslog'); 		ARMOD+=('Env'); 				
+ARMOD+=('Sys::Syslog'); 		ARMOD+=('Env');
 ARMOD+=('Mail::SpamAssassin');
 
 # not required but nice to have
@@ -725,22 +728,17 @@ ARMOD+=('Mail::SPF::Query');	ARMOD+=('Module::Build');		ARMOD+=('Net::CIDR::Lite
 ARMOD+=('Net::DNS');			ARMOD+=('Net::LDAP');			ARMOD+=('Net::DNS::Resolver::Programmable');
 ARMOD+=('NetAddr::IP');			ARMOD+=('Parse::RecDescent');	ARMOD+=('Test::Harness');
 ARMOD+=('Test::Manifest');		ARMOD+=('Text::Balanced');		ARMOD+=('URI');	
-ARMOD+=('version');				ARMOD+=('IO::Compress::Bzip2');
+ARMOD+=('version');				ARMOD+=('IO::Compress::Bzip2'); ARMOD+=('Sendmail::PMilter');
 
-# additional spamassassin plugins				
-ARMOD+=('Mail::SpamAssassin::Plugin::Rule2XSBody');		
-ARMOD+=('Mail::SpamAssassin::Plugin::DCC');				
+# additional spamassassin plugins
+ARMOD+=('Mail::SpamAssassin::Plugin::Rule2XSBody');
+ARMOD+=('Mail::SpamAssassin::Plugin::DCC');
 ARMOD+=('Mail::SpamAssassin::Plugin::Pyzor');
 
 
 # add to array if the user is installing spamassassin
-if [ $SA == 1 ]; then
+if [ $SA -eq 1 ]; then
     ARMOD+=('Mail::SpamAssassin');
-fi
-
-# add to array if the user is installing clam av
-if [ $CAV == 1 ]; then
-    ARMOD+=('Mail::ClamAV');
 fi
 
 # 32 or 64 bit
@@ -805,7 +803,7 @@ fi
 
 # create the cpan config if there isn't one and the user
 # elected to use CPAN
-if [ $CPANOPTION == 1 ]; then
+if [ $CPANOPTION -eq 1 ]; then
     # user elected to use CPAN option
     if [ ! -f '/root/.cpan/CPAN/MyConfig.pm' ]; then
         echo;
@@ -826,14 +824,14 @@ fi
 # via cpan if the user elected to do so.
 clear
 echo;
-echo "Installing available Perl packages, Clam AV (if elected), and ";
+echo "Installing available Perl packages, ClamAV (if elected), and ";
 echo "Spamassassin (if elected) via yum. You can safely ignore any";
 echo "subsequent 'No package available' errors."; echo;
 timewait 3
 $YUM -y --skip-broken install $TNEF $MOREPACKAGES $CAVOPTION $SAOPTION
 
 # install missing tnef if the user elected to do so
-if [ $TNEFOPTION == 1 ]; then
+if [ $TNEFOPTION -eq 1 ]; then
     # user elected to use tnef RPM option
     if [ ! -x '/usr/bin/tnef' ]; then
         cd /tmp
@@ -871,7 +869,7 @@ if [ $TNEFOPTION == 1 ]; then
 fi
 
 # install missing unrar if the user elected to do so
-if [ $UNRAROPTION == 1 ]; then
+if [ $UNRAROPTION -eq 1 ]; then
     # user elected to use unrar RPM option
     if [ ! -x '/usr/bin/unrar' ]; then
         cd /tmp
@@ -909,7 +907,7 @@ if [ $UNRAROPTION == 1 ]; then
 fi
 
 # install missing perl-Filesys-Df and perl-Sys-Hostname-Long on RHEL 7
-if [ $DFOPTION == 1 ]; then
+if [ $DFOPTION -eq 1 ]; then
     # test to see if these are installed. if not install from RPM
     cd /tmp
     rm -f perl-Filesys-Df*
@@ -917,7 +915,7 @@ if [ $DFOPTION == 1 ]; then
         
     # perl-Filesys-Df
     perldoc -l Filesys::Df >/dev/null 2>&1
-    if [ $? != 0 ]; then
+    if [ $? -ne 0 ]; then
         if [ $MACHINE_TYPE == 'x86_64' ]; then
             $CURL -O https://s3.amazonaws.com/msv5/rpm/perl-Filesys-Df-0.92-1.el7.x86_64.rpm
             if [ -f 'perl-Filesys-Df-0.92-1.el7.x86_64.rpm' ]; then
@@ -928,7 +926,7 @@ if [ $DFOPTION == 1 ]; then
     
     # perl-Sys-Hostname-Long
     perldoc -l Sys::Hostname::Long >/dev/null 2>&1
-    if [ $? != 0 ]; then
+    if [ $? -ne 0 ]; then
         $CURL -O https://s3.amazonaws.com/msv5/rpm/perl-Sys-Hostname-Long-1.5-1.el7.noarch.rpm
         if [ -f 'perl-Sys-Hostname-Long-1.5-1.el7.noarch.rpm' ]; then
             rpm -Uvh perl-Sys-Hostname-Long-1.5-1.el7.noarch.rpm
@@ -940,7 +938,7 @@ if [ $DFOPTION == 1 ]; then
 fi
 
 # fix the stupid line in /etc/freshclam.conf that disables freshclam 
-if [ $CAV == 1 ]; then
+if [ $CAV -eq 1 ]; then
     COUT='#Example';
     if [ -f '/etc/freshclam.conf' ]; then
         perl -pi -e 's/Example/'$COUT'/;' /etc/freshclam.conf
@@ -950,83 +948,87 @@ fi
 
 # Configure clamav if required
 if [ $CONFCAV -eq 1 ]; then
-    # Get clam version
-    clamav_version=$(rpm -q --queryformat=%{VERSION} clamav-server)
+   # Get clam version
+    # ClamAV changed in CentOS/RHEL7 0.100.1+, most items commented for prior reference
+    #clamav_version=$(rpm -q --queryformat=%{VERSION} clamav-server)
     # Grab sample config if not present
-    if [ ! -f /etc/clamd.d/clamd.conf ]; then
-        cp /usr/share/doc/clamav-server-$clamav_version/clamd.conf /etc/clamd.d/clamd.conf
-    fi
+    #if [ ! -f /etc/clamd.d/clamd.conf ]; then
+    #    cp /usr/share/doc/clamav-server-$clamav_version/clamd.conf /etc/clamd.d/clamd.conf
+    #fi
     # Enable config
-    sed -i '/^Example/ c\#Example' /etc/clamd.d/clamd.conf
+    sed -i '/^Example/ c\#Example' /etc/clamd.d/scan.conf
     # Create clam user if not present
-    id -u clam >/dev/null 2>&1
-    if [ $? -ne 0 ]; then
-        useradd -d /var/lib/clamav -c "Clam Anti Virus Checker" -G virusgroup,clamupdate -s /sbin/nologin -M clam
-    fi
+    #id -u clam >/dev/null 2>&1
+    #if [ $? -ne 0 ]; then
+    #    useradd -d /var/lib/clamav -c "Clam Anti Virus Checker" -G virusgroup,clamupdate -s /sbin/nologin -M clam
+    #fi
     # More config options
-    sed -i '/^User <USER>/ c\User clam' /etc/clamd.d/clamd.conf
-    sed -i '/#LocalSocket \/var\/run\/clamd.<SERVICE>\/clamd.sock/ c\LocalSocket /var/run/clamd.scan/clamd.sock' /etc/clamd.d/clamd.conf
-    sed -i '/#LogFile \/var\/log\/clamd.<SERVICE>/ c\LogFile /var/log/clamd.scan/scan.log' /etc/clamd.d/clamd.conf
+    #sed -i '/^User <USER>/ c\User clam' /etc/clamd.d/clamd.conf
+    sed -i '/#LocalSocket \/var\/run\/clamd.scan\/clamd.sock/ c\LocalSocket /var/run/clamd.scan/clamd.sock' /etc/clamd.d/scan.conf
+    sed -i '/#LogFile \/var\/log\/clamd.scan/ c\LogFile /var/log/clamd.scan' /etc/clamd.d/scan.conf
     # Log rotation if not present
-    if [ ! -f /etc/logrotate.d/clamd.logrotate ]; then
-        cp /usr/share/doc/clamav-server-$clamav_version/clamd.logrotate /etc/logrotate.d/
-    fi
+    #if [ ! -f /etc/logrotate.d/clamd.logrotate ]; then
+    #    cp /usr/share/doc/clamav-server-$clamav_version/clamd.logrotate /etc/logrotate.d/
+    #fi
     # Filesystem/Permissions/SELinux
-    chown -R clam:clam /etc/clamd.d
-    mkdir -p /var/log/clamd.scan
-    chown -R clam:clam /var/log/clamd.scan
-    chcon -u system_u -r object_r -t antivirus_log_t /var/log/clamd.scan
-    mkdir -p /var/run/clamd.scan
-    chown -R clam:clam /var/run/clamd.scan
-    chcon -u system_u -r object_r -t antivirus_var_run_t /var/run/clamd.scan
-    echo "d /var/run/clamd.scan 0750 clam mtagroup -" > /etc/tmpfiles.d/clamd.conf
-    echo "d /var/run/clamd.scan 0750 clam mtagroup -" > /etc/tmpfiles.d/clamd.scan.conf
+    #chown -R clam:clam /etc/clamd.d
+    #mkdir -p /var/log/clamd.scan
+    #chown -R clam:clam /var/log/clamd.scan
+    #chcon -u system_u -r object_r -t antivirus_log_t /var/log/clamd.scan
+    #mkdir -p /var/run/clamd.scan
+    #chown -R clam:clam /var/run/clamd.scan
+    #chcon -u system_u -r object_r -t antivirus_var_run_t /var/run/clamd.scan
+    chown -R clamscan:mtagroup /var/run/clamd.scan
+    echo "d /var/run/clamd.scan 0750 clamscan mtagroup -" > /usr/lib/tmpfiles.d/clamd.scan.conf
+    touch /var/log/clamd.scan
+    chown clamscan:clamscan /var/log/clamd.scan
+    usermod -G mtagroup,virusgroup,clamupdate clamscan
     # sysconfig file
-    if [ ! -f /etc/sysconfig/clamd ]; then
-        cat > /etc/sysconfig/clamd << 'EOF'
-CLAMD_CONFIGFILE=/etc/clamd.d/clamd.conf
-CLAMD_SOCKET=/var/run/clamd.scan/clamd.sock
+    #if [ ! -f /etc/sysconfig/clamd ]; then
+    #    cat > /etc/sysconfig/clamd << 'EOF'
+#CLAMD_CONFIGFILE=/etc/clamd.d/clamd.conf
+#CLAMD_SOCKET=/var/run/clamd.scan/clamd.sock
 #CLAMD_OPTIONS=
-EOF
-    fi
+#EOF
+    #fi
 
     # Systemd services
-    if [ ! -f /usr/lib/systemd/system/clam.freshclam.service ]; then
-        cat > /usr/lib/systemd/system/clam.freshclam.service << 'EOF'
-[Unit]
-Description = freshclam scanner
-After = network.target
+    #if [ ! -f /usr/lib/systemd/system/clam.freshclam.service ]; then
+        #cat > /usr/lib/systemd/system/clam.freshclam.service << 'EOF'
+#[Unit]
+#Description = freshclam scanner
+#After = network.target
+#
+#[Service]
+#Type = forking
+#ExecStart = /usr/bin/freshclam -d -c 4
+#Restart = on-failure
+#PrivateTmp = true
+#
+#[Install]
+#WantedBy=multi-user.target
+#EOF
+#    fi
+#    
+#    if [ ! -f /usr/lib/systemd/system/clam.scan.service ]; then
+#        cat > /usr/lib/systemd/system/clam.scan.service << 'EOF'
+#[Unit]
+#Description = clamd scanner daemon
+#After = syslog.target nss-lookup.target network.target
+#
+#[Service]
+#Type = forking
+#ExecStart = /usr/sbin/clamd -c /etc/clamd.d/clamd.conf
+#Restart = on-failure
+#PrivateTmp = true
+#
+#[Install]
+#WantedBy=multi-user.target
+#EOF
+#    fi
 
-[Service]
-Type = forking
-ExecStart = /usr/bin/freshclam -d -c 4
-Restart = on-failure
-PrivateTmp = true
-
-[Install]
-WantedBy=multi-user.target
-EOF
-    fi
-    
-    if [ ! -f /usr/lib/systemd/system/clam.scan.service ]; then
-        cat > /usr/lib/systemd/system/clam.scan.service << 'EOF'
-[Unit]
-Description = clamd scanner daemon
-After = syslog.target nss-lookup.target network.target
-
-[Service]
-Type = forking
-ExecStart = /usr/sbin/clamd -c /etc/clamd.d/clamd.conf
-Restart = on-failure
-PrivateTmp = true
-
-[Install]
-WantedBy=multi-user.target
-EOF
-    fi
-
-    systemctl enable clam.freshclam
-    systemctl enable clam.scan
+#    systemctl enable clam.freshclam
+#    systemctl enable clam.scan
 fi
 
 # now check for missing perl modules and install them via cpan
@@ -1042,7 +1044,7 @@ PMODWAIT=0
 for i in "${ARMOD[@]}"
 do
     perldoc -l $i >/dev/null 2>&1
-    if [ $? != 0 ]; then
+    if [ $? -ne 0 ]; then
         echo "$i is missing. Trying to install via Yum ..."; echo;
         THING="perl($i)";
         $YUM -y install $THING
@@ -1070,8 +1072,8 @@ fi
 for i in "${ARMOD[@]}"
 do
     perldoc -l $i >/dev/null 2>&1
-    if [ $? != 0 ]; then
-        if [ $CPANOPTION == 1 ]; then
+    if [ $? -ne 0 ]; then
+        if [ $CPANOPTION -eq 1 ]; then
             clear
             echo "$i is missing. Installing via CPAN ..."; echo;
             timewait 1
@@ -1089,11 +1091,36 @@ do
     fi
 done
 
+# Mail::ClamAV has broken version detection
+# Prepare to patch and install
+if [[ $CAV -eq 1 && $CPANOPTION -eq 1 ]]; then
+    cpan -g Mail::ClamAV
+    package=$(find -name Mail-ClamAV*gz | tail -n1)
+    tar xzvf $package
+    packagedir=$(echo $package | sed -e 's/\.tar\.gz//')
+    patch -p1 $packagedir/Makefile.PL < patch.diff
+    cd $packagedir
+    perl Makefile.PL
+    make install
+fi
+
+if [ $CPANOPTION -eq 1 ]; then
+  # Install MIME::Tools from CPAN even though rpm is present
+  # Fixes outdated MIME::Tools causing MailScanner to crash
+  clear
+  echo "Latest MIME::Tools is needed, Installing via CPAN ..."; echo;
+  timewait 1
+  perl -MCPAN -e "CPAN::Shell->force(qw(install MIME::Tools));"
+else
+  echo "WARNING: Outdated MIME::Tools may be present. You should fix this.";
+  PMODWAIT=5
+fi
+
 # will pause if a perl module was missing
 timewait $PMODWAIT
 
 # selinux
-if [ $SELMODE == 1 ]; then
+if [ $SELMODE -eq 1 ]; then
     OLDTHING='SELINUX=enforcing';
     NEWTHING='SELINUX=permissive';
         
@@ -1136,7 +1163,7 @@ mv /etc/MailScanner/MailScanner.conf /etc/MailScanner/MailScanner.conf.rpmsave >
 # One is the presence of faulty pre and post scripts in v4 packages
 # The second is the presence of a bug in earlier v5 packages during %post
 $RPM -Uvh --noscripts $NODEPS MailScanner*noarch.rpm
-if [ $? == 0 ]; then
+if [ $? -eq 0 ]; then
 
     # Move rpmsaves around so that scripts can find them
     if [[ -e /etc/MailScanner/MailScanner.conf.rpmsave ]]; then 
@@ -1149,12 +1176,12 @@ if [ $? == 0 ]; then
     
     # Pass #2 -- with scripts
     $RPM -Uvh --force $NODEPS MailScanner*noarch.rpm
-    [ $? != 0 ] && ABORT=1
+    [ $? -ne 0 ] && ABORT=1
 else
     ABORT=1
 fi
 
-if [ $ABORT == 1 ]; then
+if [ $ABORT -eq 1 ]; then
     echo;
     echo '----------------------------------------------------------';
     echo 'Installation Error'; echo;
@@ -1168,7 +1195,7 @@ if [ $ABORT == 1 ]; then
     echo;
 else
     # create ramdisk
-    if [ $RAMDISK == 1 ]; then
+    if [ $RAMDISK -eq 1 ]; then
         if [ -d '/var/spool/MailScanner/incoming' ]; then
             echo "Creating the ramdisk ...";
             echo;
@@ -1204,7 +1231,9 @@ else
             fi
         fi
     fi
-    
+
+    ldconfig
+
     echo;
     echo '----------------------------------------------------------';
     echo 'Installation Complete'; echo;

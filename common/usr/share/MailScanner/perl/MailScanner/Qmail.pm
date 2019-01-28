@@ -286,7 +286,7 @@ sub new {
       if $getipfromheader && $read1strcvd && $ipfromheader ne "";
 
     return 1 if $TOFound;
-    
+
     # Decode ISO subject lines into UTF8
     # Needed for UTF8 support in MailWatch 2.0
     eval {
@@ -303,22 +303,29 @@ sub new {
     # Over-ride the default default character set handler so it does it
     # much better than the MIME-tools default handling.
     MIME::WordDecoder->default->handler('*' => \&MailScanner::Message::WordDecoderKeep7Bit);
-    $message->{subject} = MIME::WordDecoder::unmime($message->{subject});
+
+    # Remove any wide characters so that WordDecoder can parse
+    # mime_to_perl_string is ignoring the built-in handler that was set earlier
+    # https://github.com/MailScanner/v5/issues/253
+    my $safesubject = $message->{subject};
+    $safesubject =~  tr/\x00-\xFF/#/c;
+
+    $message->{subject} = MIME::WordDecoder::mime_to_perl_string($safesubject);
 
     $message->{store}->DeleteUnlock();
-    
+
     #KMG: three cheers to christophe @ digital network for his persistence and resourcefulness :)    
     #MailScanner::Log::WarnLog("Batch: Deleted queue file with no RCPT TO: address " .
     # "message %s", $message->{id});
     #print "\nNo to found.\n";
     return 0;
   }
-  
+
   #KMG: AddHeadersToQf isnt needed in Qmail since the intd file doesnt contain the additional headers
   #KMG: Still some testing needs to be done
   sub AddHeadersToQf {
   }
-  
+
   # KMG: wheaders is assumed to be without \n, tread with care
   # Add a header. Needs to look for the position of the M record again
   # so it knows where to insert it.
