@@ -384,7 +384,8 @@ BASEPACKAGES+=('arj');              BASEPACKAGES+=('lhasa');                    
 BASEPACKAGES+=('cabextract');       BASEPACKAGES+=('cpio');                         BASEPACKAGES+=('file');  
 BASEPACKAGES+=('gzip');             BASEPACKAGES+=('nomarch');                      BASEPACKAGES+=('pax');  
 BASEPACKAGES+=('rar');              BASEPACKAGES+=('unrar');                        BASEPACKAGES+=('unzip');  
-BASEPACKAGES+=('zip');              BASEPACKAGES+=('zoo');  
+BASEPACKAGES+=('zip');              BASEPACKAGES+=('zoo');                          BASEPACKAGES+=('libsendmail-pmilter-perl');
+BASEPACKAGES+=('libmime-tools-perl');              BASEPACKAGES+=('libtest-deep-perl');
 
 if [ "$parsedCommands" -gt 0 ]; then
     BASEPACKAGES+=('cpanminus');
