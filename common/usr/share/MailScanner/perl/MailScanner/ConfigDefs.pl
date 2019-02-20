@@ -661,6 +661,7 @@ QuarantineDenialOfService	1	no	0	yes	1
 QuarantineModifiedBody	0	no	0	yes	1
 QuarantineSilent	0	no	0	yes	1
 QuarantineWholeMessage	0	no	0	yes	1
+IgnoreDenialOfService	0	no	0	yes	1
 ReplaceTNEF		2	no	0	add	1	replace	2
 sadecodebins		0	no	0	yes	1
 ScanMail		1	no	0	yes	1	virus	2

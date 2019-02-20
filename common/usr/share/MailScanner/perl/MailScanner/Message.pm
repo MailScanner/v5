@@ -7349,23 +7349,31 @@ sub DisarmHTMLEntity {
   #return keys %DisarmDoneSomething;
 
   if ($PipeReturn) {
-    # It went badly wrong!
-    # Overwrite the output file to kill it, and return the error.
-    # Log the fact and the exit status.
-    MailScanner::Log::WarnLog("HTML disarming died, status = $PipeReturn");
-    $outfh = new FileHandle;
-    unless ($outfh->open(">$newname")) {
-      MailScanner::Log::WarnLog('Could not wipe deadly HTML file %s',
-                                $newname);
-      exit 1;
-    }
-    my $report = "MailScanner was attacked by a Denial Of Service attack, and has therefore \ndeleted this part of the message. Please contact your e-mail providers \nfor more information if you need it, giving them the whole of this report.\n";
-    my $report2 = MailScanner::Config::LanguageValue(0, 'htmlparserattack');
-    $report = $report2 if $report2 && $report2 ne 'htmlparserattack';
-    print $outfh $report . "\n\nAttack in: $oldname\n";
-    $outfh->close;
+    if ( MailScanner::Config::Value("ignoredenialofservice", $this) =~ /0/ ) {
+        # It went badly wrong!
+        # Overwrite the output file to kill it, and return the error.
+        # Log the fact and the exit status.
+        MailScanner::Log::WarnLog("HTML disarming died, status = $PipeReturn");
+        $outfh = new FileHandle;
+        unless ($outfh->open(">$newname")) {
+          MailScanner::Log::WarnLog('Could not wipe deadly HTML file %s',
+                                    $newname);
+          exit 1;
+        }
+        my $report = "MailScanner was attacked by a Denial Of Service attack, and has therefore \ndeleted this part of the message. Please contact your e-mail providers \nfor more information if you need it, giving them the whole of this report.\n";
+        my $report2 = MailScanner::Config::LanguageValue(0, 'htmlparserattack');
+        $report = $report2 if $report2 && $report2 ne 'htmlparserattack';
+        print $outfh $report . "\n\nAttack in: $oldname\n";
+        $outfh->close;
 
-    push @DisarmDoneSomething, 'denialofservice';
+        push @DisarmDoneSomething, 'denialofservice';
+     } else {
+       # Ignore the denial of service per configuration
+       # This does not solve the root causes of the DOS/fork pipe failure message
+       # Use with caution
+       MailScanner::Log::WarnLog("HTML disarming died, status = $PipeReturn");
+       MailScanner::Log::WarnLog("Ignore Denial of Service is enabled, proceeding");
+     }
   }
 
   #print STDERR "Results of HTML::Parser are " . join(',',@DisarmDoneSomething) . "\n";
