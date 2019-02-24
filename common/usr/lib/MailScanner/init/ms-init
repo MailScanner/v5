@@ -207,62 +207,22 @@ do_stop()
     if [ $RETVAL -eq 0 ]; then
         # MailScanner is running. kill it
         kill -15 $PID
-        RETVAL="$?"
 
-        # process killed
+        # Check again, up to 1.5 ish minutes
+        COUNTER=0
+        while [ $COUNTER -lt 40 ]; do
+          ps wwp $PID|grep -q '[M]ailScanner': > /dev/null 2>&1
+          RETVAL="$?"
+          if [[ $RETVAL -eq 0 ]]; then
+            COUNTER=$((COUNTER+1))
+            sleep 2
+          else
+            COUNTER=40
+          fi
+        done
+
         if [ $RETVAL -eq 0 ]; then
-        
-        # disable rotating sign when stopping.
-            # wait until it is gone.
-            #s='-\|/';
-            #x=0
-            #i=0
-            #RETVAL=0
-            #while [ "$x" -lt 600 -a "$RETVAL" -eq 0 ]; do
-            #    ps wwp $PID | grep -q '[M]ailScanner':  > /dev/null 2>&1
-            #    RETVAL="$?"
-            #    x=$((x+1));
-            #    i=$(( (i+1) %4 ))
-            #    printf "\r${s:$i:1}"
-            #    sleep .1
-            #done
-            #printf "\r"
-            #echo " "
-            
-            # Check again
-            ps wwp $PID|grep -q '[M]ailScanner': > /dev/null 2>&1
-            RETVAL="$?"
-            
-            if [ $RETVAL -eq 0 ]; then
-                # Process never stopped
-                do_deadpid
-                
-                RETVAL="$?"
-
-                if [ $RETVAL -eq 1 ]; then
-                    return 2
-                else
-                    return 0
-                fi
-            fi
-
-            # remove subsys
-            if [ -f /var/lock/subsys/MailScanner ] ; then
-                rm -f /var/lock/subsys/MailScanner
-            fi
-
-            # remove pid file
-            if [ -f $PIDFILE ] ; then
-                rm -f $PIDFILE
-            fi
-
-            # create stopped file
-            touch $stopped_lockfile
-
-            # Stop successful
-            return 0
-        else
-            # Unable to stop process, attempt to clean up
+            # Process never stopped
             do_deadpid
 
             RETVAL="$?"
@@ -273,6 +233,22 @@ do_stop()
                 return 0
             fi
         fi
+
+        # remove subsys
+        if [ -f /var/lock/subsys/MailScanner ] ; then
+            rm -f /var/lock/subsys/MailScanner
+        fi
+
+        # remove pid file
+        if [ -f $PIDFILE ] ; then
+            rm -f $PIDFILE
+        fi
+
+        # create stopped file
+        touch $stopped_lockfile
+
+        # Stop successful
+        return 0
     else
         # MailScanner is not running but PID is present
         do_deadpid

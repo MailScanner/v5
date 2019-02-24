@@ -65,11 +65,10 @@ EOF
     exit 0
 fi
 
-#PIDFILE=`${QUICKPEEK} PIDFile ${ms_conf}`
-PIDFILE=/var/run/MSMilter.pid
+PIDFILE="`${QUICKPEEK} MilterPIDFile ${ms_conf}`"
 
 if [ -z $PIDFILE ]; then
-    PIDFILE=/var/run/MSMilter.pid
+    PIDFILE="/var/run/MSMilter.pid"
 fi
 
 #
@@ -132,37 +131,22 @@ do_stop()
     if [ $RETVAL -eq 0 ]; then
         # MSMilter is running. kill it
         kill -15 $PID
-        RETVAL="$?"
-
-        # process killed
-        if [ $RETVAL -eq 0 ]; then
         
-            # Check again
-            ps wwp $PID|grep -q '[M]SMilter' > /dev/null 2>&1
-            RETVAL="$?"
-            
-            if [ $RETVAL -eq 0 ]; then
-                # Process never stopped
-                do_deadpid
-                
-                RETVAL="$?"
+        # Check again, up to 1.5 ish minutes
+        COUNTER=0
+        while [ $COUNTER -lt 40 ]; do
+          ps wwp $PID|grep -q '[M]SMilter' > /dev/null 2>&1
+          RETVAL="$?"
+          if [[ $RETVAL -eq 0 ]]; then
+            COUNTER=$((COUNTER+1))
+            sleep 2
+          else
+            COUNTER=40
+          fi
+        done
 
-                if [ $RETVAL -eq 1 ]; then
-                    return 2
-                else
-                    return 0
-                fi
-            fi
-
-            # remove pid file
-            if [ -f $PIDFILE ] ; then
-                rm -f $PIDFILE
-            fi
-
-            # Stop successful
-            return 0
-        else
-            # Unable to stop process, attempt to clean up
+        if [ $RETVAL -eq 0 ]; then
+            # Process never stopped
             do_deadpid
 
             RETVAL="$?"
@@ -173,6 +157,14 @@ do_stop()
                 return 0
             fi
         fi
+
+        # remove pid file
+        if [ -f $PIDFILE ] ; then
+            rm -f $PIDFILE
+        fi
+
+        # Stop successful
+        return 0
     else
         # MSMilter not running but PID is present
         do_deadpid

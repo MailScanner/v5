@@ -536,16 +536,27 @@ sub StartLogging {
 sub ExitParent {
   my($sig) = @_; # Arg is the signal name
 
+  # Reap children (wait up to one minute)
+  my $counter=0
+  while ($counter < 30) {
+    if (wait() > 0) {
+      # Still active children
+      sleep(2);
+      $counter++;
+      MailScanner::Log::NoticeLog("Milter closing, waiting on children to finish...");
+    } else {
+      $counter=30;
+    }
+  }
+
   # Cleanup partial writes
-  # TODO:
-  # A more elegant solution would be to wait for children
-  # for a maximum period to finish processing incoming emails
-  # This works, but it interrupts current incoming mail with
-  # a temporary failure to the source mtas
   my $incoming = MailScanner::Config::Value('inqueuedir');
-  unlink glob $incoming . "/temp-*";
+  unlink glob @{$incoming}[0] . "/temp-*";
 
   unlink $PidFile; # Ditch the pid file
+
+  MailScanner::Log::Stop();
+
   exit 0;
 }
 
