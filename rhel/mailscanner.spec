@@ -256,6 +256,7 @@ sophos-autoupdate
 sophos-wrapper
 drweb-wrapper
 kaspersky-wrapper
+esets-wrapper-README
 EOF
 
 %clean
@@ -744,6 +745,8 @@ exit 0
 %attr(755,root,root) /usr/lib/MailScanner/wrapper/sophos-wrapper
 %attr(755,root,root) /usr/lib/MailScanner/wrapper/drweb-wrapper
 %attr(755,root,root) /usr/lib/MailScanner/wrapper/kaspersky-wrapper
+%attr(644,root,root) /usr/lib/MailScanner/wrapper/esets-wrapper-README
+
 
 %config(noreplace) /usr/share/MailScanner/perl/custom/CustomAction.pm
 %config(noreplace) /usr/share/MailScanner/perl/custom/GenericSpamScanner.pm
@@ -1270,6 +1273,9 @@ exit 0
 %config(noreplace) /usr/share/MailScanner/reports/ca/stored.virus.message.txt
 
 %changelog
+* Tue Feb 26 2019 Shawn Iverson <shawniverson@efa-project.org>
+- Add esets-wrapper-README
+
 * Sun Oct 21 2018 Shawn Iverson <shawniverson@efa-project.org>
 - Add en_uk reports and drweb-wrapper
 
