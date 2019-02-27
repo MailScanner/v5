@@ -35,4 +35,8 @@ if [ "x$1" = "x-IsItInstalled" ]; then
   exit 1
 fi
 
-exec sudo ${PackageDir}/$Prog "$@"
+# Comment out if using sudo method
+exec ${PackageDir}/$Prog "$@"
+
+# Uncomment if using sudo method
+# exec sudo ${PackageDir}/$Prog "$@"
