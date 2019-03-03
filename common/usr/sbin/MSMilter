@@ -549,7 +549,7 @@ sub ExitParent {
   my($sig) = @_; # Arg is the signal name
 
   # Reap children (wait up to one minute)
-  my $counter=0
+  my $counter=0;
   while ($counter < 30) {
     if (wait() > 0) {
       # Still active children
