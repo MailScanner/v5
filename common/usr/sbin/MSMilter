@@ -1,7 +1,7 @@
 #!/usr/bin/perl -U -I /usr/share/MailScanner/perl
 
-# (c) 2018 MailScanner Project <https://www.mailscanner.info>
-#          Version 1.3
+# (c) 2019 MailScanner Project <https://www.mailscanner.info>
+#          Version 1.4
 #
 #     This program is free software; you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -268,7 +268,12 @@ sub header_callback
         if (${$message_ref} =~ /SMTP\sid\s$/ ) {
             if (defined($symbols->{'L'}) && defined($symbols->{'L'}->{'i'}) ) {
                 $id = $symbols->{'L'}->{'i'};
-                MailScanner::Log::DebugLog("Postfix ID captured: $id");
+                if ( $id ne '' ) {
+                  MailScanner::Log::DebugLog("Postfix ID captured: $id"); 
+                } else {
+                  $id = smtp_id;
+                  MailScanner::Log::DebugLog("Postfix id empty, generated one instead: $id");
+                }
             } else {
                 $id = smtp_id;
                 MailScanner::Log::DebugLog("Unable to capture real postfix id, generated one instead: $id");
@@ -337,6 +342,13 @@ sub eoh_callback
                 $from = $line;
                 MailScanner::Log::DebugLog("eoh_callback: from = $line");
             }
+        }
+
+        if ( $id eq '' ) {
+          # Missing a queue id, header_callback possibly skipped, reject
+          MailScanner::Log::WarnLog("Postfix queue id is missing");
+          Sendmail::PMilter::SMFIS_TEMPFAIL;
+          return;
         }
 
         # Write header to file
