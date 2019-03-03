@@ -1,3 +1,14 @@
+03/03/2019 Changes in    v5.1.3-3
+==================================
+
+- Additional checks for empty queue id in milter
+- Update esets-wrapper-README and make sudo optional
+- Better process kill handling during stop
+- Reap children when stopping milter
+- Fix temp file cleanup in milter during stop
+- Ignore Denial of Service option (workaround)
+- Add additional base packages to debian install
+
 01/27/2019 Changes in    v5.1.3-2
 ==================================
 - Add sudo and README for esets-wrapper
