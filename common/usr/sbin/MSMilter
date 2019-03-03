@@ -382,53 +382,58 @@ sub eoh_callback
 
         # Determine what to do next
         if ($scannermode == 1) {
-           MailScanner::Log::DebugLog("eoh_callback: scanner mode enabled");
-           # Blacklist test
-           # Build a message object to test against
-           my $message = {};
-           if ($from ne '<>') {
-               $message->{from} = $from;
-           } else {
-               $message->{from} = '';
-           }
-           @{$message->{to}} = @to;
-           $message->{clientip} = $ip;
-           my $user;
-           my $domain;
-           ($user, $domain) = MailScanner::Message::address2userdomain($message->{from});
-           $message->{fromuser} = $user;
-           $message->{fromdomain} = $domain;
+            MailScanner::Log::DebugLog("eoh_callback: scanner mode enabled");
+            # Blacklist test
+            # Build a message object to test against
+            my $message = {};
+            if ($from ne '<>') {
+                $message->{from} = $from;
+            } else {
+                $message->{from} = '';
+            }
+            @{$message->{to}} = @to;
+            $message->{clientip} = $ip;
+            my $user;
+            my $domain;
+            ($user, $domain) = MailScanner::Message::address2userdomain($message->{from});
+            $message->{fromuser} = $user;
+            $message->{fromdomain} = $domain;
 
-           my $touser;
-           my $todomain;
-        
-           foreach my $msgto (@{$message->{to}}) {
-               ($touser, $todomain) = MailScanner::Message::address2userdomain($msgto);
-               push @{$message->{touser}}, $touser;
-               push @{$message->{todomain}}, $todomain;
-           }
-          
-           my $test;
-           # Check whitelist first
-           $test = MailScanner::Config::Value('spamwhitelist', $message);
+            my $touser;
+            my $todomain;
+            my $count;
 
-           # Not in whitelist, then check blacklist
-           if ($test == 0) {
-               MailScanner::Log::DebugLog("eom_callback: no whitelist match, proceeding to blacklist test");
-               # test
-               $test = MailScanner::Config::Value('spamblacklist', $message);
+            foreach my $msgto (@{$message->{to}}) {
+                ($touser, $todomain) = MailScanner::Message::address2userdomain($msgto);
+                push @{$message->{touser}}, $touser;
+                push @{$message->{todomain}}, $todomain;
+                $count++;
+            }
 
-               # Blacklisted, fire a reject
-               if ($test == 1) {
-                   MailScanner::Log::DebugLog("eom_callback: blacklist match, firing reject");
-                   # Set reject code
-                   $ctx->setreply('554', '5.7.1', 'Message Blacklisted');
+            my $test;
+            # Check whitelist first
+            $test = MailScanner::Config::Value('spamwhitelist', $message);
 
-                   # Delete temp file
-                   unlink $file;
-                   return Sendmail::PMilter::SMFIS_REJECT;
-               }
-           }
+            my $maxrecips = MailScanner::Config::Value('whitelistmaxrecips');
+            $maxrecips = 999999 unless $maxrecips;
+
+            # Not in whitelist or a large number of recipients, then check blacklist
+            if ($test == 0 || $count > $maxrecips) {
+                MailScanner::Log::DebugLog("eom_callback: no whitelist match, proceeding to blacklist test");
+                # test
+                $test = MailScanner::Config::Value('spamblacklist', $message);
+
+                # Blacklisted, fire a reject
+                if ($test == 1) {
+                    MailScanner::Log::DebugLog("eom_callback: blacklist match, firing reject");
+                    # Set reject code
+                    $ctx->setreply('554', '5.7.1', 'Message Blacklisted');
+
+                    # Delete temp file
+                    unlink $file;
+                    return Sendmail::PMilter::SMFIS_REJECT;
+                }
+            }
         }
 
         MailScanner::Log::DebugLog("eoh_callback: End of Header detected");
