@@ -183,7 +183,7 @@ sub envrcpt_callback
                 # Read envelope
                 my $queuehandle = new FileHandle;
                 my $incoming = MailScanner::Config::Value('inqueuedir');
-                MailScanner::Log::DebugLog("eoh_callback: incoming = " . @{$incoming}[0]);
+                MailScanner::Log::DebugLog("envrcpt_callback: incoming = " . @{$incoming}[0]);
                 if ($incoming eq '') {
                     MailScanner::Log::WarnLog("Unable to determine incoming queue!");
                     Sendmail::PMilter::SMFIS_TEMPFAIL;
