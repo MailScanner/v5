@@ -2907,7 +2907,7 @@ sub ExplodePartAndArchives {
                   $failisokay;
       #print STDERR "Found a zip or rar file\n" ;
       $file->close, next unless MailScanner::Config::Value('findarchivesbycontent', $this) ||
-                  $part =~ /\.(tar\.g?z|taz|tgz|tz|gz|zip|exe|rar|uu|uue|doc|docx|xls|xlsx|ppt|pptx|dot|dotx|xlt|xltx|pps|ppsx)$/i;
+                  $part =~ /\.(tar\.g?z|taz|tgz|tz|gz|zip|7z|exe|rar|uu|uue|doc|docx|xls|xlsx|ppt|pptx|dot|dotx|xlt|xltx|pps|ppsx)$/i;
       $foundnewfiles = 1;
       #print STDERR "Unpacking $part at level $level\n";
 
