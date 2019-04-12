@@ -310,7 +310,9 @@ sub new {
     my $safesubject = $message->{subject};
     $safesubject =~  tr/\x00-\xFF/#/c;
 
-    $message->{subject} = MIME::WordDecoder::mime_to_perl_string($safesubject);
+    eval {
+      $message->{subject} = MIME::WordDecoder::mime_to_perl_string($safesubject);
+    };
 
     $message->{store}->DeleteUnlock();
 
