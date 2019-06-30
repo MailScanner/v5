@@ -54,7 +54,6 @@ mkdir -p ${RPM_BUILD_ROOT}/etc/{cron.hourly,cron.daily}
 mkdir -p ${RPM_BUILD_ROOT}/usr/share/MailScanner/reports/{hu,de,se,ca,cy+en,pt_br,fr,es,en,en_uk,cz,it,dk,nl,ro,sk}
 mkdir -p ${RPM_BUILD_ROOT}/usr/share/MailScanner/perl/{MailScanner,custom}
 mkdir -p ${RPM_BUILD_ROOT}/usr/{lib/MailScanner/wrapper,lib/MailScanner/init,lib/MailScanner/systemd}
-mkdir -p ${RPM_BUILD_ROOT}/var/spool/MailScanner/{archive,incoming,quarantine,milterin,milterout}
 
 ### etc
 install etc/cron.daily/mailscanner ${RPM_BUILD_ROOT}/etc/cron.daily/
@@ -419,22 +418,32 @@ fi
 
 if [ ! -d '/var/spool/MailScanner/archive' ]; then
     mkdir -p /var/spool/MailScanner/archive
+    chmod 775 /var/spool/MailScanner/archive
+    chown root:mtagroup /var/spool/MailScanner/archive
 fi
 
 if [ ! -d '/var/spool/MailScanner/incoming' ]; then
     mkdir -p /var/spool/MailScanner/incoming
+    chmod 775 /var/spool/MailScanner/incoming
+    chown root:mtagroup /var/spool/MailScanner/incoming
 fi
 
 if [ ! -d '/var/spool/MailScanner/quarantine' ]; then
     mkdir -p /var/spool/MailScanner/quarantine
+    chmod 775 /var/spool/MailScanner/quarantine
+    chown root:mtagroup /var/spool/MailScanner/quarantine
 fi
 
 if [ ! -d '/var/spool/MailScanner/milterin' ]; then
     mkdir -p /var/spool/MailScanner/milterin
+    chmod 775 /var/spool/MailScanner/milterin
+    chown root:mtagroup /var/spool/MailScanner/milterin
 fi
 
 if [ ! -d '/var/spool/MailScanner/milterout' ]; then
     mkdir -p /var/spool/MailScanner/milterout
+    chmod 775 /var/spool/MailScanner/milterout
+    chown root:mtagroup /var/spool/MailScanner/milterout
 fi
 
 # remove old link if present
@@ -691,11 +700,6 @@ exit 0
 %attr(755,root,root) %dir /usr/lib/MailScanner/wrapper
 %attr(755,root,root) %dir /usr/lib/MailScanner/init
 %attr(755,root,root) %dir /usr/lib/MailScanner/systemd
-%attr(755,root,root) %dir /var/spool/MailScanner/archive
-%attr(755,root,root) %dir /var/spool/MailScanner/incoming
-%attr(755,root,root) %dir /var/spool/MailScanner/milterin
-%attr(755,root,root) %dir /var/spool/MailScanner/milterout
-#%attr(755,root,root) %dir /var/spool/MailScanner/quarantine
 %attr(755,root,root) %dir /usr/share/MailScanner
 %attr(755,root,root) %dir /usr/share/MailScanner/perl
 %attr(755,root,root) %dir /usr/share/MailScanner/perl/custom
@@ -1273,6 +1277,9 @@ exit 0
 %config(noreplace) /usr/share/MailScanner/reports/ca/stored.virus.message.txt
 
 %changelog
+* Sun Jun 30 2019 Shawn Iverson <shawniverson@efa-project.org>
+- Create and set permissions and ownership during post as needed
+
 * Tue Feb 26 2019 Shawn Iverson <shawniverson@efa-project.org>
 - Add esets-wrapper-README
 
