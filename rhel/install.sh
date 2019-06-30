@@ -1126,6 +1126,7 @@ if [ $SELMODE -eq 1 ]; then
         
     if [ -f '/etc/selinux/config' ]; then
         perl -pi -e 's/'$OLDTHING'/'$NEWTHING'/;' /etc/selinux/config
+        setenforce 0
     else	
         clear
         echo;
