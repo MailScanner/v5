@@ -507,7 +507,9 @@ sub ScanBatch {
       # Delete all the messages from this batch as if we weren't scanning
       # them, and reject the batch.
       # MailScanner::Log::WarnLog("Virus Scanning: No virus scanners worked, so message batch was abandoned and retried!");
-      $batch->DropBatch();
+      # Since we are looping in this spot now, do not drop the messages from the batch
+      #$batch->DropBatch();
+      sleep 30;
       #return 1;
     } else {
       $scanstatus = 0;
