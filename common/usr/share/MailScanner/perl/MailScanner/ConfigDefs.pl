@@ -96,6 +96,8 @@ deletedsizemessage		= deletedsizemessagereport
 deletedvirusmessage		= deletedvirusmessagereport
 deliverdisinfected		= deliverdisinfectedfiles
 deliversilent			= stilldeliversilentviruses
+scansilent			= stillscansilentviruses
+deliversilentunmodified		= stilldeliversilentvirusesunmodified
 dirtyheader			= infectedheadervalue
 disarmmodifysubject		= disarmedmodifysubject
 disarmsubjecttext		= disarmedsubjecttext
@@ -455,6 +457,8 @@ CheckSAIfOnSpamList	1	no	0	yes	1
 ContentModifySubject	start	no	0	yes	1	start	start	end	end
 DeliverDisinfected	0	no	0	yes	1
 DeliverSilent		0	no	0	yes	1
+ScanSilent		0	no	0	yes	1
+DeliverSilentUnmodified	0	no	0	yes	1
 deliverunparsabletnef	0	no	0	yes	1
 deliverymethod		batch	batch	batch	queue	queue
 DisarmModifySubject	start	no	0	yes	1	start	start	end	end
