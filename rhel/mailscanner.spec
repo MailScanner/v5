@@ -422,31 +422,46 @@ fi
 if [ ! -d '/var/spool/MailScanner/archive' ]; then
     mkdir -p /var/spool/MailScanner/archive
     chmod 775 /var/spool/MailScanner/archive
-    chown root:mtagroup /var/spool/MailScanner/archive
+fi
+
+if [ $(stat -c "%G" /var/spool/MailScanner/archive) == 'root' ]; then
+    chgrp mtagroup /var/spool/MailScanner/archive
 fi
 
 if [ ! -d '/var/spool/MailScanner/incoming' ]; then
     mkdir -p /var/spool/MailScanner/incoming
     chmod 775 /var/spool/MailScanner/incoming
-    chown root:mtagroup /var/spool/MailScanner/incoming
+fi
+
+if [ $(stat -c "%G" /var/spool/MailScanner/incoming) == 'root' ]; then
+    chgrp mtagroup /var/spool/MailScanner/incoming
 fi
 
 if [ ! -d '/var/spool/MailScanner/quarantine' ]; then
     mkdir -p /var/spool/MailScanner/quarantine
     chmod 775 /var/spool/MailScanner/quarantine
-    chown root:mtagroup /var/spool/MailScanner/quarantine
+fi
+
+if [ $(stat -c "%G" /var/spool/MailScanner/quarantine) == 'root' ]; then
+    chgrp mtagroup /var/spool/MailScanner/quarantine
 fi
 
 if [ ! -d '/var/spool/MailScanner/milterin' ]; then
     mkdir -p /var/spool/MailScanner/milterin
     chmod 775 /var/spool/MailScanner/milterin
-    chown root:mtagroup /var/spool/MailScanner/milterin
+fi
+
+if [ $(stat -c "%G" /var/spool/MailScanner/milterin) == 'root' ]; then
+    chgrp mtagroup /var/spool/MailScanner/milterin
 fi
 
 if [ ! -d '/var/spool/MailScanner/milterout' ]; then
     mkdir -p /var/spool/MailScanner/milterout
     chmod 775 /var/spool/MailScanner/milterout
-    chown root:mtagroup /var/spool/MailScanner/milterout
+fi
+
+if [ $(stat -c "%G" /var/spool/MailScanner/milterout) == 'root' ]; then
+    chgrp mtagroup /var/spool/MailScanner/milterout
 fi
 
 # remove old link if present
@@ -708,6 +723,11 @@ exit 0
 %attr(755,root,root) %dir /usr/share/MailScanner/perl/custom
 %attr(755,root,root) %dir /usr/share/MailScanner/perl/MailScanner
 %attr(755,root,root) %dir /usr/share/MailScanner/reports
+%attr(775,root,root) %dir /var/spool/MailScanner/archive
+%attr(775,root,root) %dir /var/spool/MailScanner/incoming
+%attr(775,root,root) %dir /var/spool/MailScanner/milterin
+%attr(775,root,root) %dir /var/spool/MailScanner/milterout
+%attr(775,root,root) %dir /var/spool/MailScanner/quarantine
 
 %attr(755,root,root) /usr/sbin/MailScanner
 %attr(755,root,root) /usr/sbin/MSMilter
@@ -1313,6 +1333,9 @@ exit 0
 %config(noreplace) /usr/share/MailScanner/reports/ca/stored.virus.message.txt
 
 %changelog
+* Sun Jul 07 2019 Shawn Iverson <shawniverson@efa-project.org>
+- Add back directories to files section and test group membership
+
 * Sun Jul 07 2019 Shawn Iverson <shawniverson@efa-project.org>
 - Add external inline message files and rules
 
