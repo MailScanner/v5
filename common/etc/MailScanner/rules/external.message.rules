@@ -1,0 +1,8 @@
+# This is an example ruleset to show how to specify an external
+# message warning. Set your local domains to no and default to yes.
+#
+#From:	example.com	no
+#From:	example.org	no
+#FromOrTo:	default	yes
+
+FromOrTo:	default	no
