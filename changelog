@@ -1,4 +1,17 @@
-03/03/2019 Changes in    v5.1.3-3
+07/07/2019 Changes in    v5.1.4-1
+==================================
+
+- Scan silent viruses also for spam option
+- Fix silent virus delivery behavior
+- Keep batch during A/V scan failure and back off for 30 seconds
+- RHEL/CentOS setenforce 0 (install)
+- Move ownership and permissions to post (install/update)
+- Eval WordDecoder Subject
+- Allow scan 7z archives if 'Find Archives By Content = no' 
+- Use correct callback in debug message in milter
+- Honor whitelistmaxrecips in milter
+
+03/03/2019 Changes in    v5.1.3-3 (unreleased)
 ==================================
 
 - Additional checks for empty queue id in milter
