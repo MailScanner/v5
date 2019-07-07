@@ -868,6 +868,10 @@ sub FindSilentAndNoisyInfections {
 
 # Deliver all the "silent" and not noisy infected messages,
 # and mark them for deletion from the queue.
+# https://github.com/MailScanner/v5/issues/384
+# Added scansilent to scan silent viruses
+# Added deliverslilentunmodified to allow for old behavior when
+# deliversilent was enabled in previous versions
 sub DeliverOrDeleteSilentExceptSpamViruses {
   my $this = shift;
 
@@ -875,14 +879,28 @@ sub DeliverOrDeleteSilentExceptSpamViruses {
 
   while(($id, $message) = each %{$this->{messages}}) {
     next if !$message->{silent}  || $message->{noisy} ||
-             $message->{deleted} || $message->{dontdeliver};
+             $message->{deleted} || $message->{dontdeliver} ||
+             (MailScanner::Config::Value('scansilent', $message) &&
+              MailScanner::Config::Value('deliversilent', $message));
     #MailScanner::Log::WarnLog("Deliversilent for %s is %s", $message->{id},
     #                MailScanner::Config::Value('deliversilent', $message));
+    MailScanner::Log::DebugLog("Debug: Silent virus detected in message %s that needs delivered and deleted", $message->{id});
+
     if (MailScanner::Config::Value('deliversilent', $message)) {
-      $message->DeliverCleaned();
-      #print STDERR "Deleting silent-infected message " . $message->{id} . "\n";
+      if (MailScanner::Config::Value('deliversilentunmodified', $message)) {
+        # Must want the entire message unmodified without scanning despite the warnings... :/
+        MailScanner::Log::DebugLog("Debug: Delivering message %s as-is containing silent virus", $message->{id});
+        $message->DeliverCleaned();
+        #print STDERR "Deleting silent-infected message " . $message->{id} . "\n";
+      } else {
+        MailScanner::Log::DebugLog("Debug: Clean message %s containing silent virus and deliver", $message->{id});
+        $message->Clean();
+        $message->DeliverCleaned();
+      }
       push @messages, $message;
-    }
+    } 
+    # Message must not need scanned and is silent, so we will delete it and move on
+    MailScanner::Log::DebugLog("Debug: Delete message %s containing silent virus", $message->{id});
     $message->{deleted} = 1;
     $message->{stillwarn} = 1;
   }
@@ -1061,7 +1079,17 @@ sub DisinfectAndDeliver {
         !MailScanner::Config::Value('deliverdisinfected',$message)) {
       $message->DeleteMessage();
     } else {
-      if ($message->{virusinfected}) {
+      # Disinfect virus infected messages that are...
+      # not silent, or
+      # noisy, or
+      # not set to be delivered unmodified
+      # https://github.com/MailScanner/v5/issues/384
+      # Honor deliverilentunmodified and skip disinfection (old behavior)
+      if ($message->{virusinfected} &&
+          (!$message->{silent} ||
+           $message->{noisy} ||
+           !MailScanner::Config::Value('deliversilentunmodified', $message))) {
+        MailScanner::Log::DebugLog("Debug: Virus infected message %s that needs disinfected", $message->{id});
         #print STDERR "Found message $id to be worth disinfecting\n";
         push @interesting, $id;
       }

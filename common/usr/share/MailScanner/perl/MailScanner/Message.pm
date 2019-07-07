@@ -4570,6 +4570,14 @@ sub Clean {
                       !MailScanner::Config::Value('deliversilent', $this); # &&
     #             MailScanner::Config::Value('quarantinesilent', $this) !~ /1/;
 
+    # Deliver silent message unmodified after spam scanning depite warnings? :/
+    # https://github.com/MailScanner/v5/issues/384
+    # Skips cleaning an attachment if conditions are met (old behavior)
+    next if $this->{silent} && !$this->{noisy} && 
+            MailScanner::Config::Value('deliversilent', $this) &&
+            MailScanner::Config::Value('deliversilentunmodified', $this);
+
+    MailScanner::Log::DebugLog("Debug: Message %s needs an attachment replaced", $this->{id});
     # Do the actual attachment replacement
     #print STDERR "File = \"$file\"\nthis = \"$this\"\n";
     #print STDERR "Entity to clean is $entity\n" .
@@ -4618,10 +4626,14 @@ sub Clean {
   }
 
   # Sign the top of the message body with a text/html warning if they want.
+  # https://github.com/MailScanner/v5/issues/384
+  # Skip warning if deliversilentunmodified is true (old behavior)
   if (MailScanner::Config::Value('markinfectedmessages',$this) =~ /1/ &&
-      !$this->{signed}) {
+      !$this->{signed} &&
+      !MailScanner::Config::Value('deliversilentunmodified', $this)) {
     #print STDERR "In Clean message, about to sign message " . $this->{id} .
     #             "\n";
+    MailScanner::Log::DebugLog("Debug: Adding warning to message %s body", $this->{id});
     $this->SignWarningMessage($this->{entity});
     $this->{signed} = 1;
   }
