@@ -79,6 +79,7 @@ EXAMPLES
 max.message.size.rules
 README
 spam.whitelist.rules
+external.message.rules
 EOF
 
 while read f
@@ -138,6 +139,8 @@ inline.sig.txt
 inline.spam.warning.txt
 inline.warning.html
 inline.warning.txt
+inline.external.warning.html
+inline.external.warning.txt
 languages.conf
 languages.conf.strings
 recipient.mcp.report.txt
@@ -826,6 +829,7 @@ exit 0
 %config(noreplace) /etc/MailScanner/rules/max.message.size.rules
 %attr(644,root,root) /etc/MailScanner/rules/README
 %config(noreplace) /etc/MailScanner/rules/spam.whitelist.rules
+%config(noreplace) /etc/MailScanner/rules/external.message.rules
 
 %config(noreplace) /usr/share/MailScanner/reports/en/deleted.content.message.txt
 %config(noreplace) /usr/share/MailScanner/reports/en/stored.content.message.txt
@@ -839,6 +843,8 @@ exit 0
 %config(noreplace) /usr/share/MailScanner/reports/en/inline.spam.warning.txt
 %config(noreplace) /usr/share/MailScanner/reports/en/inline.warning.html
 %config(noreplace) /usr/share/MailScanner/reports/en/inline.warning.txt
+%config(noreplace) /usr/share/MailScanner/reports/en/inline.external.warning.html
+%config(noreplace) /usr/share/MailScanner/reports/en/inline.external.warning.txt
 %config(noreplace) /usr/share/MailScanner/reports/en/languages.conf
 %config(noreplace) /usr/share/MailScanner/reports/en/languages.conf.strings
 %config(noreplace) /usr/share/MailScanner/reports/en/recipient.spam.report.txt
@@ -867,6 +873,8 @@ exit 0
 %config(noreplace) /usr/share/MailScanner/reports/en_uk/inline.spam.warning.txt
 %config(noreplace) /usr/share/MailScanner/reports/en_uk/inline.warning.html
 %config(noreplace) /usr/share/MailScanner/reports/en_uk/inline.warning.txt
+%config(noreplace) /usr/share/MailScanner/reports/en_uk/inline.external.warning.html
+%config(noreplace) /usr/share/MailScanner/reports/en_uk/inline.external.warning.txt
 %config(noreplace) /usr/share/MailScanner/reports/en_uk/languages.conf
 %config(noreplace) /usr/share/MailScanner/reports/en_uk/languages.conf.strings
 %config(noreplace) /usr/share/MailScanner/reports/en_uk/recipient.spam.report.txt
@@ -895,6 +903,8 @@ exit 0
 %config(noreplace) /usr/share/MailScanner/reports/cy+en/inline.spam.warning.txt
 %config(noreplace) /usr/share/MailScanner/reports/cy+en/inline.warning.html
 %config(noreplace) /usr/share/MailScanner/reports/cy+en/inline.warning.txt
+%config(noreplace) /usr/share/MailScanner/reports/cy+en/inline.external.warning.html
+%config(noreplace) /usr/share/MailScanner/reports/cy+en/inline.external.warning.txt
 %config(noreplace) /usr/share/MailScanner/reports/cy+en/languages.conf
 %config(noreplace) /usr/share/MailScanner/reports/cy+en/languages.conf.strings
 %config(noreplace) /usr/share/MailScanner/reports/cy+en/recipient.spam.report.txt
@@ -923,6 +933,8 @@ exit 0
 %config(noreplace) /usr/share/MailScanner/reports/de/inline.spam.warning.txt
 %config(noreplace) /usr/share/MailScanner/reports/de/inline.warning.html
 %config(noreplace) /usr/share/MailScanner/reports/de/inline.warning.txt
+%config(noreplace) /usr/share/MailScanner/reports/de/inline.external.warning.html
+%config(noreplace) /usr/share/MailScanner/reports/de/inline.external.warning.txt
 %config(noreplace) /usr/share/MailScanner/reports/de/languages.conf
 %config(noreplace) /usr/share/MailScanner/reports/de/languages.conf.strings
 %config(noreplace) /usr/share/MailScanner/reports/de/recipient.spam.report.txt
@@ -951,6 +963,8 @@ exit 0
 %config(noreplace) /usr/share/MailScanner/reports/fr/inline.spam.warning.txt
 %config(noreplace) /usr/share/MailScanner/reports/fr/inline.warning.html
 %config(noreplace) /usr/share/MailScanner/reports/fr/inline.warning.txt
+%config(noreplace) /usr/share/MailScanner/reports/fr/inline.external.warning.html
+%config(noreplace) /usr/share/MailScanner/reports/fr/inline.external.warning.txt
 %config(noreplace) /usr/share/MailScanner/reports/fr/languages.conf
 %config(noreplace) /usr/share/MailScanner/reports/fr/languages.conf.strings
 %config(noreplace) /usr/share/MailScanner/reports/fr/recipient.spam.report.txt
@@ -978,6 +992,8 @@ exit 0
 %config(noreplace) /usr/share/MailScanner/reports/es/inline.sig.txt
 %config(noreplace) /usr/share/MailScanner/reports/es/inline.spam.warning.txt
 %config(noreplace) /usr/share/MailScanner/reports/es/inline.warning.html
+%config(noreplace) /usr/share/MailScanner/reports/es/inline.external.warning.html
+%config(noreplace) /usr/share/MailScanner/reports/es/inline.external.warning.txt
 %config(noreplace) /usr/share/MailScanner/reports/es/inline.warning.txt
 %config(noreplace) /usr/share/MailScanner/reports/es/languages.conf
 %config(noreplace) /usr/share/MailScanner/reports/es/languages.conf.strings
@@ -1007,6 +1023,8 @@ exit 0
 %config(noreplace) /usr/share/MailScanner/reports/nl/inline.spam.warning.txt
 %config(noreplace) /usr/share/MailScanner/reports/nl/inline.warning.html
 %config(noreplace) /usr/share/MailScanner/reports/nl/inline.warning.txt
+%config(noreplace) /usr/share/MailScanner/reports/nl/inline.external.warning.html
+%config(noreplace) /usr/share/MailScanner/reports/nl/inline.external.warning.txt
 %config(noreplace) /usr/share/MailScanner/reports/nl/languages.conf
 %config(noreplace) /usr/share/MailScanner/reports/nl/languages.conf.strings
 %config(noreplace) /usr/share/MailScanner/reports/nl/recipient.spam.report.txt
@@ -1035,6 +1053,8 @@ exit 0
 %config(noreplace) /usr/share/MailScanner/reports/pt_br/inline.spam.warning.txt
 %config(noreplace) /usr/share/MailScanner/reports/pt_br/inline.warning.html
 %config(noreplace) /usr/share/MailScanner/reports/pt_br/inline.warning.txt
+%config(noreplace) /usr/share/MailScanner/reports/pt_br/inline.external.warning.html
+%config(noreplace) /usr/share/MailScanner/reports/pt_br/inline.external.warning.txt
 %config(noreplace) /usr/share/MailScanner/reports/pt_br/languages.conf
 %config(noreplace) /usr/share/MailScanner/reports/pt_br/languages.conf.strings
 %config(noreplace) /usr/share/MailScanner/reports/pt_br/recipient.spam.report.txt
@@ -1063,6 +1083,8 @@ exit 0
 %config(noreplace) /usr/share/MailScanner/reports/sk/inline.spam.warning.txt
 %config(noreplace) /usr/share/MailScanner/reports/sk/inline.warning.html
 %config(noreplace) /usr/share/MailScanner/reports/sk/inline.warning.txt
+%config(noreplace) /usr/share/MailScanner/reports/sk/inline.external.warning.html
+%config(noreplace) /usr/share/MailScanner/reports/sk/inline.external.warning.txt
 %config(noreplace) /usr/share/MailScanner/reports/sk/languages.conf
 %config(noreplace) /usr/share/MailScanner/reports/sk/languages.conf.strings
 %config(noreplace) /usr/share/MailScanner/reports/sk/recipient.spam.report.txt
@@ -1091,6 +1113,8 @@ exit 0
 %config(noreplace) /usr/share/MailScanner/reports/dk/inline.spam.warning.txt
 %config(noreplace) /usr/share/MailScanner/reports/dk/inline.warning.html
 %config(noreplace) /usr/share/MailScanner/reports/dk/inline.warning.txt
+%config(noreplace) /usr/share/MailScanner/reports/dk/inline.external.warning.html
+%config(noreplace) /usr/share/MailScanner/reports/dk/inline.external.warning.txt
 %config(noreplace) /usr/share/MailScanner/reports/dk/languages.conf
 %config(noreplace) /usr/share/MailScanner/reports/dk/languages.conf.strings
 %config(noreplace) /usr/share/MailScanner/reports/dk/recipient.spam.report.txt
@@ -1119,6 +1143,8 @@ exit 0
 %config(noreplace) /usr/share/MailScanner/reports/it/inline.spam.warning.txt
 %config(noreplace) /usr/share/MailScanner/reports/it/inline.warning.html
 %config(noreplace) /usr/share/MailScanner/reports/it/inline.warning.txt
+%config(noreplace) /usr/share/MailScanner/reports/it/inline.external.warning.html
+%config(noreplace) /usr/share/MailScanner/reports/it/inline.external.warning.txt
 %config(noreplace) /usr/share/MailScanner/reports/it/languages.conf
 %config(noreplace) /usr/share/MailScanner/reports/it/languages.conf.strings
 %config(noreplace) /usr/share/MailScanner/reports/it/recipient.spam.report.txt
@@ -1147,6 +1173,8 @@ exit 0
 %config(noreplace) /usr/share/MailScanner/reports/ro/inline.spam.warning.txt
 %config(noreplace) /usr/share/MailScanner/reports/ro/inline.warning.html
 %config(noreplace) /usr/share/MailScanner/reports/ro/inline.warning.txt
+%config(noreplace) /usr/share/MailScanner/reports/ro/inline.external.warning.html
+%config(noreplace) /usr/share/MailScanner/reports/ro/inline.external.warning.txt
 %config(noreplace) /usr/share/MailScanner/reports/ro/languages.conf
 %config(noreplace) /usr/share/MailScanner/reports/ro/languages.conf.strings
 %config(noreplace) /usr/share/MailScanner/reports/ro/recipient.spam.report.txt
@@ -1175,6 +1203,8 @@ exit 0
 %config(noreplace) /usr/share/MailScanner/reports/se/inline.spam.warning.txt
 %config(noreplace) /usr/share/MailScanner/reports/se/inline.warning.html
 %config(noreplace) /usr/share/MailScanner/reports/se/inline.warning.txt
+%config(noreplace) /usr/share/MailScanner/reports/se/inline.external.warning.html
+%config(noreplace) /usr/share/MailScanner/reports/se/inline.external.warning.txt
 %config(noreplace) /usr/share/MailScanner/reports/se/languages.conf
 %config(noreplace) /usr/share/MailScanner/reports/se/languages.conf.strings
 %config(noreplace) /usr/share/MailScanner/reports/se/recipient.spam.report.txt
@@ -1203,6 +1233,8 @@ exit 0
 %config(noreplace) /usr/share/MailScanner/reports/cz/inline.spam.warning.txt
 %config(noreplace) /usr/share/MailScanner/reports/cz/inline.warning.html
 %config(noreplace) /usr/share/MailScanner/reports/cz/inline.warning.txt
+%config(noreplace) /usr/share/MailScanner/reports/cz/inline.external.warning.html
+%config(noreplace) /usr/share/MailScanner/reports/cz/inline.external.warning.txt
 %config(noreplace) /usr/share/MailScanner/reports/cz/languages.conf
 %config(noreplace) /usr/share/MailScanner/reports/cz/languages.conf.strings
 %config(noreplace) /usr/share/MailScanner/reports/cz/recipient.spam.report.txt
@@ -1231,6 +1263,8 @@ exit 0
 %config(noreplace) /usr/share/MailScanner/reports/hu/inline.spam.warning.txt
 %config(noreplace) /usr/share/MailScanner/reports/hu/inline.warning.html
 %config(noreplace) /usr/share/MailScanner/reports/hu/inline.warning.txt
+%config(noreplace) /usr/share/MailScanner/reports/hu/inline.external.warning.html
+%config(noreplace) /usr/share/MailScanner/reports/hu/inline.external.warning.txt
 %config(noreplace) /usr/share/MailScanner/reports/hu/languages.conf
 %config(noreplace) /usr/share/MailScanner/reports/hu/languages.conf.strings
 %config(noreplace) /usr/share/MailScanner/reports/hu/recipient.spam.report.txt
@@ -1259,6 +1293,8 @@ exit 0
 %config(noreplace) /usr/share/MailScanner/reports/ca/inline.spam.warning.txt
 %config(noreplace) /usr/share/MailScanner/reports/ca/inline.warning.html
 %config(noreplace) /usr/share/MailScanner/reports/ca/inline.warning.txt
+%config(noreplace) /usr/share/MailScanner/reports/ca/inline.external.warning.html
+%config(noreplace) /usr/share/MailScanner/reports/ca/inline.external.warning.txt
 %config(noreplace) /usr/share/MailScanner/reports/ca/languages.conf
 %config(noreplace) /usr/share/MailScanner/reports/ca/languages.conf.strings
 %config(noreplace) /usr/share/MailScanner/reports/ca/recipient.spam.report.txt
@@ -1277,6 +1313,9 @@ exit 0
 %config(noreplace) /usr/share/MailScanner/reports/ca/stored.virus.message.txt
 
 %changelog
+* Sun Jul 07 2019 Shawn Iverson <shawniverson@efa-project.org>
+- Add external inline message files and rules
+
 * Sun Jun 30 2019 Shawn Iverson <shawniverson@efa-project.org>
 - Create and set permissions and ownership during post as needed
 

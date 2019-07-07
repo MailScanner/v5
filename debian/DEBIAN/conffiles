@@ -7,6 +7,7 @@
 /etc/MailScanner/rules/bounce.rules
 /etc/MailScanner/rules/max.message.size.rules
 /etc/MailScanner/rules/spam.whitelist.rules
+/etc/MailScanner/rules/external.message.rules
 /etc/MailScanner/spamassassin.conf
 /etc/logcheck/ignore.d.server/mailscanner
 /etc/logcheck/ignore.d.workstation/mailscanner
@@ -20,6 +21,8 @@
 /usr/share/MailScanner/reports/ca/inline.spam.warning.txt
 /usr/share/MailScanner/reports/ca/inline.warning.html
 /usr/share/MailScanner/reports/ca/inline.warning.txt
+/usr/share/MailScanner/reports/ca/inline.external.warning.html
+/usr/share/MailScanner/reports/ca/inline.external.warning.txt
 /usr/share/MailScanner/reports/ca/languages.conf
 /usr/share/MailScanner/reports/ca/recipient.mcp.report.txt
 /usr/share/MailScanner/reports/ca/recipient.spam.report.txt
@@ -47,6 +50,8 @@
 /usr/share/MailScanner/reports/cy+en/inline.spam.warning.txt
 /usr/share/MailScanner/reports/cy+en/inline.warning.html
 /usr/share/MailScanner/reports/cy+en/inline.warning.txt
+/usr/share/MailScanner/reports/cy+en/inline.external.warning.html
+/usr/share/MailScanner/reports/cy+en/inline.external.warning.txt
 /usr/share/MailScanner/reports/cy+en/languages.conf
 /usr/share/MailScanner/reports/cy+en/recipient.mcp.report.txt
 /usr/share/MailScanner/reports/cy+en/recipient.spam.report.txt
@@ -74,6 +79,8 @@
 /usr/share/MailScanner/reports/cz/inline.spam.warning.txt
 /usr/share/MailScanner/reports/cz/inline.warning.html
 /usr/share/MailScanner/reports/cz/inline.warning.txt
+/usr/share/MailScanner/reports/cz/inline.external.warning.html
+/usr/share/MailScanner/reports/cz/inline.external.warning.txt
 /usr/share/MailScanner/reports/cz/languages.conf
 /usr/share/MailScanner/reports/cz/recipient.mcp.report.txt
 /usr/share/MailScanner/reports/cz/recipient.spam.report.txt
@@ -101,6 +108,8 @@
 /usr/share/MailScanner/reports/de/inline.spam.warning.txt
 /usr/share/MailScanner/reports/de/inline.warning.html
 /usr/share/MailScanner/reports/de/inline.warning.txt
+/usr/share/MailScanner/reports/de/inline.external.warning.html
+/usr/share/MailScanner/reports/de/inline.external.warning.txt
 /usr/share/MailScanner/reports/de/languages.conf
 /usr/share/MailScanner/reports/de/recipient.mcp.report.txt
 /usr/share/MailScanner/reports/de/recipient.spam.report.txt
@@ -128,6 +137,8 @@
 /usr/share/MailScanner/reports/dk/inline.spam.warning.txt
 /usr/share/MailScanner/reports/dk/inline.warning.html
 /usr/share/MailScanner/reports/dk/inline.warning.txt
+/usr/share/MailScanner/reports/dk/inline.external.warning.html
+/usr/share/MailScanner/reports/dk/inline.external.warning.txt
 /usr/share/MailScanner/reports/dk/languages.conf
 /usr/share/MailScanner/reports/dk/recipient.mcp.report.txt
 /usr/share/MailScanner/reports/dk/recipient.spam.report.txt
@@ -155,6 +166,8 @@
 /usr/share/MailScanner/reports/en/inline.spam.warning.txt
 /usr/share/MailScanner/reports/en/inline.warning.html
 /usr/share/MailScanner/reports/en/inline.warning.txt
+/usr/share/MailScanner/reports/en/inline.external.warning.html
+/usr/share/MailScanner/reports/en/inline.external.warning.txt
 /usr/share/MailScanner/reports/en/languages.conf
 /usr/share/MailScanner/reports/en/recipient.mcp.report.txt
 /usr/share/MailScanner/reports/en/recipient.spam.report.txt
@@ -182,6 +195,8 @@
 /usr/share/MailScanner/reports/en_uk/inline.spam.warning.txt
 /usr/share/MailScanner/reports/en_uk/inline.warning.html
 /usr/share/MailScanner/reports/en_uk/inline.warning.txt
+/usr/share/MailScanner/reports/en_uk/inline.external.warning.html
+/usr/share/MailScanner/reports/en_uk/inline.external.warning.txt
 /usr/share/MailScanner/reports/en_uk/languages.conf
 /usr/share/MailScanner/reports/en_uk/recipient.mcp.report.txt
 /usr/share/MailScanner/reports/en_uk/recipient.spam.report.txt
@@ -209,6 +224,8 @@
 /usr/share/MailScanner/reports/es/inline.spam.warning.txt
 /usr/share/MailScanner/reports/es/inline.warning.html
 /usr/share/MailScanner/reports/es/inline.warning.txt
+/usr/share/MailScanner/reports/es/inline.external.warning.html
+/usr/share/MailScanner/reports/es/inline.external.warning.txt
 /usr/share/MailScanner/reports/es/languages.conf
 /usr/share/MailScanner/reports/es/recipient.mcp.report.txt
 /usr/share/MailScanner/reports/es/recipient.spam.report.txt
@@ -236,6 +253,8 @@
 /usr/share/MailScanner/reports/fr/inline.spam.warning.txt
 /usr/share/MailScanner/reports/fr/inline.warning.html
 /usr/share/MailScanner/reports/fr/inline.warning.txt
+/usr/share/MailScanner/reports/fr/inline.external.warning.html
+/usr/share/MailScanner/reports/fr/inline.external.warning.txt
 /usr/share/MailScanner/reports/fr/languages.conf
 /usr/share/MailScanner/reports/fr/recipient.mcp.report.txt
 /usr/share/MailScanner/reports/fr/recipient.spam.report.txt
@@ -263,6 +282,8 @@
 /usr/share/MailScanner/reports/hu/inline.spam.warning.txt
 /usr/share/MailScanner/reports/hu/inline.warning.html
 /usr/share/MailScanner/reports/hu/inline.warning.txt
+/usr/share/MailScanner/reports/hu/inline.external.warning.html
+/usr/share/MailScanner/reports/hu/inline.external.warning.txt
 /usr/share/MailScanner/reports/hu/languages.conf
 /usr/share/MailScanner/reports/hu/recipient.mcp.report.txt
 /usr/share/MailScanner/reports/hu/recipient.spam.report.txt
@@ -290,6 +311,8 @@
 /usr/share/MailScanner/reports/it/inline.spam.warning.txt
 /usr/share/MailScanner/reports/it/inline.warning.html
 /usr/share/MailScanner/reports/it/inline.warning.txt
+/usr/share/MailScanner/reports/it/inline.external.warning.html
+/usr/share/MailScanner/reports/it/inline.external.warning.txt
 /usr/share/MailScanner/reports/it/languages.conf
 /usr/share/MailScanner/reports/it/recipient.mcp.report.txt
 /usr/share/MailScanner/reports/it/recipient.spam.report.txt
@@ -317,6 +340,8 @@
 /usr/share/MailScanner/reports/nl/inline.spam.warning.txt
 /usr/share/MailScanner/reports/nl/inline.warning.html
 /usr/share/MailScanner/reports/nl/inline.warning.txt
+/usr/share/MailScanner/reports/nl/inline.external.warning.html
+/usr/share/MailScanner/reports/nl/inline.external.warning.txt
 /usr/share/MailScanner/reports/nl/languages.conf
 /usr/share/MailScanner/reports/nl/recipient.mcp.report.txt
 /usr/share/MailScanner/reports/nl/recipient.spam.report.txt
@@ -344,6 +369,8 @@
 /usr/share/MailScanner/reports/pt_br/inline.spam.warning.txt
 /usr/share/MailScanner/reports/pt_br/inline.warning.html
 /usr/share/MailScanner/reports/pt_br/inline.warning.txt
+/usr/share/MailScanner/reports/pt_br/inline.external.warning.html
+/usr/share/MailScanner/reports/pt_br/inline.external.warning.txt
 /usr/share/MailScanner/reports/pt_br/languages.conf
 /usr/share/MailScanner/reports/pt_br/recipient.mcp.report.txt
 /usr/share/MailScanner/reports/pt_br/recipient.spam.report.txt
@@ -371,6 +398,8 @@
 /usr/share/MailScanner/reports/ro/inline.spam.warning.txt
 /usr/share/MailScanner/reports/ro/inline.warning.html
 /usr/share/MailScanner/reports/ro/inline.warning.txt
+/usr/share/MailScanner/reports/ro/inline.external.warning.html
+/usr/share/MailScanner/reports/ro/inline.external.warning.txt
 /usr/share/MailScanner/reports/ro/languages.conf
 /usr/share/MailScanner/reports/ro/recipient.mcp.report.txt
 /usr/share/MailScanner/reports/ro/recipient.spam.report.txt
@@ -398,6 +427,8 @@
 /usr/share/MailScanner/reports/se/inline.spam.warning.txt
 /usr/share/MailScanner/reports/se/inline.warning.html
 /usr/share/MailScanner/reports/se/inline.warning.txt
+/usr/share/MailScanner/reports/se/inline.external.warning.html
+/usr/share/MailScanner/reports/se/inline.external.warning.txt
 /usr/share/MailScanner/reports/se/languages.conf
 /usr/share/MailScanner/reports/se/recipient.mcp.report.txt
 /usr/share/MailScanner/reports/se/recipient.spam.report.txt
@@ -425,6 +456,8 @@
 /usr/share/MailScanner/reports/sk/inline.spam.warning.txt
 /usr/share/MailScanner/reports/sk/inline.warning.html
 /usr/share/MailScanner/reports/sk/inline.warning.txt
+/usr/share/MailScanner/reports/sk/inline.external.warning.html
+/usr/share/MailScanner/reports/sk/inline.external.warning.txt
 /usr/share/MailScanner/reports/sk/languages.conf
 /usr/share/MailScanner/reports/sk/recipient.mcp.report.txt
 /usr/share/MailScanner/reports/sk/recipient.spam.report.txt
