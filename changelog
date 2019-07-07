@@ -1,6 +1,7 @@
 07/07/2019 Changes in    v5.1.4-1
 ==================================
 
+- External message warning support
 - Scan silent viruses also for spam option
 - Fix silent virus delivery behavior
 - Keep batch during A/V scan failure and back off for 30 seconds
