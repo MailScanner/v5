@@ -139,6 +139,7 @@ $VERSION = substr q$Revision: 5099 $, 10;
 # %safefile2file	set by CreateEntitiesHelpers (safe==>evil)
 # $numberparts		set by CreateEntitiesHelpers
 # $signed               set by Clean
+# $externalsigned       set by DeliverModifiedBody
 # $bodymodified         set by Clean and SignUninfected
 # $silent		set by FindSilentAndNoisyInfections
 #				if infected with a silent virus
@@ -4403,7 +4404,6 @@ sub CombineReports {
   #$this->PrintInfections();
 }
 
-
 # Clean the message. This involves removing all the infected or
 # troublesome sections of the message and replacing them with
 # nice little text files explaining what happened.
@@ -4950,6 +4950,68 @@ sub SignWarningMessage {
   return 1;
 }
 
+# https://github.com/MailScanner/v5/issues/375
+# Sign the body of the message with a text or html warning message
+# alerting users that message was from an external source
+# Return 0 if nothing was signed, true if it signed something.
+sub SignExternalMessage {
+  my $this = shift;
+  my $top = shift;
+
+  MailScanner::Log::DebugLog("Debug: Entered SignExternalMessage for message %s", $this->{id});
+
+  return 0 unless $top;
+
+  # If multipart, try to sign our first part
+  if ($top->is_multipart) {
+    MailScanner::Log::DebugLog("Debug: Detected multipart mime for message %s", $this->{id});
+
+    my $sigcounter = 0;
+    $sigcounter += $this->SignExternalMessage($top->parts(0));
+    $sigcounter += $this->SignExternalMessage($top->parts(1))
+      if $top->head and $top->effective_type =~ /multipart\/alternative/i;
+
+    return $sigcounter;
+  }
+
+  my $MimeType = $top->head->mime_type if $top->head;
+  return 0 unless $MimeType =~ m{text/}i; # Won't sign non-text message.
+  # Won't sign attachments.
+  return 0 if $top->head->mime_attr('content-disposition') =~ /attachment/i;
+
+  # Get body data as array of newline-terminated lines
+  $top->bodyhandle or return undef;
+  my @body = $top->bodyhandle->as_lines;
+
+  # Output message back into body, followed by original data
+  my($line, $io, $warning);
+  $io = $top->open("w");
+  if ($MimeType =~ /text\/html/i) {
+    MailScanner::Log::DebugLog("Debug: Adding external html for message %s", $this->{id});
+    $warning = $this->ReadExternalWarning('inlineexternalhtml');
+    #$warning = quotemeta $warning; # Must leave HTML tags alone!
+    foreach $line (@body) {
+      # html tags can have extra attributes.  In a case where the <html> tag
+      # has attributes and is closed on a subsequent line, the warning will
+      # actually be in the tag, but it's malformed in any case because it
+      # precedes any <head> and <body> tags and clients seem to render it OK.
+      $line =~ s/\<html( [^>]*)?(\>|$)/$&$warning/i;
+      $io->print($line);
+    }
+  } else {
+    MailScanner::Log::DebugLog("Debug: Adding external text for message %s", $this->{id});
+    $warning = $this->ReadExternalWarning('inlineexternaltext');
+    $io->print($warning . "\n");
+    foreach $line (@body) { $io->print($line) }; # Original body data
+  }
+  (($body[-1]||'') =~ /\n\Z/) or $io->print("\n"); # Ensure final newline
+  $io->close;
+
+  MailScanner::Log::DebugLog("Debug: Exiting SignExternalMessage for message %s", $this->{id});
+
+  # We signed something
+  return 1;
+}
 
 # Read the appropriate warning message to sign the top of cleaned messages.
 # Passed in the name of the config variable that points to the filename.
@@ -5016,6 +5078,42 @@ sub ReadVirusWarning {
   $result;
 }
 
+# https://github.com/MailScanner/v5/issues/375
+# Read the appropriate warning message to sign the top of messages.
+# Passed in the name of the config variable that points to the filename.
+sub ReadExternalWarning {
+  my $this = shift;
+  my($option) = @_;
+
+  my $file = MailScanner::Config::Value($option, $this);
+  my($line);
+
+  MailScanner::Log::DebugLog("Debug: Entered ReadExternalWarning for message %s", $this->{id});
+
+  my $fh = new FileHandle;
+  $fh->open($file)
+    or (MailScanner::Log::WarnLog("Could not open inline file %s, %s",
+                                  $file, $!),
+        return undef);
+
+  MailScanner::Log::DebugLog("Debug: External warning file opened for reading for message %s", $this->{id});
+
+  my $result = "";
+  while (<$fh>) {
+    chomp;
+    s#"#\\"#g;
+    s#@#\\@#g;
+    # Boring untainting again...
+    /(.*)/;
+    $line = eval "\"$1\"";
+    $result .= $line . "\n";
+  }
+  $fh->close();
+
+  MailScanner::Log::DebugLog("Debug: Exiting ReadExternalWarning for message %s", $this->{id});
+
+  $result;
+}
 
 # Work out if the message is a reply or an original posting
 sub IsAReply {
@@ -5759,6 +5857,15 @@ sub DeliverModifiedBody {
       $this->{gonefromdisk} = 1;
     }
     return;
+  }
+
+  # https://github.com/MailScanner/v5/issues/375
+  # Sign the top of the message body with a text/html externalwarning if they want.
+  if (MailScanner::Config::Value('externalwarning',$this) =~ /1/ &&
+      !$this->{externalsigned}) {
+    MailScanner::Log::DebugLog("Debug: Adding external warning to message %s body", $this->{id});
+    $this->SignExternalMessage($this->{entity});
+    $this->{externalsigned} = 1;
   }
 
   # Prune the entity tree to remove all undef values

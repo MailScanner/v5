@@ -131,6 +131,9 @@ inlinehtmlsig			= inlinehtmlsignature
 inlinehtmlwarning		= inlinehtmlwarning
 inlinetextsig			= inlinetextsignature
 inlinetextwarning		= inlinetextwarning
+externalwarning			= externalmessagewarning
+inlineexternalhtml		= inlinehtmlexternalwarning
+inlineexternaltext		= inlinetextexternalwarning
 inqueuedir			= incomingqueuedir
 ipverheader			= ipprotocolversionheader
 isareply			= dontsignhtmlifheadersexist
@@ -490,6 +493,7 @@ SendNotices		1	no	0	yes	1
 SignAlreadyScanned	0	no	0	yes	1
 SignCleanMessages	1	no	0	yes	1
 SignUnscannedMessages	1	no	0	yes	1
+ExternalWarning		0	no	0	yes	1
 SizeModifySubject	start	no	0	yes	1	start	start	end	end
 SpamBlacklist		0	no	0	yes	1
 SpamDetail		1	no	0	yes	1
@@ -527,6 +531,8 @@ inlinehtmlwarning	/usr/share/MailScanner/reports/en/inline.warning.html
 inlinespamwarning	/usr/share/MailScanner/reports/en/inline.spam.warning.txt
 inlinetextsig		/usr/share/MailScanner/reports/en/inline.sig.txt
 inlinetextwarning	/usr/share/MailScanner/reports/en/inline.warning.txt
+inlineexternalhtml	/usr/share/MailScanner/reports/en/inline.external.warning.html
+inlineexternaltext	/usr/share/MailScanner/reports/en/inline.external.warning.txt
 languagestrings		
 recipientmcpreport	/usr/share/MailScanner/reports/en/recipient.mcp.report.txt
 recipientspamreport	/usr/share/MailScanner/reports/en/recipient.spam.report.txt
