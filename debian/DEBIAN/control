@@ -3,7 +3,7 @@ Version: DebianVersionHere
 Architecture: all
 Section: mail
 Priority: optional
-Maintainer: Jerry Benton <mailscanner@mailborder.com>
+Maintainer: MailScanner Team <https://www.mailscanner.info>
 Description: Open Source Email Gateway
  Virus, malware, phishing, and spam detection engine.
 Homepage: https://www.mailscanner.info
