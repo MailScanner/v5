@@ -7676,85 +7676,85 @@ sub DisarmEndtagCallback {
     # We are inside an imagemap that is part of a phishing imagemap
     $DisarmLinkText .= '</map>';
   } elsif ($tagname eq 'a') {
-      if (!$DisarmPhishing && !$DisarmHidden) {
-        # No need to proceed
-        print $text;
-        return;
-      }
-  
-      #print STDERR "---------------------------\n";
-      #print STDERR "Endtag Callback found link, " .
-      #             "disarmlinktext = \"$DisarmLinkText\"\n";
-      my($squashedtext,$linkurl,$alarm,$numbertrap,$emailuser);
-      $DisarmInsideLink = 0;
-      $squashedtext = lc($DisarmLinkText);
-      if ($DisarmAreaURL) {
+    if (!$DisarmPhishing && !$DisarmHidden) {
+      # No need to proceed
+      print $text;
+      return;
+    }
+
+    #print STDERR "---------------------------\n";
+    #print STDERR "Endtag Callback found link, " .
+    #             "disarmlinktext = \"$DisarmLinkText\"\n";
+    my($squashedtext,$linkurl,$alarm,$numbertrap,$emailuser);
+    $DisarmInsideLink = 0;
+    $squashedtext = lc($DisarmLinkText);
+    if ($DisarmAreaURL) {
       $squashedtext = $DisarmLinkURL;
       $DisarmLinkURL = lc($DisarmAreaURL);
       $DisarmAreaURL = ""; # End of a link, so reset this
       } else {
       $squashedtext = lc($DisarmLinkText);
+    }
+
+    # Try to filter out mentions of Microsoft's .NET system
+    $squashedtext = "" if $squashedtext eq ".net";
+    $squashedtext = "" if $squashedtext =~ /(^|\b)(ado|asp)\.net($|\b)/;
+
+    $squashedtext =~ s/\%a0//g;
+    $squashedtext =~ s#%([0-9a-f][0-9a-f])#chr(hex('0x' . $1))#gei; # Unescape
+    #Moved below tag removal, as required by new 'Remove tags' re.
+    #$squashedtext =~ s/\s+//g; # Remove any whitespace
+    $squashedtext =~ s/\\/\//g; # Change \ to / as many browsers do this
+    $squashedtext =~ s/^\[\d*\]//; # Removing leading [numbers]
+    #$squashedtext =~ s/(\<\/?[^>]*\>)*//ig; # Remove tags
+    $squashedtext =~ tr/\n/ /; # Join multiple lines onto 1 line
+    $squashedtext =~ s/(\<\/?[a-z][a-z0-9:._-]*((\s+[a-z][a-z0-9:._-]*(\s*=\s*(?:\".*?\"|\'.*?\'|[^\'\">\s]+))?)+\s*|\s*)\/?\>)*//ig; # Remove tags, better re from snifer_@hotmail.com
+    $squashedtext =~ s/\s+//g; # Remove any whitespace
+    if ( $DisarmLinkURL =~ m/^mailto:/i ) {
+      # Convert HTML entities, if present
+      # https://github.com/MailScanner/v5/issues/335
+      $squashedtext = decode_entities($squashedtext);
+      if ( $squashedtext =~ /@/ ) {
+        $squashedtext =~ s/^.*\s+(?=.*\@)//;
+        $squashedtext =~ s/\s+.*$//;
+        # Remove any leading or trailing text
+        # Remove < and > tags, if present
+        # https://github.com/MailScanner/v5/issues/320
+        $squashedtext =~ s/(?:\<|\>)//g; 
+        my @list = split(/@/, $squashedtext);
+        $emailuser = $list[0];
+        $squashedtext = $list[1]; # Remove username of email addresses
       }
-      
-      # Try to filter out mentions of Microsoft's .NET system
-      $squashedtext = "" if $squashedtext eq ".net";
-      $squashedtext = "" if $squashedtext =~ /(^|\b)(ado|asp)\.net($|\b)/;
-      
-      $squashedtext =~ s/\%a0//g;
-      $squashedtext =~ s#%([0-9a-f][0-9a-f])#chr(hex('0x' . $1))#gei; # Unescape
-      #Moved below tag removal, as required by new 'Remove tags' re.
-      #$squashedtext =~ s/\s+//g; # Remove any whitespace
-      $squashedtext =~ s/\\/\//g; # Change \ to / as many browsers do this
-      $squashedtext =~ s/^\[\d*\]//; # Removing leading [numbers]
-      #$squashedtext =~ s/(\<\/?[^>]*\>)*//ig; # Remove tags
-      $squashedtext =~ tr/\n/ /; # Join multiple lines onto 1 line
-      $squashedtext =~ s/(\<\/?[a-z][a-z0-9:._-]*((\s+[a-z][a-z0-9:._-]*(\s*=\s*(?:\".*?\"|\'.*?\'|[^\'\">\s]+))?)+\s*|\s*)\/?\>)*//ig; # Remove tags, better re from snifer_@hotmail.com
-      $squashedtext =~ s/\s+//g; # Remove any whitespace
-      if ( $DisarmLinkURL =~ m/^mailto:/i ) {
-       # Convert HTML entities, if present
-       # https://github.com/MailScanner/v5/issues/335
-       $squashedtext = decode_entities($squashedtext);
-       if ( $squashedtext =~ /@/ ) {
-       $squashedtext =~ s/^.*\s+(?=.*\@)//;
-       $squashedtext =~ s/\s+.*$//;
-       # Remove any leading or trailing text
-       # Remove < and > tags, if present
-       # https://github.com/MailScanner/v5/issues/320
-       $squashedtext =~ s/(?:\<|\>)//g; 
-       my @list = split(/@/, $squashedtext);
-       $emailuser = $list[0];
-       $squashedtext = $list[1]; # Remove username of email addresses
-       }
-      }
-      #$squashedtext =~ s/\&\w*\;//g; # Remove things like &lt; and &gt;
-      $squashedtext =~ s/^.*(\&lt\;|\<)((https?|ftp|mailto|webcal):.+?)(\&gt\;|\>).*$/$2/i; # Turn blah-blah <http://link.here> blah-blah into "http://link.here"
-      $squashedtext =~ s/^\&lt\;//g; # Remove leading &lt;
-      $squashedtext =~ s/\&gt\;$//g; # Remove trailing &gt;
-      $squashedtext =~ s/\&lt\;/\</g; # Remove things like &lt; and &gt;
-      $squashedtext =~ s/\&gt\;/\>/g; # rEmove things like &lt; and &gt;
-      $squashedtext =~ s/\&nbsp\;//g; # Remove fixed spaces
-      $squashedtext =~ s/^(http:\/\/[^:]+):80(\D|$)/$1$2/i; # Remove http:...:80
-      $squashedtext =~ s/^(https:\/\/[^:]+):443(\D|$)/$1$2/i; # Remove https:...:443
-      #$squashedtext =~ s/./CharToIntnl("$&")/ge;
-      $squashedtext =  StringToIntnl($squashedtext); # s/./CharToIntnl("$&")/ge;
-      #print STDERR "Text = \"$text\"\n";
-      #print STDERR "1SquashedText = \"$squashedtext\"\n";
-      #print STDERR "1LinkURL      = \"$DisarmLinkURL\"\n";
-      # If it looks like a link, remove any leading https:// or ftp://
-      ($linkurl,$alarm) = CleanLinkURL($DisarmLinkURL);
-      #print STDERR "linkurl = $linkurl\nBefore If statement\n";
-      #print STDERR "squashedtext = $squashedtext\nBefore If statement\n";
-      
-      # Has it fallen foul of the numeric-ip phishing net? Must treat x
-      # like a digit so it catches 0x41 (= 'A')
-      $numbertrap = ($DisarmNumbers && $linkurl !~ /[<>g-wyz]+/)?1:0;
-      
-      if ($alarm ||
-      $squashedtext =~ /^(w+|ft+p|fpt+|ma[il]+to)([.,]|\%2e)/i || 
-      $squashedtext =~ /[.,](com|org|net|info|biz|ws)/i ||
-      $squashedtext =~ /[.,]com?[.,][a-z][a-z]/i ||
-      $squashedtext =~ /^(ht+ps?|ft+p|fpt+|mailto|webcal)[:;](\/\/)?(.*(\.|\%2e))/i ||
-      $numbertrap) {
+    }
+    #$squashedtext =~ s/\&\w*\;//g; # Remove things like &lt; and &gt;
+    $squashedtext =~ s/^.*(\&lt\;|\<)((https?|ftp|mailto|webcal):.+?)(\&gt\;|\>).*$/$2/i; # Turn blah-blah <http://link.here> blah-blah into "http://link.here"
+    $squashedtext =~ s/^\&lt\;//g; # Remove leading &lt;
+    $squashedtext =~ s/\&gt\;$//g; # Remove trailing &gt;
+    $squashedtext =~ s/\&lt\;/\</g; # Remove things like &lt; and &gt;
+    $squashedtext =~ s/\&gt\;/\>/g; # rEmove things like &lt; and &gt;
+    $squashedtext =~ s/\&nbsp\;//g; # Remove fixed spaces
+    $squashedtext =~ s/^(http:\/\/[^:]+):80(\D|$)/$1$2/i; # Remove http:...:80
+    $squashedtext =~ s/^(https:\/\/[^:]+):443(\D|$)/$1$2/i; # Remove https:...:443
+    #$squashedtext =~ s/./CharToIntnl("$&")/ge;
+    $squashedtext =  StringToIntnl($squashedtext); # s/./CharToIntnl("$&")/ge;
+    #print STDERR "Text = \"$text\"\n";
+    #print STDERR "1SquashedText = \"$squashedtext\"\n";
+    #print STDERR "1LinkURL      = \"$DisarmLinkURL\"\n";
+    # If it looks like a link, remove any leading https:// or ftp://
+    ($linkurl,$alarm) = CleanLinkURL($DisarmLinkURL);
+    #print STDERR "linkurl = $linkurl\nBefore If statement\n";
+    #print STDERR "squashedtext = $squashedtext\nBefore If statement\n";
+
+    # Has it fallen foul of the numeric-ip phishing net? Must treat x
+    # like a digit so it catches 0x41 (= 'A')
+    $numbertrap = ($DisarmNumbers && $linkurl !~ /[<>g-wyz]+/)?1:0;
+
+    if ($alarm ||
+        $squashedtext =~ /^(w+|ft+p|fpt+|ma[il]+to)([.,]|\%2e)/i || 
+        $squashedtext =~ /[.,](com|org|net|info|biz|ws)/i ||
+        $squashedtext =~ /[.,]com?[.,][a-z][a-z]/i ||
+        $squashedtext =~ /^(ht+ps?|ft+p|fpt+|mailto|webcal)[:;](\/\/)?(.*(\.|\%2e))/i ||
+        $numbertrap) {
       $squashedtext =~  s/^(ht+ps?|ft+p|fpt+|mailto|webcal)[:;](\/\/)?(.*(\.|\%2e))/$3/i;
       $squashedtext =~ s/^.*?-http:\/\///; # 20080206 Delete common pre-pended text
       $squashedtext =~ s/\/.*$//; # Only compare the hostnames
@@ -7779,11 +7779,11 @@ sub DisarmEndtagCallback {
       #print STDERR "NEW CODE: SquashedPossible = $squashedpossible\n";
       #print STDERR "NEW CODE: LinkURL          = $linkurl\n";
       if ($squashedtext =~ /$squashedpossible/) {
-      #print STDERR "FOUND IT\n";
-      #print STDERR "$DisarmLinkText$text\n";
-      print "$DisarmLinkText$text";
-      $DisarmLinkText = ""; # Reset state of automaton
-      return;
+        #print STDERR "FOUND IT\n";
+        #print STDERR "$DisarmLinkText$text\n";
+        print "$DisarmLinkText$text";
+        $DisarmLinkText = ""; # Reset state of automaton
+        return;
       }
       #print STDERR "2LinkURL      = \"$linkurl\"\n";
       # If it is a phishing catch, or else it's not (numeric or IPv6 numeric)
@@ -8002,10 +8002,8 @@ sub DisarmEndtagCallback {
       #
       # End of all phishing code
       #
-      }
     }
     # Highlight Hidden URL?
-    
     if ( $DisarmHidden && $DisarmDoneSomething{'phishing'} != 1) {
       MailScanner::Log::DebugLog("Debug: DisarmLinkURL = %s", $DisarmLinkURL);
       MailScanner::Log::DebugLog("Debug: DisarmLinkText = %s", $DisarmLinkText);
@@ -8020,7 +8018,6 @@ sub DisarmEndtagCallback {
         $DisarmLinkText = "";
       }
     }
-
   } elsif ($DisarmInsideLink) {
     # If inside a link, add the text to the link text to allow tags in links
     $DisarmLinkText .= $text;
