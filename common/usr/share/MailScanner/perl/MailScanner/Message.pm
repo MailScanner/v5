@@ -7999,7 +7999,8 @@ sub DisarmEndtagCallback {
   } else {
     # Highlight Hidden URL?
     if ( MailScanner::Config::Value('highlighthiddenurls') =~ /1/ ) {
-      print MailScanner::Config::LanguageValue(0, 'hiddenlinkwarningstart') . $DisarmLinkURL . MailScanner::Config::LanguageValue(0, 'hiddenlinkwarningend') . $text;
+      print MailScanner::Config::LanguageValue(0, 'hiddenlinkwarningstart') . ' ' . $DisarmLinkURL . MailScanner::Config::LanguageValue(0, 'hiddenlinkwarningend') . $text;
+      $DisarmDoneSomething{'hidden'} = 1;
     } else {
       # It is not a tag we worry about, so just print the text and continue.
       print $text;
