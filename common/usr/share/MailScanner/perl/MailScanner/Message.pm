@@ -7676,7 +7676,7 @@ sub DisarmEndtagCallback {
     print "</MailScannerScript$$>";
     $DisarmDoneSomething{'script'} = 1;
   } elsif ($tagname eq 'map' && $DisarmAreaURL) {
-     We are inside an imagemap that is part of a phishing imagemap
+    # We are inside an imagemap that is part of a phishing imagemap
     $DisarmLinkText .= '</map>';
   } elsif ($tagname eq 'a') {
     MailScanner::Log::DebugLog("Debug: Entering Disarm <a> tag");
