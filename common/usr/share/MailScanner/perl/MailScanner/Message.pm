@@ -2925,9 +2925,14 @@ sub ExplodePartAndArchives {
       # Is it a zip file, in which case unpack the zip
       $ziperror = "";
       #print STDERR "About to unpackzip $part\n";
-      $ziperror = $this->UnpackZip($part, $explodeinto, $allowpasswords,
+      # Skip unzip processing when "Unpack Microsoft Documents = no" and
+      # the `file -b' result is "Microsoft Word|Excel|PowerPoint 2007+".
+      if (MailScanner::Config::Value('unpackole', $this) ||
+          $memb !~ /^Microsoft (Word|Excel|PowerPoint) 2007\+/) {
+        $ziperror = $this->UnpackZip($part, $explodeinto, $allowpasswords,
                                    $insistpasswords,
                                    $onlycheckencryption, $create0files);
+      }
       #MailScanner::Log::WarnLog("UnpackZip (%s) file (%s)", $ziperror, $part);
       #print STDERR "* * * * * * * Unpackzip $part returned $ziperror\n";
       # If unpacking as a zip failed, try it as a rar
