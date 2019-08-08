@@ -7675,13 +7675,7 @@ sub DisarmEndtagCallback {
   } elsif ($tagname eq 'map' && $DisarmAreaURL) {
     # We are inside an imagemap that is part of a phishing imagemap
     $DisarmLinkText .= '</map>';
-  } elsif ($tagname eq 'a') {
-    if (!$DisarmPhishing && !$DisarmHidden) {
-      # No need to proceed
-      print $text;
-      return;
-    }
-
+  } elsif ($tagname eq 'a' && !$DisarmPhishing && !$DisarmHidden) {
     #print STDERR "---------------------------\n";
     #print STDERR "Endtag Callback found link, " .
     #             "disarmlinktext = \"$DisarmLinkText\"\n";
