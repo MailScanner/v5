@@ -7243,6 +7243,7 @@ sub EncapsulateMessage {
 }
 
 sub DisarmHTMLTree {
+  MailScanner::Log::DebugLog("Debug: Entering DisarmHTMLTree");
   my($this, $entity) = @_;
 
   my $counter = 0; # Have we modified this message at all?
@@ -7326,6 +7327,7 @@ my(%DisarmDoneSomething, $DisarmLinkText, $DisarmLinkURL, $DisarmAreaURL,
 
 # Convert 1 MIME entity from html to dis-armed HTML using HTML::Parser.
 sub DisarmHTMLEntity {
+  MailScanner::Log::DebugLog("Debug: Entering DisarmHTMLEntity");
   my($this, $entity) = @_;
 
   my($oldname, $newname, $oldfh, $outfh, $htmlparser);
@@ -7520,6 +7522,7 @@ sub DisarmTextCallback {
 
 # HTML::Parser callback function for start tags
 sub DisarmTagCallback {
+  MailScanner::Log::DebugLog("Debug: Entering DisarmTagCallback");
   my($tagname, $text, $attr, $attrseq) = @_;
 
   #print STDERR "Disarming $tagname\n";
@@ -7673,9 +7676,10 @@ sub DisarmEndtagCallback {
     print "</MailScannerScript$$>";
     $DisarmDoneSomething{'script'} = 1;
   } elsif ($tagname eq 'map' && $DisarmAreaURL) {
-    # We are inside an imagemap that is part of a phishing imagemap
+     We are inside an imagemap that is part of a phishing imagemap
     $DisarmLinkText .= '</map>';
-  } elsif ($tagname eq 'a' && !$DisarmPhishing && !$DisarmHidden) {
+  } elsif ($tagname eq 'a') {
+    MailScanner::Log::DebugLog("Debug: Entering Disarm <a> tag");
     #print STDERR "---------------------------\n";
     #print STDERR "Endtag Callback found link, " .
     #             "disarmlinktext = \"$DisarmLinkText\"\n";
@@ -8003,7 +8007,8 @@ sub DisarmEndtagCallback {
       MailScanner::Log::DebugLog("Debug: DisarmLinkText = %s", $DisarmLinkText);
       MailScanner::Log::DebugLog("Debug: squashedtext = %s", $squashedtext);
       MailScanner::Log::DebugLog("Debug: linkurl = %s", $linkurl);
-      if ($squashedtext != $linkurl && $DisarmLinkURL !~ m/^(mailto|fax|tel):/) {
+      if ($squashedtext ne $linkurl && $DisarmLinkURL !~ m/^(mailto|fax|tel):/) {
+        MailScanner::Log::DebugLog("Debug: Modifying Hidden URL");
         print "$DisarmLinkText" . ' ' . MailScanner::Config::LanguageValue(0, 'hiddenlinkwarningstart') . ' ' . $DisarmLinkURL . MailScanner::Config::LanguageValue(0, 'hiddenlinkwarningend') . $text;
         $DisarmDoneSomething{'hidden'} = 1;
         $DisarmLinkText = "";
