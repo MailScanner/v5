@@ -7758,7 +7758,7 @@ sub DisarmEndtagCallback {
       $squashedtext =~ s/\/.*$//; # Only compare the hostnames
       $squashedtext =~ s/[,.]+$//; # Allow trailing dots and commas
       $squashedtext = 'www.' . $squashedtext
-      unless $squashedtext =~ /^ww+|ft+p|fpt+|mailto|webcal/ || $numbertrap;
+        unless $squashedtext =~ /^ww+|ft+p|fpt+|mailto|webcal/ || $numbertrap;
       #print STDERR "2SquashedText = \"$squashedtext\"\n";
       # If we have already tagged this link as a phishing attack, spot the
       # warning text we inserted last time and don't tag it again.
@@ -7993,14 +7993,15 @@ sub DisarmEndtagCallback {
           }
         }
       }
-        #print STDERR "End tag printed \"$DisarmLinkText$text\"\n";
-        print "$DisarmLinkText$text";
-        $DisarmLinkText = ""; # Reset state of automaton
-        #print STDERR "Reset disarmlinktext\n";
+      #print STDERR "End tag printed \"$DisarmLinkText$text\"\n";
+      #print "$DisarmLinkText$text";
+      #$DisarmLinkText = ""; # Reset state of automaton
+      #print STDERR "Reset disarmlinktext\n";
       #
       # End of all phishing code
       #
     }
+
     # Highlight Hidden URL?
     if ( $DisarmHidden && $DisarmDoneSomething{'phishing'} != 1) {
       MailScanner::Log::DebugLog("Debug: DisarmLinkURL = %s", $DisarmLinkURL);
@@ -8009,14 +8010,13 @@ sub DisarmEndtagCallback {
       MailScanner::Log::DebugLog("Debug: linkurl = %s", $linkurl);
       if ($squashedtext ne $linkurl && $DisarmLinkURL !~ m/^(mailto|fax|tel):/) {
         MailScanner::Log::DebugLog("Debug: Modifying Hidden URL");
-        print "$DisarmLinkText" . ' ' . MailScanner::Config::LanguageValue(0, 'hiddenlinkwarningstart') . ' ' . $DisarmLinkURL . MailScanner::Config::LanguageValue(0, 'hiddenlinkwarningend') . $text;
+        print "$DisarmLinkText" . ' ' . MailScanner::Config::LanguageValue(0, 'hiddenlinkwarningstart') . ' ' . $DisarmLinkURL . MailScanner::Config::LanguageValue(0, 'hiddenlinkwarningend');
         $DisarmDoneSomething{'hidden'} = 1;
-        $DisarmLinkText = "";
-      } else {
-        print "$DisarmLinkText$text";
         $DisarmLinkText = "";
       }
     }
+    print "$DisarmLinkText$text";
+    $DisarmLinkText = "";
   } elsif ($DisarmInsideLink) {
     # If inside a link, add the text to the link text to allow tags in links
     $DisarmLinkText .= $text;
