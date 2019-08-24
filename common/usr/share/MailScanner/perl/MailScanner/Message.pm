@@ -7705,7 +7705,19 @@ sub DisarmEndtagCallback {
     #$squashedtext =~ s/(\<\/?[^>]*\>)*//ig; # Remove tags
     $squashedtext =~ tr/\n/ /; # Join multiple lines onto 1 line
     $squashedtext =~ s/(\<\/?[a-z][a-z0-9:._-]*((\s+[a-z][a-z0-9:._-]*(\s*=\s*(?:\".*?\"|\'.*?\'|[^\'\">\s]+))?)+\s*|\s*)\/?\>)*//ig; # Remove tags, better re from snifer_@hotmail.com
-    $squashedtext =~ s/\s+//g; # Remove any whitespace
+    # Remove extraneous text around urls
+    # https://github.com/MailScanner/v5/issues/401
+    # Throw out objects that have no .'s or :'s in them surrounded by whitespace, unless they are fax/tel
+    if ( $DisarmLinkURL !~ /^(fax|tel):/ ) {
+      # Look ahead to any something.something or something:something and throw out preceding text
+      $squashedtext =~ s/^.*\s+(?=(.+[.:])+.+)//;
+      # Throw out any :'s surrounded by whitespace
+      $squashedtext =~ s/\s:+\s//g;
+      # Remove any trailing text with whitespace
+      $squashedtext =~ s/\s.*$//;
+    } else {
+      $squashedtext =~ s/\s+//g; # Remove any whitespace
+    }
     if ( $DisarmLinkURL =~ m/^mailto:/i ) {
        # Convert HTML entities, if present
        # https://github.com/MailScanner/v5/issues/335
