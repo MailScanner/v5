@@ -7710,11 +7710,11 @@ sub DisarmEndtagCallback {
     # Throw out objects that have no .'s or :'s in them surrounded by whitespace, unless they are fax/tel
     if ( $DisarmLinkURL !~ /^(fax|tel):/ ) {
       # Look ahead to any something.something or something:something and throw out preceding text
-      $squashedtext =~ s/^.*\s(?=(.+[\.:])+.+)//i;
+      $squashedtext =~ s/^.*\s(?=(.+[\.:])+.+)//;
       # Throw out any :'s surrounded by whitespace
       $squashedtext =~ s/\s:+\s//g;
       # Remove any trailing text with whitespace
-      $squashedtext =~ s/\s.*$//i;
+      $squashedtext =~ s/\s.*$//;
     } else {
       $squashedtext =~ s/\s+//g; # Remove any whitespace
     }
