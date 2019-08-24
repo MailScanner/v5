@@ -8008,7 +8008,7 @@ sub DisarmEndtagCallback {
       MailScanner::Log::DebugLog("Debug: DisarmLinkText = %s", $DisarmLinkText);
       MailScanner::Log::DebugLog("Debug: squashedtext = %s", $squashedtext);
       MailScanner::Log::DebugLog("Debug: linkurl = %s", $linkurl);
-      if ($squashedtext ne $linkurl && $DisarmLinkURL !~ m/^(mailto|fax|tel):/) {
+      if ($squashedtext ne $linkurl && $squashedtext ne "www.$linkurl" && $DisarmLinkURL !~ m/^(mailto|fax|tel):/) {
         MailScanner::Log::DebugLog("Debug: Modifying Hidden URL");
         print "$DisarmLinkText" . ' ' . MailScanner::Config::LanguageValue(0, 'hiddenlinkwarningstart') . ' ' . $DisarmLinkURL . MailScanner::Config::LanguageValue(0, 'hiddenlinkwarningend');
         $DisarmDoneSomething{'hidden'} = 1;
