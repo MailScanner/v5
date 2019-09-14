@@ -26,7 +26,8 @@ while [ $# -gt 0 ]; do
             arg_installClamav=0;
             arg_installCPAN=1;
             arg_ignoreDeps=0;
-            arg_ramdiskSize=0
+            arg_ramdiskSize=0;
+            arg_update=1;
             ((parsedCommands++));
         ;;
 
@@ -561,6 +562,12 @@ if [ ${CPANOPTION} == 1 ]; then
             fi
         fi
     done
+
+    # Update perl modules
+    if [ -n "${arg_update+x}" && $AUTOCPAN -ne 0 ]; then
+        cpanm App::cpanoutdated
+        cpan-outdated -p | cpanm --force --no-interactive
+    fi
 
     #Install SpamaAssassin, use standard cpan in normail install, or App::cpanminus in unattended install
     perldoc -l ${MODSA} >/dev/null 2>&1

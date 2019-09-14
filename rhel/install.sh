@@ -37,6 +37,7 @@ while [ $# -gt 0 ]; do
             arg_installUnrar=0;
             arg_installDf=0;
             arg_SELPermissive=0;
+            arg_update=1;
             ((parsedCommands++));
         ;;
 
@@ -1090,6 +1091,12 @@ do
         echo "$i => OK";
     fi
 done
+
+# Update perl modules
+if [ -n "${arg_update+x}" && $AUTOCPAN -ne 0 ]; then
+    cpanm App::cpanoutdated
+    cpan-outdated -p | cpanm --force --no-interactive
+fi
 
 # Mail::ClamAV has broken version detection
 # Prepare to patch and install
