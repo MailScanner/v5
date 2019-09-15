@@ -564,7 +564,7 @@ if [ ${CPANOPTION} == 1 ]; then
     done
 
     # Update perl modules
-    if [ -n "${arg_update+x}" && $AUTOCPAN -ne 0 ]; then
+    if [[ -n "${arg_update+x}" && $AUTOCPAN -ne 0 ]]; then
         cpanm App::cpanoutdated
         cpan-outdated -p | cpanm --force --no-interactive
     fi
