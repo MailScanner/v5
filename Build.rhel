@@ -156,7 +156,7 @@ cd $THISCURDIR
 rpmbuild -ba --define "_binary_filedigest_algorithm  1"  --define "_binary_payload 1" ~/rpmbuild/SPECS/mailscanner.spec
 
 # copy the rpm built to the output dir
-cp ~/rpmbuild/RPMS/noarch/MailScanner-${VERSION}.noarch.rpm $RPMOUT
+cp ~/rpmbuild/RPMS/noarch/MailScanner-${VERSION}.rhel.noarch.rpm $RPMOUT
 #cd $RPMOUT
 #tar czf MailScanner-${VERSION}.rhel.tar.gz MailScanner-$VERSION
 #rm -rf $RPMOUT/MailScanner-$VERSION
