@@ -55,6 +55,7 @@ mkdir -p ${RPM_BUILD_ROOT}/usr/share/MailScanner/reports/{hu,de,se,ca,cy+en,pt_b
 mkdir -p ${RPM_BUILD_ROOT}/usr/share/MailScanner/perl/{MailScanner,custom}
 mkdir -p ${RPM_BUILD_ROOT}/usr/{lib/MailScanner/wrapper,lib/MailScanner/init,lib/MailScanner/systemd}
 mkdir -p ${RPM_BUILD_ROOT}/var/spool/MailScanner/{archive,incoming,quarantine,milterin,milterout}
+mkdir -p ${RPM_BUILD_ROOT}/usr/share/MailScanner/{doc,patch}
 
 ### etc
 install etc/cron.daily/mailscanner ${RPM_BUILD_ROOT}/etc/cron.daily/
@@ -221,6 +222,17 @@ Ruleset-from-Function.pm
 SpamWhitelist.pm
 ZMRouterDirHash.pm
 EOF
+
+while read f
+do 
+  install usr/share/MailScanner/doc/$f ${RPM_BUILD_ROOT}/usr/share/MailScanner/doc/
+done << EOF
+changelog
+README
+LICENSE
+EOF
+
+install usr/share/MailScanner/patch/patch.diff ${RPM_BUILD_ROOT}/usr/share/MailScanner/patch/
 
 ### usr/lib/MailScanner
 
