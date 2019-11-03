@@ -541,48 +541,13 @@ else
 fi
 
 echo
-echo To initially configure MailScanner and install necessary modules:
+echo To initially configure MailScanner and install necessary modules run:
 echo 
 echo /usr/sbin/ms-configure
 echo
-echo To finish configuring MailScanner, edit the following files:
-echo
-echo /etc/MailScanner/defaults
-echo /etc/MailScanner/MailScanner.conf
-echo
-echo To activate MailScanner run the following commands:
-echo
-echo    --SysV Init--
-echo    chkconfig mailscanner on
-echo    service mailscanner start
-echo
-echo    --Systemd--
-echo    systemctl enable mailscanner.service
-echo    systemctl start mailscanner.service
-echo
-echo To activate Sendmail for Mailscanner \(if in use\) run the following commands:
-echo
-echo    --SysV Init--
-echo    chkconfig sendmail off
-echo    chkconfig sm-client off
-echo    chkconfig ms-sendmail on
-echo    service ms-sendmail start
-echo
-echo    --Systemd--
-echo    systemctl disable sendmail.service
-echo    systemctl disable sm-client.service
-echo    systemctl enable ms-sendmail.service
-echo    systemctl start ms-sendmail.service
-echo
-echo To activate MSMilter for Mailscanner \(if in use\) run the following commands:
-echo
-echo    --SysV Init--
-echo    chkconfig msmilter on
-echo    service msmilter start
-echo
-echo    --Systemd--
-echo    systemctl enable msmilter.service
-echo    systemctl start msmilter.service
+echo To update MailScanner and necessary modules run:
+echo 
+echo /usr/sbin/ms-configure --update
 echo
 
 exit 0 

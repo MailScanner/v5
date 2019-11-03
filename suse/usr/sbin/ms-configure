@@ -805,15 +805,71 @@ fi
 
     ldconfig
 
-    echo;
-    echo '----------------------------------------------------------';
-    echo 'Configuration Complete'; echo;
-    echo 'See http://www.mailscanner.info for more information and  '
-    echo 'support via the MailScanner mailing list.'
-    echo;
-    echo;
-    echo 'Review: Set your preferences in /etc/MailScanner/MailScanner.conf'
-    echo 'and review /etc/MailScanner/defaults';
-#fi 
+    if [[ -n "${arg_update+x}" ]]; then
+        echo;
+        echo '----------------------------------------------------------';
+        echo 'Configuration and module update complete';
+        echo;
+        echo 'See http://www.mailscanner.info for more information and  '
+        echo 'support via the MailScanner mailing list.'
+        echo;
+        echo;
+        echo To finish updating MailScanner, review the following files:
+        echo
+        echo /etc/MailScanner/defaults
+        echo /etc/MailScanner/MailScanner.conf
+        echo
+        echo Restart MailScanner
+        echo
+        echo    --SysV Init--
+        echo    service mailscanner restart
+        echo
+        echo    --Systemd--
+        echo    systemctl restart mailscanner.service
+        echo
+        echo Restart MSMilter \(if in use\) 
+        echo
+        echo    --SysV Init--
+        echo    service msmilter restart
+        echo
+        echo    --Systemd--
+        echo    systemctl restart msmilter.service
+        echo
+    else
+        echo;
+        echo '----------------------------------------------------------';
+        echo 'Initial configuration and module installation complete';
+        echo;
+        echo 'See http://www.mailscanner.info for more information and  '
+        echo 'support via the MailScanner mailing list.'
+        echo;
+        echo;
+        echo To finish configuring MailScanner, edit the following files:
+        echo
+        echo /etc/MailScanner/defaults
+        echo /etc/MailScanner/MailScanner.conf
+        echo
+        echo
+        echo To activate MailScanner run the following commands:
+        echo
+        echo    --SysV Init--
+        echo    chkconfig mailscanner on
+        echo    service mailscanner start
+        echo
+        echo    --Systemd--
+        echo    systemctl enable mailscanner.service
+        echo    systemctl start mailscanner.service
+        echo
+        echo To activate MSMilter \(if in use\) run the following commands:
+        echo
+        echo    --SysV Init--
+        echo    chkconfig msmilter on
+        echo    service msmilter start
+        echo
+        echo    --Systemd--
+        echo    systemctl enable msmilter.service
+        echo    systemctl start msmilter.service
+        echo
+    fi 
 
 ) 2>&1 | tee -a /var/log/mailscanner-configuration.log
