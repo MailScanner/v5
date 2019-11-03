@@ -23,13 +23,13 @@
 #
 #   Install 
 #       Redhat-based
-#           rpm -ivh MailScanner-5.x.x-x.rhel.rpm
+#           rpm -ivh MailScanner-5.x.x-x.rhel.noarch.rpm
 #           /usr/sbin/ms-configure
 #       Debian-based
-#           dpkg -i MailScanner-5.x.x.x-x.deb
+#           dpkg -i MailScanner-5.x.x.x-x-noarch.deb
 #           /usr/sbin/ms-configure
 #       SuSE-based
-#           rpm -ivh MailScanner-5.x.x.x-x.suse.rpm
+#           rpm -ivh MailScanner-5.x.x.x-x.suse.noarch.rpm
 #           /usr/sbin/ms-configure
 #       Other *nix
 #           tar -xvzf MailScanner-5.x.x-x.nix.tar.gz
@@ -37,13 +37,13 @@
 #
 #	Update
 #       Redhat-based
-#           rpm -Uvh MailScanner-5.x.x-x.rhel.rpm
+#           rpm -Uvh MailScanner-5.x.x-x.rhel.noarch.rpm
 #           /usr/sbin/ms-configure --update
 #       Debian-based
-#           dpkg -i MailScanner-5.x.x.x-x.deb
+#           dpkg -i MailScanner-5.x.x.x-x-noarch.deb
 #           /usr/sbin/ms-configure --update
 #       SuSE-based
-#           rpm -Uvh MailScanner-5.x.x-x.suse.rpm
+#           rpm -Uvh MailScanner-5.x.x-x.suse.noarch.rpm
 #           /usr/sbin/ms-configure --update
 #       Other *nix
 #           tar -xvzf MailScanner-5.x.x-x.nix.tar.gz

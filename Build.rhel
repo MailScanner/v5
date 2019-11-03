@@ -163,5 +163,5 @@ cp ~/rpmbuild/RPMS/noarch/MailScanner-${VERSION}.noarch.rpm $RPMOUT
 rm -rf $WORK
 
 echo;
-echo "Completed: $RPMOUT/MailScanner-${VERSION}.noarch.rpm";
+echo "Completed: $RPMOUT/MailScanner-${VERSION}.rhel.noarch.rpm";
 

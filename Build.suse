@@ -154,12 +154,12 @@ cp $DEVBASEDIR/common/patch/patch.diff $WORK/usr/share/MailScanner/patch/
 rpmbuild -ba --define "_binary_filedigest_algorithm  1"  --define "_binary_payload 1" ~/rpmbuild/SPECS/mailscanner.spec
 
 # copy the rpm built to the output dir
-cp ~/rpmbuild/RPMS/noarch/MailScanner-${VERSION}.noarch.rpm $RPMOUT
+cp ~/rpmbuild/RPMS/noarch/MailScanner-${VERSION}.suse.noarch.rpm $RPMOUT
 #cd $RPMOUT
 # tar czf MailScanner-${VERSION}.suse.tar.gz MailScanner-$VERSION
 #rm -rf $RPMOUT/MailScanner-$VERSION
 rm -rf $WORK
 
 echo;
-echo "Completed: $RPMOUT/MailScanner-${VERSION}.noarch.rpm";
+echo "Completed: $RPMOUT/MailScanner-${VERSION}.suse.noarch.rpm";
 

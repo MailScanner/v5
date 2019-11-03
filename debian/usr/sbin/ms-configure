@@ -439,11 +439,10 @@ ARMODAFTERSA+=('Mail::SpamAssassin::Plugin::DCC');
 ARMODAFTERSA+=('Mail::SpamAssassin::Plugin::Pyzor');
 
 
-# logging starts here
 (
 clear
 echo;
-echo "Installation results are being logged to mailscanner-install.log";
+echo "Installation/configuration results are being logged to /var/log/mailscanner-configuration.log";
 echo;
 timewait 1
 
@@ -827,4 +826,4 @@ fi
     echo;
 #fi 
 
-) 2>&1 | tee mailscanner-configuration.log
+) 2>&1 | tee -a /var/log/mailscanner-configuration.log

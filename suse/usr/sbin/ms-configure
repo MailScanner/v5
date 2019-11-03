@@ -441,7 +441,7 @@ fi
 (
 clear
 echo;
-echo "Installation results are being logged to mailscanner-install.log";
+echo "Installation/configuration results are being logged to /var/log/mailscanner-configuration.log";
 echo;
 timewait 1
 
@@ -816,4 +816,4 @@ fi
     echo 'and review /etc/MailScanner/defaults';
 #fi 
 
-) 2>&1 | tee mailscanner-configuration.log
+) 2>&1 | tee -a /var/log/mailscanner-configuration.log

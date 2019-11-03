@@ -8,7 +8,7 @@
 
 Name:        %{name}
 Version:     %{version}
-Release:     %{release}
+Release:     %{release}.suse
 Summary:     Email Gateway Virus Scanner with Malware, Phishing, and Spam Detection
 Group:       System Environment/Daemons
 License:     GPLv2
