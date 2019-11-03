@@ -35,7 +35,7 @@ protect it against Denial Of Service attacks.
 
 After installation, you must install one of the supported open source or
 commercial antivirus packages if not installed using the MailScanner
-installation script.
+configuration script.
 
 This has been tested on Red Hat Linux, but should work on other RPM
 based Linux distributions.
@@ -120,7 +120,7 @@ install usr/sbin/ms-update-phishing                 ${RPM_BUILD_ROOT}/usr/sbin/m
 install usr/sbin/ms-update-sa                       ${RPM_BUILD_ROOT}/usr/sbin/ms-update-sa
 install usr/sbin/ms-update-vs                       ${RPM_BUILD_ROOT}/usr/sbin/ms-update-vs
 install usr/sbin/ms-upgrade-conf                    ${RPM_BUILD_ROOT}/usr/sbin/ms-upgrade-conf
-
+install usr/sbin/ms-configure                       ${RPM_BUILD_ROOT}/usr/sbin/ms-configure
 
 ### usr/share/MailScanner
 
@@ -720,6 +720,8 @@ exit 0
 %attr(755,root,root) %dir /usr/lib/MailScanner/init
 %attr(755,root,root) %dir /usr/lib/MailScanner/systemd
 %attr(755,root,root) %dir /usr/share/MailScanner
+%attr(755,root,root) %dir /usr/share/MailScanner/doc
+%attr(755,root,root) %dir /usr/share/MailScanner/patch
 %attr(755,root,root) %dir /usr/share/MailScanner/perl
 %attr(755,root,root) %dir /usr/share/MailScanner/perl/custom
 %attr(755,root,root) %dir /usr/share/MailScanner/perl/MailScanner
@@ -747,6 +749,7 @@ exit 0
 %attr(755,root,root) /usr/sbin/ms-update-sa
 %attr(755,root,root) /usr/sbin/ms-update-vs
 %attr(755,root,root) /usr/sbin/ms-upgrade-conf
+%attr(755,root,root) /usr/sbin/ms-configure
 
 %attr(755,root,root) /usr/lib/MailScanner/init/ms-init
 %attr(755,root,root) /usr/lib/MailScanner/init/ms-sendmail-init
@@ -851,6 +854,11 @@ exit 0
 %attr(644,root,root) /etc/MailScanner/rules/README
 %config(noreplace) /etc/MailScanner/rules/spam.whitelist.rules
 %config(noreplace) /etc/MailScanner/rules/external.message.rules
+
+%attr(644,root,root) /usr/share/MailScanner/doc/changelog
+%attr(644,root,root) /usr/share/MailScanner/doc/LICENSE
+%attr(644,root,root) /usr/share/MailScanner/doc/README
+%attr(644,root,root) /usr/share/MailScanner/patch/patch.diff
 
 %config(noreplace) /usr/share/MailScanner/reports/en/deleted.content.message.txt
 %config(noreplace) /usr/share/MailScanner/reports/en/stored.content.message.txt
@@ -1334,6 +1342,9 @@ exit 0
 %config(noreplace) /usr/share/MailScanner/reports/ca/stored.virus.message.txt
 
 %changelog
+* Sat Nov 02 2019 Shawn Iverson <shawniverson@efa-project.org>
+- Refactor for standard package management
+
 * Sun Jul 07 2019 Shawn Iverson <shawniverson@efa-project.org>
 - Add back directories to files section and test group membership
 

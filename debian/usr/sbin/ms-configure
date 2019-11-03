@@ -1,19 +1,13 @@
 #!/usr/bin/env bash
 #
-# MailScanner installation script for Debian based systems
+# MailScanner configuration script for Debian based systems
 # 
 # This script installs the required software for
 # MailScanner via apt-get and CPAN based on user input.  
 #
 #
-# Written by:
-# Jerry Benton < mailscanner@mailborder.com >
-# 29 APR 2016
-# Updated By:
-# Manuel Dalla Lana < endelwar@aregar.it >
-# Shawn Iverson < shawniverson@gmail.com >
-# 22 OCT 2018
-# clear the screen. yay!
+# Updated: 2 Nov 2019
+# MailScanner Team <https://www.mailscanner.info>
 clear
 
 # unattended install: command line parameter parsing
@@ -637,24 +631,24 @@ done
 timewait ${PMODWAIT}
 
 clear
-echo;
-echo "Installing the MailScanner .deb package ... ";
+# echo;
+# echo "Installing the MailScanner .deb package ... ";
 
-# install the mailscanner package
-dpkg -i ${CONFFILES} ${NODEPS} "${THISCURRPMDIR}"/MailScanner-*-noarch.deb
+# # install the mailscanner package
+# dpkg -i ${CONFFILES} ${NODEPS} "${THISCURRPMDIR}"/MailScanner-*-noarch.deb
 
-if [ $? -ne 0 ]; then
-    echo;
-    echo '----------------------------------------------------------';
-    echo 'Installation Error'; echo;
-    echo 'The MailScanner package failed to install. Address the required';
-    echo 'dependencies and run the installer again.';
-    echo;
-    echo 'Note that Perl modules need to be available system-wide. A';
-    echo 'common issue is that missing modules were installed in a ';
-    echo 'user specific configuration.';
-    echo;
-else
+# if [ $? -ne 0 ]; then
+#     echo;
+#     echo '----------------------------------------------------------';
+#     echo 'Installation Error'; echo;
+#     echo 'The MailScanner package failed to install. Address the required';
+#     echo 'dependencies and run the installer again.';
+#     echo;
+#     echo 'Note that Perl modules need to be available system-wide. A';
+#     echo 'common issue is that missing modules were installed in a ';
+#     echo 'user specific configuration.';
+#     echo;
+# else
     # create ramdisk
     if [ $RAMDISK -eq 1 ]; then
         if [ -d '/var/spool/MailScanner/incoming' ]; then
@@ -691,7 +685,7 @@ else
 
     echo;
     echo '----------------------------------------------------------';
-    echo 'Installation Complete'; echo;
+    echo 'Configuration Complete'; echo;
     echo 'See http://www.mailscanner.info for more information and  '
     echo 'support via the MailScanner mailing list.'
     echo;
@@ -699,6 +693,6 @@ else
     echo 'Review: Set your preferences in /etc/MailScanner/MailScanner.conf'
     echo 'and review /etc/MailScanner/defaults';
     echo;
-fi 
+#fi 
 
-) 2>&1 | tee mailscanner-install.log
+) 2>&1 | tee mailscanner-configuration.log

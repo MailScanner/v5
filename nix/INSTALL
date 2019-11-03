@@ -10,9 +10,11 @@
 # Manual: https://s3.amazonaws.com/msv5/docs/ms-admin-guide.pdf
 #
 # Support: http://lists.mailscanner.info/mailman/listinfo/mailscanner
-#			
-# Jerry Benton - 3 May 2016
 #
+# Updated: 2 Nov 2019			
+# MailScanner Team <https://www.mailscanner.info>
+# 
+
 
 The install for NIX* is very straightforward. It simply copies the files into place. From
 there you will need to create the links to get MailScanner to start at boot. 

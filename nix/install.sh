@@ -3,9 +3,8 @@
 # MailScanner installation script for NIX* based systems
 # 
 #
-# Written by:
-# Jerry Benton < mailscanner@mailborder.com >
-# 3 MAY 2016
+# Updated: 2 Nov 2019
+# MailScanner Team <https://www.mailscanner.info>
 
 # clear the screen. yay!
 clear

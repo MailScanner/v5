@@ -1,24 +1,19 @@
 #!/usr/bin/env bash
 #
-# MailScanner installation script for SUSE based systems
+# MailScanner configuration script for SUSE based systems
 #
 # This script installs the required software for
 # MailScanner via zypper and CPAN based on user input.  
 #
-# Tested distributions:     OpenSUSE 13.2-42.3
+# Tested distributions:     OpenSUSE 13.2-42.3 (Leap 15.1 Pending)
 #
-# Written by:
-# Jerry Benton < mailscanner@mailborder.com >
-# 3 MAY 2016
-# Updated by:
-# Manuel Dalla Lana < endelwar@aregar.it >
-# Shawn Iverson < shawniverson@efa-project.org >
-# 17 JUN 2018
+# Updated: 2 Nov 2019
+# MailScanner Team <https://www.mailscanner.info>
 
 # clear the screen. yay!
 clear
 
-# unattended install: command line parameter parsing
+# unattended configuration: command line parameter parsing
 parsedCommands=0;
 while [ $# -gt 0 ]; do
     case "$1" in
@@ -95,7 +90,7 @@ while [ $# -gt 0 ]; do
         ;;
 
         --help)
-            printf "MailScanner Installation for SuSE Based Systems\n\n"
+            printf "MailScanner configuration for SuSE Based Systems\n\n"
             printf "Usage: %s [--update] [--MTA=sendmail|postfix|exim|none] [--installClamav=Y|N] [--installCPAN=Y|N] [--ignoreDeps=Y|N] [--ramdiskSize=value]\n\n" "$0"
             printf -- "--update              Perform an update on an existing install using the following options (can be overridden):\n"
             printf    "                        --MTA=none        (assumed already installed)\n"
@@ -142,7 +137,7 @@ timewait () {
 if [ $(whoami) != "root" ]; then
     clear
     echo;
-    echo "Installer must be run as root. Aborting. Use 'su -' to switch to the root environment."; echo;
+    echo "Configuration must be run as root. Aborting. Use 'su -' to switch to the root environment."; echo;
     exit 192
 fi
 
@@ -151,7 +146,7 @@ if [ ! -x '/usr/bin/zypper' ]; then
     clear
     echo;
     echo "Zypper package manager is not installed. You must install this before starting";
-    echo "the MailScanner installation process. Installation aborted."; echo;
+    echo "the MailScanner configuration process. Configuration aborted."; echo;
     exit 192
 else
     ZYPPER='/usr/bin/zypper';
@@ -160,19 +155,19 @@ fi
 # confirm the RHEL release is known before continuing
 if [ -f '/etc/redhat-release' ]; then
     # this is mostly to prevent accidental installation on a non redhat based system
-    echo "This appears to be a Red Hat based system. This installer is for SuSE. Installation aborted."; echo;
+    echo "This appears to be a Red Hat based system. This configuration tool is for SuSE. Configuration aborted."; echo;
     exit 192
 fi
 
 # user info screen before the install process starts
-echo "MailScanner Installation for SUSE Based Systems"; echo; echo;
+echo "MailScanner Configuration for SUSE Based Systems"; echo; echo;
 echo "This will INSTALL or UPGRADE the required software for MailScanner on SuSE based systems";
-echo "via the zypper package manager. Tested distributions are openSUSE 13.2 and associated";
-echo "variants. Internet connectivity is required for this installation script to execute."; 
+echo "via the zypper package manager. Tested distributions are openSUSE 13.2+ and associated";
+echo "variants. Internet connectivity is required for this configuration script to execute."; 
 echo;
 echo "WARNING - Make a backup of any custom configuration files if upgrading - WARNING";
 echo;
-echo "You may press CTRL + C at any time to abort the installation. Note that you may see";
+echo "You may press CTRL + C at any time to abort the configuration. Note that you may see";
 echo "some errors during the perl module installation. You may safely ignore errors regarding";
 echo "failed tests if you opt to use CPAN. You may also ignore 'No package available' notices";
 echo "during the zypper installation of packages."; echo;
@@ -316,7 +311,7 @@ if [ $CPANOPTION -ne 1 ]; then
     clear
     echo;
     echo "Do you want to ignore MailScanner dependencies?"; echo;
-    echo "This will force install the MailScanner RPM package regardless of missing"; 
+    echo "This will force configure the MailScanner RPM package regardless of missing"; 
     echo "dependencies. It is highly recommended that you DO NOT do this unless you"; 
     echo "are debugging.";
     echo;
@@ -600,7 +595,7 @@ if [[ $CAV -eq 1 && $CPANOPTION -eq 1 ]]; then
     package=$(find -name Mail-ClamAV*gz | tail -n1)
     tar xzvf $package
     packagedir=$(echo $package | sed -e 's/\.tar\.gz//')
-    patch -p1 $packagedir/Makefile.PL < patch.diff
+    patch -p1 $packagedir/Makefile.PL < /usr/share/MailScanner/patch/patch.diff
     cd $packagedir
     perl Makefile.PL
     make install
@@ -633,27 +628,27 @@ if [ $CAV -eq 1 ]; then
 fi
 
 clear
-echo;
-echo "Installing the MailScanner RPM ... ";
+# echo;
+# echo "Installing the MailScanner RPM ... ";
 
-# using --force option to reinstall the rpm if the same version is
-# already installed. this will not overwrite configuration files
-# as they are protected in the rpm spec file
-$RPM -Uvh $NODEPS MailScanner*noarch.rpm
+# # using --force option to reinstall the rpm if the same version is
+# # already installed. this will not overwrite configuration files
+# # as they are protected in the rpm spec file
+# $RPM -Uvh $NODEPS MailScanner*noarch.rpm
 
-if [ $? -ne 0 ]; then
-    echo;
-    echo '----------------------------------------------------------';
-    echo 'Installation Error'; echo;
-    echo 'The MailScanner RPM failed to install. Address the required';
-    echo 'dependencies and run the installer again. Note that electing';
-    echo 'to use CPAN should resolve dependency errors.';
-    echo;
-    echo 'Note that Perl modules need to be available system-wide. A';
-    echo 'common issue is that missing modules were installed in a ';
-    echo 'user specific configuration.';
-    echo;
-else
+# if [ $? -ne 0 ]; then
+#     echo;
+#     echo '----------------------------------------------------------';
+#     echo 'Installation Error'; echo;
+#     echo 'The MailScanner RPM failed to install. Address the required';
+#     echo 'dependencies and run the installer again. Note that electing';
+#     echo 'to use CPAN should resolve dependency errors.';
+#     echo;
+#     echo 'Note that Perl modules need to be available system-wide. A';
+#     echo 'common issue is that missing modules were installed in a ';
+#     echo 'user specific configuration.';
+#     echo;
+# else
     # create ramdisk
     if [ $RAMDISK -eq 1 ]; then
         if [ -d '/var/spool/MailScanner/incoming' ]; then
@@ -699,13 +694,13 @@ else
 
     echo;
     echo '----------------------------------------------------------';
-    echo 'Installation Complete'; echo;
+    echo 'Configuration Complete'; echo;
     echo 'See http://www.mailscanner.info for more information and  '
     echo 'support via the MailScanner mailing list.'
     echo;
     echo;
     echo 'Review: Set your preferences in /etc/MailScanner/MailScanner.conf'
     echo 'and review /etc/MailScanner/defaults';
-fi 
+#fi 
 
-) 2>&1 | tee mailscanner-install.log
+) 2>&1 | tee mailscanner-configuration.log
