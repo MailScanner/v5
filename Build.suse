@@ -135,12 +135,6 @@ tar czf ~/rpmbuild/SOURCES/MailScanner-${MSVERSION}.tgz MailScanner-${MSVERSION}
 # return to where i started
 cd $THISCURDIR
 
-# create the output dir in $RPMOUT
-if [ -d $RPMOUT/MailScanner-$VERSION ]; then
-	rm -rf $RPMOUT/MailScanner-$VERSION
-fi
-mkdir -p $RPMOUT/MailScanner-$VERSION
-
 # copy some file we need
 #cp $SRCDIR/install.sh $RPMOUT/MailScanner-$VERSION/
 # find $RPMOUT/MailScanner-$VERSION -name 'install.sh' -exec chmod 755 {} \;
