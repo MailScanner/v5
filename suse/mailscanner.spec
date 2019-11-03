@@ -55,7 +55,7 @@ mkdir -p ${RPM_BUILD_ROOT}/usr/share/MailScanner/reports/{hu,de,se,ca,cy+en,pt_b
 mkdir -p ${RPM_BUILD_ROOT}/usr/share/MailScanner/perl/{MailScanner,custom}
 mkdir -p ${RPM_BUILD_ROOT}/usr/{lib/MailScanner/wrapper,lib/MailScanner/init,lib/MailScanner/systemd}
 mkdir -p ${RPM_BUILD_ROOT}/var/spool/MailScanner/{archive,incoming,quarantine,milterin,milterout}
-mkdir -p ${RPM_BUILD_ROOT}/usr/share/MailScanner/{doc,patch}
+mkdir -p ${RPM_BUILD_ROOT}/usr/share/MailScanner/doc
 
 ### etc
 install etc/cron.daily/mailscanner ${RPM_BUILD_ROOT}/etc/cron.daily/
@@ -231,8 +231,6 @@ changelog
 README
 LICENSE
 EOF
-
-install usr/share/MailScanner/patch/patch.diff ${RPM_BUILD_ROOT}/usr/share/MailScanner/patch/
 
 ### usr/lib/MailScanner
 
@@ -540,7 +538,6 @@ exit 0
 %attr(755,root,root) %dir /usr/lib/MailScanner/systemd
 %attr(755,root,root) %dir /usr/share/MailScanner
 %attr(755,root,root) %dir /usr/share/MailScanner/doc
-%attr(755,root,root) %dir /usr/share/MailScanner/patch
 %attr(755,root,root) %dir /usr/share/MailScanner/perl
 %attr(755,root,root) %dir /usr/share/MailScanner/perl/custom
 %attr(755,root,root) %dir /usr/share/MailScanner/perl/MailScanner
@@ -672,7 +669,6 @@ exit 0
 %attr(644,root,root) /usr/share/MailScanner/doc/changelog
 %attr(644,root,root) /usr/share/MailScanner/doc/LICENSE
 %attr(644,root,root) /usr/share/MailScanner/doc/README
-%attr(644,root,root) /usr/share/MailScanner/patch/patch.diff
 
 %config(noreplace) /usr/share/MailScanner/reports/en/deleted.content.message.txt
 %config(noreplace) /usr/share/MailScanner/reports/en/stored.content.message.txt

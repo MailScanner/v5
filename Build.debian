@@ -105,11 +105,10 @@ chmod +x $WORK/etc/cron.hourly/*
 PKGTMP="/tmp/deb.$$/";
 mkdir -p $PKGTMP/MailScanner-${FULLMSVER}
 #cp $DEVBASEDIR/debian/install.sh 			$PKGTMP/MailScanner-${FULLMSVER}
-mkdir -p $WORK/usr/share/MailScanner/{doc,patch}
+mkdir -p $WORK/usr/share/MailScanner/doc
 cp $DEVBASEDIR/changelog 						$WORK/usr/share/MailScanner/doc/
 cp $DEVBASEDIR/LICENSE 							$WORK/usr/share/MailScanner/doc/
 cp $DEVBASEDIR/README 							$WORK/usr/share/MailScanner/doc/
-cp $DEVBASEDIR/common/patch/patch.diff 			$WORK/usr/share/MailScanner/patch/
 fakeroot dpkg -b $WORK $PKGTMP/MailScanner-$FULLMSVER-noarch.deb
 #chmod +x $PKGTMP/MailScanner-${FULLMSVER}/install.sh
 cd $PKGTMP

@@ -123,11 +123,10 @@ chmod +x $WORK/etc/cron.daily/*
 chmod +x $WORK/etc/cron.hourly/*
 
 # Doc and patches
-mkdir -p $WORK/usr/share/MailScanner/{doc,patch}
+mkdir -p $WORK/usr/share/MailScanner/doc
 cp $DEVBASEDIR/changelog $WORK/usr/share/MailScanner/doc/changelog
 cp $DEVBASEDIR/README $WORK/usr/share/MailScanner/doc/README
 cp $DEVBASEDIR/LICENSE $WORK/usr/share/MailScanner/doc/LICENSE
-cp $DEVBASEDIR/common/patch/patch.diff $WORK/usr/share/MailScanner/patch/patch.diff
 
 # Build the src tarball for RPM construction
 cd $WORK
