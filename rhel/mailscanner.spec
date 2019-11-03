@@ -640,12 +640,14 @@ else
 fi
 
 echo
+echo To initially configure MailScanner and install necessary modules:
+echo 
+echo /usr/sbin/ms-configure
 echo
-echo To configure MailScanner, edit the following files:
+echo To finish configuring MailScanner, edit the following files:
 echo
 echo /etc/MailScanner/defaults
 echo /etc/MailScanner/MailScanner.conf
-echo
 echo
 echo To activate MailScanner run the following commands:
 echo
