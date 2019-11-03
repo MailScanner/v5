@@ -21,36 +21,33 @@
 #	Milter: 	https://github.com/MailScanner/v5/blob/master/doc/MailScanner%20Milter%20Guide.pdf
 # 	Support: 	http://lists.mailscanner.info/mailman/listinfo/mailscanner
 #
-#   Repositories
-#       TODO
-#
-#	Install 
+#   Install 
 #       Redhat-based
-#           yum install MailScanner
+#           rpm -ivh MailScanner-5.x.x-x.rhel.rpm
 #           /usr/sbin/ms-configure
 #       Debian-based
-#           apt install MailScanner
+#           dpkg -i MailScanner-5.x.x.x-x.deb
 #           /usr/sbin/ms-configure
 #       SuSE-based
-#           zypper install MailScanner
+#           rpm -ivh MailScanner-5.x.x.x-x.suse.rpm
 #           /usr/sbin/ms-configure
-#       Other Linux
-#           tar -xvzf MailScanner-5.x.x-x.distro.tar.gz
+#       Other *nix
+#           tar -xvzf MailScanner-5.x.x-x.nix.tar.gz
 #           ./install.sh
 #
 #	Update
 #       Redhat-based
-#           yum update MailScanner
+#           rpm -Uvh MailScanner-5.x.x-x.rhel.rpm
 #           /usr/sbin/ms-configure --update
 #       Debian-based
-#           apt upgrade MailScanner
+#           dpkg -i MailScanner-5.x.x.x-x.deb
 #           /usr/sbin/ms-configure --update
 #       SuSE-based
-#           zypper update MailScanner
+#           rpm -Uvh MailScanner-5.x.x-x.suse.rpm
 #           /usr/sbin/ms-configure --update
-#       Other Linux
-#           tar -xvzf MailScanner-5.x.x-x.distro.tar.gz
-#           ./install.sh --update
+#       Other *nix
+#           tar -xvzf MailScanner-5.x.x-x.nix.tar.gz
+#           ./install.sh
 #
 #	MTA Guides:
 #		sendmail - https://www.mailscanner.info/sendmail
