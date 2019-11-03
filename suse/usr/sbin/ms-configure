@@ -590,16 +590,16 @@ fi
 
 # Mail::ClamAV has broken version detection
 # Prepare to patch and install
-if [[ $CAV -eq 1 && $CPANOPTION -eq 1 ]]; then
-    cpan -g Mail::ClamAV
-    package=$(find -name Mail-ClamAV*gz | tail -n1)
-    tar xzvf $package
-    packagedir=$(echo $package | sed -e 's/\.tar\.gz//')
-    patch -p1 $packagedir/Makefile.PL < /usr/share/MailScanner/patch/patch.diff
-    cd $packagedir
-    perl Makefile.PL
-    make install
-fi
+# if [[ $CAV -eq 1 && $CPANOPTION -eq 1 ]]; then
+#     cpan -g Mail::ClamAV
+#     package=$(find -name Mail-ClamAV*gz | tail -n1)
+#     tar xzvf $package
+#     packagedir=$(echo $package | sed -e 's/\.tar\.gz//')
+#     patch -p1 $packagedir/Makefile.PL < /usr/share/MailScanner/patch/patch.diff
+#     cd $packagedir
+#     perl Makefile.PL
+#     make install
+# fi
 
 if [ $CPANOPTION -eq 1 ]; then
   # Install MIME::Tools from CPAN even though rpm is present
