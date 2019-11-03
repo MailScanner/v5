@@ -122,6 +122,11 @@ chmod +x $WORK/usr/lib/MailScanner/init/*
 chmod +x $WORK/etc/cron.daily/*
 chmod +x $WORK/etc/cron.hourly/*
 
+mkdir -p $WORK/usr/share/MailScanner/doc
+cp $DEVBASEDIR/changelog $WORK/usr/share/MailScanner/doc/changelog
+cp $DEVBASEDIR/README $WORK/usr/share/MailScanner/doc/README
+cp $DEVBASEDIR/LICENSE $WORK/usr/share/MailScanner/doc/LICENSE
+
 # Build the src tarball for RPM construction
 cd $WORK
 cd ..
@@ -138,10 +143,6 @@ mkdir -p $RPMOUT/MailScanner-$VERSION
 
 # copy some file we need
 #cp $SRCDIR/install.sh $RPMOUT/MailScanner-$VERSION/
-mkdir -p $WORK/usr/share/MailScanner/doc
-cp $DEVBASEDIR/changelog $WORK/usr/share/MailScanner/doc/changelog
-cp $DEVBASEDIR/README $WORK/usr/share/MailScanner/doc/README
-cp $DEVBASEDIR/LICENSE $WORK/usr/share/MailScanner/doc/LICENSE
 # find $RPMOUT/MailScanner-$VERSION -name 'install.sh' -exec chmod 755 {} \;
 # find $RPMOUT/MailScanner-$VERSION -name 'LICENSE' -exec chmod 644 {} \;
 # find $RPMOUT/MailScanner-$VERSION -name 'README' -exec chmod 644 {} \;
