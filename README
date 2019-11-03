@@ -21,11 +21,11 @@
 #	Milter: 	https://github.com/MailScanner/v5/blob/master/doc/MailScanner%20Milter%20Guide.pdf
 # 	Support: 	http://lists.mailscanner.info/mailman/listinfo/mailscanner
 #
-#   ########################## ATTENTION ##########################
-#   # Install and update instructions have changed.               #
-#   # With the exception of the generic *nix package, MailScanner #
-#   # now installs via deb and rpm first.                         #
-#   ########################## ATTENTION ##########################
+#   ##################### ATTENTION ###################
+#   # Install and update instructions have changed.   #
+#   # With the exception of the generic *nix package, #
+#   # MailScanner now installs via deb and rpm first. #
+#   ##################### ATTENTION ###################
 #
 #   Install 
 #       Redhat-based
@@ -41,7 +41,7 @@
 #           tar -xvzf MailScanner-5.x.x-x.nix.tar.gz
 #           ./install.sh
 #
-#	Update
+#   Update
 #       Redhat-based
 #           rpm -Uvh MailScanner-5.x.x-x.rhel.noarch.rpm
 #           /usr/sbin/ms-configure --update
@@ -78,5 +78,4 @@
 #		/usr/share/MailScanner
 #		/usr/lib/MailScanner
 #
-
 ####
