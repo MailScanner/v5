@@ -181,10 +181,10 @@ if [ -f '/etc/MailScanner/MailScanner.conf' ]; then
     sed -i "s/${OLDTHING}/${NEWTHING}/g" /etc/MailScanner/MailScanner.conf
 fi
 
-# if [ -f '/lib/systemd/systemd' -o -f '/usr/lib/systemd/systemd' ]; then
-#     systemctl enable mailscanner.service
-# else
-#     update-rc.d mailscanner defaults 80 80
-# fi
+if [ -f '/lib/systemd/systemd' -o -f '/usr/lib/systemd/systemd' ]; then
+    systemctl enable mailscanner.service
+else
+    update-rc.d mailscanner defaults 80 80
+fi
 
 exit 0

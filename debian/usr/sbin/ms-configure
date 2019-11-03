@@ -862,11 +862,9 @@ fi
         echo To activate MailScanner run the following commands:
         echo
         echo    --SysV Init--
-        echo    chkconfig mailscanner on
         echo    service mailscanner start
         echo
         echo    --Systemd--
-        echo    systemctl enable mailscanner.service
         echo    systemctl start mailscanner.service
         echo
         echo To activate MSMilter \(if in use\) run the following commands:
