@@ -8,7 +8,7 @@
 
 Name:        %{name}
 Version:     %{version}
-Release:     %{release}
+Release:     %{release}.rhel
 Summary:     Email Gateway Virus Scanner with Malware, Phishing, and Spam Detection
 Group:       System Environment/Daemons
 License:     GPLv2
@@ -20,7 +20,7 @@ Provides:     perl(MailScanner), perl(MailScanner::Antiword), perl(MailScanner::
 Source:      %{name}-%{version}.tgz
 BuildRoot:   %{_tmppath}/%{name}-root
 BuildArchitectures: noarch
-AutoReqProv: yes
+AutoReqProv: no
 Obsoletes: mailscanner
 
 
@@ -35,7 +35,7 @@ protect it against Denial Of Service attacks.
 
 After installation, you must install one of the supported open source or
 commercial antivirus packages if not installed using the MailScanner
-installation script.
+configuration script.
 
 This has been tested on Red Hat Linux, but should work on other RPM
 based Linux distributions.
@@ -55,6 +55,7 @@ mkdir -p ${RPM_BUILD_ROOT}/usr/share/MailScanner/reports/{hu,de,se,ca,cy+en,pt_b
 mkdir -p ${RPM_BUILD_ROOT}/usr/share/MailScanner/perl/{MailScanner,custom}
 mkdir -p ${RPM_BUILD_ROOT}/usr/{lib/MailScanner/wrapper,lib/MailScanner/init,lib/MailScanner/systemd}
 mkdir -p ${RPM_BUILD_ROOT}/var/spool/MailScanner/{archive,incoming,quarantine,milterin,milterout}
+mkdir -p ${RPM_BUILD_ROOT}/usr/share/MailScanner/doc
 
 ### etc
 install etc/cron.daily/mailscanner ${RPM_BUILD_ROOT}/etc/cron.daily/
@@ -120,7 +121,7 @@ install usr/sbin/ms-update-phishing                 ${RPM_BUILD_ROOT}/usr/sbin/m
 install usr/sbin/ms-update-sa                       ${RPM_BUILD_ROOT}/usr/sbin/ms-update-sa
 install usr/sbin/ms-update-vs                       ${RPM_BUILD_ROOT}/usr/sbin/ms-update-vs
 install usr/sbin/ms-upgrade-conf                    ${RPM_BUILD_ROOT}/usr/sbin/ms-upgrade-conf
-
+install usr/sbin/ms-configure                       ${RPM_BUILD_ROOT}/usr/sbin/ms-configure
 
 ### usr/share/MailScanner
 
@@ -220,6 +221,15 @@ MyExample.pm
 Ruleset-from-Function.pm
 SpamWhitelist.pm
 ZMRouterDirHash.pm
+EOF
+
+while read f
+do 
+  install usr/share/MailScanner/doc/$f ${RPM_BUILD_ROOT}/usr/share/MailScanner/doc/
+done << EOF
+changelog
+README
+LICENSE
 EOF
 
 ### usr/lib/MailScanner
@@ -375,54 +385,14 @@ exit 0
 # back up their stuff
 SAVEDIR="$HOME/ms_upgrade/saved.$$";
 
-# allow supplementary groups
-CAVOLD='^#AllowSupplementaryGroups.*';
-CAVNEW='AllowSupplementaryGroups yes';
-if [ -f '/etc/clamd.conf' ]; then
-    sed -i "s/${CAVOLD}/${CAVNEW}/g" /etc/clamd.conf
+if [ ! -d '/var/spool/MailScanner/archive' ]; then
+    mkdir -p /var/spool/MailScanner/archive
+    chmod 775 /var/spool/MailScanner/archive
 fi
 
 # group for users to run under
 if ! getent group mtagroup >/dev/null 2>&1; then
     groupadd -f mtagroup >/dev/null 2>&1
-fi
-
-# check for common users and add to the mtagroup
-if id -u clam >/dev/null 2>&1; then
-    usermod -a -G mtagroup clam >/dev/null 2>&1
-fi
-
-if id -u clamav >/dev/null 2>&1; then
-    usermod -a -G mtagroup clamav >/dev/null 2>&1
-fi
-
-if id -u clamscan >/dev/null 2>&1; then
-    usermod -a -G mtagroup clamscan >/dev/null 2>&1
-fi
-
-if id -u vscan >/dev/null 2>&1; then
-    usermod -a -G mtagroup vscan >/dev/null 2>&1
-fi
-
-if id -u sophosav >/dev/null 2>&1; then
-    usermod -a -G mtagroup sophosav >/dev/null 2>&1
-fi
-
-if id -u postfix >/dev/null 2>&1; then
-    usermod -a -G mtagroup postfix >/dev/null 2>&1
-fi
-
-if id -u mail >/dev/null 2>&1; then
-    usermod -a -G mtagroup mail >/dev/null 2>&1
-fi
-
-if id -u avast >/dev/null 2>&1; then
-    usermod -a -G mtagroup avast >/dev/null 2>&1
-fi
-
-if [ ! -d '/var/spool/MailScanner/archive' ]; then
-    mkdir -p /var/spool/MailScanner/archive
-    chmod 775 /var/spool/MailScanner/archive
 fi
 
 if [ $(stat -c "%G" /var/spool/MailScanner/archive) == 'root' ]; then
@@ -478,11 +448,6 @@ if [ -f '/etc/MailScanner/spam.assassin.prefs.conf' ]; then
     mv -f /etc/MailScanner/spam.assassin.prefs.conf /etc/MailScanner/spamassassin.conf
 fi
 
-# create symlink for spamasassin
-if [ -d '/etc/mail/spamassassin' -a ! -L '/etc/mail/spamassassin/MailScanner.cf' -a -f '/etc/MailScanner/spamassassin.conf' -a ! -f '/etc/mail/spamassassin/MailScanner.cf' ]; then
-    ln -s /etc/MailScanner/spamassassin.conf /etc/mail/spamassassin/MailScanner.cf 
-fi
-
 # check for rpmnew, if present, and move in place for upgrade
 if [ -f /etc/MailScanner/MailScanner.conf.rpmnew ]; then
   cp -f /etc/MailScanner/MailScanner.conf.rpmnew /etc/MailScanner/MailScanner.conf
@@ -517,55 +482,6 @@ OLDTHING='^Custom Functions Dir.*';
 NEWTHING='Custom Functions Dir = \/usr\/share\/MailScanner\/perl\/custom';
 if [ -f '/etc/MailScanner/MailScanner.conf' ]; then
     sed -i "s/${OLDTHING}/${NEWTHING}/g" /etc/MailScanner/MailScanner.conf
-fi
-
-# fix the clamav wrapper if the user does not exist
-if [ -d '/etc/clamav' ]; then
-
-    DISTROCAVUSER='ClamUser="clamav"';
-    DISTROCAVGRP='ClamGroup="clamav"';
-
-    # check for common users and add to the mtagroup
-    if id -u clam >/dev/null 2>&1; then
-        CAVUSR='ClamUser="clam"';
-    fi
-
-    if id -u clamav >/dev/null 2>&1; then
-        CAVUSR='ClamUser="clamav"';
-    fi
-
-    if id -u clamscan >/dev/null 2>&1; then
-        CAVUSR='ClamUser="clamscan"';
-    fi
-
-    if id -u vscan >/dev/null 2>&1; then
-        CAVUSR='ClamUser="vscan"';
-    fi
-
-    if getent group clamav >/dev/null 2>&1; then
-        CAVGRP='ClamGroup="clamav"';
-    fi
-
-    if getent group clam >/dev/null 2>&1; then
-        CAVGRP='ClamGroup="clam"';
-    fi
-
-    if getent group clamscan >/dev/null 2>&1; then
-        CAVGRP='ClamGroup="clamscan"';
-    fi
-
-    if [ -f '/usr/lib/MailScanner/wrapper/clamav-wrapper' ]; then
-        sed -i "s/${DISTROCAVUSER}/${CAVUSR}/g" /usr/lib/MailScanner/wrapper/clamav-wrapper
-        sed -i "s/${DISTROCAVGRP}/${CAVGRP}/g" /usr/lib/MailScanner/wrapper/clamav-wrapper
-    fi
-
-    # fix old style clamav Monitors if preset in old mailscanner.conf
-    CAVOLD='^Monitors for ClamAV Updates.*';
-    CAVNEW='Monitors for ClamAV Updates = \/usr\/local\/share\/clamav\/\*\.cld \/usr\/local\/share\/clamav\/\*\.cvd \/var\/lib\/clamav\/\*\.inc\/\* \/var\/lib\/clamav\/\*\.\?db \/var\/lib\/clamav\/\*\.cvd';
-    if [ -f '/etc/MailScanner/MailScanner.conf' ]; then
-        sed -i "s/${CAVOLD}/${CAVNEW}/g" /etc/MailScanner/MailScanner.conf
-    fi
-
 fi
 
 # softlink for custom functions
@@ -628,46 +544,13 @@ else
 fi
 
 echo
+echo To initially configure MailScanner and install necessary modules run:
+echo 
+echo /usr/sbin/ms-configure
 echo
-echo To configure MailScanner, edit the following files:
-echo
-echo /etc/MailScanner/defaults
-echo /etc/MailScanner/MailScanner.conf
-echo
-echo
-echo To activate MailScanner run the following commands:
-echo
-echo    --SysV Init--
-echo    chkconfig mailscanner on
-echo    service mailscanner start
-echo
-echo    --Systemd--
-echo    systemctl enable mailscanner.service
-echo    systemctl start mailscanner.service
-echo
-echo To activate Sendmail for Mailscanner \(if in use\) run the following commands:
-echo
-echo    --SysV Init--
-echo    chkconfig sendmail off
-echo    chkconfig sm-client off
-echo    chkconfig ms-sendmail on
-echo    service ms-sendmail start
-echo
-echo    --Systemd--
-echo    systemctl disable sendmail.service
-echo    systemctl disable sm-client.service
-echo    systemctl enable ms-sendmail.service
-echo    systemctl start ms-sendmail.service
-echo
-echo To activate MSMilter for Mailscanner \(if in use\) run the following commands:
-echo
-echo    --SysV Init--
-echo    chkconfig msmilter on
-echo    service msmilter start
-echo
-echo    --Systemd--
-echo    systemctl enable msmilter.service
-echo    systemctl start msmilter.service
+echo To update MailScanner and necessary modules run:
+echo 
+echo /usr/sbin/ms-configure --update
 echo
 
 exit 0 
@@ -720,6 +603,7 @@ exit 0
 %attr(755,root,root) %dir /usr/lib/MailScanner/init
 %attr(755,root,root) %dir /usr/lib/MailScanner/systemd
 %attr(755,root,root) %dir /usr/share/MailScanner
+%attr(755,root,root) %dir /usr/share/MailScanner/doc
 %attr(755,root,root) %dir /usr/share/MailScanner/perl
 %attr(755,root,root) %dir /usr/share/MailScanner/perl/custom
 %attr(755,root,root) %dir /usr/share/MailScanner/perl/MailScanner
@@ -747,6 +631,7 @@ exit 0
 %attr(755,root,root) /usr/sbin/ms-update-sa
 %attr(755,root,root) /usr/sbin/ms-update-vs
 %attr(755,root,root) /usr/sbin/ms-upgrade-conf
+%attr(755,root,root) /usr/sbin/ms-configure
 
 %attr(755,root,root) /usr/lib/MailScanner/init/ms-init
 %attr(755,root,root) /usr/lib/MailScanner/init/ms-sendmail-init
@@ -851,6 +736,10 @@ exit 0
 %attr(644,root,root) /etc/MailScanner/rules/README
 %config(noreplace) /etc/MailScanner/rules/spam.whitelist.rules
 %config(noreplace) /etc/MailScanner/rules/external.message.rules
+
+%attr(644,root,root) /usr/share/MailScanner/doc/changelog
+%attr(644,root,root) /usr/share/MailScanner/doc/LICENSE
+%attr(644,root,root) /usr/share/MailScanner/doc/README
 
 %config(noreplace) /usr/share/MailScanner/reports/en/deleted.content.message.txt
 %config(noreplace) /usr/share/MailScanner/reports/en/stored.content.message.txt
@@ -1334,6 +1223,9 @@ exit 0
 %config(noreplace) /usr/share/MailScanner/reports/ca/stored.virus.message.txt
 
 %changelog
+* Sat Nov 02 2019 Shawn Iverson <shawniverson@efa-project.org>
+- Refactor for standard package management
+
 * Sun Jul 07 2019 Shawn Iverson <shawniverson@efa-project.org>
 - Add back directories to files section and test group membership
 

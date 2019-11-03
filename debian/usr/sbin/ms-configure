@@ -1,19 +1,13 @@
 #!/usr/bin/env bash
 #
-# MailScanner installation script for Debian based systems
+# MailScanner configuration script for Debian based systems
 # 
 # This script installs the required software for
 # MailScanner via apt-get and CPAN based on user input.  
 #
 #
-# Written by:
-# Jerry Benton < mailscanner@mailborder.com >
-# 29 APR 2016
-# Updated By:
-# Manuel Dalla Lana < endelwar@aregar.it >
-# Shawn Iverson < shawniverson@gmail.com >
-# 22 OCT 2018
-# clear the screen. yay!
+# Updated: 2 Nov 2019
+# MailScanner Team <https://www.mailscanner.info>
 clear
 
 # unattended install: command line parameter parsing
@@ -445,11 +439,10 @@ ARMODAFTERSA+=('Mail::SpamAssassin::Plugin::DCC');
 ARMODAFTERSA+=('Mail::SpamAssassin::Plugin::Pyzor');
 
 
-# logging starts here
 (
 clear
 echo;
-echo "Installation results are being logged to mailscanner-install.log";
+echo "Installation/configuration results are being logged to /var/log/mailscanner-configuration.log";
 echo;
 timewait 1
 
@@ -594,18 +587,18 @@ if [ ${CPANOPTION} == 1 ]; then
         fi
     done
 
-    # Mail::ClamAV has broken version detection
-    # Prepare to patch and install
-    if [ $CAV -eq 1 ]; then
-        cpan -g Mail::ClamAV
-        package=$(find -name Mail-ClamAV*gz | tail -n1)
-        tar xzvf $package
-        packagedir=$(echo $package | sed -e 's/\.tar\.gz//')
-        patch -p1 $packagedir/Makefile.PL < patch.diff
-        cd $packagedir
-        perl Makefile.PL
-        make install
-    fi
+    # # Mail::ClamAV has broken version detection
+    # # Prepare to patch and install
+    # if [ $CAV -eq 1 ]; then
+    #     cpan -g Mail::ClamAV
+    #     package=$(find -name Mail-ClamAV*gz | tail -n1)
+    #     tar xzvf $package
+    #     packagedir=$(echo $package | sed -e 's/\.tar\.gz//')
+    #     patch -p1 $packagedir/Makefile.PL < patch.diff
+    #     cd $packagedir
+    #     perl Makefile.PL
+    #     make install
+    # fi
 
     # Install MIME::Tools from CPAN even though rpm is present
     # Fixes outdated MIME::Tools causing MailScanner to crash
@@ -638,23 +631,155 @@ timewait ${PMODWAIT}
 
 clear
 echo;
-echo "Installing the MailScanner .deb package ... ";
+echo "Preparing MailScanner ... ";
 
-# install the mailscanner package
-dpkg -i ${CONFFILES} ${NODEPS} "${THISCURRPMDIR}"/MailScanner-*-noarch.deb
+# check for common users and add to the mtagroup
+if id -u clam >/dev/null 2>&1; then
+    usermod -a -G mtagroup clam >/dev/null 2>&1
+fi
 
-if [ $? -ne 0 ]; then
-    echo;
-    echo '----------------------------------------------------------';
-    echo 'Installation Error'; echo;
-    echo 'The MailScanner package failed to install. Address the required';
-    echo 'dependencies and run the installer again.';
-    echo;
-    echo 'Note that Perl modules need to be available system-wide. A';
-    echo 'common issue is that missing modules were installed in a ';
-    echo 'user specific configuration.';
-    echo;
-else
+if id -u clamav >/dev/null 2>&1; then
+    usermod -a -G mtagroup clamav >/dev/null 2>&1
+fi
+
+if id -u clamscan >/dev/null 2>&1; then
+    usermod -a -G mtagroup clamscan >/dev/null 2>&1
+fi
+
+if id -u vscan >/dev/null 2>&1; then
+    usermod -a -G mtagroup vscan >/dev/null 2>&1
+fi
+
+if id -u sophosav >/dev/null 2>&1; then
+    usermod -a -G mtagroup sophosav >/dev/null 2>&1
+fi
+
+if id -u Debian-exim >/dev/null 2>&1; then
+    usermod -a -G mtagroup Debian-exim >/dev/null 2>&1
+fi
+
+if id -u postfix >/dev/null 2>&1; then
+    usermod -a -G mtagroup postfix >/dev/null 2>&1
+fi
+
+if id -u mail >/dev/null 2>&1; then
+    usermod -a -G mtagroup mail >/dev/null 2>&1
+fi
+
+if id -u avast >/dev/null 2>&1; then
+    usermod -a -G mtagroup avast >/dev/null 2>&1
+fi
+
+if [ -d '/var/spool/exim4.in' ]; then
+    chown Debian-exim:mtagroup /var/spool/exim4.in
+    chmod 0750 /var/spool/exim4.in
+    chown Debian-exim:mtagroup /var/spool/exim4.in/db
+    chmod 0750 /var/spool/exim4.in/db
+    chown Debian-exim:mtagroup /var/spool/exim4.in/input
+    chmod 0750 /var/spool/exim4.in/input
+    chown Debian-exim:mtagroup /var/spool/exim4.in/msglog
+    chmod 0750 /var/spool/exim4.in/msglog
+fi
+
+if [ ! -d '/var/spool/mqueue.in' ]; then
+    perl -pi -e 's{Incoming Queue Dir = /var/spool/mqueue.in}{Incoming Queue Dir = /var/spool/mqueue}g;' /etc/MailScanner/MailScanner.conf
+fi
+
+# create symlink for spamasassin
+if [ -d '/etc/mail/spamassassin' -a ! -L '/etc/mail/spamassassin/MailScanner.cf' -a -f '/etc/MailScanner/spamassassin.conf' -a ! -f '/etc/mail/spamassassin/MailScanner.cf' ]; then
+    ln -s /etc/MailScanner/spamassassin.conf /etc/mail/spamassassin/MailScanner.cf
+fi
+# fix the clamav wrapper if the user does not exist
+if [ -d '/etc/clamav' ]; then
+
+    DISTROCAVUSER='ClamUser="clamav"';
+    DISTROCAVGRP='ClamGroup="clamav"';
+    
+    # check for common users and add to the mtagroup
+    if id -u clam >/dev/null 2>&1; then
+        CAVUSR='ClamUser="clam"';
+    fi
+
+    if id -u clamav >/dev/null 2>&1; then
+        CAVUSR='ClamUser="clamav"';
+    fi
+
+    if id -u clamscan >/dev/null 2>&1; then
+        CAVUSR='ClamUser="clamscan"';
+    fi
+    
+    if getent group clamav >/dev/null 2>&1; then
+        CAVGRP='ClamGroup="clamav"';
+    fi
+
+    if getent group clam >/dev/null 2>&1; then
+        CAVGRP='ClamGroup="clam"';
+    fi
+    
+    if getent group clamscan >/dev/null 2>&1; then
+        CAVGRP='ClamGroup="clamscan"';
+    fi
+
+    if [ -f '/usr/lib/MailScanner/wrapper/clamav-wrapper' ]; then
+        sed -i "s/${DISTROCAVUSER}/${CAVUSR}/g" /usr/lib/MailScanner/wrapper/clamav-wrapper
+        sed -i "s/${DISTROCAVGRP}/${CAVGRP}/g" /usr/lib/MailScanner/wrapper/clamav-wrapper
+    fi
+    
+    if [ -f '/etc/apparmor.d/usr.sbin.clamd' ]; then
+            
+        # add to include for clamd
+        if [ -f '/etc/apparmor.d/local/usr.sbin.clamd' ]; then
+            echo '/var/spool/MailScanner/incoming/** krw,' > /etc/apparmor.d/local/usr.sbin.clamd
+            echo '/var/spool/MailScanner/incoming/** ix,' >> /etc/apparmor.d/local/usr.sbin.clamd
+            
+        fi
+    fi
+
+    # fix old style clamav Monitors if preset in old mailscanner.conf
+    CAVOLD='^Monitors for ClamAV Updates.*';
+    CAVNEW='Monitors for ClamAV Updates = \/usr\/local\/share\/clamav\/\*\.cld \/usr\/local\/share\/clamav\/\*\.cvd \/var\/lib\/clamav\/\*\.inc\/\* \/var\/lib\/clamav\/\*\.\?db \/var\/lib\/clamav\/\*\.cvd';
+    if [ -f '/etc/MailScanner/MailScanner.conf' ]; then
+        sed -i "s/${CAVOLD}/${CAVNEW}/g" /etc/MailScanner/MailScanner.conf
+    fi
+
+fi
+
+# set the correct sock for debian systems
+CAVOLD='^Clamd Socket.*';
+CAVNEW='Clamd Socket = \/var\/run\/clamav\/clamd\.ctl';
+if [ -f '/etc/MailScanner/MailScanner.conf' ]; then
+    sed -i "s/${CAVOLD}/${CAVNEW}/g" /etc/MailScanner/MailScanner.conf
+fi
+
+# set the correct lock file for debian systems
+CAVOLD='^Clamd Lock File.*';
+CAVNEW='Clamd Lock File =';
+if [ -f '/etc/MailScanner/MailScanner.conf' ]; then
+    sed -i "s/${CAVOLD}/${CAVNEW}/g" /etc/MailScanner/MailScanner.conf
+fi
+
+# allow supplementary groups
+CAVOLD='^#AllowSupplementaryGroups.*';
+CAVNEW='AllowSupplementaryGroups true';
+if [ -f '/etc/clamav/clamd.conf' ]; then
+    sed -i "s/${CAVOLD}/${CAVNEW}/g" /etc/clamav/clamd.conf
+fi
+
+# # install the mailscanner package
+# dpkg -i ${CONFFILES} ${NODEPS} "${THISCURRPMDIR}"/MailScanner-*-noarch.deb
+
+# if [ $? -ne 0 ]; then
+#     echo;
+#     echo '----------------------------------------------------------';
+#     echo 'Installation Error'; echo;
+#     echo 'The MailScanner package failed to install. Address the required';
+#     echo 'dependencies and run the installer again.';
+#     echo;
+#     echo 'Note that Perl modules need to be available system-wide. A';
+#     echo 'common issue is that missing modules were installed in a ';
+#     echo 'user specific configuration.';
+#     echo;
+# else
     # create ramdisk
     if [ $RAMDISK -eq 1 ]; then
         if [ -d '/var/spool/MailScanner/incoming' ]; then
@@ -689,16 +814,69 @@ else
 
     ldconfig
 
-    echo;
-    echo '----------------------------------------------------------';
-    echo 'Installation Complete'; echo;
-    echo 'See http://www.mailscanner.info for more information and  '
-    echo 'support via the MailScanner mailing list.'
-    echo;
-    echo;
-    echo 'Review: Set your preferences in /etc/MailScanner/MailScanner.conf'
-    echo 'and review /etc/MailScanner/defaults';
-    echo;
-fi 
+    if [[ -n "${arg_update+x}" ]]; then
+        echo;
+        echo '----------------------------------------------------------';
+        echo 'Configuration and module update complete';
+        echo;
+        echo 'See http://www.mailscanner.info for more information and  '
+        echo 'support via the MailScanner mailing list.'
+        echo;
+        echo;
+        echo To finish updating MailScanner, review the following files:
+        echo
+        echo /etc/MailScanner/defaults
+        echo /etc/MailScanner/MailScanner.conf
+        echo
+        echo Restart MailScanner
+        echo
+        echo    --SysV Init--
+        echo    service mailscanner restart
+        echo
+        echo    --Systemd--
+        echo    systemctl restart mailscanner.service
+        echo
+        echo Restart MSMilter \(if in use\) 
+        echo
+        echo    --SysV Init--
+        echo    service msmilter restart
+        echo
+        echo    --Systemd--
+        echo    systemctl restart msmilter.service
+        echo
+    else
+        echo;
+        echo '----------------------------------------------------------';
+        echo 'Initial configuration and module installation complete';
+        echo;
+        echo 'See http://www.mailscanner.info for more information and  '
+        echo 'support via the MailScanner mailing list.'
+        echo;
+        echo;
+        echo To finish configuring MailScanner, edit the following files:
+        echo
+        echo /etc/MailScanner/defaults
+        echo /etc/MailScanner/MailScanner.conf
+        echo
+        echo
+        echo To activate MailScanner run the following commands:
+        echo
+        echo    --SysV Init--
+        echo    service mailscanner start
+        echo
+        echo    --Systemd--
+        echo    systemctl start mailscanner.service
+        echo
+        echo To activate MSMilter \(if in use\) run the following commands:
+        echo
+        echo    --SysV Init--
+        echo    chkconfig msmilter on
+        echo    service msmilter start
+        echo
+        echo    --Systemd--
+        echo    systemctl enable msmilter.service
+        echo    systemctl start msmilter.service
+        echo
+    fi 
 
-) 2>&1 | tee mailscanner-install.log
+) 2>&1 | tee -a /var/log/mailscanner-configuration.log

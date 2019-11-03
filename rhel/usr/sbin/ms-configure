@@ -1,26 +1,21 @@
 #!/bin/bash
 #
-# MailScanner installation script for RPM based systems
+# MailScanner Configuration script for RPM based systems
 # 
 # This script installs the required software for
 # MailScanner via yum and CPAN based on user input.  
 #
-# Tested distributions:     CentOS 5,6,7
-#                           RHEL 6,7
-#                           Fedora 26,27,28
+# Tested distributions:     CentOS 5,6,7 (8 Pending)
+#                           RHEL 6,7 (8 Pending)
+#                           Fedora 26,27,28 (29-31 Pending)
 #
-# Written by:
-# Jerry Benton < mailscanner@mailborder.com >
-# 29 APR 2016
-# Updated by:
-# Manuel Dalla Lana < endelwar@aregar.it >
-# Shawn Iverson < shawniverson@efa-project.org >
-# 17 JUN 2018
+# Updated: 2 Nov 2019
+# MailScanner Team <https://www.mailscanner.info>
 
 # clear the screen. yay!
 clear
 
-# unattended install: command line parameter parsing
+# unattended configuration: command line parameter parsing
 parsedCommands=0;
 while [ $# -gt 0 ]; do
     case "$1" in
@@ -246,7 +241,7 @@ timewait () {
 if [ $(whoami) != "root" ]; then
     clear
     echo;
-    echo "Installer must be run as root. Aborting. Use 'su -' to switch to the root environment."; echo;
+    echo "Configuration must be run as root. Aborting. Use 'su -' to switch to the root environment."; echo;
     exit 192
 fi
 
@@ -255,7 +250,7 @@ if [ ! -x '/usr/bin/yum' ]; then
     clear
     echo;
     echo "Yum package manager is not installed. You must install this before starting";
-    echo "the MailScanner installation process. Installation aborted."; echo;
+    echo "the MailScanner configuration process. Configuration aborted."; echo;
     exit 192
 else
     YUM='/usr/bin/yum';
@@ -263,8 +258,8 @@ fi
 
 # confirm the RHEL release is known before continuing
 if [ ! -f '/etc/redhat-release' ]; then
-    # this is mostly to prevent accidental installation on a non redhat based system
-    echo "Unable to determine distribution release from /etc/redhat-release. Installation aborted."; echo;
+    # this is mostly to prevent accidental configuration on a non redhat based system
+    echo "Unable to determine distribution release from /etc/redhat-release. Configuration aborted."; echo;
     exit 192
 else
     # figure out what release is being used
@@ -302,15 +297,15 @@ if [ -f /etc/fedora-release ]; then
 fi
 
 # user info screen before the install process starts
-echo "MailScanner Installation for RPM Based Systems"; echo; echo;
+echo "MailScanner Configurataion for RPM Based Systems"; echo; echo;
 echo "This will INSTALL or UPGRADE the required software for MailScanner on RPM based systems";
 echo "via the Yum package manager. Supported distributions are RHEL 5,6,7 and associated";
 echo "variants such as CentOS and Scientific Linux. Internet connectivity is required for"; 
-echo "this installation script to execute. "; echo;
+echo "this configurataion script to execute. "; echo;
 echo;
 echo "WARNING - Make a backup of any custom configuration files if upgrading - WARNING";
 echo;
-echo "You may press CTRL + C at any time to abort the installation. Note that you may see";
+echo "You may press CTRL + C at any time to abort the configuration. Note that you may see";
 echo "some errors during the perl module installation. You may safely ignore errors regarding";
 echo "failed tests if you opt to use CPAN. You may also ignore 'No package available' notices";
 echo "during the yum installation of packages."; echo;
@@ -749,7 +744,7 @@ MACHINE_TYPE=`uname -m`
 (
 clear
 echo;
-echo "Installation results are being logged to mailscanner-install.log";
+echo "Installation/configuration results are being logged to /var/log/mailscanner-configuration.log";
 echo;
 timewait 1
 
@@ -1098,18 +1093,18 @@ if [[ -n "${arg_update+x}" && $AUTOCPAN -ne 0 ]]; then
     cpan-outdated -p | cpanm --force --no-interactive
 fi
 
-# Mail::ClamAV has broken version detection
-# Prepare to patch and install
-if [[ $CAV -eq 1 && $CPANOPTION -eq 1 ]]; then
-    cpan -g Mail::ClamAV
-    package=$(find -name Mail-ClamAV*gz | tail -n1)
-    tar xzvf $package
-    packagedir=$(echo $package | sed -e 's/\.tar\.gz//')
-    patch -p1 $packagedir/Makefile.PL < patch.diff
-    cd $packagedir
-    perl Makefile.PL
-    make install
-fi
+# # Mail::ClamAV has broken version detection
+# # Prepare to patch and install
+# if [[ $CAV -eq 1 && $CPANOPTION -eq 1 ]]; then
+#     cpan -g Mail::ClamAV
+#     package=$(find -name Mail-ClamAV*gz | tail -n1)
+#     tar xzvf $package
+#     packagedir=$(echo $package | sed -e 's/\.tar\.gz//')
+#     patch -p1 $packagedir/Makefile.PL < /usr/share/MailScanner/patch/patch.diff
+#     cd $packagedir
+#     perl Makefile.PL
+#     make install
+# fi
 
 if [ $CPANOPTION -eq 1 ]; then
   # Install MIME::Tools from CPAN even though rpm is present
@@ -1154,54 +1149,151 @@ freshclam 2>/dev/null
 cd "$THISCURRPMDIR"
 
 clear
+# echo;
+# echo "Installing the MailScanner RPM ... ";
+
 echo;
-echo "Installing the MailScanner RPM ... ";
+echo "Preparing MailScanner ..."
 
-# install the mailscanner rpm
-
-ABORT=0
-# MailScanner version 4 will trigger an rpmsave during update
-# MailScanner version 5 will not due to need to drop in a new MailScanner.conf
-# during updating every time for comparison, so the following update process
-# will cause MailScanner.conf to get overwritten in v5 if it is not moved first
-mv /etc/MailScanner/MailScanner.conf /etc/MailScanner/MailScanner.conf.rpmsave >/dev/null 2>&1
-
-# Pass #1 -- without scripts (bypasses prior pre and post uninstall scripts in older versions of mailscanner)
-# This resolves two issues
-# One is the presence of faulty pre and post scripts in v4 packages
-# The second is the presence of a bug in earlier v5 packages during %post
-$RPM -Uvh --noscripts $NODEPS MailScanner*noarch.rpm
-if [ $? -eq 0 ]; then
-
-    # Move rpmsaves around so that scripts can find them
-    if [[ -e /etc/MailScanner/MailScanner.conf.rpmsave ]]; then 
-        mv /etc/MailScanner/MailScanner.conf /etc/MailScanner/MailScanner.conf.rpmnew
-        mv /etc/MailScanner/MailScanner.conf.rpmsave /etc/MailScanner/MailScanner.conf
-    fi
-    if [[ -e /etc/MailScanner/spam.assassin.prefs.conf.rpmsave ]]; then
-        mv /etc/MailScanner/spam.assassin.prefs.conf.rpmsave /etc/MailScanner/spam.assassin.prefs.conf
-    fi
-    
-    # Pass #2 -- with scripts
-    $RPM -Uvh --force $NODEPS MailScanner*noarch.rpm
-    [ $? -ne 0 ] && ABORT=1
-else
-    ABORT=1
+# allow supplementary groups
+CAVOLD='^#AllowSupplementaryGroups.*';
+CAVNEW='AllowSupplementaryGroups yes';
+if [ -f '/etc/clamd.conf' ]; then
+    sed -i "s/${CAVOLD}/${CAVNEW}/g" /etc/clamd.conf
 fi
 
-if [ $ABORT -eq 1 ]; then
-    echo;
-    echo '----------------------------------------------------------';
-    echo 'Installation Error'; echo;
-    echo 'The MailScanner RPM failed to install. Address the required';
-    echo 'dependencies and run the installer again. Note that electing';
-    echo 'to use EPEL and CPAN should resolve dependency errors.';
-    echo;
-    echo 'Note that Perl modules need to be available system-wide. A';
-    echo 'common issue is that missing modules were installed in a ';
-    echo 'user specific configuration.';
-    echo;
-else
+# check for common users and add to the mtagroup
+if id -u clam >/dev/null 2>&1; then
+    usermod -a -G mtagroup clam >/dev/null 2>&1
+fi
+
+if id -u clamav >/dev/null 2>&1; then
+    usermod -a -G mtagroup clamav >/dev/null 2>&1
+fi
+
+if id -u clamscan >/dev/null 2>&1; then
+    usermod -a -G mtagroup clamscan >/dev/null 2>&1
+fi
+
+if id -u vscan >/dev/null 2>&1; then
+    usermod -a -G mtagroup vscan >/dev/null 2>&1
+fi
+
+if id -u sophosav >/dev/null 2>&1; then
+    usermod -a -G mtagroup sophosav >/dev/null 2>&1
+fi
+
+if id -u postfix >/dev/null 2>&1; then
+    usermod -a -G mtagroup postfix >/dev/null 2>&1
+fi
+
+if id -u mail >/dev/null 2>&1; then
+    usermod -a -G mtagroup mail >/dev/null 2>&1
+fi
+
+if id -u avast >/dev/null 2>&1; then
+    usermod -a -G mtagroup avast >/dev/null 2>&1
+fi
+
+# create symlink for spamasassin
+if [ -d '/etc/mail/spamassassin' -a ! -L '/etc/mail/spamassassin/MailScanner.cf' -a -f '/etc/MailScanner/spamassassin.conf' -a ! -f '/etc/mail/spamassassin/MailScanner.cf' ]; then
+    ln -s /etc/MailScanner/spamassassin.conf /etc/mail/spamassassin/MailScanner.cf 
+fi
+
+# fix the clamav wrapper if the user does not exist
+if [ -d '/etc/clamav' ]; then
+
+    DISTROCAVUSER='ClamUser="clamav"';
+    DISTROCAVGRP='ClamGroup="clamav"';
+
+    # check for common users and add to the mtagroup
+    if id -u clam >/dev/null 2>&1; then
+        CAVUSR='ClamUser="clam"';
+    fi
+
+    if id -u clamav >/dev/null 2>&1; then
+        CAVUSR='ClamUser="clamav"';
+    fi
+
+    if id -u clamscan >/dev/null 2>&1; then
+        CAVUSR='ClamUser="clamscan"';
+    fi
+
+    if id -u vscan >/dev/null 2>&1; then
+        CAVUSR='ClamUser="vscan"';
+    fi
+
+    if getent group clamav >/dev/null 2>&1; then
+        CAVGRP='ClamGroup="clamav"';
+    fi
+
+    if getent group clam >/dev/null 2>&1; then
+        CAVGRP='ClamGroup="clam"';
+    fi
+
+    if getent group clamscan >/dev/null 2>&1; then
+        CAVGRP='ClamGroup="clamscan"';
+    fi
+
+    if [ -f '/usr/lib/MailScanner/wrapper/clamav-wrapper' ]; then
+        sed -i "s/${DISTROCAVUSER}/${CAVUSR}/g" /usr/lib/MailScanner/wrapper/clamav-wrapper
+        sed -i "s/${DISTROCAVGRP}/${CAVGRP}/g" /usr/lib/MailScanner/wrapper/clamav-wrapper
+    fi
+
+    # fix old style clamav Monitors if preset in old mailscanner.conf
+    CAVOLD='^Monitors for ClamAV Updates.*';
+    CAVNEW='Monitors for ClamAV Updates = \/usr\/local\/share\/clamav\/\*\.cld \/usr\/local\/share\/clamav\/\*\.cvd \/var\/lib\/clamav\/\*\.inc\/\* \/var\/lib\/clamav\/\*\.\?db \/var\/lib\/clamav\/\*\.cvd';
+    if [ -f '/etc/MailScanner/MailScanner.conf' ]; then
+        sed -i "s/${CAVOLD}/${CAVNEW}/g" /etc/MailScanner/MailScanner.conf
+    fi
+
+fi
+
+# # install the mailscanner rpm
+
+# ABORT=0
+# # MailScanner version 4 will trigger an rpmsave during update
+# # MailScanner version 5 will not due to need to drop in a new MailScanner.conf
+# # during updating every time for comparison, so the following update process
+# # will cause MailScanner.conf to get overwritten in v5 if it is not moved first
+# mv /etc/MailScanner/MailScanner.conf /etc/MailScanner/MailScanner.conf.rpmsave >/dev/null 2>&1
+
+# # Pass #1 -- without scripts (bypasses prior pre and post uninstall scripts in older versions of mailscanner)
+# # This resolves two issues
+# # One is the presence of faulty pre and post scripts in v4 packages
+# # The second is the presence of a bug in earlier v5 packages during %post
+# $RPM -Uvh --noscripts $NODEPS MailScanner*noarch.rpm
+# if [ $? -eq 0 ]; then
+
+#     # Move rpmsaves around so that scripts can find them
+#     if [[ -e /etc/MailScanner/MailScanner.conf.rpmsave ]]; then 
+#         mv /etc/MailScanner/MailScanner.conf /etc/MailScanner/MailScanner.conf.rpmnew
+#         mv /etc/MailScanner/MailScanner.conf.rpmsave /etc/MailScanner/MailScanner.conf
+#     fi
+#     if [[ -e /etc/MailScanner/spam.assassin.prefs.conf.rpmsave ]]; then
+#         mv /etc/MailScanner/spam.assassin.prefs.conf.rpmsave /etc/MailScanner/spam.assassin.prefs.conf
+#     fi
+    
+#     # Pass #2 -- with scripts
+#     $RPM -Uvh --force $NODEPS MailScanner*noarch.rpm
+#     [ $? -ne 0 ] && ABORT=1
+# else
+#     ABORT=1
+# fi
+
+# if [ $ABORT -eq 1 ]; then
+#     echo;
+#     echo '----------------------------------------------------------';
+#     echo 'Installation Error'; echo;
+#     echo 'The MailScanner RPM failed to install. Address the required';
+#     echo 'dependencies and run the installer again. Note that electing';
+#     echo 'to use EPEL and CPAN should resolve dependency errors.';
+#     echo;
+#     echo 'Note that Perl modules need to be available system-wide. A';
+#     echo 'common issue is that missing modules were installed in a ';
+#     echo 'user specific configuration.';
+#     echo;
+#else
     # create ramdisk
     if [ $RAMDISK -eq 1 ]; then
         if [ -d '/var/spool/MailScanner/incoming' ]; then
@@ -1242,15 +1334,92 @@ else
 
     ldconfig
 
-    echo;
-    echo '----------------------------------------------------------';
-    echo 'Installation Complete'; echo;
-    echo 'See http://www.mailscanner.info for more information and  '
-    echo 'support via the MailScanner mailing list.'
-    echo;
-    echo;
-    echo 'Review: Set your preferences in /etc/MailScanner/MailScanner.conf'
-    echo 'and review /etc/MailScanner/defaults';
-fi 
+    if [[ -n "${arg_update+x}" ]]; then
+        echo;
+        echo '----------------------------------------------------------';
+        echo 'Configuration and module update complete'; 
+        echo;
+        echo 'See http://www.mailscanner.info for more information and  '
+        echo 'support via the MailScanner mailing list.'
+        echo;
+        echo;
+        echo To finish updating MailScanner, review the following files:
+        echo
+        echo /etc/MailScanner/defaults
+        echo /etc/MailScanner/MailScanner.conf
+        echo
+        echo Restart MailScanner
+        echo
+        echo    --SysV Init--
+        echo    service mailscanner restart
+        echo
+        echo    --Systemd--
+        echo    systemctl restart mailscanner.service
+        echo
+        echo Restart Sendmail for Mailscanner \(if in use\)
+        echo
+        echo    --SysV Init--
+        echo    service ms-sendmail restart
+        echo
+        echo    --Systemd--
+        echo    systemctl restart ms-sendmail.service
+        echo
+        echo Restart MSMilter \(if in use\) 
+        echo
+        echo    --SysV Init--
+        echo    service msmilter restart
+        echo
+        echo    --Systemd--
+        echo    systemctl restart msmilter.service
+        echo
+    else
+        echo;
+        echo '----------------------------------------------------------';
+        echo 'Initial configuration and module installation complete'; 
+        echo;
+        echo 'See http://www.mailscanner.info for more information and  '
+        echo 'support via the MailScanner mailing list.'
+        echo;
+        echo;
+        echo To finish configuring MailScanner, edit the following files:
+        echo
+        echo /etc/MailScanner/defaults
+        echo /etc/MailScanner/MailScanner.conf
+        echo
+        echo To activate MailScanner run the following commands:
+        echo
+        echo    --SysV Init--
+        echo    chkconfig mailscanner on
+        echo    service mailscanner start
+        echo
+        echo    --Systemd--
+        echo    systemctl enable mailscanner.service
+        echo    systemctl start mailscanner.service
+        echo
+        echo To activate Sendmail for Mailscanner \(if in use\) run the following commands:
+        echo
+        echo    --SysV Init--
+        echo    chkconfig sendmail off
+        echo    chkconfig sm-client off
+        echo    chkconfig ms-sendmail on
+        echo    service ms-sendmail start
+        echo
+        echo    --Systemd--
+        echo    systemctl disable sendmail.service
+        echo    systemctl disable sm-client.service
+        echo    systemctl enable ms-sendmail.service
+        echo    systemctl start ms-sendmail.service
+        echo
+        echo To activate MSMilter for Mailscanner \(if in use\) run the following commands:
+        echo
+        echo    --SysV Init--
+        echo    chkconfig msmilter on
+        echo    service msmilter start
+        echo
+        echo    --Systemd--
+        echo    systemctl enable msmilter.service
+        echo    systemctl start msmilter.service
+        echo
+    fi
 
-) 2>&1 | tee mailscanner-install.log
+) 2>&1 | tee -a /var/log/mailscanner-configuration.log

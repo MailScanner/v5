@@ -25,43 +25,6 @@ if ! getent group mtagroup >/dev/null 2>&1; then
     groupadd -f mtagroup >/dev/null 2>&1
 fi
 
-# check for common users and add to the mtagroup
-if id -u clam >/dev/null 2>&1; then
-    usermod -a -G mtagroup clam >/dev/null 2>&1
-fi
-
-if id -u clamav >/dev/null 2>&1; then
-    usermod -a -G mtagroup clamav >/dev/null 2>&1
-fi
-
-if id -u clamscan >/dev/null 2>&1; then
-    usermod -a -G mtagroup clamscan >/dev/null 2>&1
-fi
-
-if id -u vscan >/dev/null 2>&1; then
-    usermod -a -G mtagroup vscan >/dev/null 2>&1
-fi
-
-if id -u sophosav >/dev/null 2>&1; then
-    usermod -a -G mtagroup sophosav >/dev/null 2>&1
-fi
-
-if id -u Debian-exim >/dev/null 2>&1; then
-    usermod -a -G mtagroup Debian-exim >/dev/null 2>&1
-fi
-
-if id -u postfix >/dev/null 2>&1; then
-    usermod -a -G mtagroup postfix >/dev/null 2>&1
-fi
-
-if id -u mail >/dev/null 2>&1; then
-    usermod -a -G mtagroup mail >/dev/null 2>&1
-fi
-
-if id -u avast >/dev/null 2>&1; then
-    usermod -a -G mtagroup avast >/dev/null 2>&1
-fi
-
 if [ ! -d '/var/spool/MailScanner/archive' ]; then
     mkdir -p /var/spool/MailScanner/archive
     chmod 775 /var/spool/MailScanner/archive
@@ -90,17 +53,6 @@ if [ ! -d '/var/spool/MailScanner/milterout' ]; then
     mkdir -p /var/spool/MailScanner/milterout
     chmod 775 /var/spool/MailScanner/milterout
     chown root:mtagroup /var/spool/MailScanner/milterout
-fi
-
-if [ -d '/var/spool/exim4.in' ]; then
-    install -d -oDebian-exim -gmtagroup -m0750 /var/spool/exim4.in
-    install -d -oDebian-exim -gmtagroup -m0750 /var/spool/exim4.in/db
-    install -d -oDebian-exim -gmtagroup -m0750 /var/spool/exim4.in/input
-    install -d -oDebian-exim -gmtagroup -m0750 /var/spool/exim4.in/msglog
-fi
-
-if [ ! -d '/var/spool/mqueue.in' ]; then
-    perl -pi -e 's{Incoming Queue Dir = /var/spool/mqueue.in}{Incoming Queue Dir = /var/spool/mqueue}g;' /etc/MailScanner/MailScanner.conf
 fi
 
 # lock down some directory permissions
@@ -142,11 +94,6 @@ fi
 
 if [ -f '/etc/MailScanner/spam.assassin.prefs.conf' ]; then
     mv -f /etc/MailScanner/spam.assassin.prefs.conf /etc/MailScanner/spamassassin.conf
-fi
-
-# create symlink for spamasassin
-if [ -d '/etc/mail/spamassassin' -a ! -L '/etc/mail/spamassassin/MailScanner.cf' -a -f '/etc/MailScanner/spamassassin.conf' -a ! -f '/etc/mail/spamassassin/MailScanner.cf' ]; then
-    ln -s /etc/MailScanner/spamassassin.conf /etc/mail/spamassassin/MailScanner.cf
 fi
 
 # remove old symlink if present
@@ -232,82 +179,6 @@ OLDTHING='^Custom Functions Dir.*';
 NEWTHING='Custom Functions Dir = \/usr\/share\/MailScanner\/perl\/custom';
 if [ -f '/etc/MailScanner/MailScanner.conf' ]; then
     sed -i "s/${OLDTHING}/${NEWTHING}/g" /etc/MailScanner/MailScanner.conf
-fi
-
-# fix the clamav wrapper if the user does not exist
-if [ -d '/etc/clamav' ]; then
-
-    DISTROCAVUSER='ClamUser="clamav"';
-    DISTROCAVGRP='ClamGroup="clamav"';
-    
-    # check for common users and add to the mtagroup
-    if id -u clam >/dev/null 2>&1; then
-        CAVUSR='ClamUser="clam"';
-    fi
-
-    if id -u clamav >/dev/null 2>&1; then
-        CAVUSR='ClamUser="clamav"';
-    fi
-
-    if id -u clamscan >/dev/null 2>&1; then
-        CAVUSR='ClamUser="clamscan"';
-    fi
-    
-    if getent group clamav >/dev/null 2>&1; then
-        CAVGRP='ClamGroup="clamav"';
-    fi
-
-    if getent group clam >/dev/null 2>&1; then
-        CAVGRP='ClamGroup="clam"';
-    fi
-    
-    if getent group clamscan >/dev/null 2>&1; then
-        CAVGRP='ClamGroup="clamscan"';
-    fi
-
-    if [ -f '/usr/lib/MailScanner/wrapper/clamav-wrapper' ]; then
-        sed -i "s/${DISTROCAVUSER}/${CAVUSR}/g" /usr/lib/MailScanner/wrapper/clamav-wrapper
-        sed -i "s/${DISTROCAVGRP}/${CAVGRP}/g" /usr/lib/MailScanner/wrapper/clamav-wrapper
-    fi
-    
-    if [ -f '/etc/apparmor.d/usr.sbin.clamd' ]; then
-            
-        # add to include for clamd
-        if [ -f '/etc/apparmor.d/local/usr.sbin.clamd' ]; then
-            echo '/var/spool/MailScanner/incoming/** krw,' > /etc/apparmor.d/local/usr.sbin.clamd
-            echo '/var/spool/MailScanner/incoming/** ix,' >> /etc/apparmor.d/local/usr.sbin.clamd
-            
-        fi
-    fi
-
-    # fix old style clamav Monitors if preset in old mailscanner.conf
-    CAVOLD='^Monitors for ClamAV Updates.*';
-    CAVNEW='Monitors for ClamAV Updates = \/usr\/local\/share\/clamav\/\*\.cld \/usr\/local\/share\/clamav\/\*\.cvd \/var\/lib\/clamav\/\*\.inc\/\* \/var\/lib\/clamav\/\*\.\?db \/var\/lib\/clamav\/\*\.cvd';
-    if [ -f '/etc/MailScanner/MailScanner.conf' ]; then
-        sed -i "s/${CAVOLD}/${CAVNEW}/g" /etc/MailScanner/MailScanner.conf
-    fi
-
-fi
-
-# set the correct sock for debian systems
-CAVOLD='^Clamd Socket.*';
-CAVNEW='Clamd Socket = \/var\/run\/clamav\/clamd\.ctl';
-if [ -f '/etc/MailScanner/MailScanner.conf' ]; then
-    sed -i "s/${CAVOLD}/${CAVNEW}/g" /etc/MailScanner/MailScanner.conf
-fi
-
-# set the correct lock file for debian systems
-CAVOLD='^Clamd Lock File.*';
-CAVNEW='Clamd Lock File =';
-if [ -f '/etc/MailScanner/MailScanner.conf' ]; then
-    sed -i "s/${CAVOLD}/${CAVNEW}/g" /etc/MailScanner/MailScanner.conf
-fi
-
-# allow supplementary groups
-CAVOLD='^#AllowSupplementaryGroups.*';
-CAVNEW='AllowSupplementaryGroups true';
-if [ -f '/etc/clamav/clamd.conf' ]; then
-    sed -i "s/${CAVOLD}/${CAVNEW}/g" /etc/clamav/clamd.conf
 fi
 
 if [ -f '/lib/systemd/systemd' -o -f '/usr/lib/systemd/systemd' ]; then

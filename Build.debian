@@ -1,10 +1,7 @@
 #!/usr/bin/env bash
 
-# Jerry Benton
-# 24 APR 2016
-#
-# Shawn Iverson <shawniverson@efa-project.org>
-# 22 OCT 2018
+# Updated: 2 Nov 2019
+# MailScanner Team <https://www.mailscanner.info>
 #
 #
 # this Build.debian script should be located in the base
@@ -107,16 +104,16 @@ chmod +x $WORK/etc/cron.hourly/*
 # create a working dir for package
 PKGTMP="/tmp/deb.$$/";
 mkdir -p $PKGTMP/MailScanner-${FULLMSVER}
-fakeroot dpkg -b $WORK $PKGTMP/MailScanner-${FULLMSVER}/MailScanner-$FULLMSVER-noarch.deb
-cp $DEVBASEDIR/debian/install.sh 			$PKGTMP/MailScanner-${FULLMSVER}
-cp $DEVBASEDIR/changelog 						$PKGTMP/MailScanner-${FULLMSVER}
-cp $DEVBASEDIR/LICENSE 							$PKGTMP/MailScanner-${FULLMSVER}
-cp $DEVBASEDIR/README 							$PKGTMP/MailScanner-${FULLMSVER}
-cp $DEVBASEDIR/common/patch/patch.diff 			$PKGTMP/MailScanner-${FULLMSVER}
-chmod +x $PKGTMP/MailScanner-${FULLMSVER}/install.sh
+#cp $DEVBASEDIR/debian/install.sh 			$PKGTMP/MailScanner-${FULLMSVER}
+mkdir -p $WORK/usr/share/MailScanner/doc
+cp $DEVBASEDIR/changelog 						$WORK/usr/share/MailScanner/doc/
+cp $DEVBASEDIR/LICENSE 							$WORK/usr/share/MailScanner/doc/
+cp $DEVBASEDIR/README 							$WORK/usr/share/MailScanner/doc/
+fakeroot dpkg -b $WORK $PKGTMP/MailScanner-$FULLMSVER-noarch.deb
+#chmod +x $PKGTMP/MailScanner-${FULLMSVER}/install.sh
 cd $PKGTMP
-tar czf MailScanner-${FULLMSVER}.deb.tar.gz *
-mv -f MailScanner-${FULLMSVER}.deb.tar.gz $FILEOUT
+#tar czf MailScanner-${FULLMSVER}.deb.tar.gz *
+mv -f MailScanner-${FULLMSVER}-noarch.deb $FILEOUT
 
 rm -rf $PKGTMP
 rm -rf $WORK

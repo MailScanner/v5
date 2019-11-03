@@ -1,8 +1,7 @@
 #!/bin/bash
 
-# Checked and updated to be more streamlined by
-# Jerry Benton
-# 3 MAY 2016
+# Updated 2 Nov 2019
+# MailScanner Team <https://www.mailscanner.info>
 
 # this Build.tarball script should be located in the base
 # directory when run. 

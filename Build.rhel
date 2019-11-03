@@ -1,12 +1,7 @@
 #!/usr/bin/env bash
 #
-# Written by:
-# Jerry Benton < mailscanner@mailborder.com >
-# 13 FEB 2015
-# 18 April 2016 - Updated
-#
-# Shawn Iverson <shawniverson@efa-project.org>
-# 22 October 2018
+# Updated: 2 Nov 2019
+# MailScanner Team <https://www.mailscanner.info>
 #
 # This script will build the latest RPM install 
 # package and put it in /msbuilds/rpm
@@ -127,6 +122,12 @@ chmod +x $WORK/usr/lib/MailScanner/init/*
 chmod +x $WORK/etc/cron.daily/*
 chmod +x $WORK/etc/cron.hourly/*
 
+# Doc and patches
+mkdir -p $WORK/usr/share/MailScanner/doc
+cp $DEVBASEDIR/changelog $WORK/usr/share/MailScanner/doc/changelog
+cp $DEVBASEDIR/README $WORK/usr/share/MailScanner/doc/README
+cp $DEVBASEDIR/LICENSE $WORK/usr/share/MailScanner/doc/LICENSE
+
 # Build the src tarball for RPM construction
 cd $WORK
 cd ..
@@ -135,21 +136,18 @@ tar czf ~/rpmbuild/SOURCES/MailScanner-${MSVERSION}.tgz MailScanner-${MSVERSION}
 # return to where i started
 cd $THISCURDIR
 
-# create the output dir in $RPMOUT
-if [ -d $RPMOUT/MailScanner-$VERSION ]; then
-	rm -rf $RPMOUT/MailScanner-$VERSION
-fi
-mkdir -p $RPMOUT/MailScanner-$VERSION
+# create the output dir $RPMOUT
+# if [ -d $RPMOUT ]; then
+#  	rm -rf $RPMOUT
+#  fi
+#  mkdir -p $RPMOUT
 
 # copy some file we need
-cp $SRCDIR/install.sh $RPMOUT/MailScanner-$VERSION/
-cp $DEVBASEDIR/README $RPMOUT/MailScanner-$VERSION/
-cp $DEVBASEDIR/LICENSE $RPMOUT/MailScanner-$VERSION/
-cp $DEVBASEDIR/common/patch/patch.diff $RPMOUT/MailScanner-$VERSION/
-find $RPMOUT/MailScanner-$VERSION -name 'install.sh' -exec chmod 755 {} \;
-find $RPMOUT/MailScanner-$VERSION -name 'LICENSE' -exec chmod 644 {} \;
-find $RPMOUT/MailScanner-$VERSION -name 'README' -exec chmod 644 {} \;
-find $RPMOUT/MailScanner-$VERSION -name 'patch.diff' -exec chmod 644 {} \;
+#cp $SRCDIR/install.sh $RPMOUT/MailScanner-$VERSION/
+#find $RPMOUT/MailScanner-$VERSION -name 'install.sh' -exec chmod 755 {} \;
+#find $RPMOUT/MailScanner-$VERSION -name 'LICENSE' -exec chmod 644 {} \;
+#find $RPMOUT/MailScanner-$VERSION -name 'README' -exec chmod 644 {} \;
+#find $RPMOUT/MailScanner-$VERSION -name 'patch.diff' -exec chmod 644 {} \;
 
 # Build the RPM and SRPMS
 # extra define statements help make the rpm backwards compatible
@@ -157,12 +155,12 @@ find $RPMOUT/MailScanner-$VERSION -name 'patch.diff' -exec chmod 644 {} \;
 rpmbuild -ba --define "_binary_filedigest_algorithm  1"  --define "_binary_payload 1" ~/rpmbuild/SPECS/mailscanner.spec
 
 # copy the rpm built to the output dir
-cp ~/rpmbuild/RPMS/noarch/MailScanner-${VERSION}.noarch.rpm $RPMOUT/MailScanner-$VERSION
-cd $RPMOUT
-tar czf MailScanner-${VERSION}.rhel.tar.gz MailScanner-$VERSION
-rm -rf $RPMOUT/MailScanner-$VERSION
+cp ~/rpmbuild/RPMS/noarch/MailScanner-${VERSION}.rhel.noarch.rpm $RPMOUT
+#cd $RPMOUT
+#tar czf MailScanner-${VERSION}.rhel.tar.gz MailScanner-$VERSION
+#rm -rf $RPMOUT/MailScanner-$VERSION
 rm -rf $WORK
 
 echo;
-echo "Completed: $RPMOUT/MailScanner-${VERSION}.rhel.tar.gz";
+echo "Completed: $RPMOUT/MailScanner-${VERSION}.rhel.noarch.rpm";
 
