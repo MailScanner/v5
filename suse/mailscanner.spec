@@ -368,6 +368,11 @@ if [ ! -d '/var/spool/MailScanner/archive' ]; then
     chmod 775 /var/spool/MailScanner/archive
 fi
 
+# group for users to run under
+if ! getent group mtagroup >/dev/null 2>&1; then
+    groupadd -f mtagroup >/dev/null 2>&1
+fi
+
 if [ $(stat -c "%G" /var/spool/MailScanner/archive) == 'root' ]; then
     chgrp mtagroup /var/spool/MailScanner/archive
 fi

@@ -1162,11 +1162,6 @@ if [ -f '/etc/clamd.conf' ]; then
     sed -i "s/${CAVOLD}/${CAVNEW}/g" /etc/clamd.conf
 fi
 
-# group for users to run under
-if ! getent group mtagroup >/dev/null 2>&1; then
-    groupadd -f mtagroup >/dev/null 2>&1
-fi
-
 # check for common users and add to the mtagroup
 if id -u clam >/dev/null 2>&1; then
     usermod -a -G mtagroup clam >/dev/null 2>&1
