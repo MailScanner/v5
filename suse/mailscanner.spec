@@ -20,7 +20,7 @@ Provides:      perl(MailScanner), perl(MailScanner::Antiword), perl(MailScanner:
 Source:      %{name}-%{version}.tgz
 BuildRoot:   %{_tmppath}/%{name}-root
 BuildArchitectures: noarch
-AutoReqProv: yes
+AutoReqProv: no
 Obsoletes: mailscanner
 
 
