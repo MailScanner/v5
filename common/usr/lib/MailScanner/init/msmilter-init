@@ -35,6 +35,7 @@ PATH=$PATH:/usr/sbin:/usr/bin:/bin:/sbin
 export PATH
 NAME=MSMilter
 DAEMON=/usr/sbin/MSMilter
+QUICKPEEK=/usr/sbin/ms-peek
 ms_conf=/etc/MailScanner/MailScanner.conf
 
 # enable logging of non-critical notices to the maillog: yes/no
