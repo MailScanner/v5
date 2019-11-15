@@ -5027,7 +5027,7 @@ sub SignExternalMessage {
   MailScanner::Log::DebugLog("Debug: Exiting SignExternalMessage for message %s", $this->{id});
 
   # We signed something
-  $this->{bodymodifed} = 1;
+  $this->{bodymodified} = 1;
   $this->{externalsigned} = 1;
 }
 
