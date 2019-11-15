@@ -4958,7 +4958,7 @@ sub SignWarningMessage {
 # https://github.com/MailScanner/v5/issues/375
 # Sign the body of the message with a text or html warning message
 # alerting users that message was from an external source
-# Return 0 if nothing was signed, true if it signed something.
+# Set bodymodifed and externalsigned upon signing
 sub SignExternalMessage {
   my $this = shift;
   my $top = shift;
@@ -4995,12 +4995,24 @@ sub SignExternalMessage {
     MailScanner::Log::DebugLog("Debug: Adding external html for message %s", $this->{id});
     $warning = $this->ReadExternalWarning('inlineexternalhtml');
     #$warning = quotemeta $warning; # Must leave HTML tags alone!
+    my $htmltagfound = 0;
     foreach $line (@body) {
       # html tags can have extra attributes.  In a case where the <html> tag
       # has attributes and is closed on a subsequent line, the warning will
       # actually be in the tag, but it's malformed in any case because it
       # precedes any <head> and <body> tags and clients seem to render it OK.
-      $line =~ s/\<html( [^>]*)?(\>|$)/$&$warning/i;
+      if ( $line =~ /\<html( [^>]*)?(\>|$)/ ) {
+        $htmltagfound = 1;
+      }
+    }
+   
+    # Just sign if no html tag present
+    $io->print($warning)
+      unless $htmltagfound == 1;
+    foreach $line (@body) {
+      # if at <html> tag, sign here
+      $line =~ s/<html( [^>]*)?(\>|$)/$&$warning/i
+        unless $htmltagfound == 0;
       $io->print($line);
     }
   } else {
@@ -5015,7 +5027,8 @@ sub SignExternalMessage {
   MailScanner::Log::DebugLog("Debug: Exiting SignExternalMessage for message %s", $this->{id});
 
   # We signed something
-  return 1;
+  $this->{bodymodified} = 1;
+  $this->{externalsigned} = 1;
 }
 
 # Read the appropriate warning message to sign the top of cleaned messages.
@@ -5862,15 +5875,6 @@ sub DeliverModifiedBody {
       $this->{gonefromdisk} = 1;
     }
     return;
-  }
-
-  # https://github.com/MailScanner/v5/issues/375
-  # Sign the top of the message body with a text/html externalwarning if they want.
-  if (MailScanner::Config::Value('externalwarning',$this) =~ /1/ &&
-      !$this->{externalsigned}) {
-    MailScanner::Log::DebugLog("Debug: Adding external warning to message %s body", $this->{id});
-    $this->SignExternalMessage($this->{entity});
-    $this->{externalsigned} = 1;
   }
 
   # Prune the entity tree to remove all undef values
