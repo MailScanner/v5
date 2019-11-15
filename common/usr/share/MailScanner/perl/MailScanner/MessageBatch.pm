@@ -780,6 +780,22 @@ sub QuarantineModifiedBody {
   }
 }
 
+# Sign all external messages
+sub SignExternalMessage {
+  my $this = shift;
+
+  my ($id, $message);
+
+  while(($id, $message) = each %{$this->{messages}}) {
+    next if $message->{deleted} || $message->{dontdeliver};
+    if (MailScanner::Config::Value('externalwarning',$this) =~ /1/ &&
+      !$this->{externalsigned}) {
+      MailScanner::Log::NoticeLog("Message is external, prepending warning for %s", $id);
+      $message->SignExternalMessage($message->{entity});
+    }
+  }
+}
+
 # Sign all the messages that were clean with a tag line saying
 # (ideally) that MailScanner is wonderful :-)
 sub SignUninfected {

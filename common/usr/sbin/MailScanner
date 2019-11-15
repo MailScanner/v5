@@ -1257,6 +1257,9 @@ sub WorkForHours {
     # Encapsulate the messages into message/rfc822 attachments as needed
     $batch->Encapsulate();
 
+    # Sign all external messages
+    $batch->SignExternalMessage();
+
     # Sign all the uninfected messages
     $batch->SignUninfected();
 
