@@ -788,7 +788,7 @@ sub SignExternalMessage {
 
   while(($id, $message) = each %{$this->{messages}}) {
     next if $message->{deleted} || $message->{dontdeliver};
-    if (MailScanner::Config::Value('externalwarning',$this) =~ /1/ &&
+    if (MailScanner::Config::Value('externalwarning',$message) =~ /1/ &&
       !$this->{externalsigned}) {
       MailScanner::Log::NoticeLog("Message is external, prepending warning for %s", $id);
       $message->SignExternalMessage($message->{entity});
