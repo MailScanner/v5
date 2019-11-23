@@ -467,7 +467,7 @@ my($sed) = "/bin/sed";
       if ($h =~ /^Return-Path:/i) {
          # https://github.com/MailScanner/v5/issues/418
          # Rebuild Return-Path header in all cases
-         returnpathfound = 1;
+         $returnpathfound = 1;
          $h = $message->{returnpathflags} . 'Return-Path: <' . $message->{from} . ">\n";
          $h =~ s/^\S/H$&/;
       }
