@@ -3,6 +3,7 @@
 
 - Add QUICKPEEK variable to msmilter-init
 - Add libdb-dev missing debian dependency
+- clamavmodule (Mail::ClamAV) deprecated with warning
 
 11/03/2019 Changes in    v5.2.1-1
 ==================================

@@ -939,6 +939,8 @@ sub ClamAVModule {
 
   my($dir, $child, $childname, $filename, $results, $virus);
 
+  MailScanner::Log::WarnLog("MailScanner clamavmodule is deprecated in 5.2.1-2 and will be removed in 5.2.1-3. Migrate to clamd module before next update.");
+
   # Do we have an unrar on the path?
   my $unrar = MailScanner::Config::Value('unrarcommand');
   MailScanner::Log::WarnLog("Unrar command %s does not exist or is not " .
