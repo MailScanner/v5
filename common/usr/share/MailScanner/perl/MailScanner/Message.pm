@@ -5037,7 +5037,9 @@ sub SignExternalMessage {
 # clean messages.
 # Substitutions allowed in the message are
 #     $viruswarningfilename -- by default VirusWarning.txt
+#     $id
 #     $from
+#     $to -- comma-separated list of to address
 #     $subject
 # and $filename -- comma-separated list of infected attachments
 sub ReadVirusWarning {
@@ -5099,6 +5101,11 @@ sub ReadVirusWarning {
 # https://github.com/MailScanner/v5/issues/375
 # Read the appropriate warning message to sign the top of messages.
 # Passed in the name of the config variable that points to the filename.
+# Substitutions allowed in the message are
+#     $id
+#     $from
+#     $to -- comma-separated list of to address
+#     $subject
 sub ReadExternalWarning {
   my $this = shift;
   my($option) = @_;
@@ -5115,6 +5122,17 @@ sub ReadExternalWarning {
         return undef);
 
   MailScanner::Log::DebugLog("Debug: External warning file opened for reading for message %s", $this->{id});
+
+  my($from, $subject, $id);
+  $id = $this->{id};
+  $from = $this->{from};
+  $subject = $this->{subject};
+
+  my($to, %tolist);
+  foreach $to (@{$this->{to}}) {
+    $tolist{$to} = 1;
+  }
+  $to = join(', ', sort keys %tolist);
 
   my $result = "";
   while (<$fh>) {
