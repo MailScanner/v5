@@ -17,7 +17,7 @@
 "NotNamed" = "namenlos";
 /* # used for sysadmin notifications */
 "NoticeSubject" = "Warnung: Ein Virus wurde in der E-Mail entdeckt";
-"FullHeadersAre" = "Die vollstÃ€ndigen Kopfzeilen sind";
+"FullHeadersAre" = "Die vollständigen Kopfzeilen sind";
 /* # used for delivering truly disinfected attachments */
 "Disinfected" = "Desinfiziert";
 /* # used for virus report in unparsable messages */
@@ -29,7 +29,7 @@
 /* # used when SpamAssassin has timed out too often */
 "SADisabled" = "Wurde nach %d Zeit&uuml;berschreitungen deaktiviert";
 /* # used when message size exceeds configured SpamAssassin max message size */
-"SATooLarge" = "Nachricht ist lÃ€nger als die maximal fÃŒr den Test konfiguriert";
+"SATooLarge" = "Nachricht ist länger als die maximal für den Test konfiguriert";
 /* # used when trying to use SpamAssassin on a bad message with no headers */
 "SANoHeaders" = "Die Nachricht enthielt keine Kopfzeilen";
 /* # used when creating SpamAssassin results header */
@@ -47,17 +47,17 @@
 /* # used when detecting denial-of-service attacks */
 "DOSAttack" = "Versuchter Angriff (Denial of Service) in der Nachricht!";
 /* # used when detecting+blocking (un)encrypted messages */
-"encrypted" = "Die Nachricht war verschlÃŒsselt";
-"unencrypted" = "Die Nachricht war unverschlÃŒsselt";
+"encrypted" = "Die Nachricht war verschlüsselt";
+"unencrypted" = "Die Nachricht war unverschlüsselt";
 /* # used in spam reports */
 "SpamAssassin" = "SpamAssassin";
 /* # Used in virus reports */
 "Report" = "Achtung";
 /* # Used in virus reports */
-"TooBig" = "Nachricht ist zu groÃ";
-"AttachmentTooLarge" = "Anhang ist zu groÃ";
+"TooBig" = "Nachricht ist zu groß";
+"AttachmentTooLarge" = "Anhang ist zu groß";
 "AttachmentTooSmall" = "Anhang ist zu klein";
-"TooManyAttachments" = "Zu viele AnhÃ€nge in der E-Mail";
+"TooManyAttachments" = "Zu viele Anhänge in der E-Mail";
 /* # Used in filename/filetype/content reports */
 "MailScanner" = "MailScanner";
 /* # Used in MCP checks */
