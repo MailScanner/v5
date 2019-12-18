@@ -578,10 +578,8 @@ sub Checks {
   # Sendmail appears to add a placeholder Return-Path header which it uses
   # for expansion later, unfortunately this placeholder uses high-bit chars.
   # So we remove the header and create one from the envelope for SA.
-  # https://github.com/MailScanner/v5/issues/418
-  # Rebuild Return-Path header in all cases outside of SA.pm
-  # @SAheaders = grep !/^Return-Path\:/i, @SAheaders;
-  # unshift(@SAheaders, 'Return-Path: <' . $message->{from} . ">\n");
+  @SAheaders = grep !/^Return-Path\:/i, @SAheaders;
+  unshift(@SAheaders, 'Return-Path: <' . $message->{from} . ">\n");
 
   #push(@WholeMessage, $global::MS->{mta}->OriginalMsgHeaders($message, "\n"));
   push(@WholeMessage, @SAheaders);
