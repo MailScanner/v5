@@ -460,27 +460,14 @@ my($sed) = "/bin/sed";
       @headerswithouth = @{$message->{headers}};
     }
 
-    my $returnpathfound = 0;
     foreach $header (@headerswithouth) {
       $h = $header;
       # Re-insert the header flags for Return-Path:
-      if ($h =~ /^Return-Path:/i) {
-         # https://github.com/MailScanner/v5/issues/418
-         # Rebuild Return-Path header in all cases
-         $returnpathfound = 1;
-         $h = $message->{returnpathflags} . 'Return-Path: <' . $message->{from} . ">\n";
-         $h =~ s/^\S/H$&/;
-      }
+      $h = $message->{returnpathflags} . $h if $h =~ /^Return-Path:/i;
+      $h =~ s/^\S/H$&/;
+
       push @{$message->{metadata}}, $h;
     }
-    # https://github.com/MailScanner/v5/issues/418
-    # Add Return-Path header if missing
-    if (!$returnpathfound) {
-        $h = $message->{returnpathflags} . 'Return-Path: <' . $message->{from} . ">\n";
-        $h =~ s/^\S/H$&/;
-        unshift @{$message->{metadata}}, $h;
-      }
-      
   }
 
   sub AddHeader {
