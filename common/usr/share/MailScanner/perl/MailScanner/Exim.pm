@@ -278,7 +278,7 @@ sub ReadQf {
   # items corresponding to Exim's names for them,
   # and tracking them in %{$metadata{dashvars}}
   while (chomp($line = <$RQf>)) {
-    $line =~ s/^-(\w+) ?// or last;
+    $line =~ s/^--?(\w+) ?// or last;
     # ACLs patch starts here
     #$metadata{dashvars}{$1} = 0;
     #$line eq "" and $metadata{"dv_$1"} = 1, next;
