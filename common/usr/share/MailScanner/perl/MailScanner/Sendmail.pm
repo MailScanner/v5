@@ -341,7 +341,7 @@ my($sed) = "/bin/sed";
       $Line =~ s/^(\?[^?]*\?)//;
       $Flags = $1;
       # JKF 09/05/2002 Fix broken Return-Path: header bug
-      if ($Line =~ /^Return-Path:/i) {
+      if ($Line =~ /^Return-Path:/i && $Flags =~ /P/) {
         $message->{returnpathflags} = $Flags;
         # JKF $Line =~ s/[\x80-\xff]/\$/g;
       }
