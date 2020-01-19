@@ -466,9 +466,9 @@ my($sed) = "/bin/sed";
       # Re-insert the header flags for Return-Path:
       #$h = $message->{returnpathflags} . $h if $h =~ /^Return-Path:/i;
       #$h =~ s/^\S/H$&/;
-      $flags = "H";
-      $flags = pop(@{$message->{headerflags}}) if $message->{headerflags};
-      $h =~ s/^\S/$flags$&/;
+      $flags = "";
+      $flags = shift(@{$message->{headerflags}}) if $message->{headerflags};
+      $h =~ s/^\S/H$flags$&/;
 
       push @{$message->{metadata}}, $h;
     }
