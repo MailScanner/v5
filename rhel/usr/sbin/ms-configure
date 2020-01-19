@@ -1185,6 +1185,8 @@ fi
 
 if id -u postfix >/dev/null 2>&1; then
     usermod -a -G mtagroup postfix >/dev/null 2>&1
+    chown postfix /var/spool/MailScanner/milterin >/dev/null 2>&1
+    chown postfix /var/spool/MailScanner/milterout >/dev/null 2>&1
 fi
 
 if id -u mail >/dev/null 2>&1; then
