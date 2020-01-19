@@ -453,21 +453,21 @@ my($sed) = "/bin/sed";
     my $this = shift;
     my($message, $headers) = @_;
 
-    my($header, $h, @headerswithouth);
+    my($header, $h, @headerswithouth, $flags);
 
     if ($headers) {
       @headerswithouth = split(/\n/, $headers);
     } else {
       @headerswithouth = @{$message->{headers}};
     }
-
-    foreach $header, (@headerswithouth) {
+    
+    foreach $header (@headerswithouth) {
       $h = $header;
       # Re-insert the header flags for Return-Path:
       #$h = $message->{returnpathflags} . $h if $h =~ /^Return-Path:/i;
       #$h =~ s/^\S/H$&/;
       $flags = "H";
-      $flags = pop{$message->{headerflags}} if $message->{headerflags};
+      $flags = pop(@{$message->{headerflags}}) if $message->{headerflags};
       $h =~ s/^\S/$flags$&/;
 
       push @{$message->{metadata}}, $h;
