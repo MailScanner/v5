@@ -21,10 +21,8 @@
 #
 #      https://www.mailscanner.info
 #
-# 	Updated: 	Jerry Benton <mailscanner@mailborder.com>
-#				26 APR 2016
-#               Shawn Iverson <shawniverson@efa-project.org>
-#               3 FEB 2018
+# 	Updated: 	MailScanner Team <https://www.mailscanner.info>
+#             19 January 2020
 
 use strict;
 no strict 'subs';

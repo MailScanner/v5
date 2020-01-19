@@ -1,8 +1,8 @@
 # Welcome to MailScanner!
 #
-# Current version: 5.2.1-1
+# Current version: 5.2.2-1
 #
-# 3 November 2019
+# 19 January 2020
 # MailScanner Team <https://www.mailscanner.info>
 #
 # MailScanner is an open source email gateway that processes email for
@@ -19,36 +19,16 @@
 #   Milter:     https://github.com/MailScanner/v5/blob/master/doc/MailScanner%20Milter%20Guide.pdf
 #   Support:    http://lists.mailscanner.info/mailman/listinfo/mailscanner
 #
-#   ##################### ATTENTION ###################
-#   # Install and update instructions have changed.   #
-#   # With the exception of the generic *nix package, #
-#   # MailScanner now installs via deb and rpm first. #
-#   ##################### ATTENTION ###################
-#
-#   Install 
+#   Install/Update
 #       Redhat-based
 #           rpm -ivh MailScanner-5.x.x-x.rhel.noarch.rpm
-#           /usr/sbin/ms-configure
+#           /usr/sbin/ms-configure [--update]
 #       Debian-based
-#           dpkg -i MailScanner-5.x.x.x-x-noarch.deb
-#           /usr/sbin/ms-configure
+#           dpkg -i MailScanner-5.x.x.x-x.noarch.deb
+#           /usr/sbin/ms-configure [--update]
 #       SuSE-based
 #           rpm -ivh MailScanner-5.x.x.x-x.suse.noarch.rpm
-#           /usr/sbin/ms-configure
-#       Other *nix
-#           tar -xvzf MailScanner-5.x.x-x.nix.tar.gz
-#           ./install.sh
-#
-#   Update
-#       Redhat-based
-#           rpm -Uvh MailScanner-5.x.x-x.rhel.noarch.rpm
-#           /usr/sbin/ms-configure --update
-#       Debian-based
-#           dpkg -i MailScanner-5.x.x.x-x-noarch.deb
-#           /usr/sbin/ms-configure --update
-#       SuSE-based
-#           rpm -Uvh MailScanner-5.x.x-x.suse.noarch.rpm
-#           /usr/sbin/ms-configure --update
+#           /usr/sbin/ms-configure [--update]
 #       Other *nix
 #           tar -xvzf MailScanner-5.x.x-x.nix.tar.gz
 #           ./install.sh

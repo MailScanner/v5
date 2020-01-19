@@ -3732,8 +3732,6 @@ sub UnpackZip {
 
   my($zip, @members, $member, $name, $fh, $safename);
 
-  MailScanner::Log::NoticeLog("Unpacking Zip archive: %s", $zipname);
-
   #print STDERR "Unpacking $zipname\n";
   my $tmpname = "$explodeinto/$zipname";
   $tmpname =~ /^(.*)$/;
@@ -3743,6 +3741,8 @@ sub UnpackZip {
   return 1 unless $zip = Archive::Zip->new("$explodeinto/$zipname");
   return 1 unless @members = $zip->members();
   #print STDERR "Members are " . join(',',@members) . "\n";
+
+  MailScanner::Log::NoticeLog("Unpacked Zip archive: %s", $zipname);
 
   $fh = new FileHandle;
 

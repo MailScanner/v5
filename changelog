@@ -1,3 +1,17 @@
+01/19/2020 Changes in    v5.2.2-1
+==================================
+
+- Fix LocalSocket substitution in latest clam config (path changed)
+- Set ownership of milter queues during ms-configure
+- Correct naming of debian package
+- Unpack img files and include all unpackable file extensions
+- Preserve all header flags in Sendmail 
+- Remove deprecated clamav functions
+- Fix File MIME Types checking
+- Support for new Exim 4.93 queue format
+- Update de rules translations
+- Add report substitution to ReadExternalWarning
+
 11/15/2019 Changes in    v5.2.1-2
 ==================================
 
