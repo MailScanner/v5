@@ -52,9 +52,9 @@ $SAVIlibdirmtime = 0;
 $SAVIinuse       = 0;
 %SAVIwatchfiles  = ();
 # ClamAV Module object and library directory modification time
-my($Clam, $Claminuse, %Clamwatchfiles);
-$Claminuse       = 0;
-%Clamwatchfiles  = ();
+# my($Clam, $Claminuse, %Clamwatchfiles);
+# $Claminuse       = 0;
+# %Clamwatchfiles  = ();
 # So we can kill virus scanners when we are HUPped
 $ScannerPID = 0;
 my $scannerlist = "";
@@ -118,17 +118,17 @@ my %Scanners = (
     SupportScanning	=> $S_SUPPORTED,
     SupportDisinfect	=> $S_SUPPORTED,
   },
-  "clamavmodule" => {
-    Name                => 'ClamAVModule',
-    Lock                => 'clamavBusy.lock',
-    CommonOptions       => '',
-    DisinfectOptions    => '',
-    ScanOptions         => '',
-    InitParser          => \&InitClamAVModParser,
-    ProcessOutput       => \&ProcessClamAVModOutput,
-    SupportScanning     => $S_SUPPORTED,
-    SupportDisinfect    => $S_NONE,
-  },
+  # "clamavmodule" => {
+  #   Name                => 'ClamAVModule',
+  #   Lock                => 'clamavBusy.lock',
+  #   CommonOptions       => '',
+  #   DisinfectOptions    => '',
+  #   ScanOptions         => '',
+  #   InitParser          => \&InitClamAVModParser,
+  #   ProcessOutput       => \&ProcessClamAVModOutput,
+  #   SupportScanning     => $S_SUPPORTED,
+  #   SupportDisinfect    => $S_NONE,
+  # },
   "clamd"  => {
     Name                => 'Clamd',
     Lock                => 'clamavBusy.lock',
@@ -140,17 +140,17 @@ my %Scanners = (
     SupportScanning     => $S_SUPPORTED,
     SupportDisinfect    => $S_NONE,
   },
-  "clamav"  => {
-    Name		=> 'ClamAV',
-    Lock                => 'clamavBusy.lock',
-    CommonOptions       => '-r --infected --stdout',
-    DisinfectOptions    => '',
-    ScanOptions         => '',
-    InitParser          => \&InitClamAVParser,
-    ProcessOutput       => \&ProcessClamAVOutput,
-    SupportScanning     => $S_SUPPORTED,
-    SupportDisinfect    => $S_NONE,
-  },
+  # "clamav"  => {
+  #   Name		=> 'ClamAV',
+  #   Lock                => 'clamavBusy.lock',
+  #   CommonOptions       => '-r --infected --stdout',
+  #   DisinfectOptions    => '',
+  #   ScanOptions         => '',
+  #   InitParser          => \&InitClamAVParser,
+  #   ProcessOutput       => \&ProcessClamAVOutput,
+  #   SupportScanning     => $S_SUPPORTED,
+  #   SupportDisinfect    => $S_NONE,
+  # },
   "bitdefender"   => {
     Name		=> 'Bitdefender',
     Lock                => 'bitdefenderBusy.lock',
@@ -242,11 +242,11 @@ sub initialise {
   if ($scannerlist =~ /^\s*auto\s*$/i) {
     # If we have multiple clam types, then tend towards clamd
     my %installed = map { $_ => 1 } InstalledScanners();
-    delete $installed{'clamavmodule'} if $installed{'clamavmodule'} &&
-                                         $installed{'clamd'};
-    delete $installed{'clamav'}       if $installed{'clamav'} &&
-                                         ($installed{'clamd'} ||
-                                          $installed{'clamavmodule'});
+    # delete $installed{'clamavmodule'} if $installed{'clamavmodule'} &&
+    #                                      $installed{'clamd'};
+    # delete $installed{'clamav'}       if $installed{'clamav'} &&
+    #                                      ($installed{'clamd'} ||
+    #                                       $installed{'clamavmodule'});
     $scannerlist = join(' ', keys %installed);
     MailScanner::Log::InfoLog("Auto: Found virus scanners: %s ", $scannerlist);
     if ($scannerlist =~ /^\s*$/) {
@@ -265,54 +265,54 @@ sub initialise {
     #print STDERR "SAVI in use\n";
     InitialiseSAVI();
   }
-  # Import the ClamAV code and initialise the ClamAV library
-  if (grep /^clamavmodule$/, @scanners) {
-    $Claminuse = 1;
-    #print STDERR "ClamAV Module in use\n";
-    InitialiseClam();
-  }
+  # # Import the ClamAV code and initialise the ClamAV library
+  # if (grep /^clamavmodule$/, @scanners) {
+  #   $Claminuse = 1;
+  #   #print STDERR "ClamAV Module in use\n";
+  #   InitialiseClam();
+  # }
 
 }
 
-sub InitialiseClam {
-  # Initialise ClamAV Module
-  MailScanner::Log::DieLog("ClamAV Perl module not found")
-    unless eval 'require Mail::ClamAV';
+# sub InitialiseClam {
+#   # Initialise ClamAV Module
+#   MailScanner::Log::DieLog("ClamAV Perl module not found")
+#     unless eval 'require Mail::ClamAV';
 
-  my $ver = $Mail::ClamAV::VERSION + 0.0;
-  MailScanner::Log::DieLog("ClamAV Perl module must be at least version 0.12" .
-                           " and you only have version %.2f, and ClamAV must" .
-                           " be at least version 0.80", $ver)
-    unless $ver >= 0.12;
+#   my $ver = $Mail::ClamAV::VERSION + 0.0;
+#   MailScanner::Log::DieLog("ClamAV Perl module must be at least version 0.12" .
+#                            " and you only have version %.2f, and ClamAV must" .
+#                            " be at least version 0.80", $ver)
+#     unless $ver >= 0.12;
 
-  $Clam = new Mail::ClamAV(Mail::ClamAV::retdbdir())
-    or MailScanner::Log::DieLog("ClamAV Module ERROR:: Could not load " .
-       "databases from %s", Mail::ClamAV::retdbdir());
-  $Clam->buildtrie;
-  # Impose limits
-  $Clam->maxreclevel(MailScanner::Config::Value('clamavmaxreclevel'));
-  $Clam->maxfiles   (MailScanner::Config::Value('clamavmaxfiles'));
-  $Clam->maxfilesize(MailScanner::Config::Value('clamavmaxfilesize'));
-  #0.93 $Clam->maxratio   (MailScanner::Config::Value('clamavmaxratio'));
+#   $Clam = new Mail::ClamAV(Mail::ClamAV::retdbdir())
+#     or MailScanner::Log::DieLog("ClamAV Module ERROR:: Could not load " .
+#        "databases from %s", Mail::ClamAV::retdbdir());
+#   $Clam->buildtrie;
+#   # Impose limits
+#   $Clam->maxreclevel(MailScanner::Config::Value('clamavmaxreclevel'));
+#   $Clam->maxfiles   (MailScanner::Config::Value('clamavmaxfiles'));
+#   $Clam->maxfilesize(MailScanner::Config::Value('clamavmaxfilesize'));
+#   #0.93 $Clam->maxratio   (MailScanner::Config::Value('clamavmaxratio'));
 
 
-  # Build the hash of the size of all the watch files
-  my(@watchglobs, $glob, @filelist, $file, $filecount);
-  @watchglobs = split(" ", MailScanner::Config::Value('clamwatchfiles'));
-  $filecount = 0;
-  foreach $glob (@watchglobs) {
-    @filelist = map { m/(.*)/ } glob($glob);
-    foreach $file (@filelist) {
-      $Clamwatchfiles{$file} = -s $file;
-      $filecount++;
-    }
-  }
-  MailScanner::Log::DieLog("None of the files matched by the \"Monitors " .
-    "For ClamAV Updates\" patterns exist!") unless $filecount>0;
+#   # Build the hash of the size of all the watch files
+#   my(@watchglobs, $glob, @filelist, $file, $filecount);
+#   @watchglobs = split(" ", MailScanner::Config::Value('clamwatchfiles'));
+#   $filecount = 0;
+#   foreach $glob (@watchglobs) {
+#     @filelist = map { m/(.*)/ } glob($glob);
+#     foreach $file (@filelist) {
+#       $Clamwatchfiles{$file} = -s $file;
+#       $filecount++;
+#     }
+#   }
+#   MailScanner::Log::DieLog("None of the files matched by the \"Monitors " .
+#     "For ClamAV Updates\" patterns exist!") unless $filecount>0;
 
-  #MailScanner::Log::WarnLog("\"Allow Password-Protected Archives\" should be set to just yes or no when using clamavmodule virus scanner")
-  #  unless MailScanner::Config::IsSimpleValue('allowpasszips');
-}
+#   #MailScanner::Log::WarnLog("\"Allow Password-Protected Archives\" should be set to just yes or no when using clamavmodule virus scanner")
+#   #  unless MailScanner::Config::IsSimpleValue('allowpasszips');
+# }
 
 sub InitialiseSAVI {
   # Initialise Sophos SAVI library
@@ -443,27 +443,27 @@ sub SAVIUpgraded {
   return 0;
 }
 
-# Have the ClamAV database files been modified? (changed size)
-# If so, abandon this child process altogether and start again.
-# This is called from the main WorkForHours() loop
-#
-sub ClamUpgraded {
-  my($watch, $size);
+# # Have the ClamAV database files been modified? (changed size)
+# # If so, abandon this child process altogether and start again.
+# # This is called from the main WorkForHours() loop
+# #
+# sub ClamUpgraded {
+#   my($watch, $size);
 
-  return 0 unless $Claminuse;
+#   return 0 unless $Claminuse;
 
-  while (($watch, $size) = each %Clamwatchfiles) {
-    if ($size != -s $watch) {
-      MailScanner::Log::InfoLog("ClamAV update of $watch detected, " .
-                                "resetting ClamAV Module");
-      keys %Clamwatchfiles; # Necessary line to reset each()
-      return 1;
-    }
-  }
+#   while (($watch, $size) = each %Clamwatchfiles) {
+#     if ($size != -s $watch) {
+#       MailScanner::Log::InfoLog("ClamAV update of $watch detected, " .
+#                                 "resetting ClamAV Module");
+#       keys %Clamwatchfiles; # Necessary line to reset each()
+#       return 1;
+#     }
+#   }
 
-  # No update detected
-  return 0;
-}
+#   # No update detected
+#   return 0;
+# }
 
 # Constructor.
 sub new {
@@ -868,9 +868,9 @@ sub TryOneCommercial {
       if ($scanner eq 'sophossavi') {
         SophosSAVI($subdir, $disinfect);
         exit;
-      } elsif ($scanner eq 'clamavmodule') {
-        ClamAVModule($subdir, $disinfect, $batch);
-        exit;
+      # } elsif ($scanner eq 'clamavmodule') {
+      #   ClamAVModule($subdir, $disinfect, $batch);
+      #   exit;
       } elsif ($scanner eq 'clamd') {
         ClamdScan($subdir, $disinfect, $batch);
         exit;
@@ -934,111 +934,111 @@ sub TryOneCommercial {
 # Use the ClamAV module (already initialised) to scan the contents of
 # a directory. Outputs in a very simple format that ProcessClamAVModOutput()
 # expects. 3 output fields separated by ":: ".
-sub ClamAVModule {
-  my($dirname, $disinfect, $messagebatch) = @_;
+# sub ClamAVModule {
+#   my($dirname, $disinfect, $messagebatch) = @_;
 
-  my($dir, $child, $childname, $filename, $results, $virus);
+#   my($dir, $child, $childname, $filename, $results, $virus);
 
-  MailScanner::Log::WarnLog("MailScanner clamavmodule is deprecated in 5.2.1-2 and will be removed in 5.2.1-3. Migrate to clamd module before next update.");
+#   MailScanner::Log::WarnLog("MailScanner clamavmodule is deprecated in 5.2.1-2 and will be removed in 5.2.1-3. Migrate to clamd module before next update.");
 
-  # Do we have an unrar on the path?
-  my $unrar = MailScanner::Config::Value('unrarcommand');
-  MailScanner::Log::WarnLog("Unrar command %s does not exist or is not " .
-    "executable, please either install it or remove the setting from " .
-    "MailScanner.conf", $unrar)
-    unless $unrar eq "" || -x $unrar;
-  my $haverar = 1 if $unrar && -x $unrar;
+#   # Do we have an unrar on the path?
+#   my $unrar = MailScanner::Config::Value('unrarcommand');
+#   MailScanner::Log::WarnLog("Unrar command %s does not exist or is not " .
+#     "executable, please either install it or remove the setting from " .
+#     "MailScanner.conf", $unrar)
+#     unless $unrar eq "" || -x $unrar;
+#   my $haverar = 1 if $unrar && -x $unrar;
 
-  $| = 1;
-  $dir   = new DirHandle;
-  $child = new DirHandle;
+#   $| = 1;
+#   $dir   = new DirHandle;
+#   $child = new DirHandle;
 
-  $dir->open($dirname)
-      or MailScanner::Log::DieLog("Cannot open directory %s for scanning, %s",
-                                  $dirname, $!);
+#   $dir->open($dirname)
+#       or MailScanner::Log::DieLog("Cannot open directory %s for scanning, %s",
+#                                   $dirname, $!);
 
-  # Find all the subdirectories
-  while($childname = $dir->read()) {
-    # Scan all the *.header and *.message files
-    if (-f "$dirname/$childname") {
-      my $tmpname = "$dirname/$childname";
-      $tmpname =~ /^(.*)$/;
-      $tmpname = $1;
-      $results = $Clam->scan($tmpname,
-                             Mail::ClamAV::CL_SCAN_STDOPT() |
-                             Mail::ClamAV::CL_SCAN_ARCHIVE() |
-                             Mail::ClamAV::CL_SCAN_PE() |
-                             Mail::ClamAV::CL_SCAN_BLOCKBROKEN() |
-                             Mail::ClamAV::CL_SCAN_OLE2());
-                             #0.93 Mail::ClamAV::CL_SCAN_PHISHING_DOMAINLIST());
-      $childname =~ s/\.(?:header|message)$//;
-      unless ($results) {
-        print "ERROR:: $results" . ":: $dirname/$childname/\n";
-        next;
-      }
-      if ($results->virus) {
-        print "INFECTED::";
-        print " $results" . ":: $dirname/$childname/\n";
-      } else {
-        print "CLEAN:: :: $dirname/$childname/\n";
-      }
-      next;
-    }
-    #next unless -d "$dirname/$childname"; # Only search subdirs
-    next if $childname eq '.' || $childname eq '..';
+#   # Find all the subdirectories
+#   while($childname = $dir->read()) {
+#     # Scan all the *.header and *.message files
+#     if (-f "$dirname/$childname") {
+#       my $tmpname = "$dirname/$childname";
+#       $tmpname =~ /^(.*)$/;
+#       $tmpname = $1;
+#       $results = $Clam->scan($tmpname,
+#                              Mail::ClamAV::CL_SCAN_STDOPT() |
+#                              Mail::ClamAV::CL_SCAN_ARCHIVE() |
+#                              Mail::ClamAV::CL_SCAN_PE() |
+#                              Mail::ClamAV::CL_SCAN_BLOCKBROKEN() |
+#                              Mail::ClamAV::CL_SCAN_OLE2());
+#                              #0.93 Mail::ClamAV::CL_SCAN_PHISHING_DOMAINLIST());
+#       $childname =~ s/\.(?:header|message)$//;
+#       unless ($results) {
+#         print "ERROR:: $results" . ":: $dirname/$childname/\n";
+#         next;
+#       }
+#       if ($results->virus) {
+#         print "INFECTED::";
+#         print " $results" . ":: $dirname/$childname/\n";
+#       } else {
+#         print "CLEAN:: :: $dirname/$childname/\n";
+#       }
+#       next;
+#     }
+#     #next unless -d "$dirname/$childname"; # Only search subdirs
+#     next if $childname eq '.' || $childname eq '..';
 
-    # Now work through each subdirectory of attachments
-    $child->open("$dirname/$childname")
-      or MailScanner::Log::DieLog("Cannot open directory %s for scanning, %s",
-                                  "$dirname/$childname", $!);
+#     # Now work through each subdirectory of attachments
+#     $child->open("$dirname/$childname")
+#       or MailScanner::Log::DieLog("Cannot open directory %s for scanning, %s",
+#                                   "$dirname/$childname", $!);
 
-    # Scan all the files in the subdirectory
-    # check to see if rar is available. If it is we don't want to
-    # have clamav check for password protected since that has already
-    # been done and will be reported correctly
-    # if we are not allowing password protected archives and do not have rar
-    # then have clamav check for password protected archives but it will
-    # be reported as a virus (at least it will block passworded rar files)
+#     # Scan all the files in the subdirectory
+#     # check to see if rar is available. If it is we don't want to
+#     # have clamav check for password protected since that has already
+#     # been done and will be reported correctly
+#     # if we are not allowing password protected archives and do not have rar
+#     # then have clamav check for password protected archives but it will
+#     # be reported as a virus (at least it will block passworded rar files)
 
-    while($filename = $child->read()) {
-      next unless -f "$dirname/$childname/$filename"; # Only check files
-      #if (MailScanner::Config::Value('allowpasszips',
-      #          $messagebatch->{messages}{$childname})) { # || $haverar) {
-      my $tmpname = "$dirname/$childname/$filename";
-      $tmpname =~ /^(.*)$/;
-      $tmpname = $1;
-        $results = $Clam->scan($tmpname,
-                               Mail::ClamAV::CL_SCAN_STDOPT() |
-                               Mail::ClamAV::CL_SCAN_ARCHIVE() |
-                               Mail::ClamAV::CL_SCAN_PE() |
-                               Mail::ClamAV::CL_SCAN_BLOCKBROKEN() |
-                               Mail::ClamAV::CL_SCAN_OLE2());
-                               #0.93 Mail::ClamAV::CL_SCAN_PHISHING_DOMAINLIST());
-      #} else {
-      #  $results = $Clam->scan("$dirname/$childname/$filename",
-      #                         Mail::ClamAV::CL_SCAN_STDOPT() |
-      #                         Mail::ClamAV::CL_SCAN_ARCHIVE() |
-      #                         Mail::ClamAV::CL_SCAN_PE() |
-      #                         Mail::ClamAV::CL_SCAN_BLOCKBROKEN() |
-      #  # Let MS find these:  #Mail::ClamAV::CL_SCAN_BLOCKENCRYPTED() |
-      #                         Mail::ClamAV::CL_SCAN_OLE2());
-      #}
+#     while($filename = $child->read()) {
+#       next unless -f "$dirname/$childname/$filename"; # Only check files
+#       #if (MailScanner::Config::Value('allowpasszips',
+#       #          $messagebatch->{messages}{$childname})) { # || $haverar) {
+#       my $tmpname = "$dirname/$childname/$filename";
+#       $tmpname =~ /^(.*)$/;
+#       $tmpname = $1;
+#         $results = $Clam->scan($tmpname,
+#                                Mail::ClamAV::CL_SCAN_STDOPT() |
+#                                Mail::ClamAV::CL_SCAN_ARCHIVE() |
+#                                Mail::ClamAV::CL_SCAN_PE() |
+#                                Mail::ClamAV::CL_SCAN_BLOCKBROKEN() |
+#                                Mail::ClamAV::CL_SCAN_OLE2());
+#                                #0.93 Mail::ClamAV::CL_SCAN_PHISHING_DOMAINLIST());
+#       #} else {
+#       #  $results = $Clam->scan("$dirname/$childname/$filename",
+#       #                         Mail::ClamAV::CL_SCAN_STDOPT() |
+#       #                         Mail::ClamAV::CL_SCAN_ARCHIVE() |
+#       #                         Mail::ClamAV::CL_SCAN_PE() |
+#       #                         Mail::ClamAV::CL_SCAN_BLOCKBROKEN() |
+#       #  # Let MS find these:  #Mail::ClamAV::CL_SCAN_BLOCKENCRYPTED() |
+#       #                         Mail::ClamAV::CL_SCAN_OLE2());
+#       #}
 
-      unless ($results) {
-        print "ERROR:: $results" . ":: $dirname/$childname/$filename\n";
-        next;
-      }
-      if ($results->virus) {
-        print "INFECTED::";
-        print " $results" . ":: $dirname/$childname/$filename\n";
-      } else {
-        print "CLEAN:: :: $dirname/$childname/$filename\n";
-      }
-    }
-    $child->close;
-  }
-  $dir->close;
-}
+#       unless ($results) {
+#         print "ERROR:: $results" . ":: $dirname/$childname/$filename\n";
+#         next;
+#       }
+#       if ($results->virus) {
+#         print "INFECTED::";
+#         print " $results" . ":: $dirname/$childname/$filename\n";
+#       } else {
+#         print "CLEAN:: :: $dirname/$childname/$filename\n";
+#       }
+#     }
+#     $child->close;
+#   }
+#   $dir->close;
+# }
 
 # Use the Sophos SAVI library (already initialised) to scan the contents of
 # a directory. Outputs in a very simple format that ProcessSophosSAVIOutput()
@@ -1151,40 +1151,40 @@ sub InitFSecureParser {
 }
 
 # Initialise any state variables the ClamAV output parser uses
-my ($clamav_archive, $qmclamav_archive);
+# my ($clamav_archive, $qmclamav_archive);
 #my (%ClamAVAlreadyLogged);
-sub InitClamAVParser {
-  my($BaseDir, $batch) = @_;
+# sub InitClamAVParser {
+#   my($BaseDir, $batch) = @_;
 
-  $clamav_archive = "";
-  $qmclamav_archive = "";
+#   $clamav_archive = "";
+#   $qmclamav_archive = "";
 
-  InitClamAVModParser($BaseDir, $batch);
-}
+#   InitClamAVModParser($BaseDir, $batch);
+# }
 
 # Initialise any state variables the ClamAV Module output parser uses
-sub InitClamAVModParser {
-  my($BaseDir, $batch) = @_;
+# sub InitClamAVModParser {
+#   my($BaseDir, $batch) = @_;
 
-  %ClamAVAlreadyLogged = ();
-  if (MailScanner::Config::Value('clamavspam')) {
-    # Write the whole message into $id.message in the headers directory
-    my($id, $message);
-    while(($id, $message) = each %{$batch->{messages}}) {
-      next if $message->{deleted};
-      my $filename = "$BaseDir/$id.message";
-      my $target = new IO::File $filename, "w";
-      MailScanner::Log::DieLog("writing to $filename: $!")
-        if not defined $target;
-      $message->{store}->WriteEntireMessage($message, $target);
-      $target->close;
-      # Set the ownership and permissions on the .message like .header
-      chown $global::MS->{work}->{uid}, $global::MS->{work}->{gid}, $filename
-        if $global::MS->{work}->{changeowner};
-      chmod 0664, $filename;
-    }
-  }
-}
+#   %ClamAVAlreadyLogged = ();
+#   if (MailScanner::Config::Value('clamavspam')) {
+#     # Write the whole message into $id.message in the headers directory
+#     my($id, $message);
+#     while(($id, $message) = each %{$batch->{messages}}) {
+#       next if $message->{deleted};
+#       my $filename = "$BaseDir/$id.message";
+#       my $target = new IO::File $filename, "w";
+#       MailScanner::Log::DieLog("writing to $filename: $!")
+#         if not defined $target;
+#       $message->{store}->WriteEntireMessage($message, $target);
+#       $target->close;
+#       # Set the ownership and permissions on the .message like .header
+#       chown $global::MS->{work}->{uid}, $global::MS->{work}->{gid}, $filename
+#         if $global::MS->{work}->{changeowner};
+#       chmod 0664, $filename;
+#     }
+#   }
+# }
 
 # Initialise any state variables the Bitdefender output parser uses
 sub InitBitdefenderParser {
@@ -1239,65 +1239,65 @@ sub InitKasperskyParser {
   $kaspersky_CurrentObject = "";
 }
 
-sub ProcessClamAVModOutput {
-  my($line, $infections, $types, $BaseDir, $Name, $spaminfre) = @_;
-  my($logout, $keyword, $virusname, $filename);
-  my($dot, $id, $part, @rest, $report);
+# sub ProcessClamAVModOutput {
+#   my($line, $infections, $types, $BaseDir, $Name, $spaminfre) = @_;
+#   my($logout, $keyword, $virusname, $filename);
+#   my($dot, $id, $part, @rest, $report);
 
-  chomp $line;
-  $logout = $line;
-  $logout =~ s/\s{20,}/ /g;
-  #$logout =~ s/%/%%/g;
+#   chomp $line;
+#   $logout = $line;
+#   $logout =~ s/\s{20,}/ /g;
+#   #$logout =~ s/%/%%/g;
 
-  #print STDERR "Output is \"$logout\"\n";
-  ($keyword, $virusname, $filename) = split(/:: /, $line, 3);
-  # Remove any rogue spaces in virus names!
-  # Thanks to Alvaro Marin <alvaro@hostalia.com> for this.
-  $virusname =~ s/\s+//g;
+#   #print STDERR "Output is \"$logout\"\n";
+#   ($keyword, $virusname, $filename) = split(/:: /, $line, 3);
+#   # Remove any rogue spaces in virus names!
+#   # Thanks to Alvaro Marin <alvaro@hostalia.com> for this.
+#   $virusname =~ s/\s+//g;
 
-  if ($keyword =~ /^error/i && $logout !~ /rar module failure/i) {
-    MailScanner::Log::InfoLog("%s::%s", $Name, $logout);
-    return 1;
-  } elsif ($keyword =~ /^info/i || $logout =~ /rar module failure/i) {
-    return 0;
-  } elsif ($keyword =~ /^clean/i) {
-    return 0;
-  } else {
-    # Must be an infection report
-    ($dot, $id, $part, @rest) = split(/\//, $filename);
-    my $notype = substr($part,1);
-    $logout =~ s/\Q$part\E/$notype/;
+#   if ($keyword =~ /^error/i && $logout !~ /rar module failure/i) {
+#     MailScanner::Log::InfoLog("%s::%s", $Name, $logout);
+#     return 1;
+#   } elsif ($keyword =~ /^info/i || $logout =~ /rar module failure/i) {
+#     return 0;
+#   } elsif ($keyword =~ /^clean/i) {
+#     return 0;
+#   } else {
+#     # Must be an infection report
+#     ($dot, $id, $part, @rest) = split(/\//, $filename);
+#     my $notype = substr($part,1);
+#     $logout =~ s/\Q$part\E/$notype/;
 
-    MailScanner::Log::InfoLog("%s::%s", $Name, $logout)
-      unless $ClamAVAlreadyLogged{"$id"} && $part eq '';
-    $ClamAVAlreadyLogged{"$id"} = 1;
+#     MailScanner::Log::InfoLog("%s::%s", $Name, $logout)
+#       unless $ClamAVAlreadyLogged{"$id"} && $part eq '';
+#     $ClamAVAlreadyLogged{"$id"} = 1;
 
-    #print STDERR "virus = \"$virusname\" re = \"$spaminfre\"\n";
-    if ($virusname =~ /$spaminfre/) {
-      # It's spam found as an infection
-      # This is for clamavmodule and clamd
-      # Use "u" to signify virus reports that are really spam
-      # 20090730
-      return "0 $id $virusname";
-    }
+#     #print STDERR "virus = \"$virusname\" re = \"$spaminfre\"\n";
+#     if ($virusname =~ /$spaminfre/) {
+#       # It's spam found as an infection
+#       # This is for clamavmodule and clamd
+#       # Use "u" to signify virus reports that are really spam
+#       # 20090730
+#       return "0 $id $virusname";
+#     }
 
-    # Only log the whole message if no attachment has been logged
-    #print STDERR "Part = \"$part\"\n";
-    #print STDERR "Logged(\"$id\") = \"" . $ClamAVAlreadyLogged{"$id"} . "\"\n";
+#     # Only log the whole message if no attachment has been logged
+#     #print STDERR "Part = \"$part\"\n";
+#     #print STDERR "Logged(\"$id\") = \"" . $ClamAVAlreadyLogged{"$id"} . "\"\n";
 
-    $report = $Name . ': ' if $Name;
-    if ($part eq '') {
-      # No part ==> entire message is infected.
-      $infections->{"$id"}{""}
-        .= "$report message was infected: $virusname\n";
-    } else {
-      $infections->{"$id"}{"$part"}
-        .= "$report$notype was infected: $virusname\n";
-    }
-    $types->{"$id"}{"$part"} .= 'v'; # it's a real virus
-    return 1;
-  }
-}
+#     $report = $Name . ': ' if $Name;
+#     if ($part eq '') {
+#       # No part ==> entire message is infected.
+#       $infections->{"$id"}{""}
+#         .= "$report message was infected: $virusname\n";
+#     } else {
+#       $infections->{"$id"}{"$part"}
+#         .= "$report$notype was infected: $virusname\n";
+#     }
+#     $types->{"$id"}{"$part"} .= 'v'; # it's a real virus
+#     return 1;
+#   }
+# }
 
 sub ProcessClamdOutput {
   my($line, $infections, $types, $BaseDir, $Name, $spaminfre) = @_;
@@ -1640,133 +1640,133 @@ sub ProcessFSecureOutput {
   }
 }
 
-sub ProcessClamAVOutput {
-  my($line, $infections, $types, $BaseDir, $Name, $spaminfre) = @_;
+# sub ProcessClamAVOutput {
+#   my($line, $infections, $types, $BaseDir, $Name, $spaminfre) = @_;
 
-  my($logline);
+#   my($logline);
 
-  if ($line =~ /^ERROR:/ or $line =~ /^execv\(p\):/ or
-      $line =~ /^Autodetected \d+ CPUs/)
-  {
-    chomp $line;
-    $logline = $line;
-    $logline =~ s/%/%%/g;
-    $logline =~ s/\s{20,}/ /g;
-    MailScanner::Log::WarnLog($logline);
-    return 0;
-  }
+#   if ($line =~ /^ERROR:/ or $line =~ /^execv\(p\):/ or
+#       $line =~ /^Autodetected \d+ CPUs/)
+#   {
+#     chomp $line;
+#     $logline = $line;
+#     $logline =~ s/%/%%/g;
+#     $logline =~ s/\s{20,}/ /g;
+#     MailScanner::Log::WarnLog($logline);
+#     return 0;
+#   }
 
-  # clamscan currently stops as soon as one virus is found
-  # therefore there is little point saying which part
-  # it's still a start mind!
+#   # clamscan currently stops as soon as one virus is found
+#   # therefore there is little point saying which part
+#   # it's still a start mind!
 
-  # Only tested with --unzip since only windows boxes get viruses ;-)
+#   # Only tested with --unzip since only windows boxes get viruses ;-)
 
-  $_ = $line;
-  if (/^Archive:  (.*)$/)
-  {
-    $clamav_archive = $1;
-    $qmclamav_archive = quotemeta($clamav_archive);
-    return 0;
-  }
-  return 0 if /Empty file\.?$/;
-  # Normally means you just havn't asked for it
-  if (/: (\S+ module failure\.)/)
-  {
-    MailScanner::Log::InfoLog("ProcessClamAVOutput: %s", $1);
-    return 0;
-  }
-  return 0 if /^  |^Extracting|module failure$/;  # "  inflating", "  deflating.." from --unzip
-  if ($clamav_archive ne "" && /^$qmclamav_archive:/)
-  {
-    $clamav_archive = "";
-    $qmclamav_archive = "";
-    return 0;
-  }
+#   $_ = $line;
+#   if (/^Archive:  (.*)$/)
+#   {
+#     $clamav_archive = $1;
+#     $qmclamav_archive = quotemeta($clamav_archive);
+#     return 0;
+#   }
+#   return 0 if /Empty file\.?$/;
+#   # Normally means you just havn't asked for it
+#   if (/: (\S+ module failure\.)/)
+#   {
+#     MailScanner::Log::InfoLog("ProcessClamAVOutput: %s", $1);
+#     return 0;
+#   }
+#   return 0 if /^  |^Extracting|module failure$/;  # "  inflating", "  deflating.." from --unzip
+#   if ($clamav_archive ne "" && /^$qmclamav_archive:/)
+#   {
+#     $clamav_archive = "";
+#     $qmclamav_archive = "";
+#     return 0;
+#   }
 
-  return 0 if /OK$/;
+#   return 0 if /OK$/;
 
-  $logline = $line;
-  $logline =~ s/\s{20,}/ /g;
+#   $logline = $line;
+#   $logline =~ s/\s{20,}/ /g;
 
-  #(Real infected archive: /var/spool/MailScanner/incoming/19746/./i75EFmSZ014248/eicar.rar)
-  if (/^\(Real infected archive: (.*)\)$/)
-  {
-     my ($file, $ReportStart);
-     $file = $1;
-     $file =~ s/^(.\/)?$BaseDir\/?//;
-     $file =~ s/^\.\///;
-     my ($id,$part) = split /\//, $file, 2;
-     my $notype = substr($part,1);
-     $logline =~ s/\Q$part\E/$notype/;
+#   #(Real infected archive: /var/spool/MailScanner/incoming/19746/./i75EFmSZ014248/eicar.rar)
+#   if (/^\(Real infected archive: (.*)\)$/)
+#   {
+#      my ($file, $ReportStart);
+#      $file = $1;
+#      $file =~ s/^(.\/)?$BaseDir\/?//;
+#      $file =~ s/^\.\///;
+#      my ($id,$part) = split /\//, $file, 2;
+#      my $notype = substr($part,1);
+#      $logline =~ s/\Q$part\E/$notype/;
 
-     # Only log the whole message if no attachment has been logged
-     MailScanner::Log::InfoLog("%s", $logline)
-       unless $ClamAVAlreadyLogged{"$id"} && $part eq '';
-     $ClamAVAlreadyLogged{"$id"} = 1;
+#      # Only log the whole message if no attachment has been logged
+#      MailScanner::Log::InfoLog("%s", $logline)
+#        unless $ClamAVAlreadyLogged{"$id"} && $part eq '';
+#      $ClamAVAlreadyLogged{"$id"} = 1;
 
-     $ReportStart = $notype;
-     $ReportStart = $Name . ': ' . $ReportStart if $Name;
-     $infections->{"$id"}{"$part"} .= "$ReportStart contains a virus\n";
-     $types->{"$id"}{"$part"} .= "v";
-     return 1;
-  }
+#      $ReportStart = $notype;
+#      $ReportStart = $Name . ': ' . $ReportStart if $Name;
+#      $infections->{"$id"}{"$part"} .= "$ReportStart contains a virus\n";
+#      $types->{"$id"}{"$part"} .= "v";
+#      return 1;
+#   }
 
-  if (/^(\(raw\) )?(.*?): (.*) FOUND$/)
-  {
-    my ($file, $subfile, $virus, $report, $ReportStart);
-    $virus = $3;
+#   if (/^(\(raw\) )?(.*?): (.*) FOUND$/)
+#   {
+#     my ($file, $subfile, $virus, $report, $ReportStart);
+#     $virus = $3;
 
-    if ($clamav_archive ne "")
-    {
-      $file = $clamav_archive;
-      ($subfile = $2) =~ s/^.*\///;  # get basename of file
-      $report = "in $subfile (possibly others)";
-    }
-    else
-    {
-      $file = $2;
-    }
+#     if ($clamav_archive ne "")
+#     {
+#       $file = $clamav_archive;
+#       ($subfile = $2) =~ s/^.*\///;  # get basename of file
+#       $report = "in $subfile (possibly others)";
+#     }
+#     else
+#     {
+#       $file = $2;
+#     }
 
-    $file =~ s/^(.\/)?$BaseDir\/?//;
-    $file =~ s/^\.\///;
-    my ($id,$part) = split /\//, $file, 2;
-    # JKF 20090125 Full message check.
-    my $notype = substr($part,1);
-    $logline =~ s/\Q$part\E/$notype/;
+#     $file =~ s/^(.\/)?$BaseDir\/?//;
+#     $file =~ s/^\.\///;
+#     my ($id,$part) = split /\//, $file, 2;
+#     # JKF 20090125 Full message check.
+#     my $notype = substr($part,1);
+#     $logline =~ s/\Q$part\E/$notype/;
 
-    $part = "" if $id =~ s/\.(message|header)$//;
+#     $part = "" if $id =~ s/\.(message|header)$//;
 
-    # Only log the whole message if no attachment has been logged
-    MailScanner::Log::InfoLog("%s", $logline)
-      unless $ClamAVAlreadyLogged{"$id"} && $part eq '';
-    $ClamAVAlreadyLogged{"$id"} = 1;
+#     # Only log the whole message if no attachment has been logged
+#     MailScanner::Log::InfoLog("%s", $logline)
+#       unless $ClamAVAlreadyLogged{"$id"} && $part eq '';
+#     $ClamAVAlreadyLogged{"$id"} = 1;
 
-    if ($virus =~ /$spaminfre/) {
-      # It's spam found as an infection
-      # 20090730
-      return "0 $id $virus";
-    }
+#     if ($virus =~ /$spaminfre/) {
+#       # It's spam found as an infection
+#       # 20090730
+#       return "0 $id $virus";
+#     }
 
-    ## If it doesn't start with $BaseDir/./ then it isn't a real report
-    # Don't release this just yet
-    #return 0 unless $file =~ /^\/$BaseDir\/\.\//;
+#     ## If it doesn't start with $BaseDir/./ then it isn't a real report
+#     # Don't release this just yet
+#     #return 0 unless $file =~ /^\/$BaseDir\/\.\//;
 
-    $ReportStart = $notype;
-    $ReportStart = $Name . ': ' . $ReportStart if $Name;
-    $infections->{"$id"}{"$part"} .= "$ReportStart contains $virus $report\n";
-    $types->{"$id"}{"$part"} .= "v";
-    return 1;
-  }
+#     $ReportStart = $notype;
+#     $ReportStart = $Name . ': ' . $ReportStart if $Name;
+#     $infections->{"$id"}{"$part"} .= "$ReportStart contains $virus $report\n";
+#     $types->{"$id"}{"$part"} .= "v";
+#     return 1;
+#   }
 
-  return 0 if /^(.*?): File size limit exceeded\.$/;
+#   return 0 if /^(.*?): File size limit exceeded\.$/;
 
-  chomp $line;
-  return 0 if $line =~ /^$/; # Catch blank lines
-  $logline = $line;
-  $logline =~ s/%/%%/g;
-  return 0;
-}
+#   chomp $line;
+#   return 0 if $line =~ /^$/; # Catch blank lines
+#   $logline = $line;
+#   $logline =~ s/%/%%/g;
+#   return 0;
+# }
 
 sub ProcessBitdefenderOutput {
   my($line, $infections, $types, $BaseDir, $Name) = @_;
@@ -2040,11 +2040,11 @@ sub InstalledScanners {
   # Now look for clamavmodule and sophossavi library-based scanners.
   # Assume they are installed if I can read the code at all.
   # They over-ride the command-line based versions of the same product.
-  if (eval 'require Mail::ClamAV') {
-    foreach (@installed) {
-      s/^clamav$/clamavmodule/i;
-    }
-  }
+  # if (eval 'require Mail::ClamAV') {
+  #   foreach (@installed) {
+  #     s/^clamav$/clamavmodule/i;
+  #   }
+  # }
   if (eval 'require SAVI') {
     foreach (@installed) {
       s/^sophos$/sophossavi/i;
