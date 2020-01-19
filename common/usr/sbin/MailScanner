@@ -1054,12 +1054,12 @@ sub WorkForHours {
                                 "updated, killing this child");
       last;
     }
-    # Also bail out if the ClamAV database has been upgraded
-    if (MailScanner::SweepViruses::ClamUpgraded()) {
-      MailScanner::Log::InfoLog("ClamAV virus database has been " .
-                                "updated, killing this child");
-      last;
-    }
+    # # Also bail out if the ClamAV database has been upgraded
+    # if (MailScanner::SweepViruses::ClamUpgraded()) {
+    #   MailScanner::Log::InfoLog("ClamAV virus database has been " .
+    #                             "updated, killing this child");
+    #   last;
+    # }
 
     # Also bail out if the LDAP configuration serial number has changed.
     if (MailScanner::Config::LDAPUpdated()) {
