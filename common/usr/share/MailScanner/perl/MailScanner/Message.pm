@@ -259,6 +259,7 @@ sub new {
               $header_line =~ s/^.*: //;
               $rejectmsg = $header_line;
               splice @{$this->{headers}}, $pos, 1, 0, 'X-' . $orgname . "-MailScanner-Relay-Quarantine: " . $rejectmsg;
+              splice @{$this->{headerflags}}, $pos, 1, 0, "H" if $this->{headerflags};
               # Flag and carry on
               $rejectflag = 1;
           }
