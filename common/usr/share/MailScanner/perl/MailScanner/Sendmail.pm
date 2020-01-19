@@ -341,11 +341,12 @@ my($sed) = "/bin/sed";
       $Line =~ s/^(\?[^?]*\?)//;
       $Flags = $1;
       # JKF 09/05/2002 Fix broken Return-Path: header bug
-      if ($Line =~ /^Return-Path:/i && $Flags =~ /P/) {
-        $message->{returnpathflags} = $Flags;
-        # JKF $Line =~ s/[\x80-\xff]/\$/g;
-      }
+      # if ($Line =~ /^Return-Path:/i && $Flags =~ /P/) {
+      #   $message->{returnpathflags} = $Flags;
+      #   # JKF $Line =~ s/[\x80-\xff]/\$/g;
+      # }
       push @{$message->{headers}}, $Line;
+      push @{$message->{headerflags}}, $Flags;
       if ($Line =~ /^Subject:\s*(\S.*)?$/i) {
         $message->{subject} = $1;
         $InSubject = 1;
@@ -460,11 +461,14 @@ my($sed) = "/bin/sed";
       @headerswithouth = @{$message->{headers}};
     }
 
-    foreach $header (@headerswithouth) {
+    foreach $header, (@headerswithouth) {
       $h = $header;
       # Re-insert the header flags for Return-Path:
-      $h = $message->{returnpathflags} . $h if $h =~ /^Return-Path:/i;
-      $h =~ s/^\S/H$&/;
+      #$h = $message->{returnpathflags} . $h if $h =~ /^Return-Path:/i;
+      #$h =~ s/^\S/H$&/;
+      $flags = "H";
+      $flags = pop{$message->{headerflags}} if $message->{headerflags};
+      $h =~ s/^\S/$flags$&/;
 
       push @{$message->{metadata}}, $h;
     }
