@@ -1,5 +1,4 @@
-28350d23738b7fba32006236d6263510797a8f20  MailScanner-5.2.1-1.nix.tar.gz
-03f9a25950f3068a1f35f0ea17e5798f543d1945  MailScanner-5.2.1-1-noarch.deb
-fc9d20c1f3e4b9805061093f6a28448928f3a9f2  MailScanner-5.2.1-1.rhel.noarch.rpm
-2f2369390b64546e8ff3e4a1877dcda24d2b9cbf  MailScanner-5.2.1-1.suse.noarch.rpm
-
+fc0f4116cc8d9c6144bc73894537cc1c28c980a1  MailScanner-5.2.2-1.nix.tar.gz
+137366425dbde473d25374751f90eddd977cfc94  MailScanner-5.2.2-1.noarch.deb
+4f08fca95db6d4acefcd965ef51b8b4028a4b3fb  MailScanner-5.2.2-1.rhel.noarch.rpm
+3510299dd49f35b1ad9002dae03b4e6bd3fbe162  MailScanner-5.2.2-1.suse.noarch.rpm
