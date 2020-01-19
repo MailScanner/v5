@@ -1,6 +1,8 @@
 01/19/2020 Changes in    v5.2.2-1
 ==================================
 
+- Fix LocalSocket substitution in latest clam config (path changed)
+- Set ownership of milter queues during ms-configure
 - Correct naming of debian package
 - Unpack img files and include all unpackable file extensions
 - Preserve all header flags in Sendmail 
