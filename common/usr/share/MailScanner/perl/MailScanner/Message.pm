@@ -2878,7 +2878,7 @@ sub ExplodePartAndArchives {
           $use_unpacker = "rar";
         } elsif ( ($memb =~ /^(7-zip|arj|cpio|lha(.*)|xar|GNU tar|POSIX tar|ASCII cpio) archive/i) || # use 7zip unpacker
           ($memb =~ /^(lzh|lzma|bzip2|gzip|xz) compressed/i) ||
-          ($memb =~ /^(RPM|Delta-RPM|Windows imaging|\# ISO|ISO)/i) ) { 
+          ($memb =~ /^(RPM|Delta-RPM|Windows imaging|ISO)/i) ) { 
           $use_unpacker = "7z";
         }
       }
@@ -2909,7 +2909,7 @@ sub ExplodePartAndArchives {
                   $failisokay;
       #print STDERR "Found a zip or rar file\n" ;
       $file->close, next unless MailScanner::Config::Value('findarchivesbycontent', $this) ||
-                  $part =~ /\.(tar\.g?z|taz|tgz|tz|gz|zip|7z|exe|rar|uu|uue|doc|docx|xls|xlsx|ppt|pptx|dot|dotx|xlt|xltx|pps|ppsx)$/i;
+                  $part =~ /\.(001|7z|arj|bz2|bzip2|cab|cpio|deb|dmg|fat|gz|gzip|hfs|iso|img|jar|lha|lzh|lzma|ntfs|rpm|squashfs|swm|tar|taz|tbz2?|tgz|tar\.g?z|tz|gz|zip|exe|rar|uue?|docx?|xlsx?|pptx?|dotx?|xltx?|ppsx?|tpz|txz|vhd|wim|xar|x?z)$/i;
       $foundnewfiles = 1;
       #print STDERR "Unpacking $part at level $level\n";
 
@@ -2962,7 +2962,7 @@ sub ExplodePartAndArchives {
       
       if (
         ($use_unpacker eq "7z") ||
-        ($part =~ /\.(001|7z|arj|bz2|bzip2|cab|cpio|deb|dmg|fat|gz|gzip|hfs|iso|jar|lha|lzh|lzma)$/) ||
+        ($part =~ /\.(001|7z|arj|bz2|bzip2|cab|cpio|deb|dmg|fat|gz|gzip|hfs|iso|img|jar|lha|lzh|lzma)$/) ||
         ($part =~ /\.(ntfs|rpm|squashfs|swm|tar|taz|tbz|tbz2|tgz|tpz|txz|vhd|wim|xar|xz|z)$/) ) {
           $sevenzerror = $this->Unpack7zip($part, $explodeinto, $allowpasswords,
                                      $insistpasswords,
@@ -3109,7 +3109,7 @@ sub Unpack7zip {
   $unzip = MailScanner::Config::Value('un7zipcommand');
   return 1 unless $unzip && -x $unzip;
 
-  #MailScanner::Log::WarnLog("7ZipUnpacker: %s", $zipname);
+  MailScanner::Log::NoticeLog("Unpacking 7zip archive: %s", $zipname);
 
   # This part lists the archive contents and makes the list of
   # file names within. "This is a list verbose option"
@@ -3330,6 +3330,8 @@ sub UnpackRar {
   $PipeTimeOut = MailScanner::Config::Value('unrartimeout');
   $unrar = MailScanner::Config::Value('unrarcommand');
   return 1 unless $unrar && -x $unrar;
+
+  MailScanner::Log::NoticeLog("Unpacking RAR archive: %s", $zipname);
 
   # Get unrar version
   # Unrar Version 5.21 (and possibly others in the future do not use --help, grab without --help here)
@@ -3729,6 +3731,8 @@ sub UnpackZip {
   my($this, $zipname, $explodeinto, $allowpasswords, $insistpasswords, $onlycheckencryption, $touchfiles) = @_;
 
   my($zip, @members, $member, $name, $fh, $safename);
+
+  MailScanner::Log::NoticeLog("Unpacking Zip archive: %s", $zipname);
 
   #print STDERR "Unpacking $zipname\n";
   my $tmpname = "$explodeinto/$zipname";
