@@ -460,7 +460,7 @@ my($sed) = "/bin/sed";
     } else {
       @headerswithouth = @{$message->{headers}};
     }
-    
+
     foreach $header (@headerswithouth) {
       $h = $header;
       # Re-insert the header flags for Return-Path:
