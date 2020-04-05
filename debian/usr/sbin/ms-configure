@@ -6,7 +6,7 @@
 # MailScanner via apt-get and CPAN based on user input.  
 #
 #
-# Updated: 2 Nov 2019
+# Updated: 16 Feb 2020
 # MailScanner Team <https://www.mailscanner.info>
 clear
 
@@ -186,23 +186,23 @@ echo "2 - postfix";
 echo "3 - exim";
 echo "N - Do not install";
 echo;
-echo "Recommended: 1 (sendmail)"; echo;
+echo "Recommended: 2 (postfix)"; echo;
 if [ -z "${arg_MTA+x}" ]; then
-    read -r -p "Install an MTA? [1] : " response
+    read -r -p "Install an MTA? [2] : " response
     if [[ $response =~ ^([nN][oO])$ ]]; then
         # do not install
         MTAOPTION=
     elif [ -z $response ]; then
-        # sendmail default
-        MTAOPTION="sendmail sendmail-bin";
+        # postfix default
+        MTAOPTION="postfix";
     elif [ $response -eq 1 ]; then
         # sendmail
         MTAOPTION="sendmail sendmail-bin";
     elif [ $response -eq 2 ]; then
-        # sendmail
+        # postfix
         MTAOPTION="postfix";
     elif [ $response -eq 3 ]; then
-        # sendmail
+        # exim
         MTAOPTION="exim4-base";
     else
         MTAOPTION=
@@ -357,39 +357,38 @@ fi
 
 # base system packages
 BASEPACKAGES=();
-BASEPACKAGES+=('perl-doc');			BASEPACKAGES+=('libmailtools-perl');			BASEPACKAGES+=('re2c');
-BASEPACKAGES+=('curl');				BASEPACKAGES+=('libnet-cidr-lite-perl');        BASEPACKAGES+=('libmime-tools-perl');
-BASEPACKAGES+=('wget');				BASEPACKAGES+=('libtest-manifest-perl');		BASEPACKAGES+=('libnet-cidr-perl');
-BASEPACKAGES+=('tar');				BASEPACKAGES+=('libdata-dump-perl');			BASEPACKAGES+=('libsys-syslog-perl');
-BASEPACKAGES+=('binutils');			BASEPACKAGES+=('libbusiness-isbn-perl');		BASEPACKAGES+=('libio-stringy-perl');
-BASEPACKAGES+=('unrar');			BASEPACKAGES+=('libdbd-mysql-perl');			BASEPACKAGES+=('perl-modules');
-BASEPACKAGES+=('gcc');				BASEPACKAGES+=('libconvert-tnef-perl');			BASEPACKAGES+=('libdbd-mysql-perl');
-BASEPACKAGES+=('make');				BASEPACKAGES+=('libdbd-sqlite3-perl');			BASEPACKAGES+=('libencode-detect-perl');
-BASEPACKAGES+=('patch');			BASEPACKAGES+=('libfilesys-df-perl');			BASEPACKAGES+=('libc6-dev');
-BASEPACKAGES+=('antiword');			BASEPACKAGES+=('libarchive-zip-perl');			BASEPACKAGES+=('libconfig-yaml-perl');
-BASEPACKAGES+=('pyzor');			BASEPACKAGES+=('libole-storage-lite-perl');		BASEPACKAGES+=('libsys-sigaction-perl');
-BASEPACKAGES+=('razor');			BASEPACKAGES+=('libinline-perl');				BASEPACKAGES+=('libmail-imapclient-perl');
-BASEPACKAGES+=('tnef');				BASEPACKAGES+=('libmail-spf-perl');				BASEPACKAGES+=('libtest-pod-coverage-perl');
-BASEPACKAGES+=('gzip');				BASEPACKAGES+=('libnetaddr-ip-perl');			BASEPACKAGES+=('libfile-sharedir-install-perl');
-BASEPACKAGES+=('unzip');			BASEPACKAGES+=('libnet-ldap-perl');				BASEPACKAGES+=('libsys-hostname-long-perl');
-BASEPACKAGES+=('openssl');			BASEPACKAGES+=('libmail-dkim-perl');			BASEPACKAGES+=('libhtml-tokeparser-simple-perl');
-BASEPACKAGES+=('perl');				BASEPACKAGES+=('libbusiness-isbn-data-perl');	BASEPACKAGES+=('libnet-dns-resolver-programmable-perl');
-BASEPACKAGES+=('p7zip-full');       BASEPACKAGES+=('libgeo-ip-perl');               BASEPACKAGES+=('libnet-patricia-perl');
-BASEPACKAGES+=('arj');              BASEPACKAGES+=('lhasa');                        BASEPACKAGES+=('bzip2');  
-BASEPACKAGES+=('cabextract');       BASEPACKAGES+=('cpio');                         BASEPACKAGES+=('file');  
-BASEPACKAGES+=('gzip');             BASEPACKAGES+=('nomarch');                      BASEPACKAGES+=('pax');  
-BASEPACKAGES+=('rar');              BASEPACKAGES+=('unrar');                        BASEPACKAGES+=('unzip');  
-BASEPACKAGES+=('zip');              BASEPACKAGES+=('zoo');                          BASEPACKAGES+=('libsendmail-pmilter-perl');
-BASEPACKAGES+=('libdb-dev');        BASEPACKAGES+=('libmime-tools-perl');           BASEPACKAGES+=('libtest-deep-perl');
+BASEPACKAGES+=('perl-doc');						BASEPACKAGES+=('libmailtools-perl');			BASEPACKAGES+=('re2c');
+BASEPACKAGES+=('curl');							BASEPACKAGES+=('libnet-cidr-lite-perl');        BASEPACKAGES+=('libmime-tools-perl');
+BASEPACKAGES+=('wget');							BASEPACKAGES+=('libtest-manifest-perl');		BASEPACKAGES+=('libnet-cidr-perl');
+BASEPACKAGES+=('tar');							BASEPACKAGES+=('libdata-dump-perl');			BASEPACKAGES+=('libsys-syslog-perl');
+BASEPACKAGES+=('binutils');						BASEPACKAGES+=('libbusiness-isbn-perl');		BASEPACKAGES+=('libio-stringy-perl');
+BASEPACKAGES+=('unrar');						BASEPACKAGES+=('libdbd-mysql-perl');			BASEPACKAGES+=('perl-modules');
+BASEPACKAGES+=('gcc');							BASEPACKAGES+=('libconvert-tnef-perl');			BASEPACKAGES+=('libdbd-mysql-perl');
+BASEPACKAGES+=('make');							BASEPACKAGES+=('libdbd-sqlite3-perl');			BASEPACKAGES+=('libencode-detect-perl');
+BASEPACKAGES+=('patch');						BASEPACKAGES+=('libfilesys-df-perl');			BASEPACKAGES+=('libc6-dev');
+BASEPACKAGES+=('antiword');						BASEPACKAGES+=('libarchive-zip-perl');			BASEPACKAGES+=('libconfig-yaml-perl');
+BASEPACKAGES+=('pyzor');						BASEPACKAGES+=('libole-storage-lite-perl');		BASEPACKAGES+=('libsys-sigaction-perl');
+BASEPACKAGES+=('razor');						BASEPACKAGES+=('libinline-perl');				BASEPACKAGES+=('libmail-imapclient-perl');
+BASEPACKAGES+=('tnef');							BASEPACKAGES+=('libmail-spf-perl');				BASEPACKAGES+=('libtest-pod-coverage-perl');
+BASEPACKAGES+=('gzip');							BASEPACKAGES+=('libnetaddr-ip-perl');			BASEPACKAGES+=('libfile-sharedir-install-perl');
+BASEPACKAGES+=('unzip');						BASEPACKAGES+=('libnet-ldap-perl');				BASEPACKAGES+=('libsys-hostname-long-perl');
+BASEPACKAGES+=('openssl');						BASEPACKAGES+=('libmail-dkim-perl');			BASEPACKAGES+=('libhtml-tokeparser-simple-perl');
+BASEPACKAGES+=('perl');							BASEPACKAGES+=('libbusiness-isbn-data-perl');	BASEPACKAGES+=('libnet-dns-resolver-programmable-perl');
+BASEPACKAGES+=('p7zip-full');					BASEPACKAGES+=('libgeo-ip-perl');				BASEPACKAGES+=('libnet-patricia-perl');
+BASEPACKAGES+=('arj');							BASEPACKAGES+=('lhasa');						BASEPACKAGES+=('bzip2');  
+BASEPACKAGES+=('cabextract');					BASEPACKAGES+=('cpio');							BASEPACKAGES+=('file');  
+BASEPACKAGES+=('gzip');							BASEPACKAGES+=('nomarch');						BASEPACKAGES+=('pax');  
+BASEPACKAGES+=('rar');							BASEPACKAGES+=('unrar');						BASEPACKAGES+=('unzip');  
+BASEPACKAGES+=('zip');							BASEPACKAGES+=('zoo');							BASEPACKAGES+=('libsendmail-pmilter-perl');
+BASEPACKAGES+=('libdb-dev');					BASEPACKAGES+=('libmime-tools-perl');			BASEPACKAGES+=('libtest-deep-perl');
+BASEPACKAGES+=('cpanminus');					BASEPACKAGES+=('libmath-int64-perl');			BASEPACKAGES+=('libpath-class-perl');
+BASEPACKAGES+=('libtest-fatal-perl');			BASEPACKAGES+=('libnamespace-autoclean-perl');	BASEPACKAGES+=('librole-tiny-perl');
+BASEPACKAGES+=('libdata-dumper-concise-perl');	BASEPACKAGES+=('libdatetime-perl');				BASEPACKAGES+=('libtest-warnings-perl');
+BASEPACKAGES+=('libautodie-perl');				BASEPACKAGES+=('libtest-requires-perl');		BASEPACKAGES+=('libclone-pp-perl');
+BASEPACKAGES+=('libfile-homedir-perl');			BASEPACKAGES+=('libsort-naturally-perl');		BASEPACKAGES+=('libjson-maybexs-perl');
+BASEPACKAGES+=('libtest-leaktrace-perl');		BASEPACKAGES+=('libthrowable-perl');			BASEPACKAGES+=('libmaxminddb-dev');
 
-if [ "$parsedCommands" -gt 0 ]; then
-    BASEPACKAGES+=('cpanminus');
-fi
-
-# install these from array above in case one of the 
-# packages produce an error
-#
-#"curl wget tar binutils libc6-dev gcc make patch gzip unzip openssl perl perl-doc libdbd-mysql-perl libconvert-tnef-perl libdbd-sqlite3-perl libfilesys-df-perl libmailtools-perl libmime-tools-perl libnet-cidr-perl libsys-syslog-perl libio-stringy-perl perl-modules libdbd-mysql-perl libencode-detect-perl unrar antiword libarchive-zip-perl libconfig-yaml-perl libole-storage-lite-perl libsys-sigaction-perl pyzor razor tnef libinline-perl libmail-imapclient-perl libtest-pod-coverage-perl libfile-sharedir-install-perl libmail-spf-perl libnetaddr-ip-perl libsys-hostname-long-perl libhtml-tokeparser-simple-perl libmail-dkim-perl libnet-ldap-perl libnet-dns-resolver-programmable-perl libnet-cidr-lite-perl libtest-manifest-perl libdata-dump-perl libbusiness-isbn-data-perl libbusiness-isbn-perl libtest-simple-perl";
+# 
 
 # the array of perl modules needed
 ARMOD=();
@@ -422,16 +421,24 @@ MODSA='Mail::SpamAssassin';
 # not required but nice to have
 ARMODAFTERSA=();
 ARMODAFTERSA+=('bignum');
-ARMODAFTERSA+=('Data::Dump');		ARMODAFTERSA+=('DB_File');				ARMODAFTERSA+=('DBD::SQLite');
-ARMODAFTERSA+=('DBI');				ARMODAFTERSA+=('Digest');				ARMODAFTERSA+=('Encode::Detect');
-ARMODAFTERSA+=('Error');			ARMODAFTERSA+=('ExtUtils::CBuilder');	ARMODAFTERSA+=('ExtUtils::ParseXS');
-ARMODAFTERSA+=('Getopt::Long');		ARMODAFTERSA+=('Inline');				ARMODAFTERSA+=('IO::String');
-ARMODAFTERSA+=('IO::Zlib');			ARMODAFTERSA+=('IP::Country');			ARMODAFTERSA+=('Mail::SPF');
-ARMODAFTERSA+=('Mail::SPF::Query');	ARMODAFTERSA+=('Module::Build');		ARMODAFTERSA+=('Net::CIDR::Lite');
-ARMODAFTERSA+=('Net::DNS');			ARMODAFTERSA+=('Net::LDAP');			ARMODAFTERSA+=('Net::DNS::Resolver::Programmable');
-ARMODAFTERSA+=('NetAddr::IP');		ARMODAFTERSA+=('Parse::RecDescent');	ARMODAFTERSA+=('Test::Harness');
-ARMODAFTERSA+=('Test::Manifest');	ARMODAFTERSA+=('Text::Balanced');		ARMODAFTERSA+=('URI');
-ARMODAFTERSA+=('version');			ARMODAFTERSA+=('IO::Compress::Bzip2');  ARMODAFTERSA+=('Sendmail::PMilter');
+ARMODAFTERSA+=('Data::Dump');				ARMODAFTERSA+=('DB_File');					ARMODAFTERSA+=('DBD::SQLite');
+ARMODAFTERSA+=('DBI');						ARMODAFTERSA+=('Digest');					ARMODAFTERSA+=('Encode::Detect');
+ARMODAFTERSA+=('Error');					ARMODAFTERSA+=('ExtUtils::CBuilder');		ARMODAFTERSA+=('ExtUtils::ParseXS');
+ARMODAFTERSA+=('Getopt::Long');				ARMODAFTERSA+=('Inline');					ARMODAFTERSA+=('IO::String');
+ARMODAFTERSA+=('IO::Zlib');					ARMODAFTERSA+=('IP::Country');				ARMODAFTERSA+=('Mail::SPF');
+ARMODAFTERSA+=('Mail::SPF::Query');			ARMODAFTERSA+=('Module::Build');			ARMODAFTERSA+=('Net::CIDR::Lite');
+ARMODAFTERSA+=('Net::DNS');					ARMODAFTERSA+=('Net::LDAP');				ARMODAFTERSA+=('Net::DNS::Resolver::Programmable');
+ARMODAFTERSA+=('NetAddr::IP');				ARMODAFTERSA+=('Parse::RecDescent');		ARMODAFTERSA+=('Test::Harness');
+ARMODAFTERSA+=('Test::Manifest');			ARMODAFTERSA+=('Text::Balanced');			ARMODAFTERSA+=('URI');
+ARMODAFTERSA+=('version');					ARMODAFTERSA+=('IO::Compress::Bzip2');		ARMODAFTERSA+=('Sendmail::PMilter');
+ARMODAFTERSA+=('Math::Int64');				ARMODAFTERSA+=('IP::Country::DB_File');		ARMODAFTERSA+=('namespace::autoclean');
+ARMODAFTERSA+=('Data::IEEE754');			ARMODAFTERSA+=('Data::Printer');			ARMODAFTERSA+=('Data::Validate::IP');
+ARMODAFTERSA+=('GeoIP2::Country::Reader');	ARMODAFTERSA+=('List::AllUtils');			ARMODAFTERSA+=('List::SomeUtils');
+ARMODAFTERSA+=('List::UtilsBy');			ARMODAFTERSA+=('MaxMind::DB::Metadata');	ARMODAFTERSA+=('MaxMind::DB;:Reader');
+ARMODAFTERSA+=('Module::Runtime');			ARMODAFTERSA+=('Moo');						ARMODAFTERSA+=('MooX::StrictConstructor');
+ARMODAFTERSA+=('Role::Tiny');				ARMODAFTERSA+=('Scalar::List::Utils');		ARMODAFTERSA+=('strictures');
+ARMODAFTERSA+=('Sub::Quote');				ARMODAFTERSA+=('Math::Int128');				ARMODAFTERSA+=('Net::Works::Network');
+ARMODAFTERSA+=('MaxMind::DB::Reader::XS');	ARMODAFTERSA+=('Test::Tester');
 
 # additional spamassassin plugins
 ARMODAFTERSA+=('Mail::SpamAssassin::Plugin::Rule2XSBody');
