@@ -546,7 +546,7 @@ fi
 # ask if the user wants to install 3rd party rpms for missing
 # perl-Filesys-Df and perl-Sys-Hostname-Long
 DFOPTION=0
-if [ $RHEL -ge 7 ]; then
+if [ $RHEL -eq 7 ]; then
     clear
     echo;
     echo "Do you want to install perl-Filesys-Df and perl-Sys-Hostname-Long via RPM if missing?"; echo;
@@ -710,8 +710,8 @@ ARMOD+=('Pod::Simple');			ARMOD+=('POSIX');				ARMOD+=('Scalar::Util');
 ARMOD+=('Socket'); 				ARMOD+=('Storable'); 	 	 	ARMOD+=('Test::Harness');		
 ARMOD+=('Test::Pod');			ARMOD+=('Test::Simple');		ARMOD+=('Time::HiRes');			
 ARMOD+=('Time::localtime'); 	ARMOD+=('Sys::Hostname::Long');	ARMOD+=('Sys::SigAction');		
-ARMOD+=('Sys::Syslog'); 		ARMOD+=('Env');
-ARMOD+=('Mail::SpamAssassin');
+ARMOD+=('Sys::Syslog'); 		ARMOD+=('Env');					ARMOD+=('Filesys::Df');
+ARMOD+=('IO::Wrap');			ARMOD+=('Mail::SpamAssassin');
 
 # not required but nice to have
 ARMOD+=('bignum');				
