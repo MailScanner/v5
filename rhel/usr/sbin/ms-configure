@@ -815,15 +815,15 @@ if [ $CPANOPTION -eq 1 ]; then
         cd /root/.cpan/CPAN
         $CURL -O https://s3.amazonaws.com/msv5/CPAN/MyConfig.pm
         cd "$THISCURRPMDIR"
-        AUTOCPAN=1
-        # Install cpanminus
-        $YUM -y install cpanminus
-        if [ $? -ne 0 ]; then
-            echo "Error installing cpanminus, falling back to perl invocation method."
-            AUTOCPAN=0
-        fi
-        timewait 1
     fi
+    AUTOCPAN=1
+    # Install cpanminus
+    $YUM -y install cpanminus
+    if [ $? -ne 0 ]; then
+        echo "Error installing cpanminus, falling back to perl invocation method."
+        AUTOCPAN=0
+    fi
+    timewait 1
 fi
 
 # install required perl packages that are available via yum along
