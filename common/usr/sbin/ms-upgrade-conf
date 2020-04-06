@@ -193,18 +193,19 @@ if ($config eq 'mailscanner') {
     sleep(5);
   }
 
-  # Watch for broken settings in the Monitors for ClamAV Updates option.
-  unless ($oldsettings{'monitorsforclamavupdates'} =~ /cld/ &&
-          $oldsettings{'monitorsforclamavupdates'} =~ /cvd/) {
-    print STDERR "\a\n";
-    print STDERR "Important Note\n--------------\n";
-    print STDERR "Your setting for 'Monitors for ClamAV Updates' is broken.\n";
-    print STDERR "It should look like this (unless your ClamAV is installed\n";
-    print STDERR "somewhere else)\n";
-    print STDERR "Monitors for ClamAV Updates = /usr/local/share/clamav/*.cld /usr/local/share/clamav/*.cvd\n";
-    print STDERR "\a\n";
-    sleep(5);
-  }
+# Removed
+#  # Watch for broken settings in the Monitors for ClamAV Updates option.
+#   unless ($oldsettings{'monitorsforclamavupdates'} =~ /cld/ &&
+#           $oldsettings{'monitorsforclamavupdates'} =~ /cvd/) {
+#     print STDERR "\a\n";
+#     print STDERR "Important Note\n--------------\n";
+#     print STDERR "Your setting for 'Monitors for ClamAV Updates' is broken.\n";
+#     print STDERR "It should look like this (unless your ClamAV is installed\n";
+#     print STDERR "somewhere else)\n";
+#     print STDERR "Monitors for ClamAV Updates = /usr/local/share/clamav/*.cld /usr/local/share/clamav/*.cvd\n";
+#     print STDERR "\a\n";
+#     sleep(5);
+#   }
 
   # Watch for small "Maximum Archive Depth" settings.
   if ($oldsettings{'maximumarchivedepth'} > 0 &&
