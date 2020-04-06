@@ -529,20 +529,16 @@ timewait 2
 PMODWAIT=0
 
 # CPAN automation invoked?
-if [ -z "${arg_installCPAN+x}" ]; then
-    AUTOCPAN=0
-else
-    if [ $CPANOPTION -eq 1 ]; then
-        AUTOCPAN=1
-        # Install cpanminus
-        $APTGET  -y install cpanminus
-        if [ $? -ne 0 ]; then
-            echo "Error installing cpanminus, falling back to perl invocation method."
-            AUTOCPAN=0
-        fi
-    else
+if [ $CPANOPTION -eq 1 ]; then
+    AUTOCPAN=1
+    # Install cpanminus
+    $APTGET  -y install cpanminus
+    if [ $? -ne 0 ]; then
+        echo "Error installing cpanminus, falling back to perl invocation method."
         AUTOCPAN=0
     fi
+else
+    AUTOCPAN=0
 fi
 
 # remediate
