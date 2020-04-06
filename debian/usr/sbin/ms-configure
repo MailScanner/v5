@@ -193,7 +193,7 @@ if [ -z "${arg_MTA+x}" ]; then
         # do not install
         MTAOPTION=
     elif [ -z $response ]; then
-        # postfix default
+        # sendmail default
         MTAOPTION="sendmail";
     elif [ $response -eq 1 ]; then
         # sendmail
