@@ -194,7 +194,7 @@ if [ -z "${arg_MTA+x}" ]; then
         MTAOPTION=
     elif [ -z $response ]; then
         # sendmail default
-        MTAOPTION="sendmail";
+        MTAOPTION="sendmail sendmail-bin";
     elif [ $response -eq 1 ]; then
         # sendmail
         MTAOPTION="sendmail sendmail-bin";
