@@ -327,15 +327,15 @@ echo "2 - postfix";
 echo "3 - exim";
 echo "N - Do not install";
 echo;
-echo "Recommended: 2 (postfix)"; echo;
+echo "Recommended: 1 (sendmail)"; echo;
 if [ -z "${arg_MTA+x}" ]; then
-    read -r -p "Install an MTA? [2] : " response
+    read -r -p "Install an MTA? [1] : " response
     if [[ $response =~ ^([nN][oO])$ ]]; then
         # do not install
         MTAOPTION=
     elif [ -z $response ]; then
         # sendmail default
-        MTAOPTION="postfix";
+        MTAOPTION="sendmail";
     elif [ $response -eq 1 ]; then
         # sendmail 
         MTAOPTION="sendmail";
