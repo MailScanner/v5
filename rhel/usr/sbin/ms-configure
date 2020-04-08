@@ -711,7 +711,7 @@ ARMOD+=('Socket'); 				ARMOD+=('Storable'); 	 	 	ARMOD+=('Test::Harness');
 ARMOD+=('Test::Pod');			ARMOD+=('Test::Simple');		ARMOD+=('Time::HiRes');			
 ARMOD+=('Time::localtime'); 	ARMOD+=('Sys::Hostname::Long');	ARMOD+=('Sys::SigAction');		
 ARMOD+=('Sys::Syslog'); 		ARMOD+=('Env');					ARMOD+=('Filesys::Df');
-ARMOD+=('IO::Wrap');			ARMOD+=('Mail::SpamAssassin');
+ARMOD+=('IO::Wrap');
 
 # not required but nice to have
 ARMOD+=('bignum');				
@@ -732,17 +732,15 @@ ARMOD+=('List::UtilsBy');			ARMOD+=('MaxMind::DB::Metadata');	ARMOD+=('MaxMind::
 ARMOD+=('Module::Runtime');			ARMOD+=('Moo');						ARMOD+=('MooX::StrictConstructor');
 ARMOD+=('Role::Tiny');				ARMOD+=('Scalar::List::Utils');		ARMOD+=('strictures');
 ARMOD+=('Sub::Quote');				ARMOD+=('Math::Int128');			ARMOD+=('Net::Works::Network');
-ARMOD+=('MaxMind::DB::Reader::XS');
+ARMOD+=('MaxMind::DB::Reader::XS');	ARMOD+=('Geo::IP');					ARMOD+=('GeoIP2::Database::Reader');
+ARMOD+=('Net::DNS::Nameserver');	ARMOD+=('DBD::mysql');
 
-# additional spamassassin plugins
-ARMOD+=('Mail::SpamAssassin::Plugin::Rule2XSBody');
-ARMOD+=('Mail::SpamAssassin::Plugin::DCC');
-ARMOD+=('Mail::SpamAssassin::Plugin::Pyzor');
-
-# add to array if the user is installing spamassassin
-if [ $SA -eq 1 ]; then
-    ARMOD+=('Mail::SpamAssassin');
-fi
+# SA and plugins
+SAMOD=();
+SAMOD+=('Mail::SpamAssassin');
+SAMOD+=('Mail::SpamAssassin::Plugin::Rule2XSBody');
+SAMOD+=('Mail::SpamAssassin::Plugin::DCC');
+SAMOD+=('Mail::SpamAssassin::Plugin::Pyzor');
 
 # 32 or 64 bit
 MACHINE_TYPE=`uname -m`
@@ -992,6 +990,28 @@ do
 done
 
 for i in "${ARMOD[@]}"
+do
+    perldoc -l $i >/dev/null 2>&1
+    if [ $? -ne 0 ]; then
+        if [ $CPANOPTION -eq 1 ]; then
+            clear
+            echo "$i is missing. Installing via CPAN ..."; echo;
+            timewait 1
+            if [ $AUTOCPAN -eq 0 ]; then
+                perl -MCPAN -e "CPAN::Shell->force(qw(install $i ));"
+            else
+                cpanm --force --no-interactive $i
+            fi
+        else
+            echo "WARNING: $i is missing. You should fix this.";
+            PMODWAIT=5
+        fi
+    else
+        echo "$i => OK";
+    fi
+done
+
+for i in "${SAMOD[@]}"
 do
     perldoc -l $i >/dev/null 2>&1
     if [ $? -ne 0 ]; then
