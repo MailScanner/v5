@@ -406,7 +406,7 @@ if [ -z $FEDORA ]; then
     fi
 fi
 
-if [ -z $FEDORA && $RHEL -eq 8 ]; then
+if [[ -z $FEDORA && $RHEL -eq 8 ]]; then
     # ask if the user wants to install PowerTools
     clear
     echo;
@@ -872,7 +872,7 @@ if [ $CPANOPTION -eq 1 ]; then
 fi
 
 # Enable PowerTools Repo if requested
-if [ $POWERTOOLS -eq 1 && $RHEL -eq 8 ]; then
+if [[ $POWERTOOLS -eq 1 && $RHEL -eq 8 ]]; then
     yum config-manager --set-enabled PowerTools
 fi
 
