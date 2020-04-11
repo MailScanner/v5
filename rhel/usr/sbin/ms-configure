@@ -1098,7 +1098,7 @@ if [[ -n "${arg_update+x}" && $AUTOCPAN -ne 0 ]]; then
     # RHEL variants ship SA with security vulnerabilities present
     if [[ -n $(rpm -qa | grep spamassassin) ]]; then
         echo "Possibly outdated Spamassassin detected, installing from CPAN..."
-        yum -y remove spamassassin
+        rpm -e spamassassin
         cpanm --force --no-interactive Mail::SpamAssassin
     fi
 fi
