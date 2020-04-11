@@ -579,7 +579,7 @@ if [ ${CPANOPTION} -eq 1 ]; then
         fi
     done
 
-    #Install SpamaAssassin, use standard cpan in normail install, or App::cpanminus in unattended install
+    #Install SpamaAssassin, use standard cpan in normal install, or App::cpanminus in unattended install
     perldoc -l ${MODSA} >/dev/null 2>&1
     if [ $? -ne 0 ]; then
         clear
