@@ -542,7 +542,7 @@ else
 fi
 
 # remediate
-if [ ${CPANOPTION} == 1 ]; then
+if [ ${CPANOPTION} -eq 1 ]; then
     #Install pre SpamAssassin modules
     for i in "${ARMOD[@]}"
     do
@@ -573,7 +573,11 @@ if [ ${CPANOPTION} == 1 ]; then
             clear
             echo "${i} is missing. Installing via CPAN ..."; echo;
             timewait 1
-            perl -MCPAN -e "CPAN::Shell->force(qw(install ${i} ));"
+            if [ $AUTOCPAN -eq 0 ]; then
+                perl -MCPAN -e "CPAN::Shell->force(qw(install ${i} ));"
+            else
+                cpanm --force --no-interactive $i
+            fi
         fi
     done
 
