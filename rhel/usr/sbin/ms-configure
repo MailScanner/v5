@@ -366,7 +366,11 @@ if [ -z "${arg_MTA+x}" ]; then
         MTAOPTION=
     fi
 else
-    MTAOPTION=${arg_MTA};
+    if [ "${arg_MTA+x}" == "none" ]; then
+      MTAOPTION=
+    else
+      MTAOPTION=${arg_MTA};
+    fi
 fi
 
 # no longer asking - just get spamassassin installed
