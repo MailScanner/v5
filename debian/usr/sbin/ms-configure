@@ -591,16 +591,6 @@ if [ ${CPANOPTION} -eq 1 ]; then
             cpanm --no-interactive --force ${MODSA}
         fi
     fi
-
-    # Install MIME::Tools from CPAN even though dpkg is present
-    # Fixes outdated MIME::Tools causing MailScanner to crash
-    clear
-    echo "Latest MIME::Tools is needed, Installing via CPAN ..."; echo;
-    timewait 1
-    perl -MCPAN -e "CPAN::Shell->force(qw(install MIME::Tools));"
-else
-  echo "WARNING: Outdated MIME::Tools may be present. You should fix this.";
-  PMODWAIT=5
 fi
 
 # check and notify of any missing modules

@@ -1093,18 +1093,13 @@ done
 if [[ -n "${arg_update+x}" && $AUTOCPAN -ne 0 ]]; then
     cpanm App::cpanoutdated
     cpan-outdated -p | cpanm --force --no-interactive
-fi
 
-if [ $CPANOPTION -eq 1 ]; then
-  # Install MIME::Tools from CPAN even though rpm is present
-  # Fixes outdated MIME::Tools causing MailScanner to crash
-  clear
-  echo "Latest MIME::Tools is needed, Installing via CPAN ..."; echo;
-  timewait 1
-  perl -MCPAN -e "CPAN::Shell->force(qw(install MIME::Tools));"
-else
-  echo "WARNING: Outdated MIME::Tools may be present. You should fix this.";
-  PMODWAIT=5
+    # Check for and override spamassassin rpm, if present
+    # RHEL variants ship SA with security vulnerabilities present
+    if [[ -n $(rpm -qa | grep spamassassin) ]]; then
+        echo "Possibly outdated Spamassassin detected, installing from CPAN..."
+        cpanm --force --no-interactive Mail::SpamAssassin
+    fi
 fi
 
 # will pause if a perl module was missing
