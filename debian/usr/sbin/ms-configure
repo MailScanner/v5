@@ -418,7 +418,7 @@ ARMOD+=('Sys::Syslog');			ARMOD+=('Env');
 
 MODSA='Mail::SpamAssassin';
 
-# not required but nice to have
+# not required but nice to have (now install before SA anyway)
 ARMODAFTERSA=();
 ARMODAFTERSA+=('bignum');
 ARMODAFTERSA+=('Data::Dump');				ARMODAFTERSA+=('DB_File');					ARMODAFTERSA+=('DBD::SQLite');
@@ -565,6 +565,18 @@ if [ ${CPANOPTION} == 1 ]; then
         cpan-outdated -p | cpanm --force --no-interactive
     fi
 
+    #Install post SpamAssassin modules (install before SA now anyway)
+    for i in "${ARMODAFTERSA[@]}"
+    do
+        perldoc -l ${i} >/dev/null 2>&1
+        if [ $? -ne 0 ]; then
+            clear
+            echo "${i} is missing. Installing via CPAN ..."; echo;
+            timewait 1
+            perl -MCPAN -e "CPAN::Shell->force(qw(install ${i} ));"
+        fi
+    done
+
     #Install SpamaAssassin, use standard cpan in normail install, or App::cpanminus in unattended install
     perldoc -l ${MODSA} >/dev/null 2>&1
     if [ $? -ne 0 ]; then
@@ -578,19 +590,7 @@ if [ ${CPANOPTION} == 1 ]; then
         fi
     fi
 
-    #Install post SpamAssassin modules
-    for i in "${ARMODAFTERSA[@]}"
-    do
-        perldoc -l ${i} >/dev/null 2>&1
-        if [ $? -ne 0 ]; then
-            clear
-            echo "${i} is missing. Installing via CPAN ..."; echo;
-            timewait 1
-            perl -MCPAN -e "CPAN::Shell->force(qw(install ${i} ));"
-        fi
-    done
-
-    # Install MIME::Tools from CPAN even though rpm is present
+    # Install MIME::Tools from CPAN even though dpkg is present
     # Fixes outdated MIME::Tools causing MailScanner to crash
     clear
     echo "Latest MIME::Tools is needed, Installing via CPAN ..."; echo;
