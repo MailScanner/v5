@@ -28,6 +28,7 @@ while [ $# -gt 0 ]; do
             arg_ignoreDeps=0;
             arg_ramdiskSize=0
             arg_installEPEL=0;
+            arg_installPowerTools=0;
             arg_installTNEF=0;
             arg_installUnrar=0;
             arg_installDf=0;
@@ -123,6 +124,19 @@ while [ $# -gt 0 ]; do
             fi
         ;;
 
+         --installPowerTools=*)
+            if [[ ${1#*=} =~ ^([yY])$ ]]; then
+                arg_installPowerTools=1;
+                ((parsedCommands++));
+            elif [[ ${1#*=} =~ ^([nN])$ ]]; then
+                arg_installPowerTools=0;
+                ((parsedCommands++));
+            else
+                printf "Error: Invalid value for installPowerTools: only Y or N values are accepted.\n"
+                exit 1
+            fi
+        ;;
+
         --installTNEF=*)
             if [[ ${1#*=} =~ ^([yY])$ ]]; then
                 arg_installTNEF=1;
@@ -179,44 +193,47 @@ while [ $# -gt 0 ]; do
             printf "MailScanner Installation for Red Hat Based Systems\n\n"
             printf "Usage: %s [--update] [--MTA=sendmail|postfix|exim|none] [--installEPEL=Y|N] [--installClamav=Y|N] [--configClamav=Y|N] [--installTNEF=Y|N] [--installUnrar=Y|N] [--installCPAN=Y|N] [--installDf=Y|N] [--ignoreDeps=Y|N] [--SELPermissive=Y|N] [--ramdiskSize=value]\n\n" "$0"
             printf -- "--update              Perform an update on an existing install using the following options (can be overridden):\n"
-            printf    "                        --MTA=none        (assumed already installed)\n"
-            printf    "                        --installEPEL=N   (assumed already installed)\n"
-            printf    "                        --installClamav=N (assumed already installed)\n"
-            printf    "                        --configClamav=N  (assumed already installed)\n"
-            printf    "                        --installTNEF=N   (assumed already installed)\n"
-            printf    "                        --installUnrar=N  (assumed already installed)\n"
+            printf    "                        --MTA=none               (assumed already installed)\n"
+            printf    "                        --installEPEL=N          (assumed already installed)\n"
+            printf    "                        --installPowerTools=N    (assumed already installed)\n"
+            printf    "                        --installClamav=N        (assumed already installed)\n"
+            printf    "                        --configClamav=N         (assumed already installed)\n"
+            printf    "                        --installTNEF=N          (assumed already installed)\n"
+            printf    "                        --installUnrar=N         (assumed already installed)\n"
             printf    "                        --installCPAN=Y\n"
-            printf    "                        --installDf=N     (assumed already installed)\n"
-            printf    "                        --SELPermissive=N (assumed already configured)\n"
+            printf    "                        --installDf=N            (assumed already installed)\n"
+            printf    "                        --SELPermissive=N        (assumed already configured)\n"
             printf    "                        --ignoreDeps=N\n"
-            printf    "                        --ramdiskSize=0   (assumed already configured)\n\n"
-            printf -- "--MTA=value           Select the Mail Transfer Agent (MTA) to be installed            (sendmail|postfix|exim|none)\n"
-            printf    "                      Recommended: sendmail\n\n"
-            printf -- "--installEPEL=Y|N     Install and use EPEL repository                                 (Y or N)\n"
-            printf    "                      Recommended: Y (yes)\n\n"
-            printf -- "--installClamav=Y|N   Install or update ClamAV during installation (requires EPEL)   (Y or N)\n"
-            printf    "                      Recommended: Y (yes)\n\n"
-            printf -- "--configClamav=Y|N    Configure ClamAV (CentOS 7 only)                               (Y or N)\n"
-            printf    "                      Recommended: Y (yes)\n\n"
-            printf -- "--installTNEF=Y|N     Install tnef via RPM                                            (Y or N)\n"
-            printf    "                      Recommended: Y (yes)\n\n"
-            printf -- "--installUnrar=Y|N    Install unrar via RPM                                           (Y or N)\n"
-            printf    "                      Recommended: Y (yes)\n\n"
-            printf -- "--installCPAN=Y|N     Install missing perl modules via CPAN                           (Y or N)\n"
-            printf    "                      Recommended: Y (yes)\n\n"
-            printf -- "--installDf=Y|N       Install perl-Filesys-Df and perl-Sys-Hostname-Long (CentOS 7)   (Y or N)\n"
-            printf    "                      Recommended: Y (yes)\n\n"
-            printf -- "--SELPermissive=Y|N   Set SELinux to Permissive mode                                  (Y or N)\n"
-            printf    "                      Recommended: Y (yes)\n\n"
-            printf -- "--ignoreDeps=Y|N      Force .rpm package install regardless of missing dependencies   (Y or N)\n"
-            printf    "                      Recommended: N (no)\n\n"
-            printf -- "--ramdiskSize=value   Create a RAMDISK for incoming spool directory                   (integer value or 0 for none)\n"
-            printf    "                      Suggestions:\n";
-            printf    "                      None         0\n";
-            printf    "                      Small        256\n";
-            printf    "                      Medium       512\n";
-            printf    "                      Large        1024 or 2048\n";
-            printf    "                      Enterprise   4096 or 8192\n";
+            printf    "                        --ramdiskSize=0          (assumed already configured)\n\n"
+            printf -- "--MTA=value             Select the Mail Transfer Agent (MTA) to be installed            (sendmail|postfix|exim|none)\n"
+            printf    "                        Recommended: sendmail\n\n"
+            printf -- "--installEPEL=Y|N       Install and use EPEL repository                                 (Y or N)\n"
+            printf    "                        Recommended: Y (yes)\n\n"
+            printf -- "--installPowerTools=Y|N Install and use PowerTools repository (CentOS/RHEL 8)           (Y or N)\n"
+            printf    "                        Recommended: Y (yes)\n\n"
+            printf -- "--installClamav=Y|N     Install or update ClamAV during installation (requires EPEL)    (Y or N)\n"
+            printf    "                        Recommended: Y (yes)\n\n"
+            printf -- "--configClamav=Y|N      Configure ClamAV (CentOS 7 only)                                (Y or N)\n"
+            printf    "                        Recommended: Y (yes)\n\n"
+            printf -- "--installTNEF=Y|N       Install tnef via RPM                                            (Y or N)\n"
+            printf    "                        Recommended: Y (yes)\n\n"
+            printf -- "--installUnrar=Y|N      Install unrar via RPM                                           (Y or N)\n"
+            printf    "                        Recommended: Y (yes)\n\n"
+            printf -- "--installCPAN=Y|N       Install missing perl modules via CPAN                           (Y or N)\n"
+            printf    "                        Recommended: Y (yes)\n\n"
+            printf -- "--installDf=Y|N         Install perl-Filesys-Df and perl-Sys-Hostname-Long (CentOS 7)   (Y or N)\n"
+            printf    "                        Recommended: Y (yes)\n\n"
+            printf -- "--SELPermissive=Y|N     Set SELinux to Permissive mode                                  (Y or N)\n"
+            printf    "                        Recommended: Y (yes)\n\n"
+            printf -- "--ignoreDeps=Y|N        Force .rpm package install regardless of missing dependencies   (Y or N)\n"
+            printf    "                        Recommended: N (no)\n\n"
+            printf -- "--ramdiskSize=value     Create a RAMDISK for incoming spool directory                   (integer value or 0 for none)\n"
+            printf    "                        Suggestions:\n";
+            printf    "                        None         0\n";
+            printf    "                        Small        256\n";
+            printf    "                        Medium       512\n";
+            printf    "                        Large        1024 or 2048\n";
+            printf    "                        Enterprise   4096 or 8192\n";
             exit 0
         ;;
 
@@ -385,6 +402,36 @@ if [ -z $FEDORA ]; then
         EPEL=${arg_installEPEL};
         if [ $EPEL -eq 1 ]; then
             EPELOPTION="epel-release";
+        fi
+    fi
+fi
+
+if [ -z $FEDORA && $RHEL -eq 8 ]; then
+    # ask if the user wants to install PowerTools
+    clear
+    echo;
+    echo "Do you want to install RHEL PowerTools Repository?"; echo;
+    echo "Installing PowerTools will make more yum packages available, such as re2c,"; 
+    echo "which is recommended."; 
+    echo;
+    echo "Recommended: Y (yes)"; echo;
+    if [ -z "${arg_installPowerTools+x}" ]; then
+        read -r -p "Install PowerTools? [n/Y] : " response
+        if [[ $response =~ ^([yY][eE][sS]|[yY])$ ]]; then
+            # user wants PowerTools installed
+            POWERTOOLS=1
+            POWERTOOLSOPTION="dnf-plugins-core";
+        elif [ -z $response ]; then    
+            POWERTOOLS=1
+            POWERTOOLSOPTION="dnf-plugins-core";
+        else
+            POWERTOOLS=0
+            POWERTOOLSOPTION="dnf-plugins-core";
+        fi
+    else
+        POWERTOOLS=${arg_installPowerTools};
+        if [ $POWERTOOLS -eq 1 ]; then
+            POWERTOOLSOPTION="dnf-plugins-core";
         fi
     fi
 fi
@@ -760,7 +807,7 @@ echo;
 timewait 2
 
 # install base packages
-$YUM -y --skip-broken install $BASEPACKAGES $EPELOPTION
+$YUM -y --skip-broken install $BASEPACKAGES $EPELOPTION $POWERTOOLSOPTION
 
 # install this separate in case it conflicts
 if [ "x$MTAOPTION" != "x" ]; then
@@ -824,6 +871,11 @@ if [ $CPANOPTION -eq 1 ]; then
     timewait 1
 fi
 
+# Enable PowerTools Repo if requested
+if [ $POWERTOOLS -eq 1 && $RHEL -eq 8 ]; then
+    yum config-manager --set-enabled PowerTools
+fi
+
 # install required perl packages that are available via yum along
 # with EPEL packages if the user elected to do so.
 #
@@ -832,11 +884,11 @@ fi
 # via cpan if the user elected to do so.
 clear
 echo;
-echo "Installing available Perl packages, ClamAV (if elected), and ";
-echo "Spamassassin (if elected) via yum. You can safely ignore any";
+echo "Installing available Perl packages, ClamAV (if elected)";
+echo "via yum. You can safely ignore any";
 echo "subsequent 'No package available' errors."; echo;
 timewait 3
-$YUM -y --skip-broken install $TNEF $MOREPACKAGES $CAVOPTION $SAOPTION
+$YUM -y --skip-broken install $TNEF $MOREPACKAGES $CAVOPTION
 
 # install missing tnef if the user elected to do so
 if [ $TNEFOPTION -eq 1 ]; then
