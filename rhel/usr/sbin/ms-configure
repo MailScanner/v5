@@ -774,13 +774,13 @@ ARMOD+=('Test::Manifest');			ARMOD+=('Text::Balanced');			ARMOD+=('URI');
 ARMOD+=('version');					ARMOD+=('IO::Compress::Bzip2');		ARMOD+=('Sendmail::PMilter');
 ARMOD+=('Math::Int64');				ARMOD+=('IP::Country::DB_File');	ARMOD+=('namespace::autoclean');
 ARMOD+=('Data::IEEE754');			ARMOD+=('Data::Printer');			ARMOD+=('Data::Validate::IP');
-ARMOD+=('GeoIP2::Country::Reader');	ARMOD+=('List::AllUtils');			ARMOD+=('List::SomeUtils');
+ARMOD+=('List::AllUtils');			ARMOD+=('List::SomeUtils');			ARMOD+=('Net::DNS::Nameserver');
 ARMOD+=('List::UtilsBy');			ARMOD+=('MaxMind::DB::Metadata');	ARMOD+=('MaxMind::DB::Reader');
 ARMOD+=('Module::Runtime');			ARMOD+=('Moo');						ARMOD+=('MooX::StrictConstructor');
-ARMOD+=('Role::Tiny');				ARMOD+=('Scalar::List::Utils');		ARMOD+=('strictures');
+ARMOD+=('Role::Tiny');				ARMOD+=('strictures');				ARMOD+=('DBD::mysql');
 ARMOD+=('Sub::Quote');				ARMOD+=('Math::Int128');			ARMOD+=('Net::Works::Network');
 ARMOD+=('MaxMind::DB::Reader::XS');	ARMOD+=('Geo::IP');					ARMOD+=('GeoIP2::Database::Reader');
-ARMOD+=('Net::DNS::Nameserver');	ARMOD+=('DBD::mysql');
+
 
 # SA and plugins
 SAMOD=();
