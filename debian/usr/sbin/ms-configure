@@ -433,18 +433,16 @@ ARMODAFTERSA+=('Test::Manifest');			ARMODAFTERSA+=('Text::Balanced');			ARMODAFT
 ARMODAFTERSA+=('version');					ARMODAFTERSA+=('IO::Compress::Bzip2');		ARMODAFTERSA+=('Sendmail::PMilter');
 ARMODAFTERSA+=('Math::Int64');				ARMODAFTERSA+=('IP::Country::DB_File');		ARMODAFTERSA+=('namespace::autoclean');
 ARMODAFTERSA+=('Data::IEEE754');			ARMODAFTERSA+=('Data::Printer');			ARMODAFTERSA+=('Data::Validate::IP');
-ARMODAFTERSA+=('GeoIP2::Country::Reader');	ARMODAFTERSA+=('List::AllUtils');			ARMODAFTERSA+=('List::SomeUtils');
-ARMODAFTERSA+=('List::UtilsBy');			ARMODAFTERSA+=('MaxMind::DB::Metadata');	ARMODAFTERSA+=('MaxMind::DB;:Reader');
+ARMODAFTERSA+=('List::AllUtils');			ARMODAFTERSA+=('List::SomeUtils');			ARMODAFTERSA+=('Test::Tester');
+ARMODAFTERSA+=('List::UtilsBy');			ARMODAFTERSA+=('MaxMind::DB::Metadata');	ARMODAFTERSA+=('MaxMind::DB::Reader');
 ARMODAFTERSA+=('Module::Runtime');			ARMODAFTERSA+=('Moo');						ARMODAFTERSA+=('MooX::StrictConstructor');
-ARMODAFTERSA+=('Role::Tiny');				ARMODAFTERSA+=('Scalar::List::Utils');		ARMODAFTERSA+=('strictures');
+ARMODAFTERSA+=('Role::Tiny');				ARMODAFTERSA+=('strictures');				ARMODAFTERSA+=('MaxMind::DB::Reader::XS');
 ARMODAFTERSA+=('Sub::Quote');				ARMODAFTERSA+=('Math::Int128');				ARMODAFTERSA+=('Net::Works::Network');
-ARMODAFTERSA+=('MaxMind::DB::Reader::XS');	ARMODAFTERSA+=('Test::Tester');
 
 # additional spamassassin plugins
 ARMODAFTERSA+=('Mail::SpamAssassin::Plugin::Rule2XSBody');
 ARMODAFTERSA+=('Mail::SpamAssassin::Plugin::DCC');
 ARMODAFTERSA+=('Mail::SpamAssassin::Plugin::Pyzor');
-
 
 (
 clear
