@@ -3,6 +3,7 @@
 
 - Support for latest RHEL, Debian, SuSE
 - Support latest SpamAssassin (3.4.4)
+- Require latest SpamAssassin (Use CPAN)
 - Use cpanminus by default
 - Disable config check for removed settings
 - Update Clamd socket path (RHEL)

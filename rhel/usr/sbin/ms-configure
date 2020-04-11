@@ -316,8 +316,8 @@ fi
 # user info screen before the install process starts
 echo "MailScanner Configurataion for RPM Based Systems"; echo; echo;
 echo "This will INSTALL or UPGRADE the required software for MailScanner on RPM based systems";
-echo "via the Yum package manager. Supported distributions are RHEL 5,6,7 and associated";
-echo "variants such as CentOS and Scientific Linux. Internet connectivity is required for"; 
+echo "via the Yum package manager. Supported distributions are RHEL 6,7,8 and associated";
+echo "variants such as CentOS and Fedora. Internet connectivity is required for"; 
 echo "this configurataion script to execute. "; echo;
 echo;
 echo "WARNING - Make a backup of any custom configuration files if upgrading - WARNING";
