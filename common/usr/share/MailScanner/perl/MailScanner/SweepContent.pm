@@ -93,10 +93,10 @@ sub ScanBatch {
         # $message->{othertypes}{""} .= "s";
         $message->{otherinfected}++;
         $counter++;
-        MailScanner::Suspected QP DOS, found blank space line of lengthLog::WarnLog(
+        MailScanner::Log::WarnLog(
             'Content Checks: Detected and blocked ' . '%s in %s',
             $reason, $id );
-        next;Suspected QP DOS, found blank space line of length
+        next;
     }
 
     #
