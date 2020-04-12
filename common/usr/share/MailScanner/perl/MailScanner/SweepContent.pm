@@ -35,6 +35,8 @@ use vars qw($VERSION);
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
 $VERSION = substr q$Revision: 5044 $, 10;
 
+use constant MAX_QP_LENGTH => 100000;
+
 # Attributes are
 #
 
@@ -66,7 +68,7 @@ sub ScanBatch {
   # Return the number of infections/problems you found.
   # Can play with the MIME headers of a message using $mime.
 
-  my($id,$message,$ent,$partialcount);
+  my($id,$message,$ent,$partialcount, $reason);
   my($stripdangerous, $counter, $stripcounter);
   $counter = 0;
   $stripcounter = 0; # No. of messages we need to strip HTML from
@@ -77,6 +79,25 @@ sub ScanBatch {
     next if $message->{scanvirusonly};
 
     $ent = $message->{entity};
+
+    # Look for long line DOS
+    # Courtesy of Andrew Colin Kissa
+    my $line_length = FindLonglineDOS($message, $ent);
+    if ($line_length > 0 || $line_length == -1){
+        if ($line_length == -1){
+            $reason = MailScanner::Config::LanguageValue($message, "qpdosfail");
+        } else {
+            $reason = MailScanner::Config::LanguageValue($message, "qpdosfound") . ' ' . $line_length;
+        }
+        $message->{otherreports}{""} = $reason;
+        # $message->{othertypes}{""} .= "s";
+        $message->{otherinfected}++;
+        $counter++;
+        MailScanner::Log::WarnLog(
+            'Content Checks: Detected and blocked ' . '%s in %s',
+            $reason, $id );
+        next;
+    }
 
     #
     # Do the partial and external checks even if they don't want
@@ -720,6 +741,46 @@ sub EncryptionStatus {
 
   # Didn't find any trace of encryption
   return 0;
+}
+
+# Find QP DOS lines
+# Andrew Colin Kissa
+sub FindLonglineDOS {
+    my ( $message, $entity ) = @_;
+    my $line_length;
+
+    return 0 unless $entity && defined( $entity->head );
+
+    my $found = 0;
+    my $type = $entity->head->mime_attr('content-type');
+    my $encoding = ($entity->head->mime_encoding || 'binary');
+    if ($type && $type =~ /^text\//i && $encoding eq "quoted-printable"){
+        my $fn = $entity->bodyhandle->path;
+        my $fh = new FileHandle;
+        if ( $fh->open("$fn") ) {
+            while (<$fh>) {
+                $line_length = length($_);
+                if ($line_length > MAX_QP_LENGTH && /^\s+$/){
+                    $found = $line_length;
+                    last;
+                }
+            }
+            $fh->close();
+        } else {
+            return -1;
+        }
+        if ($found) {
+            return $found;
+        }
+    }
+
+    my ( @parts, $part );
+    @parts = $entity->parts;
+    foreach $part (@parts) {
+        $found = FindLonglineDOS($message, $part);
+        return $found if ($found || $found == -1);
+    }
+    return 0;
 }
 
 # Search for (and save) all the public keys stored in the current message.

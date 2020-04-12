@@ -155,3 +155,6 @@
 "KilledMailScanner" = "Message attempted to kill MailScanner";
 "HiddenLinkWarningStart" = "<font color=\"red\"><b>MailScanner has detected that this item links to ";
 "HiddenLinkWarningEnd" = ". Use Caution and only open this link if it is trustworthy.</b></font>";
+/* # QP DOS Detection */
+"QPDOSFail" = "Suspected QP DOS, checks failed, could not read file"
+"QPDOSFound" = "Suspected QP DOS, found blank space line of length"
