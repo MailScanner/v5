@@ -291,20 +291,6 @@ else
     fi
 fi
 
-# ask if the user wants to install the Mail::ClamAV module
-if [ $CPANOPTION -eq 1 ]; then
-    # Mail::ClamAV
-    CAV=1
-
-    # Mail::SpamAssassin
-    SA=1
-
-else
-    # don't install if not using CPAN
-    CAV=0
-    SA=0
-fi
-
 # ask if the user wants to ignore dependencies. they are automatically ignored
 # if the user elected the CPAN option as explained above
 if [ $CPANOPTION -ne 1 ]; then
@@ -385,37 +371,33 @@ BASEPACKAGES="binutils gcc glibc-devel libaio1 make man-pages patch rpm tar time
 # Packages available in the suse base 13.2. If the user elects not to use EPEL or if the 
 # package is not available for their distro release it will be ignored during the install.
 #
-MOREPACKAGES="perl-Archive-Zip perl-Convert-BinHex perl-Convert-TNEF perl-DBD-SQLite perl-DBI perl-MIME-tools perl-Digest-HMAC perl-Digest-SHA1 perl-ExtUtils-MakeMaker perl-File-ShareDir-Install perl-File-Temp perl-Filesys-Df perl-Getopt-Long-Descriptive perl-IO-stringy perl-HTML-Parser perl-HTML-Tagset perl-Inline perl-Mail-DKIM perl-Mail-SPF perl-MailTools perl-Net-CIDR-Set perl-Net-DNS perl-Net-IP perl-OLE-Storage_Lite perl-Scalar-List-Utils perl-razor-agents perl-Sys-Hostname-Long perl-Sys-SigAction perl-Test-Pod perl-TimeDate perl-URI re2c perl-Encode-Detect perl-LDAP perl-IO-Compress-Bzip2 perl-Test-Simple p7zip perl-Math-Int64 perl-Path-Class perl-Test-Fatal perl-Test-Number-Delta perl-namespace-autoclean perl-Role-Tiny perl-Data-Dumper-Concise perl-DateTime perl-Test-Warnings perl-autodie perl-Test-Requires perl-Test-Tester perl-Clone-PP perl-File-HomeDir perl-Sort-Naturally perl-JSON-MaybeXS perl-Test-LeakTrace perl-Throwable libmaxminddb-devel";
+MOREPACKAGES="perl-Archive-Zip perl-Convert-BinHex perl-Convert-TNEF perl-DBD-SQLite perl-DBI perl-MIME-tools perl-Digest-HMAC perl-Digest-SHA1 perl-ExtUtils-MakeMaker perl-File-ShareDir-Install perl-File-Temp perl-Filesys-Df perl-Getopt-Long-Descriptive perl-IO-stringy perl-HTML-Parser perl-HTML-Tagset perl-Inline perl-Mail-DKIM perl-Mail-SPF perl-MailTools perl-Net-CIDR-Set perl-Net-DNS perl-Net-IP perl-OLE-Storage_Lite perl-Scalar-List-Utils perl-razor-agents perl-Sys-Hostname-Long perl-Sys-SigAction perl-Test-Pod perl-TimeDate perl-URI re2c perl-Encode-Detect perl-Test-Simple p7zip perl-Math-Int64 perl-Path-Class perl-Test-Fatal perl-Test-Number-Delta perl-namespace-autoclean perl-Role-Tiny perl-Data-Dumper-Concise perl-DateTime perl-Test-Warnings perl-autodie perl-Test-Requires perl-Test-Tester perl-Clone-PP perl-File-HomeDir perl-Sort-Naturally perl-JSON-MaybeXS perl-Test-LeakTrace perl-Throwable libmaxminddb-devel";
 
 # the array of perl modules needed
 ARMOD=();
-ARMOD+=('Archive::Tar'); 		ARMOD+=('Archive::Zip');		ARMOD+=('bignum');				
-ARMOD+=('Carp');				ARMOD+=('Compress::Zlib');		ARMOD+=('Compress::Raw::Zlib');	
-ARMOD+=('Convert::BinHex'); 	ARMOD+=('Convert::TNEF');		ARMOD+=('Data::Dumper');		
-ARMOD+=('Date::Parse');			ARMOD+=('DBD::SQLite');			ARMOD+=('DBI');					
-ARMOD+=('Digest::HMAC');		ARMOD+=('Digest::MD5');			ARMOD+=('Digest::SHA1'); 		
-ARMOD+=('DirHandle');			ARMOD+=('ExtUtils::MakeMaker');	ARMOD+=('Fcntl');				
-ARMOD+=('File::Basename');		ARMOD+=('File::Copy');			ARMOD+=('File::Path');			
-ARMOD+=('File::Spec');			ARMOD+=('File::Temp');			ARMOD+=('FileHandle');			
-ARMOD+=('Filesys::Df');			ARMOD+=('Getopt::Long');		ARMOD+=('Inline::C');			
-ARMOD+=('IO');					ARMOD+=('IO::File');			ARMOD+=('IO::Pipe');			
-ARMOD+=('IO::Stringy');			ARMOD+=('HTML::Entities');		ARMOD+=('HTML::Parser');		
-ARMOD+=('HTML::Tagset');		ARMOD+=('HTML::TokeParser');	ARMOD+=('Mail::Field');			
-ARMOD+=('Mail::Header');		ARMOD+=('Mail::IMAPClient');	ARMOD+=('Mail::Internet');		
-ARMOD+=('Math::BigInt');		ARMOD+=('Math::BigRat');		ARMOD+=('MIME::Base64');		
-ARMOD+=('MIME::Decoder');		ARMOD+=('MIME::Decoder::UU');	ARMOD+=('MIME::Head');			
-ARMOD+=('MIME::Parser');		ARMOD+=('MIME::QuotedPrint');	ARMOD+=('MIME::Tools');			
-ARMOD+=('MIME::WordDecoder');	ARMOD+=('Net::CIDR');			ARMOD+=('Net::DNS');			
-ARMOD+=('Net::IP');				ARMOD+=('OLE::Storage_Lite');	ARMOD+=('Pod::Escapes');		
-ARMOD+=('Pod::Simple');			ARMOD+=('POSIX');				ARMOD+=('Scalar::Util');		
-ARMOD+=('Socket'); 				ARMOD+=('Storable'); 	 	 	ARMOD+=('Test::Harness');		
-ARMOD+=('Test::Pod');			ARMOD+=('Test::Simple');		ARMOD+=('Time::HiRes');			
-ARMOD+=('Time::localtime'); 	ARMOD+=('Sys::Hostname::Long');	ARMOD+=('Sys::SigAction');		
-ARMOD+=('Sys::Syslog'); 		ARMOD+=('Env'); 
-ARMOD+=('Mail::SpamAssassin');
-
-# not required but nice to have
-ARMOD+=('bignum');				
+ARMOD+=('Archive::Tar'); 			ARMOD+=('Archive::Zip');			ARMOD+=('bignum');
+ARMOD+=('Carp');					ARMOD+=('Compress::Zlib');			ARMOD+=('Compress::Raw::Zlib');
+ARMOD+=('Convert::BinHex'); 		ARMOD+=('Convert::TNEF');			ARMOD+=('Data::Dumper');
+ARMOD+=('Date::Parse');				ARMOD+=('DBD::SQLite');				ARMOD+=('DBI');
+ARMOD+=('Digest::HMAC');			ARMOD+=('Digest::MD5');				ARMOD+=('Digest::SHA1');
+ARMOD+=('DirHandle');				ARMOD+=('ExtUtils::MakeMaker');		ARMOD+=('Fcntl');
+ARMOD+=('File::Basename');			ARMOD+=('File::Copy');				ARMOD+=('File::Path');
+ARMOD+=('File::Spec');				ARMOD+=('File::Temp');				ARMOD+=('FileHandle');
+ARMOD+=('Filesys::Df');				ARMOD+=('Getopt::Long');			ARMOD+=('Inline::C');
+ARMOD+=('IO');						ARMOD+=('IO::File');				ARMOD+=('IO::Pipe');
+ARMOD+=('IO::Stringy');				ARMOD+=('HTML::Entities');			ARMOD+=('HTML::Parser');
+ARMOD+=('HTML::Tagset');			ARMOD+=('HTML::TokeParser');		ARMOD+=('Mail::Field');
+ARMOD+=('Mail::Header');			ARMOD+=('Mail::IMAPClient');		ARMOD+=('Mail::Internet');
+ARMOD+=('Math::BigInt');			ARMOD+=('Math::BigRat');			ARMOD+=('MIME::Base64');
+ARMOD+=('MIME::Decoder');			ARMOD+=('MIME::Decoder::UU');		ARMOD+=('MIME::Head');
+ARMOD+=('MIME::Parser');			ARMOD+=('MIME::QuotedPrint');		ARMOD+=('MIME::Tools');
+ARMOD+=('MIME::WordDecoder');		ARMOD+=('Net::CIDR');				ARMOD+=('Net::DNS');
+ARMOD+=('Net::IP');					ARMOD+=('OLE::Storage_Lite');		ARMOD+=('Pod::Escapes');
+ARMOD+=('Pod::Simple');				ARMOD+=('POSIX');					ARMOD+=('Scalar::Util');
+ARMOD+=('Socket'); 					ARMOD+=('Storable'); 	 	 		ARMOD+=('Test::Harness');
+ARMOD+=('Test::Pod');				ARMOD+=('Test::Simple');			ARMOD+=('Time::HiRes');
+ARMOD+=('Time::localtime'); 		ARMOD+=('Sys::Hostname::Long');		ARMOD+=('Sys::SigAction');
+ARMOD+=('Sys::Syslog'); 			ARMOD+=('Env');						ARMOD+=('bignum');
 ARMOD+=('Data::Dump');				ARMOD+=('DB_File');					ARMOD+=('DBD::SQLite');
 ARMOD+=('DBI');						ARMOD+=('Digest');					ARMOD+=('Encode::Detect');
 ARMOD+=('Error');					ARMOD+=('ExtUtils::CBuilder');		ARMOD+=('ExtUtils::ParseXS');
@@ -428,22 +410,18 @@ ARMOD+=('Test::Manifest');			ARMOD+=('Text::Balanced');			ARMOD+=('URI');
 ARMOD+=('version');					ARMOD+=('IO::Compress::Bzip2');		ARMOD+=('Sendmail::PMilter');
 ARMOD+=('Math::Int64');				ARMOD+=('IP::Country;;DB_File');	ARMOD+=('namespace::autoclean');
 ARMOD+=('Data::IEEE754');			ARMOD+=('Data::Printer');			ARMOD+=('Data::Validate::IP');
-ARMOD+=('GeoIP2::Country::Reader');	ARMOD+=('List::AllUtils');			ARMOD+=('List::SomeUtils');
+ARMOD+=('List::AllUtils');			ARMOD+=('List::SomeUtils');			ARMOD+=('Net::Works::Network');
 ARMOD+=('List::UtilsBy');			ARMOD+=('MaxMind::DB::Metadata');	ARMOD+=('MaxMind::DB::Reader');
 ARMOD+=('Module::Runtime');			ARMOD+=('Moo');						ARMOD+=('MooX::StrictConstructor');
-ARMOD+=('Role::Tiny');				ARMOD+=('Scalar::List::Utils');		ARMOD+=('strictures');
-ARMOD+=('Sub::Quote');				ARMOD+=('Math::Int128');			ARMOD+=('Net::Works::Network');
-ARMOD+=('MaxMind::DB::Reader::XS');
+ARMOD+=('Role::Tiny');				ARMOD+=('strictures');				ARMOD+=('MaxMind::DB::Reader::XS');
+ARMOD+=('Sub::Quote');				ARMOD+=('Math::Int128');
 
 # additional spamassassin plugins
-ARMOD+=('Mail::SpamAssassin::Plugin::Rule2XSBody');
-ARMOD+=('Mail::SpamAssassin::Plugin::DCC');
-ARMOD+=('Mail::SpamAssassin::Plugin::Pyzor');
-
-# add to array if the user is installing spamassassin
-if [ $SA -eq 1 ]; then
-    ARMOD+=('Mail::SpamAssassin');
-fi
+SAMOD=();
+SAMOD+=('Mail::SpamAssassin');
+SAMOD+=('Mail::SpamAssassin::Plugin::Rule2XSBody');
+SAMOD+=('Mail::SpamAssassin::Plugin::DCC');
+SAMOD+=('Mail::SpamAssassin::Plugin::Pyzor');
 
 # logging starts here
 (
@@ -462,7 +440,7 @@ timewait 2
 $ZYPPER --non-interactive --ignore-unknown install $BASEPACKAGES
 
 # install this separate in case it conflicts
-if [ "x$MTAOPTION" != "x" ]; then
+if [[ "x$MTAOPTION" != "x" && "x$MTAOPTION" != 'xnone' ]]; then
     $ZYPPER --non-interactive --ignore-unknown install $MTAOPTION
     if [ $? != 0 ]; then
         echo "Error installing $MTAOPTION MTA"
@@ -513,14 +491,14 @@ if [ $CPANOPTION -eq 1 ]; then
         cd /root/.cpan/CPAN
         $CURL -O https://s3.amazonaws.com/msv5/CPAN/MyConfig.pm
         cd "$THISCURRPMDIR"
-		AUTOCPAN=1
-        # Install cpanminus
-        $ZYPPER  --non-interactive install cpanm
-        if [ $? -ne 0 ]; then
-            echo "Error installing cpanminus, falling back to perl invocation method."
-            AUTOCPAN=0
-        fi
         timewait 1
+    fi
+    AUTOCPAN=1
+    # Install cpanminus
+    $ZYPPER  --non-interactive install perl-App-cpanminus
+    if [ $? -ne 0 ]; then
+        echo "Error installing cpanminus, falling back to perl invocation method."
+        AUTOCPAN=0
     fi
 fi
 
@@ -531,12 +509,12 @@ fi
 # via cpan if the user elected to do so.
 clear
 echo;
-echo "Installing available Perl packages, ClamAV (if elected), and ";
-echo "Spamassassin (if elected) via zypper. You can safely ignore any";
+echo "Installing available Perl packages, ClamAV (if elected)"
+echo "via zypper. You can safely ignore any";
 echo "subsequent warnings from zypper."; echo;
 timewait 3
 
-$ZYPPER --non-interactive --ignore-unknown install $MOREPACKAGES $CAVOPTION $SAOPTION
+$ZYPPER --non-interactive --ignore-unknown install $MOREPACKAGES $CAVOPTION
 
 # now check for missing perl modules and install them via cpan
 # if the user elected to do so
@@ -580,22 +558,39 @@ do
     fi
 done
 
+for i in "${SAMOD[@]}"
+do
+    perldoc -l $i >/dev/null 2>&1
+    if [ $? -ne 0 ]; then
+        if [ $CPANOPTION -eq 1 ]; then
+            clear
+            echo "$i is missing. Installing via CPAN ..."; echo;
+            timewait 1
+            if [ $AUTOCPAN -eq 0 ]; then
+                perl -MCPAN -e "CPAN::Shell->force(qw(install $i ));"
+            else
+                cpanm --force --no-interactive $i
+            fi
+        else
+            echo "WARNING: $i is missing. You should fix this.";
+            PMODWAIT=5
+        fi
+    else
+        echo "$i => OK";
+    fi
+done
+
 # Update perl modules
 if [[ -n "${arg_update+x}" && $AUTOCPAN -ne 0 ]]; then
     cpanm App::cpanoutdated
     cpan-outdated -p | cpanm --force --no-interactive
-fi
 
-if [ $CPANOPTION -eq 1 ]; then
-  # Install MIME::Tools from CPAN even though rpm is present
-  # Fixes outdated MIME::Tools causing MailScanner to crash
-  clear
-  echo "Latest MIME::Tools is needed, Installing via CPAN ..."; echo;
-  timewait 1
-  perl -MCPAN -e "CPAN::Shell->force(qw(install MIME::Tools));"
-else
-  echo "WARNING: Outdated MIME::Tools may be present. You should fix this.";
-  PMODWAIT=5
+    # Check for and override spamassassin rpm, if present
+    if [[ -n $(rpm -qa | grep spamassassin) ]]; then
+        echo "Possibly outdated Spamassassin detected, installing from CPAN..."
+        rpm -e spamassassin
+        cpanm --force --no-interactive Mail::SpamAssassin
+    fi
 fi
 
 # will pause if a perl module was missing
