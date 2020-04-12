@@ -371,32 +371,32 @@ BASEPACKAGES="binutils gcc glibc-devel libaio1 make man-pages patch rpm tar time
 # Packages available in the suse base 13.2. If the user elects not to use EPEL or if the 
 # package is not available for their distro release it will be ignored during the install.
 #
-MOREPACKAGES="perl-Archive-Zip perl-Convert-BinHex perl-Convert-TNEF perl-DBD-SQLite perl-DBI perl-MIME-tools perl-Digest-HMAC perl-Digest-SHA1 perl-ExtUtils-MakeMaker perl-File-ShareDir-Install perl-File-Temp perl-Filesys-Df perl-Getopt-Long-Descriptive perl-IO-stringy perl-HTML-Parser perl-HTML-Tagset perl-Inline perl-Mail-DKIM perl-Mail-SPF perl-MailTools perl-Net-CIDR-Set perl-Net-DNS perl-Net-IP perl-OLE-Storage_Lite perl-Scalar-List-Utils perl-razor-agents perl-Sys-Hostname-Long perl-Sys-SigAction perl-Test-Pod perl-TimeDate perl-URI re2c perl-Encode-Detect perl-LDAP perl-IO-Compress-Bzip2 perl-Test-Simple p7zip perl-Math-Int64 perl-Path-Class perl-Test-Fatal perl-Test-Number-Delta perl-namespace-autoclean perl-Role-Tiny perl-Data-Dumper-Concise perl-DateTime perl-Test-Warnings perl-autodie perl-Test-Requires perl-Test-Tester perl-Clone-PP perl-File-HomeDir perl-Sort-Naturally perl-JSON-MaybeXS perl-Test-LeakTrace perl-Throwable libmaxminddb-devel";
+MOREPACKAGES="perl-Archive-Zip perl-Convert-BinHex perl-Convert-TNEF perl-DBD-SQLite perl-DBI perl-MIME-tools perl-Digest-HMAC perl-Digest-SHA1 perl-ExtUtils-MakeMaker perl-File-ShareDir-Install perl-File-Temp perl-Filesys-Df perl-Getopt-Long-Descriptive perl-IO-stringy perl-HTML-Parser perl-HTML-Tagset perl-Inline perl-Mail-DKIM perl-Mail-SPF perl-MailTools perl-Net-CIDR-Set perl-Net-DNS perl-Net-IP perl-OLE-Storage_Lite perl-Scalar-List-Utils perl-razor-agents perl-Sys-Hostname-Long perl-Sys-SigAction perl-Test-Pod perl-TimeDate perl-URI re2c perl-Encode-Detect perl-Test-Simple p7zip perl-Math-Int64 perl-Path-Class perl-Test-Fatal perl-Test-Number-Delta perl-namespace-autoclean perl-Role-Tiny perl-Data-Dumper-Concise perl-DateTime perl-Test-Warnings perl-autodie perl-Test-Requires perl-Test-Tester perl-Clone-PP perl-File-HomeDir perl-Sort-Naturally perl-JSON-MaybeXS perl-Test-LeakTrace perl-Throwable libmaxminddb-devel";
 
 # the array of perl modules needed
 ARMOD=();
-ARMOD+=('Archive::Tar'); 			ARMOD+=('Archive::Zip');			ARMOD+=('bignum');				
-ARMOD+=('Carp');					ARMOD+=('Compress::Zlib');			ARMOD+=('Compress::Raw::Zlib');	
-ARMOD+=('Convert::BinHex'); 		ARMOD+=('Convert::TNEF');			ARMOD+=('Data::Dumper');		
-ARMOD+=('Date::Parse');				ARMOD+=('DBD::SQLite');				ARMOD+=('DBI');					
-ARMOD+=('Digest::HMAC');			ARMOD+=('Digest::MD5');				ARMOD+=('Digest::SHA1'); 		
-ARMOD+=('DirHandle');				ARMOD+=('ExtUtils::MakeMaker');		ARMOD+=('Fcntl');				
-ARMOD+=('File::Basename');			ARMOD+=('File::Copy');				ARMOD+=('File::Path');			
-ARMOD+=('File::Spec');				ARMOD+=('File::Temp');				ARMOD+=('FileHandle');			
-ARMOD+=('Filesys::Df');				ARMOD+=('Getopt::Long');			ARMOD+=('Inline::C');			
-ARMOD+=('IO');						ARMOD+=('IO::File');				ARMOD+=('IO::Pipe');			
-ARMOD+=('IO::Stringy');				ARMOD+=('HTML::Entities');			ARMOD+=('HTML::Parser');		
-ARMOD+=('HTML::Tagset');			ARMOD+=('HTML::TokeParser');		ARMOD+=('Mail::Field');			
-ARMOD+=('Mail::Header');			ARMOD+=('Mail::IMAPClient');		ARMOD+=('Mail::Internet');		
-ARMOD+=('Math::BigInt');			ARMOD+=('Math::BigRat');			ARMOD+=('MIME::Base64');		
-ARMOD+=('MIME::Decoder');			ARMOD+=('MIME::Decoder::UU');		ARMOD+=('MIME::Head');			
-ARMOD+=('MIME::Parser');			ARMOD+=('MIME::QuotedPrint');		ARMOD+=('MIME::Tools');			
-ARMOD+=('MIME::WordDecoder');		ARMOD+=('Net::CIDR');				ARMOD+=('Net::DNS');			
-ARMOD+=('Net::IP');					ARMOD+=('OLE::Storage_Lite');		ARMOD+=('Pod::Escapes');		
-ARMOD+=('Pod::Simple');				ARMOD+=('POSIX');					ARMOD+=('Scalar::Util');		
-ARMOD+=('Socket'); 					ARMOD+=('Storable'); 	 	 		ARMOD+=('Test::Harness');		
-ARMOD+=('Test::Pod');				ARMOD+=('Test::Simple');			ARMOD+=('Time::HiRes');			
-ARMOD+=('Time::localtime'); 		ARMOD+=('Sys::Hostname::Long');		ARMOD+=('Sys::SigAction');		
+ARMOD+=('Archive::Tar'); 			ARMOD+=('Archive::Zip');			ARMOD+=('bignum');
+ARMOD+=('Carp');					ARMOD+=('Compress::Zlib');			ARMOD+=('Compress::Raw::Zlib');
+ARMOD+=('Convert::BinHex'); 		ARMOD+=('Convert::TNEF');			ARMOD+=('Data::Dumper');
+ARMOD+=('Date::Parse');				ARMOD+=('DBD::SQLite');				ARMOD+=('DBI');
+ARMOD+=('Digest::HMAC');			ARMOD+=('Digest::MD5');				ARMOD+=('Digest::SHA1');
+ARMOD+=('DirHandle');				ARMOD+=('ExtUtils::MakeMaker');		ARMOD+=('Fcntl');
+ARMOD+=('File::Basename');			ARMOD+=('File::Copy');				ARMOD+=('File::Path');
+ARMOD+=('File::Spec');				ARMOD+=('File::Temp');				ARMOD+=('FileHandle');
+ARMOD+=('Filesys::Df');				ARMOD+=('Getopt::Long');			ARMOD+=('Inline::C');
+ARMOD+=('IO');						ARMOD+=('IO::File');				ARMOD+=('IO::Pipe');
+ARMOD+=('IO::Stringy');				ARMOD+=('HTML::Entities');			ARMOD+=('HTML::Parser');
+ARMOD+=('HTML::Tagset');			ARMOD+=('HTML::TokeParser');		ARMOD+=('Mail::Field');
+ARMOD+=('Mail::Header');			ARMOD+=('Mail::IMAPClient');		ARMOD+=('Mail::Internet');
+ARMOD+=('Math::BigInt');			ARMOD+=('Math::BigRat');			ARMOD+=('MIME::Base64');
+ARMOD+=('MIME::Decoder');			ARMOD+=('MIME::Decoder::UU');		ARMOD+=('MIME::Head');
+ARMOD+=('MIME::Parser');			ARMOD+=('MIME::QuotedPrint');		ARMOD+=('MIME::Tools');
+ARMOD+=('MIME::WordDecoder');		ARMOD+=('Net::CIDR');				ARMOD+=('Net::DNS');
+ARMOD+=('Net::IP');					ARMOD+=('OLE::Storage_Lite');		ARMOD+=('Pod::Escapes');
+ARMOD+=('Pod::Simple');				ARMOD+=('POSIX');					ARMOD+=('Scalar::Util');
+ARMOD+=('Socket'); 					ARMOD+=('Storable'); 	 	 		ARMOD+=('Test::Harness');
+ARMOD+=('Test::Pod');				ARMOD+=('Test::Simple');			ARMOD+=('Time::HiRes');
+ARMOD+=('Time::localtime'); 		ARMOD+=('Sys::Hostname::Long');		ARMOD+=('Sys::SigAction');
 ARMOD+=('Sys::Syslog'); 			ARMOD+=('Env');						ARMOD+=('bignum');
 ARMOD+=('Data::Dump');				ARMOD+=('DB_File');					ARMOD+=('DBD::SQLite');
 ARMOD+=('DBI');						ARMOD+=('Digest');					ARMOD+=('Encode::Detect');
@@ -440,7 +440,7 @@ timewait 2
 $ZYPPER --non-interactive --ignore-unknown install $BASEPACKAGES
 
 # install this separate in case it conflicts
-if [ "x$MTAOPTION" != "x" ]; then
+if [[ "x$MTAOPTION" != "x" && "x$MTAOPTION" != 'xnone' ]]; then
     $ZYPPER --non-interactive --ignore-unknown install $MTAOPTION
     if [ $? != 0 ]; then
         echo "Error installing $MTAOPTION MTA"
@@ -495,7 +495,7 @@ if [ $CPANOPTION -eq 1 ]; then
     fi
     AUTOCPAN=1
     # Install cpanminus
-    $ZYPPER  --non-interactive install cpanm
+    $ZYPPER  --non-interactive install perl-App-cpanminus
     if [ $? -ne 0 ]; then
         echo "Error installing cpanminus, falling back to perl invocation method."
         AUTOCPAN=0
