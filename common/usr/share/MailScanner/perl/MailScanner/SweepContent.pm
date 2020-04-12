@@ -85,9 +85,9 @@ sub ScanBatch {
     my $line_length = FindLonglineDOS($message, $ent);
     if ($line_length > 0 || $line_length == -1){
         if ($line_length == -1){
-            $reason = MailScanner::Config::LanguageValue($message, "QPDOSFail");
+            $reason = MailScanner::Config::LanguageValue($message, "qpdosfail");
         } else {
-            $reason = MailScanner::Config::LanguageValue($message, "QPDOSFound") . ' ' . $line_length;
+            $reason = MailScanner::Config::LanguageValue($message, "qpdosfound") . ' ' . $line_length;
         }
         $message->{otherreports}{""} = $reason;
         # $message->{othertypes}{""} .= "s";
