@@ -1096,6 +1096,12 @@ if [[ -n "${arg_update+x}" && $AUTOCPAN -ne 0 ]]; then
         echo "Possibly outdated Spamassassin detected, installing from CPAN..."
         rpm -e spamassassin
         cpanm --force --no-interactive Mail::SpamAssassin
+        perldoc -l Mail::SpamAssassin >/dev/null 2>&1
+        if [ $? -ne 0 ]; then
+            echo "Error installing spamassassin from CPAN, rolling back..."
+            yum -y install spamassassin
+            echo "WARNING: spamassassin is potentially outdated, you should fix this."
+        fi
     fi
 fi
 
