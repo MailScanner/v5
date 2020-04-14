@@ -1,3 +1,8 @@
+04/11/2020 Changes in    v5.3.1-2
+==================================
+
+- Rollback strategy for spamassassin on failure (RHEL/SUSE)
+
 04/11/2020 Changes in    v5.3.1-1
 ==================================
 
