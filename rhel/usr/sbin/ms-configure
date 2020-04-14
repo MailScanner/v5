@@ -873,7 +873,7 @@ fi
 
 # Enable PowerTools Repo if requested
 if [[ $POWERTOOLS -eq 1 && $RHEL -eq 8 ]]; then
-    yum config-manager --set-enabled PowerTools
+    $YUM config-manager --set-enabled PowerTools
 fi
 
 # install required perl packages that are available via yum along
@@ -1094,12 +1094,12 @@ if [[ -n "${arg_update+x}" && $AUTOCPAN -ne 0 ]]; then
     # RHEL variants ship SA with security vulnerabilities present
     if [[ -n $(rpm -qa | grep spamassassin) ]]; then
         echo "Possibly outdated Spamassassin detected, installing from CPAN..."
-        rpm -e spamassassin
+        $RPM -e spamassassin
         cpanm --force --no-interactive Mail::SpamAssassin
         perldoc -l Mail::SpamAssassin >/dev/null 2>&1
         if [ $? -ne 0 ]; then
             echo "Error installing spamassassin from CPAN, rolling back..."
-            yum -y install spamassassin
+            $YUM -y install spamassassin
             echo "WARNING: spamassassin is potentially outdated, you should fix this."
         fi
     fi

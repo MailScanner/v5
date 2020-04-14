@@ -588,8 +588,13 @@ if [[ -n "${arg_update+x}" && $AUTOCPAN -ne 0 ]]; then
     # Check for and override spamassassin rpm, if present
     if [[ -n $(rpm -qa | grep spamassassin) ]]; then
         echo "Possibly outdated Spamassassin detected, installing from CPAN..."
-        rpm -e spamassassin
+        $RPM -e spamassassin
         cpanm --force --no-interactive Mail::SpamAssassin
+        if [ $? -ne 0 ]; then
+            echo "Error installing spamassassin from CPAN, rolling back..."
+            $ZYPPER --non-interactive --ignore-unknown install spamassassin
+            echo "WARNING: spamassassin is potentially outdated, you should fix this."
+        fi
     fi
 fi
 
