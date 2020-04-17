@@ -3,8 +3,8 @@
 # This script provides MailScanner cron job actions.
 # Edit /etc/MailScanner/defaults to change options
 #
-# Author: Jerry Benton <mailscanner@mailborder.com>
-# 27 APR 2016
+# MailScanner Team <https://www.mailscanner.info>
+# 17 April 2020
 
 PATH=$PATH:/usr/sbin:/usr/local/sbin:/usr/bin:/usr/local/bin:/bin:/sbin
 export PATH
