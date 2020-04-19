@@ -1150,7 +1150,13 @@ sub new {
                      $response =~ s/\r\n.*$//;
                      $response =~ s/\n.*$//;
                      $response =~ s/\n//;
+                     while(!eof($queuehandle)) {
+                         $line = readline $queuehandle;
+                         last unless ($line =~ /^(?:O|S)</);
+                         $queuehandle2->print($line);
+                     }
                      $queuehandle2->print('X-'. $orgname . '-MailScanner-Relay-Reject: ' . $response . "\n");
+                     $queuehandle2->print($line);
                      while(!eof($queuehandle)) {
                          $line = readline $queuehandle;
                          $queuehandle2->print($line);
