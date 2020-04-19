@@ -748,7 +748,7 @@ sub IsSpam {
 
   my $isauthenticated = 0;
   if (MailScanner::Config::Value('mta') == "postfix" && MailScanner::Config::Value('spamlistskipifauthenticated')) {
-#      MailScanner::Log::InfoLog(Dumper($metadata));
+    # MailScanner::Log::InfoLog(Dumper($metadata));
     # Test if sender is authenticated on mta
     foreach my $metadata (@{$this->{metadata}}) {
       #Postfix
@@ -757,6 +757,8 @@ sub IsSpam {
         $isauthenticated = 1;
       }
     }
+  elsif (MailScanner::Config::Value('mta') == "exim" && MailScanner::Config::Value('spamlistskipifauthenticated') {
+     $isauthenticated = 1 if exists $message->{metadata}->{dv_auth_id};
   }
 
   if (!$iswhitelisted && !$isauthenticated) {
