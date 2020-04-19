@@ -758,7 +758,10 @@ sub IsSpam {
       }
     }
   elsif (MailScanner::Config::Value('mta') == "exim" && MailScanner::Config::Value('spamlistskipifauthenticated') {
-     $isauthenticated = 1 if exists $message->{metadata}->{dv_auth_id};
+    if (exists $message->{metadata}->{dv_auth_id}) {
+        MailScanner::Log::InfoLog("Sender was authenticated - Not checking RBLs");
+        $isauthenticated = 1;
+    }
   }
 
   if (!$iswhitelisted && !$isauthenticated) {
