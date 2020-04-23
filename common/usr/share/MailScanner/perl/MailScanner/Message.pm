@@ -757,7 +757,7 @@ sub IsSpam {
         $isauthenticated = 1;
       }
     }
-  elsif (MailScanner::Config::Value('mta') == "exim" && MailScanner::Config::Value('spamlistskipifauthenticated') {
+  } elsif (MailScanner::Config::Value('mta') == "exim" && MailScanner::Config::Value('spamlistskipifauthenticated') {
     if (exists $message->{metadata}->{dv_auth_id}) {
         MailScanner::Log::InfoLog("Sender was authenticated - Not checking RBLs");
         $isauthenticated = 1;
