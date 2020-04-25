@@ -1,3 +1,10 @@
+04/25/2020 Changes in    v5.3.2-1
+==================================
+
+- Support bypass of RBLs for authenticated connections in Exim
+- Fix quarantining of relay rejected emails (milter)
+- Eval WordDecoder in Exim
+
 04/17/2020 Changes in    v5.3.1-3
 ==================================
 
