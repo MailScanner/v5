@@ -1,3 +1,10 @@
+04/25/2020 Changes in    v5.3.2-1
+==================================
+
+- Support bypass of RBLs for authenticated connections in Exim
+- Fix quarantining of relay rejected emails (milter)
+- Eval WordDecoder in Exim
+
 04/17/2020 Changes in    v5.3.1-3
 ==================================
 
@@ -65,13 +72,8 @@
 - Reap children when stopping milter
 - Fix temp file cleanup in milter during stop
 - Ignore Denial of Service option (workaround)
-- Add additional base packages to debian install
-
-01/27/2019 Changes in    v5.1.3-2
-==================================
-- Add sudo and README for esets-wrapper
-- Handle ipv6 packed socket properly in MSMilter
-- Fix path for avg-wrapper in virus.scanners.conf
+- Add additiChanges in    v5.3.1-3
+==================================or avg-wrapper in virus.scanners.conf
 - Fix AVG output parsing in SweepViruses.pm
 - Fix absolute path in Sophos output parsing in SweepViruses.pm
 - Add config option for mailto phishing highlighting
