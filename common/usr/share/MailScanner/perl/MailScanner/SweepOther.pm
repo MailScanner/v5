@@ -881,6 +881,8 @@ sub CheckFileTypesRules {
       $Ndenyexists    = @Ndenypatterns;
       $Nmegaallow     = '(' . join(')|(',@Nallowpatterns) . ')';
       $Nmegadeny      = '(' . join(')|(',@Ndenypatterns) . ')';
+      $AFiletypeRules = MailScanner::Config::AFiletypeRulesValue($message);
+      $NFiletypeRules = MailScanner::Config::NFiletypeRulesValue($message);
     }
 
     while(($safename, $type) = each %$attachtypes) {
@@ -894,11 +896,13 @@ sub CheckFileTypesRules {
         $megaallow     = $Amegaallow;
         $denyexists    = $Adenyexists;
         $megadeny      = $Amegadeny;
+        $FiletypeRules = $AFiletypeRules;
       } else {
         $allowexists   = $Nallowexists;
         $megaallow     = $Nmegaallow;
         $denyexists    = $Ndenyexists;
         $megadeny      = $Nmegadeny;
+        $FiletypeRules = $NFiletypeRules;
       }
 
       #
@@ -932,7 +936,7 @@ sub CheckFileTypesRules {
           $logtext = MailScanner::Config::LanguageValue($message,
                                                         'foundblockedfiletype');
           $usertext = $logtext;
-          MailScanner::Log::InfoLog("Filetype Mime Checks: %s (%s %s)",
+          MailScanner::Log::InfoLog("Filetype Checks: %s (%s %s)",
                                     $logtext, $id, $attach);
           $message->{namereports}{$safename} .= "$usertext ($notypesafename)\n";
           $message->{nametypes}{$safename}   .= "f";
@@ -941,6 +945,55 @@ sub CheckFileTypesRules {
           $deleted{$safename} = 1;
         }
       }
+
+      # Work through the attachment filetype rules,
+      # using the first rule that matches.
+      next unless $FiletypeRules;
+      my($allowdeny, $regexp, $iregexp);
+      for ($i=0; !$MatchFound && $i<@$FiletypeRules; $i++) {
+        ($allowdeny, $regexp, $iregexp, $logtext, $usertext)
+          = split(/\0/, $FiletypeRules->[$i]);
+
+        next if $iregexp eq '' || $iregexp eq '-'; # Skip this rule if there's no regexp at all
+        #print STDERR "iType = $type, iregexp = $iregexp\n";
+        # JKF Addenbrookes - Catch leading "*" on regexps and replace with ".*"
+        $iregexp =~ s/^\*/.\*/;
+        next unless $type =~ /$iregexp/is;
+        #print STDERR "iFiletype match: $allowdeny $regexp $iregexp $logtext $usertext ($type)\n";
+
+        $MatchFound = 1;
+        if ($allowdeny =~ /^deny[^@]*$/i) {
+          # It's a rejection rule, so log the err
+          MailScanner::Log::InfoLog("Filetype Mime Checks: %s (%s %s)",
+                                    $logtext, $id, $attach);
+          $message->{namereports}{$safename} .= "$usertext ($notypesafename)\n";
+          $message->{nametypes}{$safename}   .= "f";
+          $counter++;
+          $message->{nameinfected}++;
+          # Do we want to delete the attachment or store it?
+          if ($allowdeny =~ /delete/) {
+            $message->{deleteattach}{$safename} = 1;
+	    $deleted{$safename} = 1;
+          }
+        } elsif ($allowdeny =~ /@/) {
+          # It's email addresses so replace the recipients list.
+          $message->DeleteAllRecipients();
+          my @newto = split(" ", lc($allowdeny));
+          $global::MS->{mta}->AddRecipients($message, @newto);
+          my $newto = join(',', @newto);
+          MailScanner::Log::InfoLog("Filetype Mime Checks: Forwarding %s %s to %s",
+                                    $id, $notypesafename, $newto);
+        } else {
+          MailScanner::Log::InfoLog("Filetype Mime Checks: Allowing %s %s",
+                                    $id, $notypesafename)
+            if $LogTypes;
+          $deleted{$safename} = 1;
+        }
+      }
+      # Log it as allowed if it didn't match any rule
+      MailScanner::Log::InfoLog("Filetype Mime Checks: Allowing %s %s " .
+                                "(no match found)", $id, $notypesafename)
+            if $LogTypes && !$MatchFound;
     }
   }
 
