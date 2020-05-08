@@ -973,7 +973,7 @@ sub CheckFileTypesRules {
           # Do we want to delete the attachment or store it?
           if ($allowdeny =~ /delete/) {
             $message->{deleteattach}{$safename} = 1;
-	    $deleted{$safename} = 1;
+            $deleted{$safename} = 1;
           }
         } elsif ($allowdeny =~ /@/) {
           # It's email addresses so replace the recipients list.
@@ -987,7 +987,6 @@ sub CheckFileTypesRules {
           MailScanner::Log::InfoLog("Filetype Mime Checks: Allowing %s %s",
                                     $id, $notypesafename)
             if $LogTypes;
-          $deleted{$safename} = 1;
         }
       }
       # Log it as allowed if it didn't match any rule
