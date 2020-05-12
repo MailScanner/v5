@@ -195,6 +195,17 @@ my %Scanners = (
     SupportScanning	=> $S_SUPPORTED,
     SupportDisinfect	=> $S_SUPPORTED,
   },
+  "avastd" => {
+    Name             => 'Avastd',
+    Lock             => 'avastBusy.lock',
+    CommonOptions    => '-n',
+    DisinfectOptions => '',
+    ScanOptions      => '',
+    InitParser       => \&InitAvastdParser,
+    ProcessOutput    => \&ProcessAvastdOutput,
+    SupportScanning  => $S_SUPPORTED,
+    SupportDisinfect => $S_NONE,
+  },
   "esets"		=> {
     Name		=> 'esets',
     Lock		=> 'esetsBusy.lock',
@@ -874,6 +885,9 @@ sub TryOneCommercial {
       } elsif ($scanner eq 'clamd') {
         ClamdScan($subdir, $disinfect, $batch);
         exit;
+      elsif ( $scanner eq 'avastd' ) {
+         AvastdScan( $subdir, $disinfect, $batch );
+         exit;
       } else {
         exec "$sweepcommand $instdir $voptions $subdir";
         MailScanner::Log::WarnLog("Cannot run commercial AV $scanner " .
@@ -1199,6 +1213,11 @@ sub InitAvgParser {
 # Initialise any state variables the Avast output parser uses
 sub InitAvastParser {
   ;
+}
+
+# Initialise any state variables the Avastd output parser uses
+sub InitAvastdParser {
+    ;
 }
 
 # Initialise any state variables the esets output parser uses
@@ -2062,6 +2081,9 @@ sub InstalledScanners {
     }
     push @installed, 'clamd' unless $foundit;
   }
+  if ( AvastdScan('ISITINSTALLED') eq 'AVASTDOK' ) {
+     push @installed, 'avastd';
+  }
 
   #print STDERR "Found list of installed scanners \"" . join(', ', @installed) . "\"\n";
   return @installed;
@@ -2443,6 +2465,159 @@ sub ProcessKasperskyOutput {
     }
   }
   return 0;
+}
+
+# Avastd functions
+
+sub ConnectToAvastd {
+    my ( $Socket, $TimeOut ) = @_;
+    my $sock;
+
+    $sock = IO::Socket::UNIX->new(
+        Timeout => $TimeOut,
+        Peer    => $Socket
+    );
+
+    return undef unless $sock;
+    return $sock;
+}
+
+sub AvastdScan {
+    my ( $dirname, $disinfect, $messagebatch ) = @_;
+
+    my $lintonly = 0;
+    $lintonly = 1 if $dirname eq 'ISITINSTALLED';
+
+    my $ScanDir = "$global::MS->{work}->{dir}/$dirname";
+    $ScanDir =~ s/\/\.$//;
+
+    my $TimeOut = MailScanner::Config::Value('virusscannertimeout');
+    my $Socket  = MailScanner::Config::Value('AvastdSocket');
+    $Socket = '/var/run/avast/scan.sock' unless ($Socket);
+    my $line = '';
+    my ( $sock, $results, $ResultString );
+
+    $sock = ConnectToAvastd( $Socket, $TimeOut );
+    print "ERROR:: COULD NOT CONNECT TO Avastd, RECOMMEND RESTARTING DAEMON "
+      . ":: $dirname\n"
+      unless $sock || $lintonly;
+    print "ScAnNeRfAiLeD\n" unless $sock || $lintonly;
+    MailScanner::Log::WarnLog( "ERROR:: COULD NOT CONNECT TO Avastd, "
+          . "RECOMMEND RESTARTING DAEMON " )
+      unless $sock || $lintonly;
+    return 1 unless $sock;
+
+    # $sock->close if $lintonly;
+    $sock->sysread( $results, 256 ) if $lintonly;
+    $sock->print("QUIT\n")          if $lintonly;
+    $sock->close()                  if $lintonly;
+    return 'AVASTDOK'               if $lintonly;
+
+    if ( $sock->connected ) {
+        $TimeOut += time();
+        $sock->send("SCAN $ScanDir\n");
+        MailScanner::Log::DebugLog( "SENT : SCAN %s ", "$ScanDir" );
+        $results      = '';
+        $ResultString = '';
+
+        while ( $results = <$sock> ) {
+            if ( time > $TimeOut ) {
+                MailScanner::Log::WarnLog("Avastd Timed Out!");
+                close($sock);
+                print "ERROR:: Avastd TIMED OUT! :: " . "$dirname\n";
+                print "ScAnNeRfAiLeD\n" unless $lintonly;
+                return 1;
+            }
+            $ResultString .= $results;
+            last if $results =~ /^(200 SCAN OK|451|466|501)/;
+        }
+
+        $sock->print("QUIT\n");
+        close($sock);
+
+        chomp($ResultString);
+        my @report = split( "\n", $ResultString );
+
+        foreach $results (@report) {
+            $results =~ s/\\//;
+            if ( $results =~ /Permission denied/ ) {
+                print STDERR
+                  "ERROR::Permissions Problem. Avastd was denied access to "
+                  . "$ScanDir::$ScanDir\n";
+                last;
+            }
+            if ( $results =~ /^(451|466|501)/ ) {
+                print STDERR
+                  "ERROR::Avastd comms error '$results' ::$ScanDir\n";
+                last;
+            }
+            next if $results =~ /^200 SCAN OK/;
+            next
+              unless (
+                $results =~ /^SCAN\s+([^\t]+)\t+\[L\]\d+\.\d+\t+\d+\s+(.*)$/ );
+            my $filename  = $1;
+            my $virusname = $2;
+            $virusname =~ s/\\//;
+            $virusname =~ tr/\015//d;
+            $filename  =~ s/$ScanDir/\./;
+            $filename  =~ s/\|>.*$//;
+            $filename  =~ s/\.(?:header|message)$/\//;
+            print "INFECTED:: $virusname :: $filename\n";
+        }
+    }
+    else {
+        print "ERROR:: UNKNOWN ERROR HAS OCCURED WITH Avastd, SUGGEST YOU "
+          . "RESTART DAEMON :: $dirname\n";
+        print "ScAnNeRfAiLeD\n" unless $lintonly;
+        MailScanner::Log::DebugLog( "UNKNOWN ERROR HAS OCCURED WITH THE Avastd "
+              . "DAEMON SUGGEST YOU RESTART Avastd!" );
+        return 1;
+    }
+}
+
+sub ProcessAvastdOutput {
+    my ( $line, $infections, $types, $BaseDir, $Name ) = @_;
+    my (
+        $keyword, $virusname, $filename, $logout, $dot,
+        $id,      $part,      @rest,     $attach, $report
+    );
+
+    chomp $line;
+    $logout = $line;
+    $logout =~ s/\s{20,}/ /g;
+
+    # MailScanner::Log::InfoLog("Avastd said \"$line\"");
+
+    ( $keyword, $virusname, $filename ) = split( /:: /, $line, 3 );
+
+    if ( $keyword =~ /^error/i ) {
+        MailScanner::Log::InfoLog( "%s::%s", 'Avast', $logout );
+        return 1;
+    }
+    elsif ( $keyword =~ /^info|^clean/i ) {
+        return 0;
+    }
+    else {
+        ( $dot, $id, $part, @rest ) = split( /\//, $filename );
+        $attach = $part;
+        $attach =~ s/-\>.*$//;
+        my $notype = substr( $attach, 1 );
+        $logout =~ s/\Q$part\E/$notype/;
+        $report =~ s/\Q$part\E/$notype/;
+        MailScanner::Log::InfoLog( "%s::%s", 'Avast', $logout );
+        $report = $Name . ': ' if $Name;
+
+        if ( $attach eq '' ) {
+            $infections->{"$id"}{""} .=
+              "$report message was infected: $virusname\n";
+        }
+        else {
+            $infections->{"$id"}{"$attach"} .=
+              "$report$notype was infected: $virusname\n";
+        }
+        $types->{"$id"}{"$part"} .= "v";
+        return 1;
+    }
 }
 
 1;
