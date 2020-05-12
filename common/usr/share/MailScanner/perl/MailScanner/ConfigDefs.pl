@@ -373,6 +373,7 @@ qmailintdhashnumber		1
 # inqueuedir is here as it can be a glob (if it contains a * or a ?) or a
 # filename containing a list of directories.
 [Simple,Other]
+AvastdSocket    /var/run/avast/scan.sock
 cachetiming		1800,300,10800,172800,600
 #ClamWatchFiles		/var/lib/clamav/*.cvd
 CustomFunctionsDir	/usr/share/MailScanner/perl/custom
