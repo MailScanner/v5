@@ -345,6 +345,16 @@ Archive Mail = /var/spool/MailScanner/archive',
  This can also be the filename of a ruleset.',
     'value' => ' %org-name%-Attachment-Warning.txt',
   ),
+  'avastsocket' =>
+  array (
+    'external' => 'avastdsocket',
+    'type' => 'other',
+    'ruleset' => 'no',
+    'default' => '127.0.0.1',
+    'name' => 'Avastd Socket',
+    'desc' => '',
+    'value' => ' /var/run/avast/scan.sock',
+  ),
   'clamavmaxratio' => 
   array (
     'external' => 'clamavmodulemaximumcompressionratio',
