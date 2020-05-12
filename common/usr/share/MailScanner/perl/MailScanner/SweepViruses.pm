@@ -206,6 +206,17 @@ my %Scanners = (
     SupportScanning	=> $S_SUPPORTED,
     SupportDisinfect	=> $S_SUPPORTED,
   },
+  "kse" => {
+      Name             => 'KSE',
+      Lock             => 'kseBusy.lock',
+      CommonOptions    => '',
+      DisinfectOptions => '',
+      ScanOptions      => '',
+      InitParser       => \&InitKseParser,
+      ProcessOutput    => \&ProcessKseOutput,
+      SupportScanning  => $S_SUPPORTED,
+      SupportDisinfect => $S_NONE,
+  },
   "drweb"   => {
       Name		=> 'DrWeb',
       Lock                => 'drwebBusy.lock',
@@ -874,6 +885,9 @@ sub TryOneCommercial {
       } elsif ($scanner eq 'clamd') {
         ClamdScan($subdir, $disinfect, $batch);
         exit;
+      } elsif ( $scanner eq 'kse' ) {
+        KseScan( $subdir, $disinfect, $batch );
+        exit;
       } else {
         exec "$sweepcommand $instdir $voptions $subdir";
         MailScanner::Log::WarnLog("Cannot run commercial AV $scanner " .
@@ -1237,6 +1251,13 @@ sub InitDrwebParser {
 my ($kaspersky_CurrentObject);
 sub InitKasperskyParser {
   $kaspersky_CurrentObject = "";
+}
+
+# Initialise any state variables the Kse output parser uses
+my (%KSEFiles);
+
+sub InitKseParser {
+    %KSEFiles = ();
 }
 
 # sub ProcessClamAVModOutput {
@@ -2443,6 +2464,311 @@ sub ProcessKasperskyOutput {
     }
   }
   return 0;
+}
+
+# Kse functions
+
+sub ConnectToKse {
+    my ( $use_tcp, $socket, $port, $timeout ) = @_;
+    my $sock;
+
+    if ($use_tcp) {
+        $sock = IO::Socket::INET->new(
+            PeerAddr => $socket,
+            PeerPort => $port,
+            Timeout  => $timeout,
+            Proto    => 'tcp'
+        );
+    }
+    else {
+        $sock = IO::Socket::UNIX->new(
+            Timeout => $timeout,
+            Peer    => $socket
+        );
+    }
+    return undef unless $sock;
+    return $sock;
+}
+
+sub KseScan {
+    my ( $dirname, $disinfect, $messagebatch ) = @_;
+
+    my $lintonly = 0;
+    my $use_tcp  = 1;
+    my $port     = MailScanner::Config::Value('kseport');
+    my $socket   = MailScanner::Config::Value('ksesocket');
+    my $timeout  = MailScanner::Config::Value('virusscannertimeout');
+    my $ScanDir  = "$global::MS->{work}->{dir}/$dirname";
+
+    $ScanDir =~ s/\/\.$//;
+    $lintonly = 1 if $dirname eq 'ISITINSTALLED';
+    $use_tcp  = 0 if $socket =~ /^\//;
+
+    if ( !$use_tcp && !-e $socket ) {
+        MailScanner::Log::WarnLog( "Cannot find Socket (%s) Exiting!", $socket )
+          if !$use_tcp && !-e $socket && !$lintonly;
+        print "ScAnNeRfAiLeD\n" unless $lintonly;
+        return 1;
+    }
+
+    if ( !$use_tcp && !-S $socket ) {
+        MailScanner::Log::WarnLog(
+            "Found %s but it is not a valid UNIX Socket. " . "Exiting",
+            $socket )
+          if !$use_tcp && !-S $socket && !$lintonly;
+        print "ScAnNeRfAiLeD\n" unless $lintonly;
+        return 1;
+    }
+
+    my $sock = ConnectToKse( $use_tcp, $socket, $port, $timeout );
+    unless ( $sock || $lintonly ) {
+        print "ERROR:: COULD NOT CONNECT TO KSE, RECOMMEND RESTARTING DAEMON "
+          . ":: $dirname\n";
+        print "ScAnNeRfAiLeD\n" unless $lintonly;
+        return 1;
+    }
+    unless ($sock) {
+        MailScanner::Log::WarnLog( "ERROR:: COULD NOT CONNECT TO KSE, "
+              . "RECOMMEND RESTARTING DAEMON " )
+          unless $sock || $lintonly;
+        print "ScAnNeRfAiLeD\n" unless $lintonly;
+        return 1;
+    }
+
+    $sock->close() if $lintonly;
+    return 'KSEOK' if $lintonly;
+
+    unless ( $sock->connected ) {
+        print "ERROR:: UNKNOWN ERROR HAS OCCURED WITH KSE, SUGGEST YOU "
+          . "RESTART DAEMON :: $dirname\n";
+        print "ScAnNeRfAiLeD\n" unless $lintonly;
+        MailScanner::Log::WarnLog( "UNKNOWN ERROR HAS OCCURED WITH THE KSE "
+              . "DAEMON SUGGEST YOU RESTART KSE!" );
+        return 1;
+    }
+
+    $sock->close();
+
+    %KSEFiles = ();
+
+    KSE( $ScanDir, $socket, $port, $use_tcp, $timeout );
+
+    # Read back all the reports
+    foreach my $key ( keys %KSEFiles ) {
+        my ($path);
+
+        $path = $key;
+        $path =~ s/^$ScanDir/./;
+
+        if ( $KSEFiles{$key}->{error} ) {
+            print "ERROR:: $KSEFiles{$key}->{errormsg} :: $path\n";
+        }
+        elsif ( !$KSEFiles{$key}->{error} && $KSEFiles{$key}->{infected} ) {
+            print "INFECTED:: $KSEFiles{$key}->{virusname} :: $path\n";
+        }
+        elsif ($KSEFiles{$key}->{clean}
+            && !$KSEFiles{$key}->{error}
+            && !$KSEFiles{$key}->{infected} )
+        {
+            print "CLEAN:: message did not match any signature :: $path\n";
+        }
+        else {
+            print "ERROR:: $KSEFiles{$key}->{error} :: $path\n";
+        }
+    }
+}
+
+sub KSE {
+    my ( $dir, $socket, $port, $is_tcp, $timeout ) = @_;
+
+    my $virus_re =
+        '(?:^(?:DETECT|DELETED|DISINFECTED|CLEAN '
+      . 'AND CONTAINS) (OFFICE MACRO|[^,\s]+))';
+    my $error_re = '^((?:SERVER_ERROR|NON_SCANNED).*)';
+
+    my $dh = new DirHandle $dir
+      or
+      MailScanner::Log::WarnLog( "KSE: failed to process directory %s", $dir );
+    my $file;
+    while ( defined( $file = $dh->read ) ) {
+        my $f = "$dir/$file";
+        $f =~ /^(.*)$/;
+        $f = $1;
+        next if $file =~ /^\./ && -d $f;
+        if ( -d $f ) {
+            KSE( $f, $socket, $port, $is_tcp, $timeout );
+        }
+        else {
+            my %response;
+            my $scan_request;
+            my $attempts  = 1;
+            my $file_size = -s $f;
+            my $h_timeout = $timeout * 1000;
+
+          RETRY: until ( $attempts >= 10 ) {
+                $response{error}     = 0;
+                $response{clean}     = 0;
+                $response{infected}  = 0;
+                $response{virusname} = '';
+                $response{errormsg}  = '';
+
+                if ( $attempts > 1 ) {
+                    my $sleep_time = $attempts * 0.5;
+                    MailScanner::Log::InfoLog(
+                            "KSE: sleeping for $sleep_time second(s) "
+                          . "before, retrying connection, attempt: $attempts" );
+                    sleep($sleep_time);
+                }
+
+                my $sock = ConnectToKse( $is_tcp, $socket, $port, $timeout );
+
+                if ( $sock->connected ) {
+                    if ($is_tcp) {
+                        $scan_request =
+                            "POST /scanmemory HTTP/1.0\r\n"
+                          . "Content-Length: $file_size\r\n"
+                          . "X-KAV-ProtocolVersion: 1\r\n"
+                          . "X-KAV-Timeout: $h_timeout\r\n\r\n";
+
+                        MailScanner::Log::DebugLog(
+                            "KSE issuing: $scan_request");
+                        $sock->send($scan_request);
+                        $sock->flush;
+
+                        my $fh = new FileHandle;
+
+                        MailScanner::Log::DebugLog(
+                            "KSE opening file: $f for reading");
+                        if ( $fh->open("$f") ) {
+                            MailScanner::Log::DebugLog(
+                                "KSE opened file: $f for reading");
+                            MailScanner::Log::DebugLog(
+                                "KSE sending file: $f contents");
+                            while (<$fh>) {
+                                $sock->send($_);
+                                $sock->flush;
+                            }
+                            MailScanner::Log::DebugLog(
+                                "KSE sent file: $f contents");
+                            $fh->close();
+                        }
+                        else {
+                            $response{error} = 1;
+                            $response{errormsg} =
+                              "Failed to open file: $f for reading";
+                            MailScanner::Log::DebugLog(
+                                "KSE failed to open file: $f for reading");
+                            $attempts++;
+                            next RETRY;
+                        }
+                    }
+                    else {
+                        $scan_request =
+                            "POST /scanfile HTTP/1.0\r\n"
+                          . "Content-Length: $file_size\r\n"
+                          . "X-KAV-ProtocolVersion: 1\r\n"
+                          . "X-KAV-Timeout: $h_timeout\r\n\r\n" . "$f";
+
+                        MailScanner::Log::DebugLog(
+                            "KSE issuing: $scan_request");
+                        $sock->send($scan_request);
+                        $sock->flush;
+                    }
+                }
+                else {
+                    $response{error}    = 1;
+                    $response{errormsg} = 'Connnection failed';
+                    $attempts++;
+                    next RETRY;
+                }
+
+                # process the results
+                unless ( $response{error} ) {
+                  RESULTS: while ( my $results = <$sock> ) {
+                        $results =~ s/\r\n//;
+                        MailScanner::Log::DebugLog("KSE read: '$results'");
+                        next RESULTS if $results =~ /^HTTP\/1\.0/;
+                        next RESULTS if $results =~ /^\S+:/;
+                        next RESULTS if $results =~ /^$/;
+                        if ( $results =~ /$virus_re/ ) {
+
+                            # virus found
+                            $response{infected}  = 1;
+                            $response{virusname} = $1;
+                        }
+                        elsif ( $results =~ /$error_re/ ) {
+
+                            # server error
+                            $response{error}    = 1;
+                            $response{errormsg} = $1;
+                            $attempts++;
+                            next RETRY;
+                        }
+                        elsif ( $results =~ /^CLEAN/ ) {
+
+                            # clean
+                            $response{clean} = 1;
+                        }
+                        else {
+                            # unknown response
+                            $response{error}    = 1;
+                            $response{errormsg} = "Unknown response found";
+                            $attempts++;
+                            next RETRY;
+                        }
+                        last RESULTS;
+                    }
+                }
+                $KSEFiles{$f} = \%response;
+                $sock->close() if $sock->connected;
+                last RETRY;
+            }
+        }
+    }
+    $dh->close;
+}
+
+sub ProcessKseOutput {
+    my ( $line, $infections, $types, $BaseDir, $Name ) = @_;
+    my (
+        $keyword, $virusname, $filename, $logout, $dot,
+        $id,      $part,      @rest,     $attach, $report
+    );
+
+    chomp $line;
+    $logout = $line;
+    $logout =~ s/\s{20,}/ /g;
+
+    ( $keyword, $virusname, $filename ) = split( /:: /, $line, 3 );
+
+    if ( $keyword =~ /^error/i ) {
+        MailScanner::Log::InfoLog( "%s::%s", 'KSE', $logout );
+        return 1;
+    }
+    elsif ( $keyword =~ /^clean/i ) {
+        return 0;
+    }
+    else {
+        ( $dot, $id, $part, @rest ) = split( /\//, $filename );
+        $attach = $part;
+        $attach =~ s/-\>.*$//;
+        my $notype = substr( $attach, 1 );
+        $logout =~ s/\Q$part\E/$notype/;
+        $report =~ s/\Q$part\E/$notype/;
+        MailScanner::Log::InfoLog( "%s::%s", 'KSE', $logout );
+        $report = $Name . ': ' if $Name;
+
+        if ( $attach eq '' ) {
+            $infections->{"$id"}{""} .=
+              "$report message was infected: $virusname\n";
+        }
+        else {
+            $infections->{"$id"}{"$attach"} .=
+              "$report$notype was infected: $virusname\n";
+        }
+        $types->{"$id"}{"$part"} .= "v";
+        return 1;
+    }
 }
 
 1;

@@ -1,0 +1,4 @@
+#!/bin/bash
+# KSE has its own updater, this is just a place holder
+# such that the lock file can be created
+exit 0

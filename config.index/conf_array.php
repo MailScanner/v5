@@ -1018,6 +1018,28 @@ Archive Mail = /var/spool/MailScanner/archive',
  This can also be the filename of a ruleset.',
     'value' => ' X-%org-name%-MailScanner-ID:',
   ),
+  'kseport' =>
+  array (
+    'external' => 'kseport',
+    'type' => 'number',
+    'ruleset' => 'no',
+    'default' => '9999',
+    'name' => 'Kse Port',
+    'desc' => 'The port to use when communicating with kse via TCP connection',
+    'value' => ' 9999',
+  ),
+  'ksesocket' =>
+  array (
+    'external' => 'ksesocket',
+    'type' => 'other',
+    'ruleset' => 'no',
+    'default' => '/var/run/kse/kse.sock',
+    'name' => 'Kse Socket',
+    'desc' => 'The Socket, or IP to use for communicating with the kse Daemon.
+ You enter either the full path to the UNIX socket file or the IP
+ address the daemon is listening on.',
+    'value' => ' /var/run/kse/kse.sock',
+  ),
   'webbugwhitelist' => 
   array (
     'external' => 'ignoredwebbugfilenames',
