@@ -2084,6 +2084,9 @@ sub InstalledScanners {
     push @installed, 'clamd' unless $foundit;
   }
 
+  if ( KseScan('ISITINSTALLED') eq 'KSEOK' ) {
+    push @installed, 'kse';
+  }
   #print STDERR "Found list of installed scanners \"" . join(', ', @installed) . "\"\n";
   return @installed;
 }
