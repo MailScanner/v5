@@ -338,6 +338,7 @@ Children			5
 #clamavmaxfilesize               10000000
 #clamavmaxratio                  250
 ClamdPort 3310
+KsePort                 9999
 CriticalQueueSize		800
 FileTimeout			20
 fprotd6port			10200
@@ -444,6 +445,7 @@ MilterDispatcher         postfork
 MSMailDeliveryMethod     SMTP
 MSMailSocketType         inet
 MSMailSocketDir          /var/spool/postfix/public/qmqp
+KseSocket                /var/run/kse/kse.sock
 
 #
 # These variables match on any rule matching From:, else anything for To:
