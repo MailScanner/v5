@@ -2232,7 +2232,7 @@ sub ClamdScan {
 
   # Connect to the clamd daemon, If we don't connect send the log and
   # parser an error message and exit.
-  $sock = ConnectToClamd($TCP,$Socket,$Port, $TimeOut);
+  $sock = ConnectToAV( $Socket, $Port, $TimeOut );
   unless ($sock || $lintonly) {
     print "ERROR:: COULD NOT CONNECT TO CLAMD, RECOMMEND RESTARTING DAEMON " .
           ":: $dirname\n";
@@ -2305,7 +2305,7 @@ sub ClamdScan {
   return 'CLAMDOK' if $lintonly;
 
   # Attempt to reopen the connection to clamd
-  $sock = ConnectToClamd($TCP,$Socket,$Port, $TimeOut);
+  $sock = ConnectToAV( $Socket, $Port, $TimeOut );
   unless ($sock) {
     print "ERROR:: COULD NOT CONNECT TO CLAMD, RECOMMEND DAEMON RESTART " .
           ":: $dirname\n";
@@ -2410,26 +2410,6 @@ sub ClamdScan {
 
 } # EO ClamdScan
 
-# This function just opens the connection to the clamd daemon
-# and returns either a valid resource or undef if the connection
-# fails
-sub ConnectToClamd {
-  my($TCP,$Socket,$Port, $TimeOut) = @_;
-  my $sock;
-  # Attempt to open the appropriate socket depending on the type (TCP/UNIX)
-  if ($TCP) {
-    $sock = IO::Socket::INET->new(PeerAddr => $Socket,
-                                  PeerPort => $Port,
-                                  Timeout => $TimeOut,
-                                  Proto     => 'tcp');
-  } else {
-    $sock = IO::Socket::UNIX->new(Timeout => $TimeOut,
-                                  Peer => $Socket );
-  }
-  return undef unless $sock;
-  return $sock;
-} # EO ConnectToClamd
-
 # If you use Kaspersky, look at this code carefully
 # and then be very grateful you didn't have to write it.
 # Note that Kaspersky will now change long paths so they have "..."
@@ -2491,20 +2471,34 @@ sub ProcessKasperskyOutput {
   return 0;
 }
 
-# Avastd functions
-
-sub ConnectToAvastd {
-    my ( $Socket, $TimeOut ) = @_;
+# Generic function to connect to sockets
+sub ConnectToAV {
+    my ( $socket, $port, $timeout ) = @_;
     my $sock;
 
-    $sock = IO::Socket::UNIX->new(
-        Timeout => $TimeOut,
-        Peer    => $Socket
-    );
+    if ( $socket =~ /^\// ) {
+        $sock = IO::Socket::UNIX->new(
+            Timeout => $timeout,
+            Peer    => $socket
+        );
+    }
+    else {
+        return undef unless ($port);
+        $socket = '127.0.0.1' unless ($socket);
+
+        $sock = IO::Socket::INET->new(
+            PeerAddr => $socket,
+            PeerPort => $port,
+            Timeout  => $timeout,
+            Proto    => 'tcp'
+        );
+    }
 
     return undef unless $sock;
     return $sock;
 }
+
+# Avastd functions
 
 sub AvastdScan {
     my ( $dirname, $disinfect, $messagebatch ) = @_;
@@ -2521,7 +2515,7 @@ sub AvastdScan {
     my $line = '';
     my ( $sock, $results, $ResultString );
 
-    $sock = ConnectToAvastd( $Socket, $TimeOut );
+    $sock = ConnectToAV( $Socket, undef, $TimeOut );
     print "ERROR:: COULD NOT CONNECT TO Avastd, RECOMMEND RESTARTING DAEMON "
       . ":: $dirname\n"
       unless $sock || $lintonly;
@@ -2646,28 +2640,6 @@ sub ProcessAvastdOutput {
 
 # Kse functions
 
-sub ConnectToKse {
-    my ( $use_tcp, $socket, $port, $timeout ) = @_;
-    my $sock;
-
-    if ($use_tcp) {
-        $sock = IO::Socket::INET->new(
-            PeerAddr => $socket,
-            PeerPort => $port,
-            Timeout  => $timeout,
-            Proto    => 'tcp'
-        );
-    }
-    else {
-        $sock = IO::Socket::UNIX->new(
-            Timeout => $timeout,
-            Peer    => $socket
-        );
-    }
-    return undef unless $sock;
-    return $sock;
-}
-
 sub KseScan {
     my ( $dirname, $disinfect, $messagebatch ) = @_;
 
@@ -2698,7 +2670,7 @@ sub KseScan {
         return 1;
     }
 
-    my $sock = ConnectToKse( $use_tcp, $socket, $port, $timeout );
+    my $sock = ConnectToAV( $socket, $port, $timeout );
     unless ( $sock || $lintonly ) {
         print "ERROR:: COULD NOT CONNECT TO KSE, RECOMMEND RESTARTING DAEMON "
           . ":: $dirname\n";
@@ -2798,7 +2770,7 @@ sub KSE {
                     sleep($sleep_time);
                 }
 
-                my $sock = ConnectToKse( $is_tcp, $socket, $port, $timeout );
+                my $sock = ConnectToAV( $socket, $port, $timeout );
 
                 if ( $sock->connected ) {
                     if ($is_tcp) {
