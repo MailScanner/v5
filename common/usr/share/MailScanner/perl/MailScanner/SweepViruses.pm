@@ -118,6 +118,17 @@ my %Scanners = (
     SupportScanning	=> $S_SUPPORTED,
     SupportDisinfect	=> $S_SUPPORTED,
   },
+  "f-protd-6" => {
+    Name             => 'F-Protd6',
+    Lock             => 'f-prot-6Busy.lock',
+    CommonOptions    => '',
+    DisinfectOptions => '',
+    ScanOptions      => '',
+    InitParser       => \&InitFProtd6Parser,
+    ProcessOutput    => \&ProcessOutput,
+    SupportScanning  => $S_SUPPORTED,
+    SupportDisinfect => $S_NONE,
+  },
   # "clamavmodule" => {
   #   Name                => 'ClamAVModule',
   #   Lock                => 'clamavBusy.lock',
@@ -902,6 +913,9 @@ sub TryOneCommercial {
       } elsif ( $scanner eq 'kse' ) {
         KseScan( $subdir, $disinfect, $batch );
         exit;
+      } elsif ( $scanner eq 'f-protd-6' ) {
+        Fprotd6Scan( $subdir, $disinfect, $batch );
+        exit;
       } else {
         exec "$sweepcommand $instdir $voptions $subdir";
         MailScanner::Log::WarnLog("Cannot run commercial AV $scanner " .
@@ -1176,6 +1190,13 @@ sub InitFSecureParser {
   $fsecure_InHeader=(-1);
   $fsecure_Version = 0;
   %fsecure_Seen = ();
+}
+
+# Initialise any state variables the F-Protd-6 output parser uses
+my (%FPd6ParserFiles);
+
+sub InitFProtd6Parser {
+    %FPd6ParserFiles = ();
 }
 
 # Initialise any state variables the ClamAV output parser uses
@@ -2108,6 +2129,18 @@ sub InstalledScanners {
   if ( KseScan('ISITINSTALLED') eq 'KSEOK' ) {
     push @installed, 'kse';
   }
+  if ( Fprotd6Scan('ISITINSTALLED') eq 'FPSCANDOK' ) {
+    # If f-prot-6 is in the list, replace it with f-protd6, else add f-protd6
+    my $foundit = 0;
+    foreach (@installed) {
+      if ( $_ eq 'f-prot-6' ) {
+        s/^f-prot-6$/f-protd-6/;
+        $foundit = 1;
+        last;
+      }
+    }
+    push @installed, 'f-protd-6' unless $foundit;
+  }
 
   #print STDERR "Found list of installed scanners \"" . join(', ', @installed) . "\"\n";
   return @installed;
@@ -2496,6 +2529,56 @@ sub ConnectToAV {
 
     return undef unless $sock;
     return $sock;
+}
+
+# Generic function to process output
+sub ProcessOutput {
+    my ( $line, $infections, $types, $BaseDir, $Name, $spaminfre ) = @_;
+    my (
+        $keyword, $virusname, $filename, $logout, $dot,
+        $id,      $part,      @rest,     $attach, $report
+    );
+
+    chomp $line;
+    $logout = $line;
+    $logout =~ s/\s{20,}/ /g;
+
+    ( $keyword, $virusname, $filename ) = split( /:: /, $line, 3 );
+
+    if ( $keyword =~ /^error/i || $logout =~ /rar module failure/i ) {
+        MailScanner::Log::InfoLog( "%s::%s", $Name, $logout );
+        return 1;
+    }
+    elsif ( $keyword =~ /^info|^clean/i ) {
+        return 0;
+    }
+    else {
+        ( $dot, $id, $part, @rest ) = split( /\//, $filename );
+        $attach = $part;
+        $attach =~ s/-\>.*$//;
+        my $notype = substr( $attach, 1 );
+        $logout =~ s/\Q$part\E/$notype/;
+        $report =~ s/\Q$part\E/$notype/;
+
+        MailScanner::Log::InfoLog( "%s::%s", $Name, $logout );
+
+        if ( $virusname =~ /$spaminfre/ ) {
+            return "0 $id $virusname";
+        }
+
+        $report = $Name . ': ' if $Name;
+
+        if ( $attach eq '' ) {
+            $infections->{"$id"}{""} .=
+              "$report message was infected: $virusname\n";
+        }
+        else {
+            $infections->{"$id"}{"$attach"} .=
+              "$report$notype was infected: $virusname\n";
+        }
+        $types->{"$id"}{"$part"} .= "v";
+        return 1;
+    }
 }
 
 # Avastd functions
@@ -2919,6 +3002,107 @@ sub ProcessKseOutput {
         $types->{"$id"}{"$part"} .= "v";
         return 1;
     }
+}
+
+# Fprotd6 functions
+
+sub Fprotd6Scan {
+    my ( $dirname, $disinfect, $messagebatch ) = @_;
+
+    my $lintonly = 0;
+    $lintonly = 1 if $dirname eq 'ISITINSTALLED';
+    my $ScanDir = "$global::MS->{work}->{dir}/$dirname";
+    $ScanDir =~ s/\/\.$//;
+
+    my $TimeOut = MailScanner::Config::Value('virusscannertimeout');
+    my $Port    = MailScanner::Config::Value('fprotd6port');
+    my $line    = '';
+    my $sock;
+
+    # Attempt to open the connection to fpscand
+    $sock = ConnectToAV( "localhost", $Port, $TimeOut );
+    print "ERROR:: COULD NOT CONNECT TO FPSCAND, RECOMMEND RESTARTING DAEMON "
+      . ":: $dirname\n"
+      unless $sock || $lintonly;
+    print "ScAnNeRfAiLeD\n" unless $sock || $lintonly;
+    MailScanner::Log::WarnLog( "ERROR:: COULD NOT CONNECT TO FPSCAND, "
+          . "RECOMMEND RESTARTING DAEMON " )
+      unless $sock || $lintonly;
+    return 1 unless $sock;
+
+    return 'FPSCANDOK' if $lintonly;
+
+    # Walk the directory tree from $ScanDir downwards
+    %FPd6ParserFiles = ();
+
+    print $sock "QUEUE\n";
+    if ( Fpscand( $ScanDir, $sock ) == -1 ) {
+        MailScanner::Log::WarnLog( "ERROR:: COULD NOT SCAN USING FPSCAND, "
+              . "RECOMMEND RESTARTING DAEMON " );
+        print "ScAnNeRfAiLeD\n";
+        return 1;
+    }
+    print $sock "SCAN\n";
+    $sock->flush;
+
+    # Read back all the reports
+    while ( keys %FPd6ParserFiles ) {
+        $_ = <$sock>;
+        chomp;
+        next unless /^(\d+) <(.+)> (.+)$/;
+        my ( $code, $text, $path ) = ( $1, $2, $3 );
+
+        my $attach = $path;
+        $attach =~ s/-\>.*$//;
+
+        delete $FPd6ParserFiles{$attach};
+
+        $path =~ s/^$ScanDir/./;
+
+        if ( ( $code & 3 ) || $text =~ /^infected: /i ) {
+            $text =~ s/^infected: //i;
+            $path =~ s/\.(?:header|message)$//;
+            print "INFECTED:: $text :: $path\n";
+        }
+        elsif ( $code == 0 || $text =~ /^clean/i ) {
+            print "CLEAN:: $text :: $path\n";
+        }
+        else {
+            print "ERROR:: $code $text :: $path\n";
+        }
+    }
+    $sock->close;
+}
+
+# Recursively walk the directory tree from $dir downwards,
+# sending instructions to $sock as we go, one line for each
+# file
+sub Fpscand {
+    my ( $dir, $sock ) = @_;
+
+    my $dh = new DirHandle $dir;
+
+    unless ($dh) {
+        MailScanner::Log::WarnLog( "FProt6d: failed to process directory %s",
+            $dir );
+        return -1;
+    }
+
+    my $file;
+    while ( defined( $file = $dh->read ) ) {
+        my $f = "$dir/$file";
+        $f =~ /^(.*)$/;
+        $f = $1;
+        next if $file =~ /^\./ && -d $f;
+        if ( -d $f ) {
+            Fpscand( $f, $sock );
+        }
+        else {
+            print $sock "SCAN FILE $f\n";
+            $FPd6ParserFiles{$f} = 1;
+        }
+    }
+    $dh->close;
 }
 
 1;
