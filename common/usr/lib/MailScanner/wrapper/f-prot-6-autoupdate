@@ -1,0 +1,4 @@
+#!/bin/bash
+# F-Protd6 has its own updater, this is just a place holder
+# such that the lock file can be created
+exit 0
