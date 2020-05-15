@@ -118,6 +118,17 @@ my %Scanners = (
     SupportScanning	=> $S_SUPPORTED,
     SupportDisinfect	=> $S_SUPPORTED,
   },
+  "f-secured" => {
+    Name             => 'F-Secured',
+    Lock             => 'f-secureBusy.lock',
+    CommonOptions    => '',
+    DisinfectOptions => '',
+    ScanOptions      => '',
+    InitParser       => \&InitFSecuredParser,
+    ProcessOutput    => \&ProcessOutput,
+    SupportScanning  => $S_SUPPORTED,
+    SupportDisinfect => $S_NONE,
+  },
   "f-protd-6" => {
     Name             => 'F-Protd6',
     Lock             => 'f-prot-6Busy.lock',
@@ -916,6 +927,9 @@ sub TryOneCommercial {
       } elsif ( $scanner eq 'f-protd-6' ) {
         Fprotd6Scan( $subdir, $disinfect, $batch );
         exit;
+      } elsif ( $scanner eq 'f-secured' ) {
+        FsecureScan( $subdir, $disinfect, $batch );
+        exit;
       } else {
         exec "$sweepcommand $instdir $voptions $subdir";
         MailScanner::Log::WarnLog("Cannot run commercial AV $scanner " .
@@ -1190,6 +1204,13 @@ sub InitFSecureParser {
   $fsecure_InHeader=(-1);
   $fsecure_Version = 0;
   %fsecure_Seen = ();
+}
+
+# Initialise any state variables the F-Secured output parser uses
+my (%FSDFiles);
+
+sub InitFSecuredParser {
+    %FSDFiles = ();
 }
 
 # Initialise any state variables the F-Protd-6 output parser uses
@@ -2140,6 +2161,18 @@ sub InstalledScanners {
       }
     }
     push @installed, 'f-protd-6' unless $foundit;
+  }
+  if ( FsecureScan('ISITINSTALLED') eq 'FSECUREDOK' ) {
+    # If f-secure is in the list, replace it with f-secured
+    my $foundit = 0;
+    foreach (@installed) {
+      if ( $_ eq 'f-secure' ) {
+        s/^f-secure$/f-secured/;
+        $foundit = 1;
+        last;
+      }
+    }
+    push @installed, 'f-secured' unless $foundit;
   }
 
   #print STDERR "Found list of installed scanners \"" . join(', ', @installed) . "\"\n";
@@ -3100,6 +3133,180 @@ sub Fpscand {
         else {
             print $sock "SCAN FILE $f\n";
             $FPd6ParserFiles{$f} = 1;
+        }
+    }
+    $dh->close;
+}
+
+# f-secured functions
+
+sub FsecureScan {
+    my ( $dirname, $disinfect, $messagebatch ) = @_;
+
+    my $lintonly = 0;
+    my $socket   = MailScanner::Config::Value('FsecureSocket');
+    my $timeout  = MailScanner::Config::Value('virusscannertimeout');
+    my $ScanDir  = "$global::MS->{work}->{dir}/$dirname";
+
+    $ScanDir =~ s/\/\.$//;
+    $lintonly = 1 if $dirname eq 'ISITINSTALLED';
+    $socket   = '/tmp/.fsav-0' unless ($socket);
+
+    if ( !-e $socket ) {
+        MailScanner::Log::WarnLog( "Cannot find Socket (%s) Exiting!", $socket )
+          if !-e $socket && !$lintonly;
+        print "ScAnNeRfAiLeD\n" unless $lintonly;
+        return 1;
+    }
+
+    if ( !-S $socket ) {
+        MailScanner::Log::WarnLog(
+            "Found %s but it is not a valid UNIX Socket. " . "Exiting",
+            $socket )
+          if !-S $socket && !$lintonly;
+        print "ScAnNeRfAiLeD\n" unless $lintonly;
+        return 1;
+    }
+
+    my $sock = ConnectToAV( $socket, undef, $timeout );
+    print "ERROR:: COULD NOT CONNECT TO F-Secure, "
+      . "RECOMMEND RESTARTING DAEMON "
+      . ":: $dirname\n"
+      unless $sock || $lintonly;
+    print "ScAnNeRfAiLeD\n" unless $sock || $lintonly;
+    MailScanner::Log::WarnLog( "ERROR:: COULD NOT CONNECT TO F-Secure, "
+          . "RECOMMEND RESTARTING DAEMON " )
+      unless $sock || $lintonly;
+    return 1 unless ( $sock && $sock->connected );
+
+    my $line = $sock->getline;
+    unless ( $line && $line =~ /DBVERSION/ ) {
+        $sock->close();
+        return 1;
+    }
+
+    $sock->print("PROTOCOL\t9\n");
+    $sock->flush;
+    $line = $sock->getline;
+    unless ( $line && $line =~ /OK/ ) {
+        $sock->close();
+        return 1;
+    }
+
+    my %options = (
+        MIME        => 1,
+        RISKWARE    => 1,
+        STOPONFIRST => 1,
+        TIMEOUT     => $timeout,
+        ARCHIVE     => 1
+    );
+
+    for ( keys %options ) {
+        $sock->print("CONFIGURE\t$_\t$options{$_}\n");
+        $sock->flush;
+        $line = $sock->getline;
+        unless ( $line && $line =~ /OK/ ) {
+            $sock->close();
+            return 1;
+        }
+    }
+
+    $sock->close()      if $lintonly;
+    return 'FSECUREDOK' if $lintonly;
+
+    %FSDFiles = ();
+
+    if ( Fsecured( $ScanDir, $sock, $timeout ) == -1 ) {
+        print "ERROR:: COULD NOT SCAN USING F-Secure, "
+          . "RECOMMEND CHECKING DIRECTORY ACCESS "
+          . ":: $dirname\n";
+        print "ScAnNeRfAiLeD\n";
+        $sock->close();
+        return 1;
+    }
+
+    # Read back all the reports
+    foreach my $key ( keys %FSDFiles ) {
+        my ($path);
+
+        $path = $key;
+        $path =~ s/^$ScanDir/./;
+
+        if ( $FSDFiles{$key}->{error} ) {
+            print "ERROR:: $FSDFiles{$key}->{errormsg} :: $path\n";
+        }
+        elsif ( !$FSDFiles{$key}->{error} && $FSDFiles{$key}->{infected} ) {
+            print "INFECTED:: $FSDFiles{$key}->{virusname} :: $path\n";
+        }
+        elsif ($FSDFiles{$key}->{clean}
+            && !$FSDFiles{$key}->{error}
+            && !$FSDFiles{$key}->{infected} )
+        {
+            print "CLEAN:: message did not match any signature :: $path\n";
+        }
+        else {
+            print "ERROR:: $FSDFiles{$key}->{error} :: $path\n";
+        }
+    }
+
+    $sock->close();
+}
+
+sub Fsecured {
+    my ( $dir, $sock, $timeout ) = @_;
+
+    my $virus_re =
+        '^(?<sc>\S*?_?(?:INFECTED|SUSPECTED))\t'
+      . '(?<fn>[^\t]+)\t(?<sig>[^\t]+)\t(?:[^\t]+)'
+      . '\t\d+\t\d+\t\d+\t\d+$';
+
+    my $dh = new DirHandle $dir;
+    unless ($dh) {
+        MailScanner::Log::WarnLog( "Fsecured: failed to process directory %s",
+            $dir );
+        return -1;
+    }
+
+    my $file;
+    while ( defined( $file = $dh->read ) ) {
+        my $f = "$dir/$file";
+        $f =~ /^(.*)$/;
+        $f = $1;
+        next if $file =~ /^\./ && -d $f;
+        if ( -d $f ) {
+            Fsecured( $f, $sock, $timeout );
+        }
+        else {
+            my %response;
+
+            $response{error}     = 0;
+            $response{clean}     = 0;
+            $response{infected}  = 0;
+            $response{virusname} = '';
+            $response{errormsg}  = '';
+
+            $sock->send("SCAN\t$f\n");
+            $sock->flush;
+
+            while ( my $results = <$sock> ) {
+                $results =~ s/\r\n//;
+                MailScanner::Log::DebugLog("Fsecured read: '$results'");
+                last if $results =~ /^OK/;
+                if ( $results =~ /$virus_re/ ) {
+                    $response{infected}  = 1;
+                    $response{virusname} = $+{sig};
+                }
+                elsif ( $results =~ /^CLEAN/ ) {
+                    $response{clean} = 1;
+                }
+            }
+
+            unless ( $response{clean} || $response{infected} ) {
+                $response{error}    = 1;
+                $response{errormsg} = "Unknown response found";
+            }
+
+            $FSDFiles{$f} = \%response;
         }
     }
     $dh->close;
