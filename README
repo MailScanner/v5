@@ -1,6 +1,6 @@
 # Welcome to MailScanner!
 #
-# Current version: 5.3.2-2
+# Current version: 5.3.2-2 (5.3.3-1 pending)
 #
 # 25 April 2020
 # MailScanner Team <https://www.mailscanner.info>
@@ -21,13 +21,13 @@
 #
 #   Install/Update
 #       Redhat-based
-#           rpm -ivh MailScanner-5.x.x-x.rhel.noarch.rpm
+#           rpm -ivh|-Uvh MailScanner-5.x.x-x.rhel.noarch.rpm
 #           /usr/sbin/ms-configure [--update]
 #       Debian-based
 #           dpkg -i MailScanner-5.x.x.x-x.noarch.deb
 #           /usr/sbin/ms-configure [--update]
 #       SuSE-based
-#           rpm -ivh MailScanner-5.x.x.x-x.suse.noarch.rpm
+#           rpm -ivh|-Uvh MailScanner-5.x.x.x-x.suse.noarch.rpm
 #           /usr/sbin/ms-configure [--update]
 #       Other *nix
 #           tar -xvzf MailScanner-5.x.x-x.nix.tar.gz

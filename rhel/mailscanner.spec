@@ -40,12 +40,62 @@ based Linux distributions.
 
 mkdir -p ${RPM_BUILD_ROOT}
 mkdir -p ${RPM_BUILD_ROOT}/usr/sbin/
-mkdir -p ${RPM_BUILD_ROOT}/etc/MailScanner/{conf.d,rules,mcp}
-mkdir -p ${RPM_BUILD_ROOT}/etc/{cron.hourly,cron.daily}
-mkdir -p ${RPM_BUILD_ROOT}/usr/share/MailScanner/reports/{hu,de,se,ca,cy+en,pt_br,fr,es,en,en_uk,cz,it,dk,nl,ro,sk}
-mkdir -p ${RPM_BUILD_ROOT}/usr/share/MailScanner/perl/{MailScanner,custom}
-mkdir -p ${RPM_BUILD_ROOT}/usr/{lib/MailScanner/wrapper,lib/MailScanner/init,lib/MailScanner/systemd}
-mkdir -p ${RPM_BUILD_ROOT}/var/spool/MailScanner/{archive,incoming,quarantine,milterin,milterout}
+
+while read f
+do
+  mkdir -p ${RPM_BUILD_ROOT}/etc/$f
+done << EOF
+MailScanner/conf.d
+MailScanner/rules
+MailScanner/mcp
+cron.hourly
+cron.daily
+EOF
+
+while read f
+do
+  mkdir -p ${RPM_BUILD_ROOT}/usr/share/$f
+done << EOF
+MailScanner/reports/hu
+MailScanner/reports/de
+MailScanner/reports/se
+MailScanner/reports/ca
+MailScanner/reports/cy+en
+MailScanner/reports/pt_br
+MailScanner/reports/fr
+MailScanner/reports/es
+MailScanner/reports/en
+MailScanner/reports/en_uk
+MailScanner/reports/cz
+MailScanner/reports/it
+MailScanner/reports/dk
+MailScanner/reports/nl
+MailScanner/reports/ro
+MailScanner/reports/sk
+MailScanner/perl/MailScanner
+MailScanner/perl/custom
+EOF
+
+while read f
+do
+  mkdir -p ${RPM_BUILD_ROOT}/usr/lib/$f
+done << EOF
+MailScanner/wrapper
+MailScanner/init
+MailScanner/systemd
+EOF
+
+while read f
+do
+  mkdir -p ${RPM_BUILD_ROOT}/var/spool/MailScanner/$f
+done << EOF
+archive
+incoming
+quarantine
+milterin
+milterout
+EOF
+
 mkdir -p ${RPM_BUILD_ROOT}/usr/share/MailScanner/doc
 
 ### etc

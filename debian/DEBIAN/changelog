@@ -1,5 +1,5 @@
 MailScanner (DebianVersionHere) stable; urgency=low
 
-  * Maintenance release
+  * See changelog and README in /usr/share/MailScanner/doc
 
  -- MailScanner Team <https://www.mailscanner.info> __Date__
