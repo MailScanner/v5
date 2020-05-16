@@ -48,7 +48,7 @@ mkdir -p $WORK
 cp -fr $DEVBASEDIR/common/*		$WORK/
 cp -fr $DEVBASEDIR/nix/*		$WORK/
 cp -fr $DEVBASEDIR/LICENSE		$WORK/
-cp -fr $DEVBASEDIR/README		$WORK/
+cp -fr $DEVBASEDIR/README.md	$WORK/
 
 # Insert the version number we are building
 perl -pi -e 's/VersionNumberHere/'$MSVERSION'/;' $WORK/etc/MailScanner/MailScanner.conf

@@ -1,3 +1,5 @@
+![BuildPackages](https://github.com/MailScanner/v5/workflows/BuildPackages/badge.svg?branch=master)
+
 # Welcome to MailScanner!
 #
 # Current version: 5.3.2-2 (5.3.3-1 pending)
