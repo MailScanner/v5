@@ -22,4 +22,4 @@ jobs:
 
     # Runs a single command using the runners shell
     - name: Install prerequisites
-      run: apt -y install rpm fakeroot dpkg perl tar
+      run: echo Testing123
