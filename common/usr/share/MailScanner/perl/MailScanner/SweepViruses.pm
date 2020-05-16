@@ -82,6 +82,17 @@ my %Scanners = (
     SupportScanning	=> $S_SUPPORTED,
     SupportDisinfect	=> $S_NONE,
   },
+  savid => {
+    Name             => 'Sophos',
+    Lock             => 'sophosBusy.lock',
+    CommonOptions    => '',
+    DisinfectOptions => '',
+    ScanOptions      => '',
+    InitParser       => \&InitSAVIDParser,
+    ProcessOutput    => \&ProcessOutput,
+    SupportScanning  => $S_SUPPORTED,
+    SupportDisinfect => $S_NONE,
+  },
   sophossavi => {
     Name		=> 'SophosSAVI',
     Lock		=> 'sophosBusy.lock',
@@ -930,6 +941,9 @@ sub TryOneCommercial {
       } elsif ( $scanner eq 'f-secured' ) {
         FsecureScan( $subdir, $disinfect, $batch );
         exit;
+      } elsif ( $scanner eq 'savid' ) {
+        SAVIDScan( $subdir, $disinfect, $batch );
+        exit;
       } else {
         exec "$sweepcommand $instdir $voptions $subdir";
         MailScanner::Log::WarnLog("Cannot run commercial AV $scanner " .
@@ -1163,6 +1177,13 @@ sub SophosSAVI {
 # Initialise any state variables the Generic output parser uses
 sub InitGenericParser {
   ;
+}
+
+# Initialise any state variables the Sophos SAVID output parser uses
+my (%SAVIDFiles);
+
+sub InitSAVIDParser {
+    %SAVIDFiles = ();
 }
 
 # Initialise any state variables the Sophos SAVI output parser uses
@@ -2131,6 +2152,18 @@ sub InstalledScanners {
     foreach (@installed) {
       s/^sophos$/sophossavi/i;
     }
+  }
+  if ( SAVIDScan('ISITINSTALLED') eq 'SAVIDOK' ) {
+    # if sophos in list replace with savid
+    my $foundit = 0;
+    foreach (@installed) {
+      if ( $_ eq 'sophos' ) {
+        s/^sophos$/savid/;
+        $foundit = 1;
+        last;
+      }
+    }
+    push @installed, 'savid' unless $foundit;
   }
   if (ClamdScan('ISITINSTALLED') eq 'CLAMDOK') {
     # If clamav is in the list, replace it with clamd, else add clamd
@@ -3307,6 +3340,155 @@ sub Fsecured {
             }
 
             $FSDFiles{$f} = \%response;
+        }
+    }
+    $dh->close;
+}
+
+# Savid functions
+
+sub SAVIDScan {
+    my ( $dirname, $disinfect, $messagebatch ) = @_;
+
+    my $lintonly = 0;
+    $lintonly = 1 if $dirname eq 'ISITINSTALLED';
+
+    my $ScanDir = "$global::MS->{work}->{dir}/$dirname";
+    $ScanDir =~ s/\/\.$//;
+
+    my $TimeOut = MailScanner::Config::Value('virusscannertimeout');
+    my $Socket  = MailScanner::Config::Value('SAVIDSocket');
+    $Socket = '/var/lib/savdid/savdid.sock' unless ($Socket);
+    my $line = '';
+    my $sock;
+
+    $sock = ConnectToAV( $Socket, undef, $TimeOut );
+    print "ERROR:: COULD NOT CONNECT TO SAVID, RECOMMEND RESTARTING DAEMON "
+      . ":: $dirname\n"
+      unless $sock || $lintonly;
+    print "ScAnNeRfAiLeD\n" unless $sock || $lintonly;
+    MailScanner::Log::WarnLog( "ERROR:: COULD NOT CONNECT TO SAVID, "
+          . "RECOMMEND RESTARTING DAEMON " )
+      unless $sock || $lintonly;
+    return 1 unless $sock;
+
+    # $sock->close if $lintonly;
+    return 'SAVIDOK' if $lintonly;
+
+    %SAVIDFiles = ();
+
+    if ( SAVID( $ScanDir, $sock ) == -1 ) {
+        print "ERROR:: COULD NOT SCAN USING SAVID,"
+          . " RECOMMEND CHECKING DIRECTORY ACCESS "
+          . ":: $dirname\n";
+        print "ScAnNeRfAiLeD\n";
+        return 1;
+    }
+
+    # Read back all the reports
+    foreach my $key ( keys %SAVIDFiles ) {
+        my ($path);
+
+        $path = $key;
+        $path =~ s/^$ScanDir/./;
+
+        if ( $SAVIDFiles{$key}->{error} ) {
+            print "ERROR:: $SAVIDFiles{$key}->{errormsg} :: $path\n";
+        }
+        elsif ( !$SAVIDFiles{$key}->{error} && $SAVIDFiles{$key}->{infected} ) {
+            print "INFECTED:: $SAVIDFiles{$key}->{virusname} :: $path\n";
+        }
+        elsif ($SAVIDFiles{$key}->{clean}
+            && !$SAVIDFiles{$key}->{error}
+            && !$SAVIDFiles{$key}->{infected} )
+        {
+            print "CLEAN:: message did not match any signature :: $path\n";
+        }
+        else {
+            print "ERROR:: $SAVIDFiles{$key}->{error} :: $path\n";
+        }
+    }
+    $sock->close;
+}
+
+sub SAVID {
+    my ( $dir, $sock ) = @_;
+
+    my $dh = new DirHandle $dir;
+
+    unless ($dh) {
+        MailScanner::Log::WarnLog( "SAVID: failed to process directory %s",
+            $dir );
+        return -1;
+    }
+
+    my $file;
+    while ( defined( $file = $dh->read ) ) {
+        my $f = "$dir/$file";
+        $f =~ /^(.*)$/;
+        $f = $1;
+        next if $file =~ /^\./ && -d $f;
+        if ( -d $f ) {
+            SAVID( $f, $sock );
+        }
+        else {
+            my %response;
+            $response{error}     = 0;
+            $response{clean}     = 0;
+            $response{infected}  = 0;
+            $response{virusname} = '';
+            $response{errormsg}  = '';
+
+            # check if we can write to socket
+            unless ( $sock->print("$f\n") ) {
+                $response{errormsg} = "SAVID: failed to scan $f";
+                $response{error}    = 1;
+                $SAVIDFiles{$f}     = \%response;
+                next;
+            }
+
+            # check if we can flush socket
+            unless ( $sock->flush ) {
+                $response{errormsg} = "SAVID: failed to scan $f";
+                $response{error}    = 1;
+                $SAVIDFiles{$f}     = \%response;
+                next;
+            }
+
+            # check if we can read the response
+            my ( $scan_response, $rc );
+            my $rc = $sock->sysread( $scan_response, 256 );
+
+            unless ($rc) {
+                $response{error}    = 1;
+                $response{errormsg} = "SAVID: no response to scan $f";
+                $SAVIDFiles{$f}     = \%response;
+                next;
+            }
+
+            # process the results
+            if ( $scan_response =~ m/^0/ ) {
+                $response{clean}    = 1;
+                $response{infected} = 0;
+            }
+            elsif ( $scan_response =~ m/^1/ ) {
+                $response{clean}    = 0;
+                $response{infected} = 1;
+                my ($virus_name) = $scan_response =~ /^1:(.*)$/;
+                $response{virusname} = $virus_name;
+            }
+            elsif ( $scan_response =~ m/^-1:(.*)$/ ) {
+                my $error_message = $1;
+                $error_message ||= 'SAVID: unknown error';
+                $response{error}    = 1;
+                $response{errormsg} = $error_message;
+            }
+            else {
+                $response{error}    = 1;
+                $response{errormsg} = 'SAVID: unknown response error';
+            }
+
+            $SAVIDFiles{$f} = \%response;
         }
     }
     $dh->close;
