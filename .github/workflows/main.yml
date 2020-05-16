@@ -23,15 +23,3 @@ jobs:
     # Runs a single command using the runners shell
     - name: Install prerequisites
       run: apt -y install rpm fakeroot dpkg perl tar
-
-    # Runs a set of commands using the runners shell
-    - name: Execute builds
-      run: ./Build.all
-        
-    - name: Upload builds
-      uses: actions/upload-artifact@v2
-      with:
-        # Artifact name
-        name: Builds
-        # A file, directory or wildcard pattern that describes what to upload
-        path: ~/msbuilds/*
