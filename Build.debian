@@ -68,10 +68,9 @@ cp -fr $DEVBASEDIR/common/usr/* $WORK/usr/
 cp -fr $DEVBASEDIR/debian/usr/* $WORK/usr/
 
 cp -rf $DEVBASEDIR/debian/DEBIAN/ $WORK
-cp -f $DEVBASEDIR/debian/changelog $WORK
 perl -pi -e 's/DebianVersionHere/'$VERSION'/;' $WORK/DEBIAN/control
-perl -pi -e 's/DebianVersionHere/'$VERSION'/;' $WORK/changelog
-perl -pi -e 's/__DATE__/'$MSDATE'/;' $WORK/changelog
+perl -pi -e 's/DebianVersionHere/'$VERSION'/;' $WORK/DEBIAN/changelog
+perl -pi -e 's/__Date__/'$MSDATE'/;' $WORK/DEBIAN/changelog
 perl -pi -e 's/VersionNumberHere/'$MSVERSION'/;' $WORK/etc/MailScanner/MailScanner.conf
 perl -pi -e 's/VersionNumberHere/'$MSVERSION'/;' $WORK/usr/sbin/MailScanner
 
