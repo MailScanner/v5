@@ -67,6 +67,7 @@ cp -fr $DEVBASEDIR/debian/etc/*	$WORK/etc/
 cp -fr $DEVBASEDIR/common/usr/* $WORK/usr/
 cp -fr $DEVBASEDIR/debian/usr/* $WORK/usr/
 
+cp -rf $DEVBASEDIR/debian/DEBIAN/ $WORK
 perl -pi -e 's/DebianVersionHere/'$VERSION'/;' $WORK/DEBIAN/control
 perl -pi -e 's/DebianVersionHere/'$VERSION'/;' $WORK/changelog
 perl -pi -e 's/__DATE__/'$MSDATE'/;' $WORK/changelog
