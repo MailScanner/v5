@@ -19,7 +19,14 @@ jobs:
     steps:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - uses: actions/checkout@v2
-
-    # Runs a single command using the runners shell
-    - name: Install prerequisites
-      run: echo Testing123
+    
+    - name: Execute builds
+      run: ./Build.all
+        
+    - name: Upload builds
+      uses: actions/upload-artifact@v2
+      with:
+        # Artifact name
+        name: Builds
+        # A file, directory or wildcard pattern that describes what to upload
+        path: ~/msbuilds/*
