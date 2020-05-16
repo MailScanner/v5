@@ -13,9 +13,16 @@ if [ ! -d 'rhel' ]; then
     exit 192
 fi
 
-MSVERSION=$(sed 's/-.*$//' VERSION)
-MSBUILD=$(sed 's/^.*-//' VERSION)
-VERSION=$(cat VERSION)
+if [ -z $(which rpmbuild) ]; then
+    echo 'Required rpmbuild package is missing';
+    echo 'install rpmbuild before continuing, Exiting ...';
+    echo;
+    exit 192
+fi
+
+VERSION=$(sed -e 's/\n//' VERSION)
+MSVERSION=$(echo $VERSION | sed -e 's/-.*$//')
+MSBUILD=$(echo $VERSION | sed -e 's/^.*-//')
 
 if [[ -z $MSVERSION || -z $MSBUILD ]]; then
     echo "Could not determine MailScanner version."
@@ -27,10 +34,8 @@ fi
 # directory we are in
 THISCURDIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 
-# if not set from the "Build.all" script
 if [ -z "$RPMOUT" ]; then
-	RPMOUT="$HOME/msbuilds/rhel";
-	export RPMOUT;
+	RPMOUT="$HOME/msbuilds";
 fi
 
 # setup rpm development dirs

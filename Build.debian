@@ -14,9 +14,16 @@ if [ ! -d 'common' ]; then
 	exit 192
 fi
 
-MSVERSION=$(sed 's/-.*$//' VERSION)
-MSBUILD=$(sed 's/^.*-//' VERSION)
-VERSION=$(cat VERSION)
+if [ -z $(which fakeroot) -o -z $(which dpkg) ]; then
+    echo 'Required build packages are missing.';
+    echo 'Install fakeroot and dpkg before continuing, Exiting ...';
+    echo;
+    exit 192
+fi
+
+VERSION=$(sed -e 's/\n//' VERSION)
+MSVERSION=$(echo $VERSION | sed -e 's/-.*$//')
+MSBUILD=$(echo $VERSION | sed -e 's/^.*-//')
 MSDATE=$(date +"%a %d %B %Y %H:%M:%S %z")
 
 if [ -z $MSVERSION -o -z $MSBUILD ]; then
@@ -30,7 +37,7 @@ fi
 THISCURDIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 
 # where the final file will be copied
-FILEOUT="$HOME/msbuilds/deb";
+FILEOUT="$HOME/msbuilds";
 
 # check to see if the output directory exists
 if [ ! -d "$FILEOUT" ]; then

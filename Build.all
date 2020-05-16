@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+#
+# Updated: 16 May 2020
+# MailScanner Team <https://www.mailscanner.info>
+#
+#
+# this Build.all script should be located in the base
+# directory when run.
+
+./Build.rhel
+./Build.suse
+./Build.debian
+./Build.nix

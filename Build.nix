@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Updated 2 Nov 2019
+# Updated 16 May 2020
 # MailScanner Team <https://www.mailscanner.info>
 
 # this Build.tarball script should be located in the base
@@ -14,39 +14,24 @@ if [ ! -d 'common' ]; then
 	exit 192
 fi
 
-# if not set from the "Build.all" script
-if [ -z "$MSVERSION" ]; then
-	echo "Please tell me the version number (x.xx.x):"
-	read MSVERSION
-	export MSVERSION
-fi
+VERSION=$(sed -e 's/\n//' VERSION)
+MSVERSION=$(echo $VERSION | sed -e 's/-.*$//')
+MSBUILD=$(echo $VERSION | sed -e 's/^.*-//')
 
-# if not set from the "Build.all" script
-if [ -z "$MSBUILD" ]; then
-	echo "And the build number (-x):"
-	read MSBUILD	
-	export MSBUILD
-fi
-
-# if not set from the "Build.all" script
-if [ -z "$FULLMSVER" ]; then
-	FULLMSVER="$MSVERSION-$MSBUILD";
-	export FULLMSVER
+if [ -z $MSVERSION -o -z $MSBUILD ]; then
+    echo "Could not determine MailScanner version."
+    echo "Unable read VERSION file"
+    echo;
+    exit 192
 fi
 
 # if not set from the "Build.all" script
 if [ -z "$DEVBASEDIR" ]; then
-	DEVBASEDIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
-	export DEVBASEDIR
+    DEVBASEDIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 fi
 
-
-# version info 
-VERSION=$MSVERSION-$MSBUILD
-export VERSION 
-
 # make some dirs
-mkdir -p ~/msbuilds/tar
+mkdir -p ~/msbuilds
 
 # the work directory
 WORK="/tmp/MailScanner-$MSVERSION";
@@ -69,7 +54,6 @@ cp -fr $DEVBASEDIR/README		$WORK/
 perl -pi -e 's/VersionNumberHere/'$MSVERSION'/;' $WORK/etc/MailScanner/MailScanner.conf
 perl -pi -e 's/VersionNumberHere/'$MSVERSION'/;' $WORK/usr/sbin/MailScanner
 
-
 # remove svn and git and mac stuff
 find $WORK -name '.svn' -exec rm -rf {} \;
 find $WORK -name '.git' -exec rm -rf {} \;
@@ -88,8 +72,10 @@ chmod +x $WORK/usr/lib/MailScanner/init/*
 
 # Build the MailScanner-version.tar.gz archive
 cd /tmp
-tar czf ~/msbuilds/tar/MailScanner-${VERSION}.nix.tar.gz MailScanner-$MSVERSION
+tar czf ~/msbuilds/MailScanner-${VERSION}.nix.tar.gz MailScanner-$MSVERSION
 
 cd $DEVBASEDIR
 rm -rf $WORK
 
+echo;
+echo "Completed: $HOME/msbuilds/MailScanner-${VERSION}.nix.tar.gz";
