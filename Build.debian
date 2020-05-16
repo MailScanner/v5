@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Updated: 2 Nov 2019
+# Updated: 16 May 2020
 # MailScanner Team <https://www.mailscanner.info>
 #
 #
@@ -14,37 +14,29 @@ if [ ! -d 'common' ]; then
 	exit 192
 fi
 
+MSVERSION=$(sed 's/-.*$//' VERSION)
+MSBUILD=$(sed 's/^.*-//' VERSION)
+VERSION=$(cat VERSION)
+MSDATE=$(date +"%a %d %B %Y %H:%M:%S %z")
+
+if [ -z $MSVERSION -o -z $MSBUILD ]; then
+    echo "Could not determine MailScanner version."
+    echo "Unable to read VERSION file."
+    echo;
+    exit 192
+fi
+
 # directory we are in
 THISCURDIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 
 # where the final file will be copied
 FILEOUT="$HOME/msbuilds/deb";
-export FILEOUT;
 
 # check to see if the output directory exists
 if [ ! -d "$FILEOUT" ]; then
 	mkdir -p $FILEOUT
 fi
 
-# if not set from the "Build.all" script
-if [ -z "$MSVERSION" ]; then
-	echo "Please tell me the version number (x.xx.x): ";
-	read MSVERSION
-	export MSVERSION
-fi
-
-# if not set from the "Build.all" script
-if [ -z "$MSBUILD" ]; then
-	echo "And the build number (-x): ";
-	read MSBUILD	
-	export MSBUILD
-fi
-
-# if not set from the "Build.all" script
-if [ -z "$FULLMSVER" ]; then
-	FULLMSVER=$MSVERSION-$MSBUILD
-	export FULLMSVER
-fi
 
 # if not set from the "Build.all" script
 if [ -z "$DEVBASEDIR" ]; then
@@ -56,7 +48,7 @@ if [ -z "$DEVBASEDIR" ]; then
 fi
 
 # our working directory
-WORK="/tmp/MailScanner-$FULLMSVER";
+WORK="/tmp/MailScanner-$VERSION";
 
 # delete work tmp if already exists
 if [ -d $WORK ]; then
@@ -75,9 +67,10 @@ cp -fr $DEVBASEDIR/debian/etc/*	$WORK/etc/
 cp -fr $DEVBASEDIR/common/usr/* $WORK/usr/
 cp -fr $DEVBASEDIR/debian/usr/* $WORK/usr/
 
-
 cp -rf $DEVBASEDIR/debian/DEBIAN/ $WORK
-perl -pi -e 's/DebianVersionHere/'$FULLMSVER'/;' $WORK/DEBIAN/control
+perl -pi -e 's/DebianVersionHere/'$VERSION'/;' $WORK/DEBIAN/control
+perl -pi -e 's/DebianVersionHere/'$VERSION'/;' $WORK/DEBIAN/changelog
+perl -pi -e "s/__Date__/$MSDATE/;" $WORK/DEBIAN/changelog
 perl -pi -e 's/VersionNumberHere/'$MSVERSION'/;' $WORK/etc/MailScanner/MailScanner.conf
 perl -pi -e 's/VersionNumberHere/'$MSVERSION'/;' $WORK/usr/sbin/MailScanner
 
@@ -103,17 +96,19 @@ chmod +x $WORK/etc/cron.hourly/*
 
 # create a working dir for package
 PKGTMP="/tmp/deb.$$/";
-mkdir -p $PKGTMP/MailScanner-${FULLMSVER}
-#cp $DEVBASEDIR/debian/install.sh 			$PKGTMP/MailScanner-${FULLMSVER}
+mkdir -p $PKGTMP/MailScanner-${VERSION}
 mkdir -p $WORK/usr/share/MailScanner/doc
 cp $DEVBASEDIR/changelog 						$WORK/usr/share/MailScanner/doc/
 cp $DEVBASEDIR/LICENSE 							$WORK/usr/share/MailScanner/doc/
 cp $DEVBASEDIR/README 							$WORK/usr/share/MailScanner/doc/
-fakeroot dpkg -b $WORK $PKGTMP/MailScanner-$FULLMSVER.noarch.deb
+fakeroot dpkg -b $WORK $PKGTMP/MailScanner-$VERSION.noarch.deb
 #chmod +x $PKGTMP/MailScanner-${FULLMSVER}/install.sh
 cd $PKGTMP
 #tar czf MailScanner-${FULLMSVER}.deb.tar.gz *
-mv -f MailScanner-${FULLMSVER}.noarch.deb $FILEOUT
+mv -f MailScanner-${VERSION}.noarch.deb $FILEOUT
 
 rm -rf $PKGTMP
 rm -rf $WORK
+
+echo;
+echo "Completed: $FILEOUT/MailScanner-${VERSION}.noarch.deb";

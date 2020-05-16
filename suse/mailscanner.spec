@@ -1,27 +1,19 @@
-%define name    MailScanner
-%define version VersionNumberHere
-%define release ReleaseNumberHere
-
-# make the rpm backwards compatible
-%define _source_payload w0.gzdio
-%define _binary_payload w0.gzdio
-
-Name:        %{name}
-Version:     %{version}
-Release:     %{release}.suse
-Summary:     Email Gateway Virus Scanner with Malware, Phishing, and Spam Detection
-Group:       System Environment/Daemons
-License:     GPLv2
-Vendor:      MailScanner Community
-Packager:    Jerry Benton <mailscanner@mailborder.com>
-URL:         http://www.mailscanner.info
-Requires:     perl >= 5.005
-Provides:      perl(MailScanner), perl(MailScanner::Antiword), perl(MailScanner::BinHex), perl(MailScanner::Config), perl(MailScanner::ConfigSQL), perl(MailScanner::CustomConfig), perl(MailScanner::FileInto), perl(MailScanner::GenericSpam), perl(MailScanner::LinksDump), perl(MailScanner::Lock), perl(MailScanner::Log), perl(MailScanner::Mail), perl(MailScanner::MCP), perl(MailScanner::MCPMessage), perl(MailScanner::Message), perl(MailScanner::MessageBatch), perl(MailScanner::Quarantine), perl(MailScanner::Queue), perl(MailScanner::RBLs), perl(MailScanner::MCPMessage), perl(MailScanner::Message), perl(MailScanner::MCP), perl(MailScanner::SA), perl(MailScanner::Sendmail), perl(MailScanner::SMDiskStore), perl(MailScanner::SweepContent), perl(MailScanner::SweepOther), perl(MailScanner::SweepViruses), perl(MailScanner::TNEF), perl(MailScanner::Unzip), perl(MailScanner::WorkArea), perl(MIME::Parser::MailScanner)
-Source:      %{name}-%{version}.tgz
-BuildRoot:   %{_tmppath}/%{name}-root
+Name:               MailScanner
+Version:            __Version__
+Release:            __Release__.suse
+Summary:            Email Gateway Virus Scanner with Malware, Phishing, and Spam Detection
+Group:              System Environment/Daemons
+License:            GPLv2
+Vendor:             MailScanner Community
+Packager:           MailScanner Team <https://www.mailscanner.info>
+URL:                https://www.mailscanner.info
+Requires:           perl >= 5.005
+Provides:           perl(MailScanner), perl(MailScanner::Antiword), perl(MailScanner::BinHex), perl(MailScanner::Config), perl(MailScanner::ConfigSQL), perl(MailScanner::CustomConfig), perl(MailScanner::FileInto), perl(MailScanner::GenericSpam), perl(MailScanner::LinksDump), perl(MailScanner::Lock), perl(MailScanner::Log), perl(MailScanner::Mail), perl(MailScanner::MCP), perl(MailScanner::MCPMessage), perl(MailScanner::Message), perl(MailScanner::MessageBatch), perl(MailScanner::Quarantine), perl(MailScanner::Queue), perl(MailScanner::RBLs), perl(MailScanner::MCPMessage), perl(MailScanner::Message), perl(MailScanner::MCP), perl(MailScanner::SA), perl(MailScanner::Sendmail), perl(MailScanner::SMDiskStore), perl(MailScanner::SweepContent), perl(MailScanner::SweepOther), perl(MailScanner::SweepViruses), perl(MailScanner::TNEF), perl(MailScanner::Unzip), perl(MailScanner::WorkArea), perl(MIME::Parser::MailScanner)
+Source:             %{name}-%{version}.tar.gz
+BuildRoot:          %{_tmppath}/%{name}-root
 BuildArchitectures: noarch
-AutoReqProv: no
-Obsoletes: mailscanner
+AutoReqProv:        no
+Obsoletes:          mailscanner
 
 
 %description
@@ -37,11 +29,11 @@ After installation, you must install one of the supported open source or
 commercial antivirus packages if not installed using the MailScanner
 configuration script.
 
-This has been tested on Red Hat Linux, but should work on other RPM 
+This has been tested on openSUSE Linux but should work on other SUSE
 based Linux distributions.
 
 %prep
-%setup
+%setup -q -n MailScanner-%{version}
 
 %build
 
@@ -58,15 +50,15 @@ mkdir -p ${RPM_BUILD_ROOT}/var/spool/MailScanner/{archive,incoming,quarantine,mi
 mkdir -p ${RPM_BUILD_ROOT}/usr/share/MailScanner/doc
 
 ### etc
-install etc/cron.daily/mailscanner ${RPM_BUILD_ROOT}/etc/cron.daily/
-install etc/cron.hourly/mailscanner ${RPM_BUILD_ROOT}/etc/cron.hourly/
+install suse/etc/cron.daily/mailscanner ${RPM_BUILD_ROOT}/etc/cron.daily/
+install suse/etc/cron.hourly/mailscanner ${RPM_BUILD_ROOT}/etc/cron.hourly/
 
 ### etc/MailScanner
-install etc/MailScanner/conf.d/README ${RPM_BUILD_ROOT}/etc/MailScanner/conf.d/
+install common/etc/MailScanner/conf.d/README ${RPM_BUILD_ROOT}/etc/MailScanner/conf.d/
 
 while read f
 do
-  install etc/MailScanner/mcp/$f ${RPM_BUILD_ROOT}/etc/MailScanner/mcp/
+  install common/etc/MailScanner/mcp/$f ${RPM_BUILD_ROOT}/etc/MailScanner/mcp/
 done << EOF
 10_example.cf
 mcp.spamassassin.conf
@@ -74,7 +66,7 @@ EOF
 
 while read f 
 do
-  install etc/MailScanner/rules/$f ${RPM_BUILD_ROOT}/etc/MailScanner/rules
+  install common/etc/MailScanner/rules/$f ${RPM_BUILD_ROOT}/etc/MailScanner/rules
 done << EOF
 bounce.rules
 EXAMPLES
@@ -86,7 +78,7 @@ EOF
 
 while read f 
 do
-  install etc/MailScanner/$f ${RPM_BUILD_ROOT}/etc/MailScanner/
+  install common/etc/MailScanner/$f ${RPM_BUILD_ROOT}/etc/MailScanner/
 done << EOF
 archives.filename.rules.conf
 archives.filetype.rules.conf
@@ -104,24 +96,24 @@ EOF
 
 ### usr/sbin
 
-install usr/sbin/MailScanner                         ${RPM_BUILD_ROOT}/usr/sbin/MailScanner
-install usr/sbin/MSMilter                            ${RPM_BUILD_ROOT}/usr/sbin/MSMilter
-install usr/sbin/ms-check                            ${RPM_BUILD_ROOT}/usr/sbin/ms-check
-install usr/sbin/ms-clean-quarantine                 ${RPM_BUILD_ROOT}/usr/sbin/ms-clean-quarantine
-install usr/sbin/ms-create-locks                     ${RPM_BUILD_ROOT}/usr/sbin/ms-create-locks
-install usr/sbin/ms-cron                             ${RPM_BUILD_ROOT}/usr/sbin/ms-cron
-install usr/sbin/ms-d2mbox                           ${RPM_BUILD_ROOT}/usr/sbin/ms-d2mbox
-install usr/sbin/ms-df2mbox                          ${RPM_BUILD_ROOT}/usr/sbin/ms-df2mbox
-install usr/sbin/ms-msg-alert                        ${RPM_BUILD_ROOT}/usr/sbin/ms-msg-alert
-install usr/sbin/ms-peek                             ${RPM_BUILD_ROOT}/usr/sbin/ms-peek
-install usr/sbin/ms-perl-check                       ${RPM_BUILD_ROOT}/usr/sbin/ms-perl-check
-install usr/sbin/ms-sa-cache                         ${RPM_BUILD_ROOT}/usr/sbin/ms-sa-cache
-install usr/sbin/ms-update-bad-emails                ${RPM_BUILD_ROOT}/usr/sbin/ms-update-bad-emails
-install usr/sbin/ms-update-phishing                  ${RPM_BUILD_ROOT}/usr/sbin/ms-update-phishing
-install usr/sbin/ms-update-sa                        ${RPM_BUILD_ROOT}/usr/sbin/ms-update-sa
-install usr/sbin/ms-update-vs                        ${RPM_BUILD_ROOT}/usr/sbin/ms-update-vs
-install usr/sbin/ms-upgrade-conf                     ${RPM_BUILD_ROOT}/usr/sbin/ms-upgrade-conf
-install usr/sbin/ms-configure                        ${RPM_BUILD_ROOT}/usr/sbin/ms-configure
+install common/usr/sbin/MailScanner                        ${RPM_BUILD_ROOT}/usr/sbin/MailScanner
+install common/usr/sbin/MSMilter                           ${RPM_BUILD_ROOT}/usr/sbin/MSMilter
+install common/usr/sbin/ms-check                           ${RPM_BUILD_ROOT}/usr/sbin/ms-check
+install common/usr/sbin/ms-clean-quarantine                ${RPM_BUILD_ROOT}/usr/sbin/ms-clean-quarantine
+install common/usr/sbin/ms-create-locks                    ${RPM_BUILD_ROOT}/usr/sbin/ms-create-locks
+install common/usr/sbin/ms-cron                            ${RPM_BUILD_ROOT}/usr/sbin/ms-cron
+install common/usr/sbin/ms-d2mbox                          ${RPM_BUILD_ROOT}/usr/sbin/ms-d2mbox
+install common/usr/sbin/ms-df2mbox                         ${RPM_BUILD_ROOT}/usr/sbin/ms-df2mbox
+install common/usr/sbin/ms-msg-alert                       ${RPM_BUILD_ROOT}/usr/sbin/ms-msg-alert
+install common/usr/sbin/ms-peek                            ${RPM_BUILD_ROOT}/usr/sbin/ms-peek
+install common/usr/sbin/ms-perl-check                      ${RPM_BUILD_ROOT}/usr/sbin/ms-perl-check
+install common/usr/sbin/ms-sa-cache                        ${RPM_BUILD_ROOT}/usr/sbin/ms-sa-cache
+install common/usr/sbin/ms-update-bad-emails               ${RPM_BUILD_ROOT}/usr/sbin/ms-update-bad-emails
+install common/usr/sbin/ms-update-phishing                 ${RPM_BUILD_ROOT}/usr/sbin/ms-update-phishing
+install common/usr/sbin/ms-update-sa                       ${RPM_BUILD_ROOT}/usr/sbin/ms-update-sa
+install common/usr/sbin/ms-update-vs                       ${RPM_BUILD_ROOT}/usr/sbin/ms-update-vs
+install common/usr/sbin/ms-upgrade-conf                    ${RPM_BUILD_ROOT}/usr/sbin/ms-upgrade-conf
+install suse/usr/sbin/ms-configure                         ${RPM_BUILD_ROOT}/usr/sbin/ms-configure
 
 ### usr/share/MailScanner
 
@@ -129,7 +121,7 @@ for lang in ca cy+en cz de dk en en_uk es fr hu it nl pt_br ro se sk
 do
   while read f 
   do
-    install usr/share/MailScanner/reports/$lang/$f ${RPM_BUILD_ROOT}/usr/share/MailScanner/reports/$lang
+    install common/usr/share/MailScanner/reports/$lang/$f ${RPM_BUILD_ROOT}/usr/share/MailScanner/reports/$lang
   done << EOF
 deleted.content.message.txt
 deleted.filename.message.txt
@@ -164,11 +156,11 @@ stored.virus.message.txt
 EOF
 done
 
-install usr/share/MailScanner/perl/MailScanner.pm ${RPM_BUILD_ROOT}/usr/share/MailScanner/perl/
+install common/usr/share/MailScanner/perl/MailScanner.pm ${RPM_BUILD_ROOT}/usr/share/MailScanner/perl/
 
 while read f 
 do
-  install usr/share/MailScanner/perl/MailScanner/$f ${RPM_BUILD_ROOT}/usr/share/MailScanner/perl/MailScanner/
+  install common/usr/share/MailScanner/perl/MailScanner/$f ${RPM_BUILD_ROOT}/usr/share/MailScanner/perl/MailScanner/
 done << EOF
 Antiword.pm
 Config.pm
@@ -212,7 +204,7 @@ EOF
 
 while read f 
 do
-  install usr/share/MailScanner/perl/custom/$f ${RPM_BUILD_ROOT}/usr/share/MailScanner/perl/custom/
+  install common/usr/share/MailScanner/perl/custom/$f ${RPM_BUILD_ROOT}/usr/share/MailScanner/perl/custom/
 done << EOF
 CustomAction.pm 
 GenericSpamScanner.pm
@@ -225,7 +217,7 @@ EOF
 
 while read f
 do 
-  install usr/share/MailScanner/doc/$f ${RPM_BUILD_ROOT}/usr/share/MailScanner/doc/
+  install $f ${RPM_BUILD_ROOT}/usr/share/MailScanner/doc/
 done << EOF
 changelog
 README
@@ -234,14 +226,14 @@ EOF
 
 ### usr/lib/MailScanner
 
-install usr/lib/MailScanner/init/ms-init ${RPM_BUILD_ROOT}/usr/lib/MailScanner/init/
-install usr/lib/MailScanner/init/msmilter-init ${RPM_BUILD_ROOT}/usr/lib/MailScanner/init/
-install usr/lib/MailScanner/systemd/ms-systemd ${RPM_BUILD_ROOT}/usr/lib/MailScanner/systemd/
-install usr/lib/MailScanner/systemd/ms-milter ${RPM_BUILD_ROOT}/usr/lib/MailScanner/systemd/
+install common/usr/lib/MailScanner/init/ms-init ${RPM_BUILD_ROOT}/usr/lib/MailScanner/init/
+install common/usr/lib/MailScanner/init/msmilter-init ${RPM_BUILD_ROOT}/usr/lib/MailScanner/init/
+install common/usr/lib/MailScanner/systemd/ms-systemd ${RPM_BUILD_ROOT}/usr/lib/MailScanner/systemd/
+install common/usr/lib/MailScanner/systemd/ms-milter ${RPM_BUILD_ROOT}/usr/lib/MailScanner/systemd/
 
 while read f 
 do
-  install usr/lib/MailScanner/wrapper/$f ${RPM_BUILD_ROOT}/usr/lib/MailScanner/wrapper
+  install common/usr/lib/MailScanner/wrapper/$f ${RPM_BUILD_ROOT}/usr/lib/MailScanner/wrapper
 done << EOF
 avast-wrapper
 avg-autoupdate
@@ -261,6 +253,11 @@ drweb-wrapper
 kaspersky-wrapper
 esets-wrapper-README
 EOF
+
+MSVERSION=%{version}
+
+perl -pi -e 's/VersionNumberHere/'$MSVERSION'/;' ${RPM_BUILD_ROOT}/etc/MailScanner/MailScanner.conf
+perl -pi -e 's/VersionNumberHere/'$MSVERSION'/;' ${RPM_BUILD_ROOT}/usr/sbin/MailScanner
 
 %clean
 rm -rf ${RPM_BUILD_ROOT}
@@ -1152,6 +1149,9 @@ exit 0
 %config(noreplace) /usr/share/MailScanner/reports/ca/stored.virus.message.txt
 
 %changelog
+* Sat May 16 2020 Shawn Iverson <shawniverson@efa-project.org>
+- Refactor to simplify build and spec
+
 * Sat Nov 02 2019 Shawn Iverson <shawniverson@efa-project.org>
 - Refactor for standard package management
 
@@ -1194,6 +1194,6 @@ exit 0
 * Thu Nov 10 2016 Jerry Benton <mailscanner@mailborder.com>
 - see https://github.com/MailScanner/v5/blob/master/changelog
 
-* Sun Apr 30 2016 Jerry Benton <mailscanner@mailborder.com>
+* Sat Apr 30 2016 Jerry Benton <mailscanner@mailborder.com>
 - v5 initial release
 
