@@ -1,17 +1,27 @@
 #!/usr/bin/env bash
 #
-# Updated: 2 Nov 2019
+# Updated: 16 May 2020
 # MailScanner Team <https://www.mailscanner.info>
 #
-# This script will build the latest RPM install 
-# package and put it in /msbuilds/rpm
+# This helper script will build the latest RPM install 
 
 # make sure this is run from the base directory
 if [ ! -d 'rhel' ]; then
-	echo 'This script must be executed from the base directory.';
-	echo './RPM.files was not found. Exiting ...';
-	echo;
-	exit 192
+    echo 'This script must be executed from the base directory.';
+    echo './rhel was not found, Exiting ...';
+    echo;
+    exit 192
+fi
+
+MSVERSION=$(sed 's/-.*$//' VERSION)
+MSBUILD=$(sed 's/^.*-//' VERSION)
+VERSION=$(cat VERSION)
+
+if [[ -z $MSVERSION || -z $MSBUILD ]]; then
+    echo "Could not determine MailScanner version."
+    echo "Unable read VERSION file"
+    echo;
+    exit 192
 fi
 
 # directory we are in
@@ -19,56 +29,9 @@ THISCURDIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 
 # if not set from the "Build.all" script
 if [ -z "$RPMOUT" ]; then
-	RPMOUT="$HOME/msbuilds/rpm";
+	RPMOUT="$HOME/msbuilds/rhel";
 	export RPMOUT;
 fi
-
-# check to see if the output directory exists
-if [ ! -d "$RPMOUT" ]; then
-	mkdir -p $RPMOUT
-fi
-
-# if not set from the "Build.all" script
-if [ -z "$MSVERSION" ]; then
-	echo "Please tell me the version number (x.xx.x): ";
-	read MSVERSION
-	export MSVERSION
-fi
-
-# if not set from the "Build.all" script
-if [ -z "$MSBUILD" ]; then
-	echo "And the build number (-x): ";
-	read MSBUILD	
-	export MSBUILD
-fi
-
-# if not set from the "Build.all" script
-if [ -z "$FULLMSVER" ]; then
-	FULLMSVER=$MSVERSION-$MSBUILD
-	export FULLMSVER
-fi
-
-# if not set from the "Build.all" script
-if [ -z "$DEVBASEDIR" ]; then
-	DEVBASEDIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
-	#echo "You current directory is $THISCURDIR"; echo;
-	#echo "Enter the parent directory of RPM.files without the trailing slash: ";
-	#read DEVBASEDIR
-	export DEVBASEDIR
-fi
-
-# create this if missing
-#if [ ! -f '/tmp/MailScanner.conf.index.html' ]; then
-	#sh $DEVBASEDIR/config.index/make.sh
-#fi
-
-# the source directory
-SRCDIR=$DEVBASEDIR/rhel
-
-# version info 
-BUILD=$MSBUILD
-VERSION=$MSVERSION-$BUILD
-export VERSION BUILD
 
 # setup rpm development dirs
 mkdir -p ~/rpmbuild/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
@@ -86,24 +49,9 @@ fi
 
 # make working dir and subs
 mkdir -p $WORK
-mkdir -p $WORK/{usr,etc}
 
-# etc
-cp -fr $DEVBASEDIR/common/etc/*		$WORK/etc/
-cp -fr $DEVBASEDIR/rhel/etc/*		$WORK/etc/
-
-# usr
-cp -fr $DEVBASEDIR/common/usr/* 	$WORK/usr/
-cp -fr $DEVBASEDIR/rhel/usr/* 	    $WORK/usr/
-
-# Insert the version number we are building
-perl -pi -e 's/VersionNumberHere/'$MSVERSION'/;' $WORK/etc/MailScanner/MailScanner.conf
-perl -pi -e 's/VersionNumberHere/'$MSVERSION'/;' $WORK/usr/sbin/MailScanner
-
-# do the same for mailscanner.spec
-cp -f $DEVBASEDIR/rhel/mailscanner.spec ~/rpmbuild/SPECS/mailscanner.spec
-perl -pi -e 's/VersionNumberHere/'$MSVERSION'/;' ~/rpmbuild/SPECS/mailscanner.spec
-perl -pi -e 's/ReleaseNumberHere/'$MSBUILD'/;' ~/rpmbuild/SPECS/mailscanner.spec
+# copy everything
+cp -fr $THISCURDIR/*    $WORK/
 
 # remove svn and git and mac stuff
 find $WORK -name '.svn' -exec rm -rf {} \;
@@ -111,55 +59,26 @@ find $WORK -name '.git' -exec rm -rf {} \;
 find $WORK -name '*.DS_Store' -exec rm -rf {} \;
 find $WORK -depth -name '__MACOSX' -exec rm -rf {} \;
 
-# permissions
-cd $WORK
-find . -type f -exec chmod 0644 {} \;
-find . -type d -exec chmod 0755 {} \;
-chmod +x $WORK/usr/sbin/*
-chmod +x $WORK/usr/lib/MailScanner/wrapper/*-autoupdate
-chmod +x $WORK/usr/lib/MailScanner/wrapper/*-wrapper
-chmod +x $WORK/usr/lib/MailScanner/init/*
-chmod +x $WORK/etc/cron.daily/*
-chmod +x $WORK/etc/cron.hourly/*
-
-# Doc and patches
-mkdir -p $WORK/usr/share/MailScanner/doc
-cp $DEVBASEDIR/changelog $WORK/usr/share/MailScanner/doc/changelog
-cp $DEVBASEDIR/README $WORK/usr/share/MailScanner/doc/README
-cp $DEVBASEDIR/LICENSE $WORK/usr/share/MailScanner/doc/LICENSE
-
 # Build the src tarball for RPM construction
 cd $WORK
 cd ..
-tar czf ~/rpmbuild/SOURCES/MailScanner-${MSVERSION}.tgz MailScanner-${MSVERSION}
+tar czf ~/rpmbuild/SOURCES/MailScanner-${MSVERSION}.tar.gz MailScanner-${MSVERSION}
 
 # return to where i started
 cd $THISCURDIR
 
-# create the output dir $RPMOUT
-# if [ -d $RPMOUT ]; then
-#  	rm -rf $RPMOUT
-#  fi
-#  mkdir -p $RPMOUT
-
-# copy some file we need
-#cp $SRCDIR/install.sh $RPMOUT/MailScanner-$VERSION/
-#find $RPMOUT/MailScanner-$VERSION -name 'install.sh' -exec chmod 755 {} \;
-#find $RPMOUT/MailScanner-$VERSION -name 'LICENSE' -exec chmod 644 {} \;
-#find $RPMOUT/MailScanner-$VERSION -name 'README' -exec chmod 644 {} \;
-#find $RPMOUT/MailScanner-$VERSION -name 'patch.diff' -exec chmod 644 {} \;
-
 # Build the RPM and SRPMS
-# extra define statements help make the rpm backwards compatible
-#rpmbuild -ba --sign --define "_binary_filedigest_algorithm  1"  --define "_binary_payload 1" ~/rpmbuild/SPECS/mailscanner.spec
-rpmbuild -ba --define "_binary_filedigest_algorithm  1"  --define "_binary_payload 1" ~/rpmbuild/SPECS/mailscanner.spec
+cp -f $THISCURDIR/rhel/mailscanner.spec ~/rpmbuild/SPECS/mailscanner.spec
+perl -pi -e 's/__Version__/'$MSVERSION'/;' ~/rpmbuild/SPECS/mailscanner.spec
+perl -pi -e 's/__Release__/'$MSBUILD'/;' ~/rpmbuild/SPECS/mailscanner.spec
+rpmbuild -ba ~/rpmbuild/SPECS/mailscanner.spec
 
-# copy the rpm built to the output dir
-cp ~/rpmbuild/RPMS/noarch/MailScanner-${VERSION}.rhel.noarch.rpm $RPMOUT
-#cd $RPMOUT
-#tar czf MailScanner-${VERSION}.rhel.tar.gz MailScanner-$VERSION
-#rm -rf $RPMOUT/MailScanner-$VERSION
+# Cleanup
+mv ~/rpmbuild/RPMS/noarch/MailScanner-${VERSION}.rhel.noarch.rpm $RPMOUT
 rm -rf $WORK
+# Be mindful that rpmbuild may be present for other things...
+rm -f ~/rpmbuild/SOURCES/MailScanner-${MSVERSION}.tar.gz
+rm -f ~/rpmbuild/SPECS/mailscanner.spec
 
 echo;
 echo "Completed: $RPMOUT/MailScanner-${VERSION}.rhel.noarch.rpm";
