@@ -447,6 +447,7 @@ MSMailSocketType         inet
 MSMailSocketDir          /var/spool/postfix/public/qmqp
 KseSocket                /var/run/kse/kse.sock
 FsecureSocket            /tmp/.fsav-0
+SAVIDSocket              /var/lib/savdid/savdid.sock
 
 #
 # These variables match on any rule matching From:, else anything for To:

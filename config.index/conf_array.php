@@ -1876,6 +1876,16 @@ Ignored Web Bug Filenames = spacer pixel.gif pixel.png',
  scanner setting.',
     'value' => ' /opt/sophos-av/lib/sav/*.ide',
   ),
+  'savidsocket' => 
+  array (
+    'external' => 'SAVIDSocket',
+    'type' => 'other',
+    'ruleset' => 'no',
+    'default' => '/var/lib/savdid/savdid.sock',
+    'name' => 'SAVID Socket',
+    'desc' => ' SophosSAVID only: location of the socket',
+    'value' => ' /var/lib/savdid/savdid.sock',
+  ),
   'mta' => 
   array (
     'external' => 'mta',
