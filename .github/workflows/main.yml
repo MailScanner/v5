@@ -30,3 +30,16 @@ jobs:
         name: builds
         # A file, directory or wildcard pattern that describes what to upload
         path: ~/msbuilds/*
+  test:
+    name: Test install on Ubuntu
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download a Build Artifact
+        uses: actions/download-artifact@v2
+        with:
+          # Artifact name
+          name: builds
+          # Destination path
+          path: ~/msbuilds/
+      - name: install deb package
+        run: dpkg -i ~/msbuilds/MailScanner*deb
