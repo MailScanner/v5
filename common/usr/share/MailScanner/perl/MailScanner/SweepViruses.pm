@@ -235,7 +235,7 @@ my %Scanners = (
     DisinfectOptions => '',
     ScanOptions      => '',
     InitParser       => \&InitAvastdParser,
-    ProcessOutput    => \&ProcessAvastdOutput,
+    ProcessOutput    => \&ProcessOutput,
     SupportScanning  => $S_SUPPORTED,
     SupportDisinfect => $S_NONE,
   },
@@ -257,7 +257,7 @@ my %Scanners = (
       DisinfectOptions => '',
       ScanOptions      => '',
       InitParser       => \&InitKseParser,
-      ProcessOutput    => \&ProcessKseOutput,
+      ProcessOutput    => \&ProcessOutput,
       SupportScanning  => $S_SUPPORTED,
       SupportDisinfect => $S_NONE,
   },
@@ -2742,51 +2742,6 @@ sub AvastdScan {
     }
 }
 
-sub ProcessAvastdOutput {
-    my ( $line, $infections, $types, $BaseDir, $Name ) = @_;
-    my (
-        $keyword, $virusname, $filename, $logout, $dot,
-        $id,      $part,      @rest,     $attach, $report
-    );
-
-    chomp $line;
-    $logout = $line;
-    $logout =~ s/\s{20,}/ /g;
-
-    # MailScanner::Log::InfoLog("Avastd said \"$line\"");
-
-    ( $keyword, $virusname, $filename ) = split( /:: /, $line, 3 );
-
-    if ( $keyword =~ /^error/i ) {
-        MailScanner::Log::InfoLog( "%s::%s", 'Avast', $logout );
-        return 1;
-    }
-    elsif ( $keyword =~ /^info|^clean/i ) {
-        return 0;
-    }
-    else {
-        ( $dot, $id, $part, @rest ) = split( /\//, $filename );
-        $attach = $part;
-        $attach =~ s/-\>.*$//;
-        my $notype = substr( $attach, 1 );
-        $logout =~ s/\Q$part\E/$notype/;
-        $report =~ s/\Q$part\E/$notype/;
-        MailScanner::Log::InfoLog( "%s::%s", 'Avast', $logout );
-        $report = $Name . ': ' if $Name;
-
-        if ( $attach eq '' ) {
-            $infections->{"$id"}{""} .=
-              "$report message was infected: $virusname\n";
-        }
-        else {
-            $infections->{"$id"}{"$attach"} .=
-              "$report$notype was infected: $virusname\n";
-        }
-        $types->{"$id"}{"$part"} .= "v";
-        return 1;
-    }
-}
-
 # Kse functions
 
 sub KseScan {
@@ -3025,49 +2980,6 @@ sub KSE {
         }
     }
     $dh->close;
-}
-
-sub ProcessKseOutput {
-    my ( $line, $infections, $types, $BaseDir, $Name ) = @_;
-    my (
-        $keyword, $virusname, $filename, $logout, $dot,
-        $id,      $part,      @rest,     $attach, $report
-    );
-
-    chomp $line;
-    $logout = $line;
-    $logout =~ s/\s{20,}/ /g;
-
-    ( $keyword, $virusname, $filename ) = split( /:: /, $line, 3 );
-
-    if ( $keyword =~ /^error/i ) {
-        MailScanner::Log::InfoLog( "%s::%s", 'KSE', $logout );
-        return 1;
-    }
-    elsif ( $keyword =~ /^clean/i ) {
-        return 0;
-    }
-    else {
-        ( $dot, $id, $part, @rest ) = split( /\//, $filename );
-        $attach = $part;
-        $attach =~ s/-\>.*$//;
-        my $notype = substr( $attach, 1 );
-        $logout =~ s/\Q$part\E/$notype/;
-        $report =~ s/\Q$part\E/$notype/;
-        MailScanner::Log::InfoLog( "%s::%s", 'KSE', $logout );
-        $report = $Name . ': ' if $Name;
-
-        if ( $attach eq '' ) {
-            $infections->{"$id"}{""} .=
-              "$report message was infected: $virusname\n";
-        }
-        else {
-            $infections->{"$id"}{"$attach"} .=
-              "$report$notype was infected: $virusname\n";
-        }
-        $types->{"$id"}{"$part"} .= "v";
-        return 1;
-    }
 }
 
 # Fprotd6 functions
