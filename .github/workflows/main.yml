@@ -41,6 +41,6 @@ jobs:
           # Artifact name
           name: builds
           # Destination path
-          path: ~/msbuilds/
+          path: ./msbuilds/
       - name: install package
-        run: echo "sanity check"
+        run: sudo /usr/bin/dpkg -i ./msbuilds/MailScanner*deb
