@@ -42,3 +42,5 @@ jobs:
           name: builds
           # Destination path
           path: ~/msbuilds/
+      - name: install package
+        run: sudo dpkg -i MailScanner*deb
