@@ -31,6 +31,7 @@ jobs:
         # A file, directory or wildcard pattern that describes what to upload
         path: ~/msbuilds/*
   test:
+    needs: [build]
     name: Test install on Ubuntu
     runs-on: ubuntu-latest
     steps:
