@@ -270,7 +270,7 @@ do
   install $f ${RPM_BUILD_ROOT}/usr/share/MailScanner/doc/
 done << EOF
 changelog
-README
+README.md
 LICENSE
 EOF
 
@@ -715,7 +715,7 @@ exit 0
 
 %attr(644,root,root) /usr/share/MailScanner/doc/changelog
 %attr(644,root,root) /usr/share/MailScanner/doc/LICENSE
-%attr(644,root,root) /usr/share/MailScanner/doc/README
+%attr(644,root,root) /usr/share/MailScanner/doc/README.md
 
 %config(noreplace) /usr/share/MailScanner/reports/en/deleted.content.message.txt
 %config(noreplace) /usr/share/MailScanner/reports/en/stored.content.message.txt
