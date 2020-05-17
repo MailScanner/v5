@@ -50,22 +50,30 @@ Other *nix
 
 MTA Guides:
   sendmail - https://www.mailscanner.info/sendmail
+  
   postfix  - https://www.mailscanner.info/postfix
+  
   exim     - https://www.mailscanner.info/exim
 
 Setup:
   Edit /etc/MailScanner/defaults and set options
+  
   Edit /etc/MailScanner/MailScanner.conf and set options
+  
   service mailscanner start
 
 NIX:
   For generic NIX systems, create a symlink for controlling the
+  
   start/stop/restart of the program to:
 
   /usr/lib/MailScanner/init/ms-init
+  
   * This is not required for RHEL, CentOS, Debian, Ubuntu, SUSE
 
 File Locations:
   /etc/MailScanner
+  
   /usr/share/MailScanner
+  
   /usr/lib/MailScanner
