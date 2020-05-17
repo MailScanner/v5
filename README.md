@@ -1,6 +1,9 @@
 ![Build](https://github.com/MailScanner/v5/workflows/Build/badge.svg?branch=master)
 ![Version](https://img.shields.io/github/v/release/MailScanner/v5)
 ![License](https://img.shields.io/github/license/MailScanner/v5)
+![Bugs](https://img.shields.io/github/issues/MailScanner/v5/bug?color=red)
+![Enhancements](https://img.shields.io/github/issues/MailScanner/v5/enhancement?color=blue)
+![Questions](https://img.shields.io/github/issues/MailScanner/v5/question?color=green)
 
 # Welcome to MailScanner!
 
