@@ -5,6 +5,7 @@
 Current version: 5.3.2-2 (5.3.3-1 pending)
 
 25 April 2020
+
 MailScanner Team <https://www.mailscanner.info>
 
 MailScanner is an open source email gateway that processes email for
@@ -26,7 +27,8 @@ Milter:     https://github.com/MailScanner/v5/blob/master/doc/MailScanner%20Milt
 
 Support:    http://lists.mailscanner.info/mailman/listinfo/mailscanner
 
-Install/Update
+## Install/Update
+
 Redhat-based
 ```
            rpm -ivh|-Uvh MailScanner-5.x.x-x.rhel.noarch.rpm
