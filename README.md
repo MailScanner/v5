@@ -15,10 +15,15 @@ install packages for popular distributions such as Redhat, Debian, and
 SUSE in addition to any generic NIX package.
 
 Info:       https://www.mailscanner.info
+
 Release:    https://www.mailscanner.info/downloads
+
 Github:     https://github.com/MailScanner/v5
+
 Manual:     https://s3.amazonaws.com/msv5/docs/ms-admin-guide.pdf
+
 Milter:     https://github.com/MailScanner/v5/blob/master/doc/MailScanner%20Milter%20Guide.pdf
+
 Support:    http://lists.mailscanner.info/mailman/listinfo/mailscanner
 
 Install/Update
