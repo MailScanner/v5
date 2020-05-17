@@ -43,4 +43,4 @@ jobs:
           # Destination path
           path: ~/msbuilds/
       - name: install package
-        run: sudo dpkg -i ~/msbuilds/MailScanner-5.3.3-1.noarch.deb
+        run: ls -l ~/msbuilds
