@@ -42,5 +42,3 @@ jobs:
           name: builds
           # Destination path
           path: ~/msbuilds/
-      - name: install deb package
-        run: dpkg -i ~/msbuilds/MailScanner*deb
