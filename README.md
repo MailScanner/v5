@@ -1,4 +1,5 @@
-![BuildPackages](https://github.com/MailScanner/v5/workflows/Build/badge.svg?branch=master)
+![Build](https://github.com/MailScanner/v5/workflows/Build/badge.svg?branch=master)
+![Version](https://img.shields.io/github/v/release/MailScanner/v5)
 
 # Welcome to MailScanner!
 
