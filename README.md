@@ -14,53 +14,53 @@ Spamassassin. MailScanner will run on any NIX platform and includes
 install packages for popular distributions such as Redhat, Debian, and
 SUSE in addition to any generic NIX package.
 
-   Info:       https://www.mailscanner.info
-   Release:    https://www.mailscanner.info/downloads
-   Github:     https://github.com/MailScanner/v5
-   Manual:     https://s3.amazonaws.com/msv5/docs/ms-admin-guide.pdf
-   Milter:     https://github.com/MailScanner/v5/blob/master/doc/MailScanner%20Milter%20Guide.pdf
-   Support:    http://lists.mailscanner.info/mailman/listinfo/mailscanner
+Info:       https://www.mailscanner.info
+Release:    https://www.mailscanner.info/downloads
+Github:     https://github.com/MailScanner/v5
+Manual:     https://s3.amazonaws.com/msv5/docs/ms-admin-guide.pdf
+Milter:     https://github.com/MailScanner/v5/blob/master/doc/MailScanner%20Milter%20Guide.pdf
+Support:    http://lists.mailscanner.info/mailman/listinfo/mailscanner
 
-   Install/Update
-       Redhat-based
+Install/Update
+Redhat-based
 ```
            rpm -ivh|-Uvh MailScanner-5.x.x-x.rhel.noarch.rpm
            /usr/sbin/ms-configure [--update]
 ```
-       Debian-based
+Debian-based
 ```
            dpkg -i MailScanner-5.x.x.x-x.noarch.deb
            /usr/sbin/ms-configure [--update]
-       SuSE-based
+```
+SuSE-based
 ```
            rpm -ivh|-Uvh MailScanner-5.x.x.x-x.suse.noarch.rpm
            /usr/sbin/ms-configure [--update]
 ```
-       Other *nix
+Other *nix
 ```
            tar -xvzf MailScanner-5.x.x-x.nix.tar.gz
            ./install.sh
 ```
 
-   MTA Guides:
-       sendmail - https://www.mailscanner.info/sendmail
-       postfix  - https://www.mailscanner.info/postfix
-       exim     - https://www.mailscanner.info/exim
+MTA Guides:
+  sendmail - https://www.mailscanner.info/sendmail
+  postfix  - https://www.mailscanner.info/postfix
+  exim     - https://www.mailscanner.info/exim
 
-   Setup:
-       Edit /etc/MailScanner/defaults and set options
-       Edit /etc/MailScanner/MailScanner.conf and set options
-       service mailscanner start
+Setup:
+  Edit /etc/MailScanner/defaults and set options
+  Edit /etc/MailScanner/MailScanner.conf and set options
+  service mailscanner start
 
-   NIX:
-       For generic NIX systems, create a symlink for controlling the
-       start/stop/restart of the program to:
+NIX:
+  For generic NIX systems, create a symlink for controlling the
+  start/stop/restart of the program to:
 
-       /usr/lib/MailScanner/init/ms-init
+  /usr/lib/MailScanner/init/ms-init
+  * This is not required for RHEL, CentOS, Debian, Ubuntu, SUSE
 
-       * This is not required for RHEL, CentOS, Debian, Ubuntu, SUSE
-
-   File Locations:
-       /etc/MailScanner
-       /usr/share/MailScanner
-       /usr/lib/MailScanner
+File Locations:
+  /etc/MailScanner
+  /usr/share/MailScanner
+  /usr/lib/MailScanner
