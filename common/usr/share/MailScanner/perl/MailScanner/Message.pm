@@ -7715,12 +7715,14 @@ sub DisarmEndtagCallback {
   } elsif ($tagname eq 'map' && $DisarmAreaURL) {
     # We are inside an imagemap that is part of a phishing imagemap
     $DisarmLinkText .= '</map>';
-  } elsif ($tagname eq 'a') {
+  } elsif ($tagname eq 'a' && $DisarmPhishing) {
     MailScanner::Log::DebugLog("Debug: Entering Disarm <a> tag");
     #print STDERR "---------------------------\n";
     #print STDERR "Endtag Callback found link, " .
     #             "disarmlinktext = \"$DisarmLinkText\"\n";
-    my($squashedtext,$linkurl,$alarm,$numbertrap,$emailuser);
+    my($squashedtext,$linkurl,$alarm,$numbertrap,$emailuser,$disarmedflag);
+    # Local flag used for hidden link detection to suppress multiple detections
+    $disarmedflag = 0;
     $DisarmInsideLink = 0;
     $squashedtext = lc($DisarmLinkText);
     if ($DisarmAreaURL) {
@@ -7796,12 +7798,33 @@ sub DisarmEndtagCallback {
     # like a digit so it catches 0x41 (= 'A')
     $numbertrap = ($DisarmNumbers && $linkurl !~ /[<>g-wyz]+/)?1:0;
 
-    if ($alarm ||
-        $squashedtext =~ /^(w+|ft+p|fpt+|ma[il]+to)([.,]|\%2e)/i || 
-        $squashedtext =~ /[.,](com|org|net|info|biz|ws)/i ||
-        $squashedtext =~ /[.,]com?[.,][a-z][a-z]/i ||
-        $squashedtext =~ /^(ht+ps?|ft+p|fpt+|mailto|webcal)[:;](\/\/)?(.*(\.|\%2e))/i ||
-        $numbertrap) {
+    #
+    # Known Dangerous Sites List code here
+    #
+    my $AlreadyReported = 0;
+    if (InPhishingBlacklist($linkurl) and not InPhishingWhitelist($linkurl)) {
+      use bytes;
+      print MailScanner::Config::LanguageValue(0, 'definitefraudstart') .
+            ' "' . $linkurl . '"' .
+            MailScanner::Config::LanguageValue(0, 'definitefraudend') .
+            ' ' if $PhishingHighlight;
+      $DisarmPhishingFound = 1;
+      $disarmedflag = 1;
+      $linkurl = substr $linkurl, 0, 80;
+      $squashedtext = substr $squashedtext, 0, 80;
+      $DisarmDoneSomething{'phishing'} = 1 if $PhishingHighlight;
+      use bytes; # Don't send UTF16 to syslog, it breaks!
+      MailScanner::Log::NoticeLog('Found definite phishing fraud from %s ' .
+                                  'in %s', $DisarmLinkURL, $id);
+                                  #'in %s', $linkurl, $id);
+      no bytes;
+      $AlreadyReported = 1;
+    } elsif ($alarm ||
+      $squashedtext =~ /^(w+|ft+p|fpt+|ma[il]+to)([.,]|\%2e)/i || 
+      $squashedtext =~ /[.,](com|org|net|info|biz|ws)/i ||
+      $squashedtext =~ /[.,]com?[.,][a-z][a-z]/i ||
+      $squashedtext =~ /^(ht+ps?|ft+p|fpt+|mailto|webcal)[:;](\/\/)?(.*(\.|\%2e))/i ||
+      $numbertrap) {
       $squashedtext =~  s/^(ht+ps?|ft+p|fpt+|mailto|webcal)[:;](\/\/)?(.*(\.|\%2e))/$3/i;
       $squashedtext =~ s/^.*?-http:\/\///; # 20080206 Delete common pre-pended text
       $squashedtext =~ s/\/.*$//; # Only compare the hostnames
@@ -7838,207 +7861,187 @@ sub DisarmEndtagCallback {
       #print STDERR "LinkURL is \"$linkurl\"\n";
       #print STDERR "Squashe is \"$squashedtext\"\n";
       #print STDERR "Phishing by numbers is $DisarmNumbers\n";
-      if ($DisarmPhishing) {
-        #
-        # Known Dangerous Sites List code here
-        #
-        my $AlreadyReported = 0;
-        if (InPhishingBlacklist($linkurl) and not InPhishingWhitelist($linkurl)) {
-          use bytes;
-          print MailScanner::Config::LanguageValue(0, 'definitefraudstart') .
-                ' "' . $linkurl . '"' .
-                MailScanner::Config::LanguageValue(0, 'definitefraudend') .
-                ' ' if $PhishingHighlight;
-          $DisarmPhishingFound = 1;
-          $linkurl = substr $linkurl, 0, 80;
-          $squashedtext = substr $squashedtext, 0, 80;
-          $DisarmDoneSomething{'phishing'} = 1 if $PhishingHighlight;
-          use bytes; # Don't send UTF16 to syslog, it breaks!
-          MailScanner::Log::NoticeLog('Found definite phishing fraud from %s ' .
-                                      'in %s', $DisarmLinkURL, $id);
-                                      #'in %s', $linkurl, $id);
-          no bytes;
-          $AlreadyReported = 1;
-        }
-  
-        #
-        # Less strict phishing net code is here
-        #
-  
-        if (!$StrictPhishing) {
-          my $TheyMatch = 0;
-  
-          # Is this an email?  Prepare it to compare domains.
-          # https://github.com/MailScanner/v5/issues/229
-          MailScanner::Log::DebugLog("DisarmLinkURL = $DisarmLinkURL");
-          MailScanner::Log::DebugLog("linkurl = $linkurl");
-          if ($DisarmLinkURL =~ m/^mailto:/i ) {
-            # Convert HTML entities, if present
-            # https://github.com/MailScanner/v5/issues/335
-            $linkurl = decode_entities($linkurl);
-            if ( $linkurl =~ /@/ ) {
-              my @list = split(/@/, $linkurl);
-              $linkurl = $list[1];
-            }
+
+      #
+      # Less strict phishing net code is here
+      #
+
+      if (!$StrictPhishing) {
+        my $TheyMatch = 0;
+
+        # Is this an email?  Prepare it to compare domains.
+        # https://github.com/MailScanner/v5/issues/229
+        MailScanner::Log::DebugLog("DisarmLinkURL = $DisarmLinkURL");
+        MailScanner::Log::DebugLog("linkurl = $linkurl");
+        if ($DisarmLinkURL =~ m/^mailto:/i ) {
+          # Convert HTML entities, if present
+          # https://github.com/MailScanner/v5/issues/335
+          $linkurl = decode_entities($linkurl);
+          if ( $linkurl =~ /@/ ) {
+            my @list = split(/@/, $linkurl);
+            $linkurl = $list[1];
           }
-  
-          unless (InPhishingWhitelist($linkurl)) {
-            #print STDERR "Not strict phishing\n";
-            # We are just looking at the domain name and country code (more or less)
-            # Find the end of the domain name so we know what to strip
-            my $domain = $linkurl;
-            $domain =~ s/\/*$//; # Take off trailing /
-            $domain =~ s/\.([^.]{2,100})$//; # Take off .TLD
-            my $tld = $1;
-            $domain =~ s/([^.]{2,100})$//; # Take off SLD
-            my $sld = $1;
-            # Now do the same for the squashed text, i.e. where they claim it is
-            my $text = $squashedtext;
-            #print STDERR "Comparing $linkurl and $squashedtext\n";
-            #print STDERR "tld = $tld and sld = $sld\n";
-            $text =~ s/\/*$//; # Take off trailing /
-            $text =~ s/\.([^.]{2,100})$//; # Take off .TLD
-            my $ttld = $1;
-            $text =~ s/([^.]{2,100})$//; # Take off SLD
-            my $tsld = $1;
-            #print STDERR "ttld = $ttld and tsld = $tsld\n";
-            if ($tld && $ttld && $sld && $tsld && $tld eq $ttld && $sld eq $tsld) {
-              #print STDERR "tld/sld test matched\n";
-              # domain.org or domain.3rd.2nd.india
-              # Last 2 words match (domain.org), should that be enough or do we
-              # need to compare the next word too (domain.org.uk) ?
-              # We need to check the next word too.
-              $domain =~ s/([^.]{2,100})\.$//; # Take off 3LD.
-              my $third = $1;
-              $text   =~ s/([^.]{2,100})\.$//; # Take off 3LD.
-              my $tthird = $1;
-              #print STDERR "third = $third and tthird = $tthird\n";
-              if ($MailScanner::Config::SecondLevelDomainExists{"$sld.$tld"}) {
-                # domain.org.uk
-                $TheyMatch = 1 if $third && $tthird && $third eq $tthird;
+        }
+
+        unless (InPhishingWhitelist($linkurl)) {
+          #print STDERR "Not strict phishing\n";
+          # We are just looking at the domain name and country code (more or less)
+          # Find the end of the domain name so we know what to strip
+          my $domain = $linkurl;
+          $domain =~ s/\/*$//; # Take off trailing /
+          $domain =~ s/\.([^.]{2,100})$//; # Take off .TLD
+          my $tld = $1;
+          $domain =~ s/([^.]{2,100})$//; # Take off SLD
+          my $sld = $1;
+          # Now do the same for the squashed text, i.e. where they claim it is
+          my $text = $squashedtext;
+          #print STDERR "Comparing $linkurl and $squashedtext\n";
+          #print STDERR "tld = $tld and sld = $sld\n";
+          $text =~ s/\/*$//; # Take off trailing /
+          $text =~ s/\.([^.]{2,100})$//; # Take off .TLD
+          my $ttld = $1;
+          $text =~ s/([^.]{2,100})$//; # Take off SLD
+          my $tsld = $1;
+          #print STDERR "ttld = $ttld and tsld = $tsld\n";
+          if ($tld && $ttld && $sld && $tsld && $tld eq $ttld && $sld eq $tsld) {
+            #print STDERR "tld/sld test matched\n";
+            # domain.org or domain.3rd.2nd.india
+            # Last 2 words match (domain.org), should that be enough or do we
+            # need to compare the next word too (domain.org.uk) ?
+            # We need to check the next word too.
+            $domain =~ s/([^.]{2,100})\.$//; # Take off 3LD.
+            my $third = $1;
+            $text   =~ s/([^.]{2,100})\.$//; # Take off 3LD.
+            my $tthird = $1;
+            #print STDERR "third = $third and tthird = $tthird\n";
+            if ($MailScanner::Config::SecondLevelDomainExists{"$sld.$tld"}) {
+              # domain.org.uk
+              $TheyMatch = 1 if $third && $tthird && $third eq $tthird;
+            } else {
+              # Maybe we have a 3rd level domain base?
+              if ($MailScanner::Config::SecondLevelDomainExists{"$third.$sld.$tld"}) {
+                # We need to check the next (4th) word too.
+                $domain =~ /([^.]{2,100})\.$/; # Store 4LD
+                my $fourth = $1;
+                $text   =~ /([^.]{2,100})\.$/; # Store 4LD
+                my $tfourth = $1;
+                $TheyMatch = 1 if $fourth && $tfourth && $fourth eq $tfourth &&
+                                  $third  && $tthird  && $third  eq $tthird;
               } else {
-                # Maybe we have a 3rd level domain base?
-                if ($MailScanner::Config::SecondLevelDomainExists{"$third.$sld.$tld"}) {
-                  # We need to check the next (4th) word too.
-                  $domain =~ /([^.]{2,100})\.$/; # Store 4LD
-                  my $fourth = $1;
-                  $text   =~ /([^.]{2,100})\.$/; # Store 4LD
-                  my $tfourth = $1;
-                  $TheyMatch = 1 if $fourth && $tfourth && $fourth eq $tfourth &&
-                                    $third  && $tthird  && $third  eq $tthird;
-                } else {
-                  # We don't have a 3rd level, and we cannot have got here if
-                  # there was a 2nd level, so it must just look like domain.org,
-                  # so matches if tld and sld are the same. But we must have that
-                  # true or we would never have got here, so they must match.
-                  $TheyMatch = 1;
-                }
+                # We don't have a 3rd level, and we cannot have got here if
+                # there was a 2nd level, so it must just look like domain.org,
+                # so matches if tld and sld are the same. But we must have that
+                # true or we would never have got here, so they must match.
+                $TheyMatch = 1;
               }
             }
-            #
-            # Put phishing reporting code in here too.
-            #
-            if ($linkurl ne "") {
-              if ($TheyMatch) {
-                # Even though they are the same, still squeal if it's a raw IP
-                # Ignore fax: and tel: (not ip but numeric)
-                # https://github.com/MailScanner/v5/issues/224
-                if ($numbertrap && $DisarmLinkURL !~ m/^(fax|tel)[:;]/i) {
-                  print MailScanner::Config::LanguageValue(0, 'numericlinkwarning')
-                        . ' '
-                        if $PhishingHighlight && !$AlreadyReported; # && !InPhishingWhitelist($linkurl);
-                  $DisarmPhishingFound = 1;
-                  $linkurl = substr $linkurl, 0, 80;
-                  $squashedtext = substr $squashedtext, 0, 80;
-                  $DisarmDoneSomething{'phishing'} = 1 if $PhishingHighlight; #JKF1 $PhishingSubjectTag;
-                  use bytes; # Don't send UTF16 to syslog, it breaks!
-                  MailScanner::Log::NoticeLog('Found ip-based phishing fraud from ' .
-                                            '%s in %s', $DisarmLinkURL, $id);
-                                            #'%s in %s', $linkurl, $id);
-                }
-                # If it wasn't a raw IP, then everything looks fine
-              } else {
-                # They didn't match so it's definitely an attack
-                print $possiblefraudstart . ' "' . $linkurl . '" ' .
-                      MailScanner::Config::LanguageValue(0, 'possiblefraudend') .
-                      ' ' if $PhishingHighlight && !$AlreadyReported; # && !InPhishingWhitelist($linkurl);
+          }
+          #
+          # Put phishing reporting code in here too.
+          #
+          if ($linkurl ne "") {
+            if ($TheyMatch) {
+              # Even though they are the same, still squeal if it's a raw IP
+              # Ignore fax: and tel: (not ip but numeric)
+              # https://github.com/MailScanner/v5/issues/224
+              if ($numbertrap && $DisarmLinkURL !~ m/^(fax|tel)[:;]/i) {
+                print MailScanner::Config::LanguageValue(0, 'numericlinkwarning')
+                      . ' '
+                      if $PhishingHighlight && !$AlreadyReported; # && !InPhishingWhitelist($linkurl);
                 $DisarmPhishingFound = 1;
+                $disarmedflag = 1;
                 $linkurl = substr $linkurl, 0, 80;
                 $squashedtext = substr $squashedtext, 0, 80;
                 $DisarmDoneSomething{'phishing'} = 1 if $PhishingHighlight; #JKF1 $PhishingSubjectTag;
                 use bytes; # Don't send UTF16 to syslog, it breaks!
-                MailScanner::Log::NoticeLog('Found phishing fraud from %s ' .
-                                          'claiming to be %s in %s',
-                                          $DisarmLinkURL, $squashedtext, $id);
-                                          #$linkurl, $squashedtext, $id);
+                MailScanner::Log::NoticeLog('Found ip-based phishing fraud from ' .
+                                          '%s in %s', $DisarmLinkURL, $id);
+                                          #'%s in %s', $linkurl, $id);
               }
-              # End of less strict reporting code.
-              # But it probably was a phishing attack so print it all out
-              no bytes;
-              print "$DisarmLinkText"; # JKF 20060820 $text";
-              $DisarmLinkText = ""; # Reset state of automaton
-            }
-          }
-          # End of less strict phishing net.
-        } else {
-          #
-          # Strict Phishing Net Goes Here
-  
-          # Is this an email?
-          # https://github.com/MailScanner/v5/issues/229
-          MailScanner::Log::DebugLog("DisarmLinkURL = $DisarmLinkURL");
-          MailScanner::Log::DebugLog("linkurl = $linkurl");
-  
-          if ($DisarmLinkURL =~ m/^mailto:/i ) {
-            # Convert HTML entities, if present
-            # https://github.com/MailScanner/v5/issues/335
-            $linkurl = decode_entities($linkurl);
-            if ( $linkurl =~ /@/ ) {
-              my @list = split(/@/, $linkurl);
-              if ( $emailuser ne "" && $list[0] ne $emailuser) {
-                $alarm = 1;
-              }
-              $linkurl = $list[1];
-            }
-          }
-  
-          # Ignore fax: and tel: (not ip but numeric)
-          # https://github.com/MailScanner/v5/issues/224
-          if ($alarm ||
-            ($linkurl ne "" && $squashedtext !~ /^(w+\.)?\Q$linkurl\E\/?$/)
-            || ($linkurl ne "" && $numbertrap && $DisarmLinkURL !~ m/^(fax|tel)[:;]/i)) {
-  
-            unless (InPhishingWhitelist($linkurl)) {
-              use bytes; # Don't send UTF16 to syslog, it breaks!
-              if ($linkurl ne "" && $numbertrap && $linkurl eq $squashedtext && $DisarmLinkURL !~ m/^(fax|tel)[:;]/i) {
-                # It's not a real phishing trap, just a use of numberic IP links
-                print MailScanner::Config::LanguageValue(0, 'numericlinkwarning') .
-                      ' ' if $PhishingHighlight && !$AlreadyReported;
-              } else {
-                # It's a phishing attack.
-                print $possiblefraudstart . ' "' . $linkurl . '" ' .
-                      MailScanner::Config::LanguageValue(0, 'possiblefraudend') .
-                      ' ' if $PhishingHighlight && !$AlreadyReported;
-              }
+              # If it wasn't a raw IP, then everything looks fine
+            } else {
+              # They didn't match so it's definitely an attack
+              print $possiblefraudstart . ' "' . $linkurl . '" ' .
+                    MailScanner::Config::LanguageValue(0, 'possiblefraudend') .
+                    ' ' if $PhishingHighlight && !$AlreadyReported; # && !InPhishingWhitelist($linkurl);
               $DisarmPhishingFound = 1;
+              $disarmedflag = 1;
               $linkurl = substr $linkurl, 0, 80;
               $squashedtext = substr $squashedtext, 0, 80;
               $DisarmDoneSomething{'phishing'} = 1 if $PhishingHighlight; #JKF1 $PhishingSubjectTag;
-              # Ignore fax: and tel: (not ip but numeric)
-              # https://github.com/MailScanner/v5/issues/224
-              if ($numbertrap && $DisarmLinkURL !~ m/^(fax|tel)[:;]/i) {
-                MailScanner::Log::InfoLog('Found ip-based phishing fraud from ' .
-                                          '%s in %s', $DisarmLinkURL, $id);
-                                          #'%s in %s', $linkurl, $id);
-              } else {
-                MailScanner::Log::InfoLog('Found phishing fraud from %s ' .
-                                          'claiming to be %s in %s',
-                                          $DisarmLinkURL, $squashedtext, $id);
-                                          #$linkurl, $squashedtext, $id);
-              }
-              #print STDERR "Fake\n";
-              no bytes;
+              use bytes; # Don't send UTF16 to syslog, it breaks!
+              MailScanner::Log::NoticeLog('Found phishing fraud from %s ' .
+                                        'claiming to be %s in %s',
+                                        $DisarmLinkURL, $squashedtext, $id);
+                                        #$linkurl, $squashedtext, $id);
             }
+            # End of less strict reporting code.
+            # But it probably was a phishing attack so print it all out
+            no bytes;
+            print "$DisarmLinkText"; # JKF 20060820 $text";
+            $DisarmLinkText = ""; # Reset state of automaton
+          }
+        }
+        # End of less strict phishing net.
+      } else {
+        #
+        # Strict Phishing Net Goes Here
+
+        # Is this an email?
+        # https://github.com/MailScanner/v5/issues/229
+        MailScanner::Log::DebugLog("DisarmLinkURL = $DisarmLinkURL");
+        MailScanner::Log::DebugLog("linkurl = $linkurl");
+
+        if ($DisarmLinkURL =~ m/^mailto:/i ) {
+          # Convert HTML entities, if present
+          # https://github.com/MailScanner/v5/issues/335
+          $linkurl = decode_entities($linkurl);
+          if ( $linkurl =~ /@/ ) {
+            my @list = split(/@/, $linkurl);
+            if ( $emailuser ne "" && $list[0] ne $emailuser) {
+              $alarm = 1;
+            }
+            $linkurl = $list[1];
+          }
+        }
+
+        # Ignore fax: and tel: (not ip but numeric)
+        # https://github.com/MailScanner/v5/issues/224
+        if ($alarm ||
+          ($linkurl ne "" && $squashedtext !~ /^(w+\.)?\Q$linkurl\E\/?$/)
+          || ($linkurl ne "" && $numbertrap && $DisarmLinkURL !~ m/^(fax|tel)[:;]/i)) {
+
+          unless (InPhishingWhitelist($linkurl)) {
+            use bytes; # Don't send UTF16 to syslog, it breaks!
+            if ($linkurl ne "" && $numbertrap && $linkurl eq $squashedtext && $DisarmLinkURL !~ m/^(fax|tel)[:;]/i) {
+              # It's not a real phishing trap, just a use of numberic IP links
+              print MailScanner::Config::LanguageValue(0, 'numericlinkwarning') .
+                    ' ' if $PhishingHighlight && !$AlreadyReported;
+            } else {
+              # It's a phishing attack.
+              print $possiblefraudstart . ' "' . $linkurl . '" ' .
+                    MailScanner::Config::LanguageValue(0, 'possiblefraudend') .
+                    ' ' if $PhishingHighlight && !$AlreadyReported;
+            }
+            $DisarmPhishingFound = 1;
+            $disarmedflag = 1;
+            $linkurl = substr $linkurl, 0, 80;
+            $squashedtext = substr $squashedtext, 0, 80;
+            $DisarmDoneSomething{'phishing'} = 1 if $PhishingHighlight; #JKF1 $PhishingSubjectTag;
+            # Ignore fax: and tel: (not ip but numeric)
+            # https://github.com/MailScanner/v5/issues/224
+            if ($numbertrap && $DisarmLinkURL !~ m/^(fax|tel)[:;]/i) {
+              MailScanner::Log::InfoLog('Found ip-based phishing fraud from ' .
+                                        '%s in %s', $DisarmLinkURL, $id);
+                                        #'%s in %s', $linkurl, $id);
+            } else {
+              MailScanner::Log::InfoLog('Found phishing fraud from %s ' .
+                                        'claiming to be %s in %s',
+                                        $DisarmLinkURL, $squashedtext, $id);
+                                        #$linkurl, $squashedtext, $id);
+            }
+            #print STDERR "Fake\n";
+            no bytes;
           }
         }
       }
@@ -8052,7 +8055,7 @@ sub DisarmEndtagCallback {
     }
 
     # Highlight Hidden URL?
-    if ( $DisarmHidden && $DisarmDoneSomething{'phishing'} != 1) {
+    if ( $DisarmHidden && $disarmedflag != 1) {
       MailScanner::Log::DebugLog("Debug: DisarmLinkURL = %s", $DisarmLinkURL);
       MailScanner::Log::DebugLog("Debug: DisarmLinkText = %s", $DisarmLinkText);
       MailScanner::Log::DebugLog("Debug: squashedtext = %s", $squashedtext);

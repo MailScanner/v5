@@ -83,7 +83,7 @@ sub ScanBatch {
     # Look for long line DOS
     # Courtesy of Andrew Colin Kissa
     my $line_length = FindLonglineDOS($message, $ent);
-    if ($line_length > 0 || $line_length == -1){
+    if ($line_length > 0 || ($line_length == -1 && MailScanner::Config::Value('ignoreqpdenialofservicefailure', $message) !~ /1/) ){
         if ($line_length == -1){
             $reason = MailScanner::Config::LanguageValue($message, "qpdosfail");
         } else {
@@ -756,6 +756,7 @@ sub FindLonglineDOS {
     my $encoding = ($entity->head->mime_encoding || 'binary');
     if ($type && $type =~ /^text\//i && $encoding eq "quoted-printable"){
         my $fn = $entity->bodyhandle->path;
+        return 0 unless $fn;
         my $fh = new FileHandle;
         if ( $fh->open("$fn") ) {
             while (<$fh>) {

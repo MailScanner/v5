@@ -1,5 +1,5 @@
 #   MailScanner - SMTP Email Processor
-#   Copyright (C) 2018 MailScanner project
+#   Copyright (C) 2018-2020 MailScanner project
 #
 #   This program is free software; you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
@@ -429,6 +429,12 @@ sub new {
             $FROMFound = 1;
             # Postfix compat
             push @{$message->{metadata}}, "S$recdata";
+            MailScanner::Log::DebugLog("MSMail: ReadQf: from = $recdata");
+            $pos = tell $RQf
+        } elsif ($recdata =~ /^E</) {
+            $recdata =~ s/^E<//;
+            $recdata =~ s/\>$//;
+            push @{$message->{metadata}}, "E$recdata";
             MailScanner::Log::DebugLog("MSMail: ReadQf: from = $recdata");
             $pos = tell $RQf
         } else {
@@ -891,8 +897,10 @@ sub new {
       my($line);
       my @recipient;
       my $recipientfound = 0;
+      my $senderfound = 0;
       my $permfail = 0;
       my($sender);
+      my $opts = '';
       my $messagesent = 0;
       my $InFrom = 0;
       my $response = '';
@@ -902,34 +910,24 @@ sub new {
       my $method = MailScanner::Config::Value('msmaildeliverymethod');
       my $sockettype = MailScanner::Config::Value('msmailsockettype');
       my $socketdir = MailScanner::Config::Value('msmailsocketdir');
+      my @ids;
 
       MailScanner::Log::DebugLog("MSMail: KickMessage:\n org = $orgname\n port = $port\n address = $address");
       foreach $queue (keys %$queue2ids) {
           next unless $queue2ids->{$queue};
-          $queuedir  = new DirHandle;
-          unless (chdir $queue) {
-              MailScanner::Log::WarnLog("Cannot cd to dir %s to kick messages, %s",
-                                    $queue, $!);
-          }
 
-          $queuedir->open('.')
-              or MailScanner::Log::DieLog("Cannot open queue dir %s for kicking messages " .
-                                      "message batch, %s", $queue, $!);
-          while(defined($file = $queuedir->read())) {
-              next if $file eq '.' || $file eq '..';
-              push @Files, $file;
-          }
+          @ids = split(' ', $queue2ids->{$queue});
+          
           # Should be only one queuedir in this setup
           $queuedirname = $queue;
-          $queuedir->close;
-
       }
 
       $queuehandle = new FileHandle();
 
-      foreach $file (@Files) {
+      foreach $file (@ids) {
 
           undef(@recipient);
+          $opts = '';
 
           my $filename = $file;
           my $file = $queuedirname . '/' . $file;
@@ -940,6 +938,7 @@ sub new {
               next;
           }
           $recipientfound = 0;
+          $senderfound = 0;
           # Read in pre-data header
           my $msgstart = 0;
           while(!eof($queuehandle)) {
@@ -952,10 +951,17 @@ sub new {
                   MailScanner::Log::DebugLog("MSMail: KickMessage: recipient = $line");
                   $msgstart = tell $queuehandle;
                   next;
-              } elsif ($line =~ /^S/) {
+              } elsif ($line =~ /^S/ && $senderfound == 0) {
                   $line =~ s/^S//;
                   $sender = $line;
+                  $senderfound = 1;
                   MailScanner::Log::DebugLog("MSMail: KickMessage: sender = $sender");
+                  $msgstart = tell $queuehandle;
+              } elsif ($line =~ /^E</) {
+                  $line =~ s/^E<//;
+                  $line =~ s/\>$//;
+                  $opts = $line;
+                  MailScanner::Log::DebugLog("MSMail: KickMessage: options = $opts");
                   $msgstart = tell $queuehandle;
               } else {
                   last;
@@ -1023,7 +1029,15 @@ sub new {
                               # From received success
                               my $recipientsok = 1;
                               foreach my $myrecipient (@recipient) {
-                                  $req = 'RCPT TO: ' . $myrecipient . "\n";
+                                  $req = 'RCPT TO: ' . $myrecipient;
+
+                                  # RFC 3461
+                                  if ($opts ne '') {
+                                      $req = $req . ' ' . $opts;
+                                  }
+
+                                  $req = $req . "\n";
+
                                   $socket->send($req);
                                   $socket->recv($response, 1024);
                                   if ($response =~ /^250/ ) {
@@ -1069,7 +1083,7 @@ sub new {
                   $socket->close();
               }
               # Was message rejected?
-              if ($response =~ /^450/) {
+              if ($response =~ /^5\d\d/) {
                   $permfail = 1;
               }
           } elsif ( $method =~ m/^QMQP$/i ) {
@@ -1152,7 +1166,7 @@ sub new {
                      $response =~ s/\n//;
                      while(!eof($queuehandle)) {
                          $line = readline $queuehandle;
-                         last unless ($line =~ /^(?:O|S)</);
+                         last unless ($line =~ /^(?:O|S|E)</);
                          $queuehandle2->print($line);
                      }
                      $queuehandle2->print('X-'. $orgname . '-MailScanner-Relay-Reject: ' . $response . "\n");
