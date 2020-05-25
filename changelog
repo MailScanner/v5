@@ -1,4 +1,4 @@
-05/12/2020 Changes in    v5.3.3-1 (pending)
+05/12/2020 Changes in    v5.3.3-1
 ==================================
 
 - Fix broken MIME Filetype logic
@@ -9,6 +9,7 @@
 - Add support for the F-Secure Daemon Anti-virus Engine
 - Add support for the Sophos SAVID Daemon Anti-virus Engine
 - Simplify build scripts
+- Move new builds to release tags
 
 04/25/2020 Changes in    v5.3.2-2
 ==================================
