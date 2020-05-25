@@ -44,3 +44,12 @@ jobs:
           path: ./msbuilds/
       - name: install package
         run: sudo /usr/bin/dpkg -i ./msbuilds/MailScanner*deb
+  clean:
+    runs-on: ubuntu-latest
+    needs: [test]
+    steps:
+      - name: Cleanup artifacts
+        uses: GeekyEggo/delete-artifact@v1.0.0
+        with:
+          name: builds
+          failOnError: false
