@@ -1,5 +1,5 @@
 #   MailScanner - SMTP Email Processor
-#   Copyright (C) 2018 MailScanner project
+#   Copyright (C) 2018-2020 MailScanner project
 #
 #   This program is free software; you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
@@ -431,6 +431,12 @@ sub new {
             push @{$message->{metadata}}, "S$recdata";
             MailScanner::Log::DebugLog("MSMail: ReadQf: from = $recdata");
             $pos = tell $RQf
+        } elsif ($recdata =~ /^E/) {
+            $recdata =~ s/^E//;
+            push @{$message->{metadata}} "$recdata";
+            MailScanner::Log::DebugLog("MSMail: ReadQf: from = $recdata");
+            $pos = tell $RQf
+        }
         } else {
             last;
         }
@@ -893,6 +899,7 @@ sub new {
       my $recipientfound = 0;
       my $permfail = 0;
       my($sender);
+      my $opts = '';
       my $messagesent = 0;
       my $InFrom = 0;
       my $response = '';
@@ -957,6 +964,12 @@ sub new {
                   $sender = $line;
                   MailScanner::Log::DebugLog("MSMail: KickMessage: sender = $sender");
                   $msgstart = tell $queuehandle;
+              } elsif ($line =~ /^E/) {
+                  $line =~ s/^E//;
+                  $opts = $line;
+                  MailScanner::Log::DebugLog("MSMail: KickMessage: options = $opts");
+                  $msgstart = tell $queuehandle;
+              }
               } else {
                   last;
               }
@@ -1023,7 +1036,15 @@ sub new {
                               # From received success
                               my $recipientsok = 1;
                               foreach my $myrecipient (@recipient) {
-                                  $req = 'RCPT TO: ' . $myrecipient . "\n";
+                                  $req = 'RCPT TO: ' . $myrecipient;
+
+                                  # RFC 3461
+                                  if ($opts ne '') {
+                                      $req = $req . ' ' . $opts;
+                                  }
+
+                                  $req = $req . "\n";
+
                                   $socket->send($req);
                                   $socket->recv($response, 1024);
                                   if ($response =~ /^250/ ) {

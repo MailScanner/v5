@@ -274,6 +274,8 @@ sub WriteHeader {
           $line =~ s/^S//;
           $line = 'S<' . $line . '>';
           $Tf->print($line . "\n");
+       } elsif ($line =~ /^E/) {
+          $Tf->print($line . "\n");
        }
   }
   if ($this->{body}[0] eq "ORIGINAL") {
