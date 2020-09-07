@@ -274,6 +274,10 @@ sub WriteHeader {
           $line =~ s/^S//;
           $line = 'S<' . $line . '>';
           $Tf->print($line . "\n");
+       } elsif ($line =~ /^E/) {
+          $line =~ s/^E//;
+          $line = 'E<' . $line . '>';
+          $Tf->print($line . "\n");
        }
   }
   if ($this->{body}[0] eq "ORIGINAL") {
@@ -734,7 +738,7 @@ sub Start {
 
   # Locate predata header
   while($data = MailScanner::Sendmail::ReadRecord($$this{_handle})) {
-    last if $data !~ /^(O<|S<)/;
+    last if $data !~ /^(O<|S<|E<)/;
     $$this{_startpos}= tell $$this{_handle};
   }
 
