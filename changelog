@@ -1,7 +1,9 @@
 09/07/2020 Changes in    v5.3.4-1
+==================================
 
 - Add RFC 3461 RCPT TO Service Extension support (milter)
 - Change Received header continuation spacing to tabs (milter)
+- Fix pair of typos in ms-configure (rhel)
 
 05/12/2020 Changes in    v5.3.3-1
 ==================================
