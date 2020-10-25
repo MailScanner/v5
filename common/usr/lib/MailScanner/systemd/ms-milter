@@ -16,7 +16,7 @@ RemainAfterExit=yes
 ExecStart=/usr/lib/MailScanner/init/msmilter-init start
 ExecStop=/usr/lib/MailScanner/init/msmilter-init stop
 EnvironmentFile=-/etc/MailScanner/defaults
-PIDFile=/var/run/MSMilter.pid
+PIDFile=/run/MSMilter.pid
 
 [Install]
 WantedBy=multi-user.target
