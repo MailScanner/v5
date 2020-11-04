@@ -1,3 +1,8 @@
+11/04/2020 Changes in    v5.3.4-2
+==================================
+
+- Revert milter substitution of RCPT TO
+
 09/07/2020 Changes in    v5.3.4-1
 ==================================
 

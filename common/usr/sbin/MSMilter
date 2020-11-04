@@ -251,16 +251,6 @@ sub envrcpt_callback
     # RFC 3461
     foreach (@args)
     {
-        
-        if ($_ =~ /^ORCPT=rfc822;/)
-        {
-            MailScanner::Log::DebugLog("envrcpt_callback: ORCPT argument found: " . $_);
-            s/^ORCPT=rfc822;//;
-            if ($rcptto !~ /$_/) {
-                $rcptto = '<' . $_ . '>';
-            }
-        }
-
         if ($_ =~ /^NOTIFY=/)
         {
             MailScanner::Log::DebugLog("envrcpt_callback: NOTIFY argument found: " . $_);
