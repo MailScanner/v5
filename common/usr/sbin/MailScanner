@@ -815,12 +815,6 @@ $NextRebuildDueTime = time + $BayesRebuildPeriod if $BayesRebuildPeriod;
 # by SIGKILLing its children
 $SIG{'HUP'} = 'ReloadParent'; # JKF 20060731 if $RunInForeground;
 
-my $line;
-my $FH;
-if ($WantForeground) {
-  open $FH, "tail -f $WantForeground |" or die("Cannot redirect log data to foreground");
-}
-
 for (;;) {
   while($NumberOfChildren < $MaxChildren) {
     $0 = 'MailScanner: starting children';
