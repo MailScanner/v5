@@ -7720,7 +7720,9 @@ sub DisarmEndtagCallback {
     #print STDERR "---------------------------\n";
     #print STDERR "Endtag Callback found link, " .
     #             "disarmlinktext = \"$DisarmLinkText\"\n";
-    my($squashedtext,$linkurl,$alarm,$numbertrap,$emailuser);
+    my($squashedtext,$linkurl,$alarm,$numbertrap,$emailuser,$disarmedflag);
+    # Local flag used for hidden link detection to suppress multiple detections
+    $disarmedflag = 0;
     $DisarmInsideLink = 0;
     $squashedtext = lc($DisarmLinkText);
     if ($DisarmAreaURL) {
@@ -7807,6 +7809,7 @@ sub DisarmEndtagCallback {
             MailScanner::Config::LanguageValue(0, 'definitefraudend') .
             ' ' if $PhishingHighlight;
       $DisarmPhishingFound = 1;
+      $disarmedflag = 1;
       $linkurl = substr $linkurl, 0, 80;
       $squashedtext = substr $squashedtext, 0, 80;
       $DisarmDoneSomething{'phishing'} = 1 if $PhishingHighlight;
@@ -7946,6 +7949,7 @@ sub DisarmEndtagCallback {
                       . ' '
                       if $PhishingHighlight && !$AlreadyReported; # && !InPhishingWhitelist($linkurl);
                 $DisarmPhishingFound = 1;
+                $disarmedflag = 1;
                 $linkurl = substr $linkurl, 0, 80;
                 $squashedtext = substr $squashedtext, 0, 80;
                 $DisarmDoneSomething{'phishing'} = 1 if $PhishingHighlight; #JKF1 $PhishingSubjectTag;
@@ -7961,6 +7965,7 @@ sub DisarmEndtagCallback {
                     MailScanner::Config::LanguageValue(0, 'possiblefraudend') .
                     ' ' if $PhishingHighlight && !$AlreadyReported; # && !InPhishingWhitelist($linkurl);
               $DisarmPhishingFound = 1;
+              $disarmedflag = 1;
               $linkurl = substr $linkurl, 0, 80;
               $squashedtext = substr $squashedtext, 0, 80;
               $DisarmDoneSomething{'phishing'} = 1 if $PhishingHighlight; #JKF1 $PhishingSubjectTag;
@@ -8019,6 +8024,7 @@ sub DisarmEndtagCallback {
                     ' ' if $PhishingHighlight && !$AlreadyReported;
             }
             $DisarmPhishingFound = 1;
+            $disarmedflag = 1;
             $linkurl = substr $linkurl, 0, 80;
             $squashedtext = substr $squashedtext, 0, 80;
             $DisarmDoneSomething{'phishing'} = 1 if $PhishingHighlight; #JKF1 $PhishingSubjectTag;
@@ -8049,7 +8055,7 @@ sub DisarmEndtagCallback {
     }
 
     # Highlight Hidden URL?
-    if ( $DisarmHidden && $DisarmPhishingFound != 1) {
+    if ( $DisarmHidden && $disarmedflag != 1) {
       MailScanner::Log::DebugLog("Debug: DisarmLinkURL = %s", $DisarmLinkURL);
       MailScanner::Log::DebugLog("Debug: DisarmLinkText = %s", $DisarmLinkText);
       MailScanner::Log::DebugLog("Debug: squashedtext = %s", $squashedtext);
