@@ -156,6 +156,7 @@ $MailScanner::Config::MailScannerVersion = 'VersionNumberHere';
 my $WantHelp          = 0;
 my $Versions          = 0;
 my $WantProcDBDumpOnly= -1;
+my $WantForeground    = 0;
 my $WantLintOnly      = 0;
 my $WantLintLiteOnly  = 0;
 my $WantChangedOnly   = 0;
@@ -174,6 +175,7 @@ my $result = GetOptions ("h|H|help"            => \$WantHelp,
                          "lint"                => \$WantLintOnly,
                          "lintlite|lintlight"  => \$WantLintLiteOnly,
                          "processing:1"        => \$WantProcDBDumpOnly,
+                         "f|foreground"        => \$WantForeground,
                          "c|C|changed"         => \$WantChangedOnly,
                          "value=s"             => \$WantRuleCheck,
                          "from=s"              => \$RuleCheckFrom,
@@ -189,6 +191,7 @@ if ($WantHelp) {
   print STDERR "Usage:\n";
   print STDERR "MailScanner [ -h|-v|--debug|--debug-sa|--lint ] |\n";
   print STDERR "            [ --processing | --processing=<minimum> ] |\n";
+  print STDERR "            [ -f|--foreground ] |\n";
   print STDERR "            [ -c|--changed ] |\n";
   print STDERR "            [ --id=<message-id> ] |\n";
   print STDERR "            [ --inqueuedir=<dir-name|glob> ] |\n";
@@ -1447,8 +1450,12 @@ sub StartLogging {
 
   my $logbanner = "MailScanner Email Processor version " .
                   $MailScanner::Config::MailScannerVersion . " starting...";
+  if ($WantForeground) {
+    MailScanner::Log::Configure($logbanner, 'foreground');
+  } else {
+    MailScanner::Log::Configure($logbanner, 'syslog'); #'stderr');
+  }
 
-  MailScanner::Log::Configure($logbanner, 'syslog'); #'stderr');
 
   # Need to know log facility *before* we have read the whole config file!
   my $facility = MailScanner::Config::QuickPeek($filename, 'syslogfacility');

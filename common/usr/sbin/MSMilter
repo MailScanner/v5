@@ -36,6 +36,7 @@ use Socket qw(inet_ntop);
 use POSIX qw(strftime);
 use Sys::Hostname;
 use Time::HiRes qw( gettimeofday );
+use Getopt::Long;
 
 use MailScanner::Lock;
 use MailScanner::Log;
@@ -553,13 +554,17 @@ sub WritePIDFile {
 # Start logging
 #
 sub StartLogging {
-    my($filename) = @_;
+    my($filename, $foreground) = @_;
 
     my $procname = 'MSMilter';
 
     my $logbanner = "MSMilter Daemon starting...";
 
-    MailScanner::Log::Configure($logbanner, 'syslog'); 
+    if ($foreground) {
+        MailScanner::Log::Configure($logbanner, 'foreground');
+    } else {
+        MailScanner::Log::Configure($logbanner, 'syslog');
+    }
 
     # Need to know log facility *before* we have read the whole config file!
     my $facility = MailScanner::Config::QuickPeek($filename, 'syslogfacility');
@@ -602,6 +607,19 @@ BEGIN {
     $ENV{PATH}="/sbin:/bin:/usr/sbin:/usr/bin";
    
     umask 0077;
+
+    my $WantHelp          = 0;
+    my $WantForeground    = 0;
+    my $result = GetOptions ("h|H|help"            => \$WantHelp,
+                             "f|foreground"        => \$WantForeground);
+
+    if ($WantHelp) {
+        print STDERR "Usage:\n";
+        print STDERR "MSMilter [ -h|--help] |\n";
+        print STDERR "         [ -f|--foreground ] |\n";
+        print STDERR "         <MailScanner.conf-file-location>\n";
+        exit 0;
+    }
     
     $ConfFile = $ARGV[0];
     # Use the default if we couldn't find theirs. Will save a lot of grief.
@@ -609,7 +627,7 @@ BEGIN {
                                                            !(-f $ConfFile);
      
     # Start logging
-    StartLogging($ConfFile);
+    StartLogging($ConfFile, $WantForeground);
    
     MailScanner::Config::initialise(MailScanner::Config::QuickPeek($ConfFile,
                                   'customfunctionsdir'));
