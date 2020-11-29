@@ -609,7 +609,6 @@ BEGIN {
     umask 0077;
 
     my $WantHelp          = 0;
-    my $WantForeground    = 0;
     my $result = GetOptions ("h|H|help"            => \$WantHelp);
 
     if ($WantHelp) {
@@ -624,8 +623,7 @@ BEGIN {
     $ConfFile = '/etc/MailScanner/MailScanner.conf' if $ConfFile eq "" ||
                                                            !(-f $ConfFile);
 
-    use vars qw($RunInForeground);
-    $RunInForeground = MailScanner::Config::QuickPeek($ConfFile, 'runinforeground');
+    my $RunInForeground = MailScanner::Config::QuickPeek($ConfFile, 'runinforeground');
     $RunInForeground = 0 unless $RunInForeground =~ /yes|1/i;
 
     $| = 1 if $RunInForeground;
