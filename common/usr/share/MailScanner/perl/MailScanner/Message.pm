@@ -8049,7 +8049,7 @@ sub DisarmEndtagCallback {
     }
 
     # Highlight Hidden URL?
-    if ( $DisarmHidden && $DisarmDoneSomething{'phishing'} != 1) {
+    if ( $DisarmHidden && $DisarmPhishingFound != 1) {
       MailScanner::Log::DebugLog("Debug: DisarmLinkURL = %s", $DisarmLinkURL);
       MailScanner::Log::DebugLog("Debug: DisarmLinkText = %s", $DisarmLinkText);
       MailScanner::Log::DebugLog("Debug: squashedtext = %s", $squashedtext);
