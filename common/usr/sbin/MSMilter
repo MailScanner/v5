@@ -651,7 +651,7 @@ BEGIN {
 
         my $PidFile = MailScanner::Config::Value('milterpidfile');
         WritePIDFile($$,$PidFile) or die("Unable to Write PID!");
-            
+
         my $dispatcher = MailScanner::Config::Value('milterdispatcher');
         my $children = MailScanner::Config::Value('miltermaxchildren');
         my $user = MailScanner::Config::Value('runasuser');
