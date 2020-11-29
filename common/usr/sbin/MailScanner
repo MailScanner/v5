@@ -1447,8 +1447,11 @@ sub StartLogging {
 
   my $logbanner = "MailScanner Email Processor version " .
                   $MailScanner::Config::MailScannerVersion . " starting...";
-
-  MailScanner::Log::Configure($logbanner, 'syslog'); #'stderr');
+  if ($RunInForeground) {
+    MailScanner::Log::Configure($logbanner, 'foreground');
+  } else {
+    MailScanner::Log::Configure($logbanner, 'syslog'); #'stderr');
+  }
 
   # Need to know log facility *before* we have read the whole config file!
   my $facility = MailScanner::Config::QuickPeek($filename, 'syslogfacility');

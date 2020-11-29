@@ -36,6 +36,7 @@ use Socket qw(inet_ntop);
 use POSIX qw(strftime);
 use Sys::Hostname;
 use Time::HiRes qw( gettimeofday );
+use Getopt::Long;
 
 use MailScanner::Lock;
 use MailScanner::Log;
@@ -553,13 +554,17 @@ sub WritePIDFile {
 # Start logging
 #
 sub StartLogging {
-    my($filename) = @_;
+    my($filename, $foreground) = @_;
 
     my $procname = 'MSMilter';
 
     my $logbanner = "MSMilter Daemon starting...";
 
-    MailScanner::Log::Configure($logbanner, 'syslog'); 
+    if ($foreground) {
+        MailScanner::Log::Configure($logbanner, 'foreground');
+    } else {
+        MailScanner::Log::Configure($logbanner, 'syslog');
+    }
 
     # Need to know log facility *before* we have read the whole config file!
     my $facility = MailScanner::Config::QuickPeek($filename, 'syslogfacility');
@@ -574,14 +579,14 @@ sub ExitParent {
     # Reap children (wait up to one minute)
     my $counter=0;
     while ($counter < 30) {
-    if (wait() > 0) {
-        # Still active children
-        sleep(2);
-        $counter++;
-        MailScanner::Log::NoticeLog("Milter closing, waiting on children to finish...");
-    } else {
-        $counter=30;
-    }
+        if (wait() > 0) {
+            # Still active children
+            sleep(2);
+            $counter++;
+            MailScanner::Log::NoticeLog("Milter closing, waiting on children to finish...");
+        } else {
+            $counter=30;
+        }
     }
 
     # Cleanup partial writes
@@ -602,14 +607,29 @@ BEGIN {
     $ENV{PATH}="/sbin:/bin:/usr/sbin:/usr/bin";
    
     umask 0077;
+
+    my $WantHelp          = 0;
+    my $result = GetOptions ("h|H|help"            => \$WantHelp);
+
+    if ($WantHelp) {
+        print STDERR "Usage:\n";
+        print STDERR "MSMilter [ -h|--help] |\n";
+        print STDERR "         <MailScanner.conf-file-location>\n";
+        exit 0;
+    }
     
     $ConfFile = $ARGV[0];
     # Use the default if we couldn't find theirs. Will save a lot of grief.
     $ConfFile = '/etc/MailScanner/MailScanner.conf' if $ConfFile eq "" ||
                                                            !(-f $ConfFile);
+
+    my $RunInForeground = MailScanner::Config::QuickPeek($ConfFile, 'runinforeground');
+    $RunInForeground = 0 unless $RunInForeground =~ /yes|1/i;
+
+    $| = 1 if $RunInForeground;
      
     # Start logging
-    StartLogging($ConfFile);
+    StartLogging($ConfFile, $RunInForeground);
    
     MailScanner::Config::initialise(MailScanner::Config::QuickPeek($ConfFile,
                                   'customfunctionsdir'));
@@ -630,8 +650,8 @@ BEGIN {
         $SIG{'TERM'} = \&ExitParent;
 
         my $PidFile = MailScanner::Config::Value('milterpidfile');
-        WritePIDFile($$,$PidFile);
-        
+        WritePIDFile($$,$PidFile) or die("Unable to Write PID!");
+
         my $dispatcher = MailScanner::Config::Value('milterdispatcher');
         my $children = MailScanner::Config::Value('miltermaxchildren');
         my $user = MailScanner::Config::Value('runasuser');
@@ -676,6 +696,11 @@ BEGIN {
         exit 1
     }
     # Successful if we reach this point
+    while ($RunInForeground) 
+    { 
+        sleep 1;
+        #Do nothing just sit here :D
+    }
     exit 0;
 }
 
