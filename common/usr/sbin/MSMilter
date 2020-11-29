@@ -579,14 +579,14 @@ sub ExitParent {
     # Reap children (wait up to one minute)
     my $counter=0;
     while ($counter < 30) {
-    if (wait() > 0) {
-        # Still active children
-        sleep(2);
-        $counter++;
-        MailScanner::Log::NoticeLog("Milter closing, waiting on children to finish...");
-    } else {
-        $counter=30;
-    }
+        if (wait() > 0) {
+            # Still active children
+            sleep(2);
+            $counter++;
+            MailScanner::Log::NoticeLog("Milter closing, waiting on children to finish...");
+        } else {
+            $counter=30;
+        }
     }
 
     # Cleanup partial writes
@@ -700,6 +700,7 @@ BEGIN {
     # Successful if we reach this point
     while ($RunInForeground) 
     { 
+        sleep 1;
         #Do nothing just sit here :D
     }
     exit 0;
