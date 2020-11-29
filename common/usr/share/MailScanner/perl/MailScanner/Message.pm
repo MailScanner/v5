@@ -7816,9 +7816,7 @@ sub DisarmEndtagCallback {
                                   #'in %s', $linkurl, $id);
       no bytes;
       $AlreadyReported = 1;
-    }
-    
-    if ($alarm || $DisarmPhishingFound ||
+    } elsif ($alarm ||
       $squashedtext =~ /^(w+|ft+p|fpt+|ma[il]+to)([.,]|\%2e)/i || 
       $squashedtext =~ /[.,](com|org|net|info|biz|ws)/i ||
       $squashedtext =~ /[.,]com?[.,][a-z][a-z]/i ||
