@@ -189,7 +189,6 @@ if ($WantHelp) {
   print STDERR "Usage:\n";
   print STDERR "MailScanner [ -h|-v|--debug|--debug-sa|--lint ] |\n";
   print STDERR "            [ --processing | --processing=<minimum> ] |\n";
-  print STDERR "            [ -f|--foreground ] |\n";
   print STDERR "            [ -c|--changed ] |\n";
   print STDERR "            [ --id=<message-id> ] |\n";
   print STDERR "            [ --inqueuedir=<dir-name|glob> ] |\n";
