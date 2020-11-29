@@ -554,13 +554,17 @@ sub WritePIDFile {
 # Start logging
 #
 sub StartLogging {
-    my($filename) = @_;
+    my($filename, $foreground) = @_;
 
     my $procname = 'MSMilter';
 
     my $logbanner = "MSMilter Daemon starting...";
 
-    MailScanner::Log::Configure($logbanner, 'syslog');
+    if ($foreground) {
+        MailScanner::Log::Configure($logbanner, 'foreground');
+    } else {
+        MailScanner::Log::Configure($logbanner, 'syslog');
+    }
 
     # Need to know log facility *before* we have read the whole config file!
     my $facility = MailScanner::Config::QuickPeek($filename, 'syslogfacility');
@@ -606,13 +610,11 @@ BEGIN {
 
     my $WantHelp          = 0;
     my $WantForeground    = 0;
-    my $result = GetOptions ("h|H|help"            => \$WantHelp,
-                             "foreground=s"        => \$WantForeground);
+    my $result = GetOptions ("h|H|help"            => \$WantHelp);
 
     if ($WantHelp) {
         print STDERR "Usage:\n";
         print STDERR "MSMilter [ -h|--help] |\n";
-        print STDERR "         [ --foreground=logfile ] |\n";
         print STDERR "         <MailScanner.conf-file-location>\n";
         exit 0;
     }
@@ -621,9 +623,15 @@ BEGIN {
     # Use the default if we couldn't find theirs. Will save a lot of grief.
     $ConfFile = '/etc/MailScanner/MailScanner.conf' if $ConfFile eq "" ||
                                                            !(-f $ConfFile);
+
+    use vars qw($RunInForeground);
+    $RunInForeground = MailScanner::Config::QuickPeek($ConfFile, 'runinforeground');
+    $RunInForeground = 0 unless $RunInForeground =~ /yes|1/i;
+
+    $| = 1 if $RunInForeground;
      
     # Start logging
-    StartLogging($ConfFile);
+    StartLogging($ConfFile, $RunInForeground);
    
     MailScanner::Config::initialise(MailScanner::Config::QuickPeek($ConfFile,
                                   'customfunctionsdir'));
@@ -644,8 +652,8 @@ BEGIN {
         $SIG{'TERM'} = \&ExitParent;
 
         my $PidFile = MailScanner::Config::Value('milterpidfile');
-        WritePIDFile($$,$PidFile);
-        
+        WritePIDFile($$,$PidFile) or die("Unable to Write PID!");
+            
         my $dispatcher = MailScanner::Config::Value('milterdispatcher');
         my $children = MailScanner::Config::Value('miltermaxchildren');
         my $user = MailScanner::Config::Value('runasuser');
