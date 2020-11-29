@@ -698,11 +698,9 @@ BEGIN {
         exit 1
     }
     # Successful if we reach this point
-    if ($WantForeground) {
-        open my $FH, "tail -f $WantForeground |" or die;
-        while (my $line = <$FH>) {
-          if ($line =~ /MSMilter/) { print $line; }
-        }
+    while ($RunInForeground) 
+    { 
+        #Do nothing just sit here :D
     }
     exit 0;
 }
