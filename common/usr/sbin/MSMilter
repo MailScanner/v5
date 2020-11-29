@@ -554,17 +554,13 @@ sub WritePIDFile {
 # Start logging
 #
 sub StartLogging {
-    my($filename, $foreground) = @_;
+    my($filename) = @_;
 
     my $procname = 'MSMilter';
 
     my $logbanner = "MSMilter Daemon starting...";
 
-    if ($foreground) {
-        MailScanner::Log::Configure($logbanner, 'foreground');
-    } else {
-        MailScanner::Log::Configure($logbanner, 'syslog');
-    }
+    MailScanner::Log::Configure($logbanner, 'syslog');
 
     # Need to know log facility *before* we have read the whole config file!
     my $facility = MailScanner::Config::QuickPeek($filename, 'syslogfacility');
@@ -611,12 +607,12 @@ BEGIN {
     my $WantHelp          = 0;
     my $WantForeground    = 0;
     my $result = GetOptions ("h|H|help"            => \$WantHelp,
-                             "f|foreground"        => \$WantForeground);
+                             "foreground=s"        => \$WantForeground);
 
     if ($WantHelp) {
         print STDERR "Usage:\n";
         print STDERR "MSMilter [ -h|--help] |\n";
-        print STDERR "         [ -f|--foreground ] |\n";
+        print STDERR "         [ --foreground=logfile ] |\n";
         print STDERR "         <MailScanner.conf-file-location>\n";
         exit 0;
     }
@@ -627,7 +623,7 @@ BEGIN {
                                                            !(-f $ConfFile);
      
     # Start logging
-    StartLogging($ConfFile, $WantForeground);
+    StartLogging($ConfFile);
    
     MailScanner::Config::initialise(MailScanner::Config::QuickPeek($ConfFile,
                                   'customfunctionsdir'));
@@ -694,6 +690,12 @@ BEGIN {
         exit 1
     }
     # Successful if we reach this point
+    if ($WantForeground) {
+        open my $FH, "tail -f $WantForeground |" or die;
+        while (my $line = <$FH>) {
+          if ($line =~ /MSMilter/) { print $line; }
+        }
+    }
     exit 0;
 }
 

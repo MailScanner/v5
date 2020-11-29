@@ -156,7 +156,6 @@ $MailScanner::Config::MailScannerVersion = 'VersionNumberHere';
 my $WantHelp          = 0;
 my $Versions          = 0;
 my $WantProcDBDumpOnly= -1;
-my $WantForeground    = 0;
 my $WantLintOnly      = 0;
 my $WantLintLiteOnly  = 0;
 my $WantChangedOnly   = 0;
@@ -175,7 +174,6 @@ my $result = GetOptions ("h|H|help"            => \$WantHelp,
                          "lint"                => \$WantLintOnly,
                          "lintlite|lintlight"  => \$WantLintLiteOnly,
                          "processing:1"        => \$WantProcDBDumpOnly,
-                         "f|foreground"        => \$WantForeground,
                          "c|C|changed"         => \$WantChangedOnly,
                          "value=s"             => \$WantRuleCheck,
                          "from=s"              => \$RuleCheckFrom,
@@ -817,6 +815,12 @@ $NextRebuildDueTime = time + $BayesRebuildPeriod if $BayesRebuildPeriod;
 # by SIGKILLing its children
 $SIG{'HUP'} = 'ReloadParent'; # JKF 20060731 if $RunInForeground;
 
+my $line;
+my $FH;
+if ($WantForeground) {
+  open $FH, "tail -f $WantForeground |" or die("Cannot redirect log data to foreground");
+}
+
 for (;;) {
   while($NumberOfChildren < $MaxChildren) {
     $0 = 'MailScanner: starting children';
@@ -1450,12 +1454,11 @@ sub StartLogging {
 
   my $logbanner = "MailScanner Email Processor version " .
                   $MailScanner::Config::MailScannerVersion . " starting...";
-  if ($WantForeground) {
+  if ($RunInForeground) {
     MailScanner::Log::Configure($logbanner, 'foreground');
   } else {
     MailScanner::Log::Configure($logbanner, 'syslog'); #'stderr');
   }
-
 
   # Need to know log facility *before* we have read the whole config file!
   my $facility = MailScanner::Config::QuickPeek($filename, 'syslogfacility');
