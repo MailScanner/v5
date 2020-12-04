@@ -1,3 +1,10 @@
+12/04/2020 Changes in    v5.3.4-3
+==================================
+
+- Ignore QP DOS Failure option and body fix
+- Process all links during phishing checks
+- Output to stdout/stderr when running in foreground mode
+
 11/04/2020 Changes in    v5.3.4-2
 ==================================
 
