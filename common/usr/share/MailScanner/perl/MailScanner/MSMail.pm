@@ -937,6 +937,7 @@ sub new {
       foreach $file (@Files) {
 
           undef(@recipient);
+          $opts = '';
 
           my $filename = $file;
           my $file = $queuedirname . '/' . $file;
