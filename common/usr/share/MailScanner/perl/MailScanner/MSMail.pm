@@ -897,6 +897,7 @@ sub new {
       my($line);
       my @recipient;
       my $recipientfound = 0;
+      my $senderfound = 0;
       my $permfail = 0;
       my($sender);
       my $opts = '';
@@ -948,6 +949,7 @@ sub new {
               next;
           }
           $recipientfound = 0;
+          $senderfound = 0;
           # Read in pre-data header
           my $msgstart = 0;
           while(!eof($queuehandle)) {
@@ -960,9 +962,10 @@ sub new {
                   MailScanner::Log::DebugLog("MSMail: KickMessage: recipient = $line");
                   $msgstart = tell $queuehandle;
                   next;
-              } elsif ($line =~ /^S/) {
+              } elsif ($line =~ /^S/ && $senderfound == 0) {
                   $line =~ s/^S//;
                   $sender = $line;
+                  $senderfound = 1;
                   MailScanner::Log::DebugLog("MSMail: KickMessage: sender = $sender");
                   $msgstart = tell $queuehandle;
               } elsif ($line =~ /^E</) {
