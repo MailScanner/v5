@@ -1,3 +1,11 @@
+01/25/2020 Changes in    v5.4.1-1 (beta)
+==================================
+
+- Option to ignore DAT file type check
+- Fix TNEF unparse behavior and work file permissions/ownership
+- Reset opts variable causing unwanted notifies
+- Fix mangling of sender in pre-header (preserve first occurrence)
+
 12/04/2020 Changes in    v5.3.4-3
 ==================================
 
