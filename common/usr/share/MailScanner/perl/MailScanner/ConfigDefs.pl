@@ -50,6 +50,7 @@ adenyfiletypes                  = ArchivesDenyFiletypes
 aallowfilemimetypes             = ArchivesAllowFileMIMETypes
 aallowfiletypes                 = ArchivesAllowFiletypes
 adenyfilenames                  = ArchivesDenyFilenames
+aignoredatexecutable            = ArchivesIgnoreDATFileExecutable
 addenvfrom			= AddEnvelopeFromHeader
 addenvto			= AddEnvelopeToHeader
 addmshmac			= AddWatermark
@@ -310,6 +311,7 @@ usedefaultswithmanyrecips	0	no	0	yes	1
 SQLDebug		0	no	0	yes	1
 MilterScanner	1	no	0	yes	1
 MilterIgnoreLoopback	1	no	0	yes	1
+aignoredatexecutable	0	no	0	yes	1
 
 
 # These should be checked for dir existence
