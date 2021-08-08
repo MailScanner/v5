@@ -1,4 +1,11 @@
-01/25/2020 Changes in    v5.4.1-1 (beta)
+08/08/2021 Changes in    v5.4.1-2
+==================================
+
+- Update inline.internal.warning.html (translation)
+- Update inline.external.warning.html (translation)
+- Declare code in v5.4.1-1 production ready
+
+01/25/2021 Changes in    v5.4.1-1 (beta)
 ==================================
 
 - Option to ignore DAT file type check
