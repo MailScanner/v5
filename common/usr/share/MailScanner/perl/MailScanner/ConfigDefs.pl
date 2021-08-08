@@ -50,6 +50,7 @@ adenyfiletypes                  = ArchivesDenyFiletypes
 aallowfilemimetypes             = ArchivesAllowFileMIMETypes
 aallowfiletypes                 = ArchivesAllowFiletypes
 adenyfilenames                  = ArchivesDenyFilenames
+aignoredatexecutable            = ArchivesIgnoreDATFileExecutable
 addenvfrom			= AddEnvelopeFromHeader
 addenvto			= AddEnvelopeToHeader
 addmshmac			= AddWatermark
@@ -300,8 +301,8 @@ logmcp			0	no	0	yes	1
 expandtnef		1	no	0	yes	1
 runinforeground		0	no	0	yes	1
 showscanner		1	no	0	yes	1
-spamassassinautowhitelist 1	no	0	yes	1
-spamlistskipifauthenticated	0       no      0       yes     1
+spamassassinautowhitelist	1	no	0	yes	1
+spamlistskipifauthenticated	0	no	0	yes	1
 spliteximspool		0	no	0	yes	1
 storeentireasdfqf	0	no	0	yes	1
 syntaxcheck		1	no	0	yes	1
@@ -310,6 +311,7 @@ usedefaultswithmanyrecips	0	no	0	yes	1
 SQLDebug		0	no	0	yes	1
 MilterScanner	1	no	0	yes	1
 MilterIgnoreLoopback	1	no	0	yes	1
+aignoredatexecutable	0	no	0	yes	1
 
 
 # These should be checked for dir existence
@@ -677,12 +679,13 @@ QuarantineModifiedBody	0	no	0	yes	1
 QuarantineSilent	0	no	0	yes	1
 QuarantineWholeMessage	0	no	0	yes	1
 IgnoreDenialOfService	0	no	0	yes	1
+IgnoreQPDenialOfServiceFailure	0	no	0	yes	1
 ReplaceTNEF		2	no	0	add	1	replace	2
 sadecodebins		0	no	0	yes	1
 ScanMail		1	no	0	yes	1	virus	2
 SpamStars		1	no	0	yes	1
 StrictPhishing		1	no	0	yes	1
-TagPhishingSubject	0	no	0 	yes	1	start	start	end	end
+TagPhishingSubject	0	no	0	yes	1	start	start	end	end
 MCPUseSpamAssassin	1	no	0	yes	1
 UseSpamAssassin		1	no	0	yes	1
 UseWatermarking		1	no	0	yes	1

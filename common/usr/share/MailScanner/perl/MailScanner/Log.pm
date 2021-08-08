@@ -121,6 +121,7 @@ sub WarnLog {
   LogText($logmessage, 'warning');
 
   carp $logmessage if $LogType eq 'stderr';
+  carp $logmessage if $LogType eq 'foreground';
 }
 
 sub NoticeLog {
@@ -131,6 +132,7 @@ sub NoticeLog {
     LogText($logmessage, 'notice');
 
     print STDERR "$logmessage\n" if $LogType eq 'stderr';
+    print STDOUT "$logmessage\n" if $LogType eq 'foreground';
   }
 }
 
@@ -142,6 +144,7 @@ sub InfoLog {
     LogText($logmessage, 'info');
 
     print STDERR "$logmessage\n" if $LogType eq 'stderr';
+    print STDOUT "$logmessage\n" if $LogType eq 'foreground';
   }
 }
 
@@ -153,6 +156,7 @@ sub DebugLog {
     LogText($logmessage, 'debug');
 
     print STDERR "$logmessage\n" if $LogType eq 'stderr';
+    print STDOUT "$logmessage\n" if $LogType eq 'foreground';
   }
 }
 

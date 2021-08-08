@@ -1,3 +1,30 @@
+01/25/2020 Changes in    v5.4.1-1 (beta)
+==================================
+
+- Option to ignore DAT file type check
+- Fix TNEF unparse behavior and work file permissions/ownership
+- Reset opts variable causing unwanted notifies
+- Fix mangling of sender in pre-header (preserve first occurrence)
+
+12/04/2020 Changes in    v5.3.4-3
+==================================
+
+- Ignore QP DOS Failure option and body fix
+- Process all links during phishing checks
+- Output to stdout/stderr when running in foreground mode
+
+11/04/2020 Changes in    v5.3.4-2
+==================================
+
+- Revert milter substitution of RCPT TO
+
+09/07/2020 Changes in    v5.3.4-1
+==================================
+
+- Add RFC 3461 RCPT TO Service Extension support (milter)
+- Change Received header continuation spacing to tabs (milter)
+- Fix pair of typos in ms-configure (rhel)
+
 05/12/2020 Changes in    v5.3.3-1
 ==================================
 

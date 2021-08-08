@@ -7,7 +7,7 @@
 
 # Welcome to MailScanner!
 
-25 May 2020
+January 25, 2021
 
 MailScanner Team <https://www.mailscanner.info>
 

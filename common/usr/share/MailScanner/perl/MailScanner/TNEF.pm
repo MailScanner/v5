@@ -301,101 +301,108 @@ sub ExternalDecoder {
 
   # Now the child is dead, look at all the return values
 
+  # https://github.com/MailScanner/v5/issues/525
+  # Fix premature exit here, only return if really unparsable
   # Do we want to deliver unparsable TNEF files anyway (like we used to)
   if (MailScanner::Config::Value('deliverunparsabletnef',$message)) {
-    return 0 if $TimedOut; # Ignore tnef command exit status
-    return 1; # Command terminated
-  } else {
-    return 0 if $TimedOut || $PipeReturn; # Command failed to exit w'success
+    return 1 if $TimedOut || $PipeReturn; # Ignore tnef command exit status
+  }
+  
+  return 0 if $TimedOut || $PipeReturn; # Command failed to exit w'success
 
-    # It all worked, so now add everything back into the message.
-    #print STDERR "Dir is \"$dir\" and tnefname is \"$tnefname\"\n";
+  # It all worked, so now add everything back into the message.
+  #print STDERR "Dir is \"$dir\" and tnefname is \"$tnefname\"\n";
 
-    unless (MailScanner::Config::Value('replacetnef',$message) =~ /[12]/) {
-      # Just need to move all the unpacked files into the main attachments dir
-      my $dirh = new DirHandle "$unpackdir";
-      return 0 unless defined $dirh;
-      while (defined(my $unpacked = $dirh->read)) {
-        next unless -f "$unpackdir/$unpacked";
-        # Add a 't' to the safename to mark it as a tnef member.
-        my $safe = $message->MakeNameSafe('t'.$unpacked, $dir);
-        # This will cause big problems as $safe has a type, and shouldn't!
-        $message->{file2parent}{$safe} = $tnefname;
-        my $name1 = "$unpackdir/$unpacked";
-        $name1 =~ /(.*)/;
-        $name1 = $1;
-        my $name2 = "$dir/$safe";
-        $name2 =~ /(.*)/;
-        $name2 = $1;
-        rename $name1, $name2;
-        # JKF 20090421 CHMOD, then CHOWN and CHGRP it if necessary.
-        chmod $perms, $name2;
-        chown $owner, $group, $name2 if $change;
-        # So let's remove the type indicator from $safe and store that too :)
-        $safe =~ s#^(.*/)([^/])([^/]+)$#$1$3#; # I assert $2 will equal 't'.
-        $message->{file2parent}{$safe} = $tnefname;
-      }
-      # The following may result in a warning from a virus scanner that
-      # tries to lstat the directory, but it was empty so it can be ignored.
-      rmdir "$unpackdir"; # Directory should be empty now
-      return 1;
-    }
-    #print STDERR "In TNEF External Decoder\n";
-
+  unless (MailScanner::Config::Value('replacetnef',$message) =~ /[12]/) {
+    # Just need to move all the unpacked files into the main attachments dir
     my $dirh = new DirHandle "$unpackdir";
     return 0 unless defined $dirh;
-    my($type, $encoding);
-    $message->{entity}->make_multipart;
-    my($safename, @replacements, $unpacked);
-    while (defined($unpacked = $dirh->read)) {
-      #print STDERR "Directory entry is \"$unpacked\" in \"$unpackdir\"\n";
+    while (defined(my $unpacked = $dirh->read)) {
       next unless -f "$unpackdir/$unpacked";
       # Add a 't' to the safename to mark it as a tnef member.
-      $safename = $message->MakeNameSafe('t'.$unpacked, $dir);
-      if (/^msg[\d-]+\.txt$/) {
-        ($type, $encoding) = ("text/plain", "8bit");
-      } else {
-        ($type, $encoding) = ("application/octet-stream", "base64");
-      }
-      #print STDERR "Renaming '$unpackdir/$unpacked' to '$dir/$safename'\n";
-      my $oldname = "$unpackdir/$unpacked";
-      my $newname = "$dir/$safename";
-      $oldname =~ /^(.*)$/;
-      $oldname = $1;
-      $newname =~ /^(.*)$/;
-      $newname = $1;
-      rename $oldname, $newname;
-      #rename "$unpackdir/$unpacked", "$dir/$safename";
+      my $safe = $message->MakeNameSafe('t'.$unpacked, $dir);
+      # This will cause big problems as $safe has a type, and shouldn't!
+      $message->{file2parent}{$safe} = $tnefname;
+      my $name1 = "$unpackdir/$unpacked";
+      $name1 =~ /(.*)/;
+      $name1 = $1;
+      my $name2 = "$dir/$safe";
+      $name2 =~ /(.*)/;
+      $name2 = $1;
       # JKF 20090421 CHMOD, then CHOWN and CHGRP it if necessary.
-      chmod $perms, $newname;
-      #chmod $perms, "$dir/$safename";
-      chown $owner, $group, $newname if $change;
-      #chown $owner, $group, "$dir/$safename" if $change;
-      # The only file that ever existed in the message structure is the safename
-      $message->{file2parent}{substr($safename,1)} = $tnefname;
-      $message->{file2parent}{$safename} = $tnefname;
-      push @replacements, $safename;
-      $message->{entity}->attach(Type => $type,
-                                 Encoding => $encoding,
-                                 Disposition => "attachment",
-                                 # Use original name: $safename,
-                                 Filename => $unpacked,
-                                 Path => "$dir/$safename");
+      # https://github.com/MailScanner/v5/issues/525
+      # Change owner/perms prior to renaming
+      chmod $perms, $name1;
+      chown $owner, $group, $name1 if $change;
+      rename $name1, $name2;
+      # So let's remove the type indicator from $safe and store that too :)
+      $safe =~ s#^(.*/)([^/])([^/]+)$#$1$3#; # I assert $2 will equal 't'.
+      $message->{file2parent}{$safe} = $tnefname;
     }
-    $message->{bodymodified} = 1;
-    $message->{foundtnefattachments} = 1;
-    undef $dirh;
     # The following may result in a warning from a virus scanner that
     # tries to lstat the directory, but it was empty so it can be ignored.
     rmdir "$unpackdir"; # Directory should be empty now
-    #$message->{entity}->dump_skeleton();
-
-    MailScanner::Log::InfoLog("Message %s added TNEF contents %s",
-                              $message->{id}, join(',', @replacements))
-      if @replacements;
-
-    return 1; # Command succeded and terminated
+    return 1;
   }
+  #print STDERR "In TNEF External Decoder\n";
+
+  my $dirh = new DirHandle "$unpackdir";
+  return 0 unless defined $dirh;
+  my($type, $encoding);
+  $message->{entity}->make_multipart;
+  my($safename, @replacements, $unpacked);
+  while (defined($unpacked = $dirh->read)) {
+    #print STDERR "Directory entry is \"$unpacked\" in \"$unpackdir\"\n";
+    next unless -f "$unpackdir/$unpacked";
+    # Add a 't' to the safename to mark it as a tnef member.
+    $safename = $message->MakeNameSafe('t'.$unpacked, $dir);
+    if (/^msg[\d-]+\.txt$/) {
+      ($type, $encoding) = ("text/plain", "8bit");
+    } else {
+      ($type, $encoding) = ("application/octet-stream", "base64");
+    }
+    #print STDERR "Renaming '$unpackdir/$unpacked' to '$dir/$safename'\n";
+    my $oldname = "$unpackdir/$unpacked";
+    my $newname = "$dir/$safename";
+    $oldname =~ /^(.*)$/;
+    $oldname = $1;
+    $newname =~ /^(.*)$/;
+    $newname = $1;
+
+    # https://github.com/MailScanner/v5/issues/525
+    # Change owner/perms prior to renaming
+    chmod $perms, $oldname;
+    chown $owner, $group, $oldname if $change;
+    rename $oldname, $newname;
+    
+    #rename "$unpackdir/$unpacked", "$dir/$safename";
+    # JKF 20090421 CHMOD, then CHOWN and CHGRP it if necessary.
+    #chmod $perms, "$dir/$safename";
+    #chown $owner, $group, "$dir/$safename" if $change;
+    # The only file that ever existed in the message structure is the safename
+    $message->{file2parent}{substr($safename,1)} = $tnefname;
+    $message->{file2parent}{$safename} = $tnefname;
+    push @replacements, $safename;
+    $message->{entity}->attach(Type => $type,
+                                Encoding => $encoding,
+                                Disposition => "attachment",
+                                # Use original name: $safename,
+                                Filename => $unpacked,
+                                Path => "$dir/$safename");
+  }
+  $message->{bodymodified} = 1;
+  $message->{foundtnefattachments} = 1;
+  undef $dirh;
+  # The following may result in a warning from a virus scanner that
+  # tries to lstat the directory, but it was empty so it can be ignored.
+  rmdir "$unpackdir"; # Directory should be empty now
+  #$message->{entity}->dump_skeleton();
+
+  MailScanner::Log::InfoLog("Message %s added TNEF contents %s",
+                            $message->{id}, join(',', @replacements))
+    if @replacements;
+
+  return 1; # Command succeded and terminated
 }
 
 1;
