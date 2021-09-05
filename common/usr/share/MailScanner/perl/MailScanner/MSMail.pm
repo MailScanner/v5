@@ -910,32 +910,21 @@ sub new {
       my $method = MailScanner::Config::Value('msmaildeliverymethod');
       my $sockettype = MailScanner::Config::Value('msmailsockettype');
       my $socketdir = MailScanner::Config::Value('msmailsocketdir');
+      my @ids;
 
       MailScanner::Log::DebugLog("MSMail: KickMessage:\n org = $orgname\n port = $port\n address = $address");
       foreach $queue (keys %$queue2ids) {
           next unless $queue2ids->{$queue};
-          $queuedir  = new DirHandle;
-          unless (chdir $queue) {
-              MailScanner::Log::WarnLog("Cannot cd to dir %s to kick messages, %s",
-                                    $queue, $!);
-          }
 
-          $queuedir->open('.')
-              or MailScanner::Log::DieLog("Cannot open queue dir %s for kicking messages " .
-                                      "message batch, %s", $queue, $!);
-          while(defined($file = $queuedir->read())) {
-              next if $file eq '.' || $file eq '..';
-              push @Files, $file;
-          }
+          @ids = split(' ', $queue2ids->{$queue});
+          
           # Should be only one queuedir in this setup
           $queuedirname = $queue;
-          $queuedir->close;
-
       }
 
       $queuehandle = new FileHandle();
 
-      foreach $file (@Files) {
+      foreach $file (@ids) {
 
           undef(@recipient);
           $opts = '';
@@ -1094,7 +1083,7 @@ sub new {
                   $socket->close();
               }
               # Was message rejected?
-              if ($response =~ /^450/) {
+              if ($response =~ /^5\d\d/) {
                   $permfail = 1;
               }
           } elsif ( $method =~ m/^QMQP$/i ) {
