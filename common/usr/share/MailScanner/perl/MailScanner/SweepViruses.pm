@@ -118,6 +118,17 @@ my %Scanners = (
     SupportScanning	=> $S_SUPPORTED,
     SupportDisinfect	=> $S_SUPPORTED,
   },
+  "f-secure-12" => {
+    name => "F-Secure-12",
+    Lock => 'f-secure12Busy.lock',
+    CommonOptions => '--quiet --scan-archives=yes',
+    DisinfectOptions => '--malware=remove --pua=remove',
+    ScanOptions => '--malware=remove --pua=remove --detect-encrypted-archives=yes',
+    InitParser => &InitFSecureParser,
+    ProcessOutput => &ProcessFSecureOutput,
+    SupportScanning => $S_SUPPORTED,
+    SupportDisinfect	=> $S_SUPPORTED,
+  },
   "f-secure"	=> {
     Name		=> 'F-Secure',
     Lock		=> 'f-secureBusy.lock',
@@ -262,7 +273,7 @@ my %Scanners = (
       SupportDisinfect => $S_NONE,
   },
   "drweb"   => {
-      Name		=> 'DrWeb',
+      Name                => 'DrWeb',
       Lock                => 'drwebBusy.lock',
       CommonOptions       => '',
       DisinfectOptions    => '-cu',
