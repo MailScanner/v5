@@ -1665,7 +1665,7 @@ sub ProcessFSecure12Output {
   $line =~ s/^(.*):\sresult=infected(\sinfection=.*)/$1$2/;
 
   # Get to the meat or die trying...
-  $line =~ s/\sinfection=(\S+).*$//;
+  $line =~ s/\sinfection=(\S+).*$//
     or MailScanner::Log::DieLog("Dodgy things going on in F-Secure-12 output:\n$report\n");
   $virus = $1;
   MailScanner::Log::NoticeLog("Virus Scanning: F-Secure found virus %s",$virus);
