@@ -1659,28 +1659,27 @@ sub ProcessFSecure12Output {
   $logout = $line;
   $logout =~ s/%/%%/g;
   $logout =~ s/\s{20,}/ /g;
- 
-  if ($line =~ /\sresult=infected\s/) {
-    $line =~ s/^(.*):(\sinfection=.*)/$1$2/;
 
-    # Get to the meat or die trying...
-    $line =~ s/\sinfection=(.*)(?=\s.*$|?=$)//;
-      or MailScanner::Log::DieLog("Dodgy things going on in F-Secure-12 output:\n$report\n");
-    $virus = $1;
-    MailScanner::Log::NoticeLog("Virus Scanning: F-Secure found virus %s",$virus);
+  return 0 unless $line =~ /\sresult=infected\s/;
+  
+  $line =~ s/^(.*):(\sinfection=.*)/$1$2/;
 
-    ($dot,$id,$part,@rest) = split(/\//, $line);
-    my $notype = substr($part,1);
-    $logout =~ s/\Q$part\E/$notype/;
-    $report =~ s/\Q$part\E/$notype/;
+  # Get to the meat or die trying...
+  $line =~ s/\sinfection=(.*)(?=\s.*$|?=$)//;
+    or MailScanner::Log::DieLog("Dodgy things going on in F-Secure-12 output:\n$report\n");
+  $virus = $1;
+  MailScanner::Log::NoticeLog("Virus Scanning: F-Secure found virus %s",$virus);
 
-    MailScanner::Log::InfoLog($logout);
-    $report = $Name . ': ' . $report if $Name;
-    $infections->{"$id"}{"$part"} .= $report . "\n";
-    $types->{"$id"}{"$part"} .= "v"; # so we know what to tell sender
-    return 1;
-  }
-  MailScanner::Log::DieLog("Either you've found a bug in MailScanner's F-Secure 12 output parser, or F-Secure 12's output format has changed! Please mail the author of MailScanner!\n");
+  ($dot,$id,$part,@rest) = split(/\//, $line);
+  my $notype = substr($part,1);
+  $logout =~ s/\Q$part\E/$notype/;
+  $report =~ s/\Q$part\E/$notype/;
+
+  MailScanner::Log::InfoLog($logout);
+  $report = $Name . ': ' . $report if $Name;
+  $infections->{"$id"}{"$part"} .= $report . "\n";
+  $types->{"$id"}{"$part"} .= "v"; # so we know what to tell sender
+  return 1;
 }
 
 sub ProcessFSecureOutput {
