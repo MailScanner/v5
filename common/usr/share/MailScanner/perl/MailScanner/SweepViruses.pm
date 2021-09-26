@@ -118,6 +118,17 @@ my %Scanners = (
     SupportScanning	=> $S_SUPPORTED,
     SupportDisinfect	=> $S_SUPPORTED,
   },
+  "f-secure-12" => {
+    name => "F-Secure-12",
+    Lock => 'f-secure12Busy.lock',
+    CommonOptions => '--quiet --scan-archives=yes',
+    DisinfectOptions => '--malware=remove --pua=remove',
+    ScanOptions => '--malware=remove --pua=remove --detect-encrypted-archives=yes',
+    InitParser => \&InitFSecure12Parser,
+    ProcessOutput => \&ProcessFSecure12Output,
+    SupportScanning => $S_SUPPORTED,
+    SupportDisinfect	=> $S_SUPPORTED,
+  },
   "f-secure"	=> {
     Name		=> 'F-Secure',
     Lock		=> 'f-secureBusy.lock',
@@ -262,7 +273,7 @@ my %Scanners = (
       SupportDisinfect => $S_NONE,
   },
   "drweb"   => {
-      Name		=> 'DrWeb',
+      Name                => 'DrWeb',
       Lock                => 'drwebBusy.lock',
       CommonOptions       => '',
       DisinfectOptions    => '-cu',
@@ -1227,6 +1238,11 @@ sub InitFSecureParser {
   %fsecure_Seen = ();
 }
 
+# Initialise any state variables the F-Secure-12 output parser uses
+sub InitFSecure12Parser {
+  ;
+}
+
 # Initialise any state variables the F-Secured output parser uses
 my (%FSDFiles);
 
@@ -1628,6 +1644,41 @@ sub ProcessSophosOutput {
   $report = $Name . ': ' . $report if $Name;
   $infections->{"$id"}{"$part"} .= $report . "\n";
   $types->{"$id"}{"$part"} .= "v"; # it's a real virus
+  return 1;
+}
+
+sub ProcessFSecure12Output {
+  my($line, $infections, $types, $BaseDir, $Name) = @_;
+
+  my($report, $infected, $dot, $id, $part, @rest);
+  my($logout, $virus, $BeenSeen);
+
+  chomp $line;
+ 
+  $report = $line;
+  $logout = $line;
+  $logout =~ s/%/%%/g;
+  $logout =~ s/\s{20,}/ /g;
+
+  return 0 unless $line =~ /\sresult=infected\s/;
+
+  $line =~ s/^(.*):\sresult=infected(\sinfection=.*)/$1$2/;
+
+  # Get to the meat or die trying...
+  $line =~ s/\sinfection=(\S+).*$//
+    or MailScanner::Log::DieLog("Dodgy things going on in F-Secure-12 output:\n$report\n");
+  $virus = $1;
+  MailScanner::Log::NoticeLog("Virus Scanning: F-Secure found virus %s",$virus);
+
+  ($dot,$id,$part,@rest) = split(/\//, $line);
+  my $notype = substr($part,1);
+  $logout =~ s/\Q$part\E/$notype/;
+  $report =~ s/\Q$part\E/$notype/;
+
+  MailScanner::Log::InfoLog($logout);
+  $report = $Name . ': ' . $report if $Name;
+  $infections->{"$id"}{"$part"} .= $report . "\n";
+  $types->{"$id"}{"$part"} .= "v"; # so we know what to tell sender
   return 1;
 }
 
