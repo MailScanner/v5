@@ -437,6 +437,12 @@ sub new {
             push @{$message->{metadata}}, "E$recdata";
             MailScanner::Log::DebugLog("MSMail: ReadQf: from = $recdata");
             $pos = tell $RQf
+        } elsif ($recdata =~ /^A</) {
+            $recdata =~ s/^A<//;
+            $recdata =~ s/>$//;
+          	MailScanner::Log::DebugLog("MSMail: ReadQf: auth = $recdata"); 
+            push @{$message->{metadata}}, "A$recdata";
+            $pos = tell $RQf
         } else {
             last;
         }

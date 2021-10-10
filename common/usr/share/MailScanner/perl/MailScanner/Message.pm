@@ -747,7 +747,8 @@ sub IsSpam {
   }
 
   my $isauthenticated = 0;
-  if (MailScanner::Config::Value('mta') == "postfix" && MailScanner::Config::Value('spamlistskipifauthenticated')) {
+  if ((MailScanner::Config::Value('mta') == "postfix" ||  MailScanner::Config::Value('mta') == "msmail") &&
+    MailScanner::Config::Value('spamlistskipifauthenticated')) {
     # MailScanner::Log::InfoLog(Dumper($metadata));
     # Test if sender is authenticated on mta
     foreach my $metadata (@{$this->{metadata}}) {
@@ -762,6 +763,11 @@ sub IsSpam {
         MailScanner::Log::InfoLog("Sender was authenticated - Not checking RBLs");
         $isauthenticated = 1;
     }
+  }
+
+  if($isauthenticated && MailScanner::Config::Value('autowhitelistauthusers') ) {
+    $iswhitelisted = 1;
+    MailScanner::Log::InfoLog("Authenticated user auto whitelisted");
   }
 
   if (!$iswhitelisted && !$isauthenticated) {
