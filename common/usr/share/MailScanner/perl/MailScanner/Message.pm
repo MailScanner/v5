@@ -7448,8 +7448,10 @@ sub DisarmHTMLEntity {
       print $pipe "$ddskey\n";
     }
     print $pipe "ENDENDEND\n";
-    $pipe->close;
-    $pipe = undef;
+    # Instead of closing pipe immediately and exiting, rely on parent to close this (prevent race condition)
+    # https://github.com/MailScanner/v5/issues/546
+    # $pipe->close;
+    # $pipe = undef;
     exit 0;
     # The child will never get here.
   }
