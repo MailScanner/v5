@@ -1,0 +1,67 @@
+#!/bin/bash
+
+# esetsefs-wrapper --	invoke esets efs for use with mailscanner
+#
+#   MailScanner - SMTP Email Processor
+#   Copyright (C) 2021 MailScanner Team <https://mailscanner.info>
+#
+#   This program is free software; you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation; either version 2 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program; if not, write to the Free Software
+#   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+#      https://www.mailscanner.info
+#
+#
+PackageDir=$1
+shift
+Prog=odscan
+Log=lslog
+Epoch=$(date +%s)
+
+if [ "x$1" = "x-IsItInstalled" ]; then
+  [ -x ${PackageDir}/$Prog ] && exit 0
+  exit 1
+fi
+
+sudo ${PackageDir}/$Prog "$@"
+if [ $? -eq 50 -o $? -eq 1 ]; then
+  # Threat(s) found
+  LogFile=$(mktemp) || { echo "$0: Cannot create temporary file" >&2; exit 1; }
+  umask 077
+  rm -f $LogFile
+  # Grab just the end of the log to save on parsing
+  sudo ${PackageDir}/$Log -c -s --with-log-name | tail -n1000 >$LogFile 2>&1
+  # Output detections in current path on or after timestamp
+  Dir=$@
+  oldIFS="$IFS"
+  IFS=''
+  while read -r p || [ -n "$p" ]
+  do
+    if [[ $p =~ ^[0-9] ]]; then
+      Date=$(echo $p | awk -F',' '{print $1}')
+      Epoch2=$(date --date="$Date" +%s)
+      if [ $Epoch2 -ge $Epoch ]; then
+        # Grab detections and filter to scan directory
+        logID=$(echo ${p##*,} | tr -d '\r')
+        sudo ${PackageDir}/$Log -c --ods-detections=$logID | grep ${Dir##*\ } 2>&1
+      fi
+    fi
+  done < $LogFile
+  IFS=$oldIFS
+  rm -f $LogFile
+elif [ $? -eq 100 ]; then
+  # Scan failed
+  exit 1
+fi
+
+exit 0

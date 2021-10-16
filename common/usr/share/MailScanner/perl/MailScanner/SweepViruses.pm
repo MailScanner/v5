@@ -261,6 +261,17 @@ my %Scanners = (
     SupportScanning	=> $S_SUPPORTED,
     SupportDisinfect	=> $S_SUPPORTED,
   },
+  "esetsefs"		=> {
+    Name		=> 'esetsefs',
+    Lock		=> 'esetsefsBusy.lock',
+    CommonOptions	=> '-s --profile="@In-depth scan"',
+    DisinfectOptions	=> '',
+    ScanOptions		=> '--readonly',
+    InitParser		=> \&InitEsetsEFSParser,
+    ProcessOutput	=> \&ProcessEsetsEFSOutput,
+    SupportScanning	=> $S_SUPPORTED,
+    SupportDisinfect	=> $S_SUPPORTED,
+  },
   "kse" => {
       Name             => 'KSE',
       Lock             => 'kseBusy.lock',
@@ -955,6 +966,13 @@ sub TryOneCommercial {
       } elsif ( $scanner eq 'savid' ) {
         SAVIDScan( $subdir, $disinfect, $batch );
         exit;
+      } elsif ( $scanner eq 'esets' ) {
+        # Pass entire $BaseDir instead of $subdir so that lslog
+        # can identify full path of threats in wrapper
+        exec "$sweepcommand $instdir $voptions $BaseDir";
+        MailScanner::Log::WarnLog("Cannot run esets AV $scanner " .
+                                  "(\"$sweepcommand\"): $!");
+        exit 1;
       } else {
         exec "$sweepcommand $instdir $voptions $subdir";
         MailScanner::Log::WarnLog("Cannot run commercial AV $scanner " .
@@ -1315,6 +1333,11 @@ sub InitAvastdParser {
 
 # Initialise any state variables the esets output parser uses
 sub InitEsetsParser {
+  ;
+}
+
+# Initialise any state variables the esets output parser uses
+sub InitEsetsEFSParser {
   ;
 }
 
@@ -2133,6 +2156,35 @@ sub ProcessEsetsOutput {
   MailScanner::Log::InfoLog("Esets::INFECTED::$threat");
   return 1;
 }
+
+sub ProcessEsetsEFSOutput {
+  use File::Basename;
+
+  my ($line, $infections, $types, $BaseDir, $Name) = @_;
+  chomp $line;
+
+  # return if line does not had threat
+  return 0 if $line !~ m/(?:retained|cleaned)/i;
+
+  my ($a, $b, $c, $d, $e, $f, $g, $h) = split(/,/, $line);
+ 
+  my ($fileuri) = $c;
+  my ($threat) = $d;
+  my ($info) = $e;
+  my ($action) = $f;
+
+  $fileuri =~ s/file:\/\/$BaseDir/\./;
+
+  my ($dot, $id, $part, @rest) = split(/\//, $fileuri);
+  my $file = substr($part,1);
+
+  my $report = "Esets: found $threat in $file";
+  $infections->{"$id"}{"$part"} .= $report . "\n";
+  $types->{"$id"}{"$part"} .= "v"; # it's a real virus
+  MailScanner::Log::InfoLog("Esets::INFECTED::$threat");
+  return 1;
+}
+
 
 # Parse the output of the DrWeb output.
 # Konrad Madej <kmadej@nask.pl>
