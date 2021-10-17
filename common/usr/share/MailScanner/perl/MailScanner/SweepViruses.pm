@@ -966,11 +966,11 @@ sub TryOneCommercial {
       } elsif ( $scanner eq 'savid' ) {
         SAVIDScan( $subdir, $disinfect, $batch );
         exit;
-      } elsif ( $scanner eq 'esets' ) {
+      } elsif ( $scanner eq 'esetsefs' ) {
         # Pass entire $BaseDir instead of $subdir so that lslog
         # can identify full path of threats in wrapper
         exec "$sweepcommand $instdir $voptions $BaseDir";
-        MailScanner::Log::WarnLog("Cannot run esets AV $scanner " .
+        MailScanner::Log::WarnLog("Cannot run esetsefs AV $scanner " .
                                   "(\"$sweepcommand\"): $!");
         exit 1;
       } else {
