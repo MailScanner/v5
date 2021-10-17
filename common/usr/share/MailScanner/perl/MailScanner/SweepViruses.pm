@@ -121,9 +121,9 @@ my %Scanners = (
   "f-secure-12" => {
     name => "F-Secure-12",
     Lock => 'f-secure12Busy.lock',
-    CommonOptions => '--quiet --scan-archives=yes',
+    CommonOptions => '--quiet --scan-archives=yes --detect-encrypted-archives=yes',
     DisinfectOptions => '--malware=remove --pua=remove',
-    ScanOptions => '--malware=remove --pua=remove --detect-encrypted-archives=yes',
+    ScanOptions => '',
     InitParser => \&InitFSecure12Parser,
     ProcessOutput => \&ProcessFSecure12Output,
     SupportScanning => $S_SUPPORTED,
