@@ -380,6 +380,8 @@ my($sed) = "/bin/sed";
     # If they wanted the 2nd Received from address, give'em element 1 of list
     $message->{clientip} = $rcvdiplist[$getipfromheader-1] if
       $getipfromheader>0;
+    # Get the next hop ip address if available
+    $message->{clientip2} = $rcvdiplist[$getipfromheader-2] if $getipfromheader>1;
     #$message->{clientip} = $ipfromheader
     #  if $read1strcvd && $getipfromheader && $ipfromheader ne "";
 

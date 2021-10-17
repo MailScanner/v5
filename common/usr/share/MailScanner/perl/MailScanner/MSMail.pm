@@ -534,6 +534,8 @@ sub new {
     # Don't fall off the start of the list
     $getipfromheader = 1 if $getipfromheader<1;
     $message->{clientip} = $rcvdiplist[$getipfromheader-1];
+    # Get second client ip if available from next hop
+    $message->{clientip2} = $rcvdiplist[@rcvdiplist-2] if @rcvdiplist>1;
     $IPFound = 1;
 
     # Decode ISO subject lines into UTF8

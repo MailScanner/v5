@@ -374,6 +374,55 @@ sub GetClientHostname {
   return $fromname;
 }
 
+# Get the SMTP client hostname from the $msg->{clientip}.
+# Do some spoof checking here for good measure.
+# spoofcheck = i ==> do anti-spoof checking.
+# spoofcheck = I ==> do no anti-spoof checking.
+sub GetClient2Hostname {
+  my($msg, $spoofcheck) = @_;
+
+  my($fromname, $claimed_hostname);
+
+  if ($spoofcheck eq 'i') {
+    # Have we cached the checked hostname?
+    $fromname = $msg->{client2hostname};
+    return $fromname if defined $fromname;
+  } else {
+    # Have we cached the unchecked hostname?
+    $fromname = $msg->{client2hostnamenocheck};
+    return $fromname if defined $fromname;
+  }
+
+  # Do forward and reverse DNS check to protect against spoofing
+  $claimed_hostname = gethostbyaddr(inet_aton($msg->{clientip2}), AF_INET);
+
+  # They may not want the anti-spoof protection!
+  if ($spoofcheck eq 'I') {
+    $fromname = defined($claimed_hostname)?$claimed_hostname:"";
+    $msg->{client2hostnamenocheck} = $fromname;
+    return $fromname;
+  }
+
+  # From now on we are doing the version with spoof-checking
+
+  # If there is a hostname (PTR record) then check it matches the A record
+  if ($claimed_hostname) {
+    my @name_lookup = gethostbyname($claimed_hostname);
+    #                    or die "Could not reverse $claimed_hostname: $!\n";
+    if (@name_lookup) {
+      my @resolved_ips = map { inet_ntoa($_) } @name_lookup[4..$#name_lookup];
+      my $might_spoof = !grep { $msg->{clientip2} eq $_ } @resolved_ips;
+      $fromname = $might_spoof?"_SPOOFED_":lc($claimed_hostname);
+    } else {
+      $fromname = "";
+    }
+  } else {
+    $fromname = "";
+  }
+  $msg->{client2hostname} = $fromname; # Ensure cache is defined
+  return $fromname;
+}
+
 sub FirstMatchValue {
   my($direction, $iporaddr, $regexp2, $value, $name, $msg, $tooverride) = @_;
 
@@ -504,6 +553,31 @@ sub FirstMatchValue {
     #}
     #print STDERR "Found nothing matches $regexp\n";
     return "CoNfIgFoUnDnOtHiNg";
+  } elsif ($iporaddr eq 'i' || $iporaddr eq 'I') {
+    # Bail out if clientip2 isn't present
+    return "CoNfIgFoUnDnOtHiNg" unless defined($msg->{clientip2}) && $msg->{clientip2} ne '';
+    # 'i' ==> next hop hostname, 'I' ==> next hop hostname without spoof protection
+    # It's a hostname or domain name
+    if ($direction =~ /v/) {
+      MailScanner::Log::WarnLog("Config Error: Given a virus name match ".
+        "with a hostname or domain name \"%s\"", $name);
+      return "CoNfIgFoUnDnOtHiNg"; # Caller will work out the default value now
+    }
+    if ($direction =~ /[tb]/) {
+      # Don't know the target IP address
+      MailScanner::Log::WarnLog("Config Error: Cannot match against " .
+        "destination hostname or domain name when resolving configuration " .
+        "option \"%s\"", $name);
+      return "CoNfIgFoUnDnOtHiNg"; # Caller will work out the default value now
+    }
+    my $fromname = GetClient2Hostname($msg, $iporaddr);
+    $fromname = '.' . $fromname if $fromname && $fromname ne "_SPOOFED_";
+    return $value if $fromname =~ /$regexp/; # Initial test in case from=''
+    while ($fromname ne '' && $fromname ne '_SPOOFED_') {
+      return $value if $fromname =~ /$regexp/i;
+      $fromname =~ s/^\.[^.]+//; # Knock off next word, could be last
+    }
+    return "CoNfIgFoUnDnOtHiNg";
   } else {
     #
     # It is a CIDR (network/netmask) rule
@@ -523,7 +597,7 @@ sub FirstMatchValue {
       my(@cidr) = split(',', $regexp2);
       #print STDERR "Matching IP " . $msg->{clientip} .
       #             " against " . join(',',@cidr) . "\n";
-      return $value if Net::CIDR::cidrlookup($msg->{clientip}, @cidr);
+      return $value if Net::CIDR::cidrlookup($msg->{clientip2}, @cidr);
     }
     if ($direction =~ /[tb]/) {
       # Don't know the target IP address
@@ -533,10 +607,6 @@ sub FirstMatchValue {
     }
   }
 
-  # Nothing matched, so return the default value
-  #print STDERR "Nothing matched, so returning default value: " .
-  #             $Defaults{$name} . "\n";
-  #return $Defaults{$name};
   return "CoNfIgFoUnDnOtHiNg"; # Caller will work out the default value now
 }
 
@@ -636,6 +706,45 @@ sub AllMatchesValue {
       # Convert $msg->{clientip} into a hostname
       #print STDERR "Clientip = " . $msg->{clientip} . " and hostname = ";
       my $fromname = GetClientHostname($msg, $iporaddr);
+      $fromname = '.' . $fromname if $fromname && $fromname ne "_SPOOFED_";
+      #print STDERR $fromname . "\n";
+      #my $fromname = $msg->{clienthostname};
+      #if (!defined $fromname) {
+      #  $fromname = gethostbyaddr(inet_aton($msg->{clientip}), AF_INET);
+      #  $msg->{clienthostname} = $fromname || ""; # Ensure cache is defined
+      #}
+      #print STDERR $fromname . "\n";
+      #print STDERR "Fromname = \"$fromname\" and regexp = \"$regexp\"\n";
+      #print STDERR "Matched!\n" if $fromname =~ /$regexp/i; # Initial test in case from=''
+      # Initial test in case from=''
+      if ($fromname =~ /$regexp/) {
+        push @matches, $value;
+        #print STDERR "Initial test matched\n";
+      } else {
+        while ($fromname ne '' && $fromname ne '_SPOOFED_') {
+          #print STDERR "Testing $fromname against $regexp\n";
+          #print STDERR "Matches!\n" if $fromname =~ /$regexp/i;
+          push @matches, $value if $fromname =~ /$regexp/i;
+          $fromname =~ s/^\.[^.]+//; # Knock off next word, could be last
+        }
+      }
+      #print STDERR "Found nothing matches $regexp\n";
+    }
+   } elsif ($iporaddr eq 'i' || $iporaddr eq 'I') {
+    # It's a hostname or domain name
+    if ($direction =~ /v/) {
+      MailScanner::Log::WarnLog("Config Error: Given a virus name match ".
+        "with a hostname or domain name \"%s\"", $name);
+    } elsif ($direction =~ /[tb]/) {
+      # Don't know the target IP address
+      MailScanner::Log::WarnLog("Config Error: Cannot match against " .
+        "destination hostname or domain name when resolving configuration " .
+        "option \"%s\"", $name);
+    } else {
+      # It's a hostname or domain name and it's a "From:" match on {clientip}.
+      # Convert $msg->{clientip} into a hostname
+      #print STDERR "Clientip = " . $msg->{clientip} . " and hostname = ";
+      my $fromname = GetClient2Hostname($msg, $iporaddr);
       $fromname = '.' . $fromname if $fromname && $fromname ne "_SPOOFED_";
       #print STDERR $fromname . "\n";
       #my $fromname = $msg->{clienthostname};
@@ -2266,6 +2375,9 @@ sub KeywordDone {
 # host:hostname.domain.com
 # host:domain.com
 # host:/any-regular-expression/
+# host2:hostname.domain.com
+# host2:domain.com
+# host2:/any-regular-expression/
 #
 # If the regular expression does not contain any letters, then it
 # will be matched against the IP number. If it contains any letters
@@ -2276,6 +2388,7 @@ sub KeywordDone {
 #     t => text, ie. sender or recipient address
 #     c => cidr, ie. Range or network/netmask of IP numbers
 #     h => hostname, ie. hostname or domain name
+#     i => next hop hostname. ie. hostname or domain name
 #
 sub RuleToRegexp {
   my($rule, $type, $nestinglevel) = @_;
@@ -2353,6 +2466,38 @@ sub RuleToRegexp {
     }
     #print STDERR "Compiled rule is \"$rule\"\n";
     return (($nocheck?'H':'h'),$rule);
+  }
+
+  if ($rule =~ /^host2(-nocheck)?:(.*)$/i) {
+    $rule = $2;
+    my $nocheck = 0;
+    $nocheck = 1 if $rulecopy =~ /^host2-nocheck:/i;
+    # Look for regexps
+    if ($rule =~ /^\/(.*)\/$/) {
+      return (($nocheck?'I':'i'),$1);
+    }
+    # Look for empty matches (that match against there being no hostname)
+    if ($rule eq '') {
+      return (($nocheck?'I':'i'),'^$');
+    }
+    # Replace . with \.
+    $rule =~ s/\./\\./g;
+    # Replace * with .*
+    $rule =~ s/\*/.*/g;
+    # Anchor it to the end of the name
+    $rule .= '$';
+    # Add a '.' on the front of their rule if there isn't already one
+    $rule = '\.' . $rule unless $rule =~ /^\./;
+    #print STDERR "Compiled rule is \"$rule\"\n";
+    # Test their rule
+    eval { $compiledre = qr/$rule/i; };
+    if ($@) {
+      MailScanner::Log::WarnLog("Invalid expression in rule \"%s\". " .
+                                "Compiler said \"%s\"", $theirrule, $@);
+      $rule = '/^\xff$/'; # This should never match anything
+    }
+    #print STDERR "Compiled rule is \"$rule\"\n";
+    return (($nocheck?'I':'i'),$rule);
   }
 
   # Handle entirely numeric strings as netblocks (and allow IPv6 addresses!)

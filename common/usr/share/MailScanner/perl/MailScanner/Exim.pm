@@ -610,6 +610,8 @@ sub ReadQf {
   # If they wanted the 2nd Received from address, give'em element 1 of list
   $message->{clientip} = $rcvdiplist[$getipfromheader-1] if
     $getipfromheader>0;
+  # Grab the next hop
+  $message->{clientip2} = $rcvdiplist[@rcvdiplist-2] if @rcvdiplist>1 && $getipfromheader>0;
 
   #$message->{clientip} = $ipfromheader
   #  if $getipfromheader && $read1strcvd && $ipfromheader ne "";
