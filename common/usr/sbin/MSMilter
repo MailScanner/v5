@@ -158,7 +158,7 @@ sub helo_callback
     my $message_ref = $ctx->getpriv();
     my $message = "Received: from $helohost";
     # Watch for the second callback
-    if ( $message ne substr(${$message_ref}, 0, length($message)) ) {
+    if ( ${$message_ref} !~ /^Received:/ ) {
         ${$message_ref} = $message . ' (' . ${$message_ref} . ')' ."\n";
         MailScanner::Log::DebugLog("helo_callback: $message");
     }
