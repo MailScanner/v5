@@ -1,0 +1,9 @@
+ESETS EFS requires root to scan
+
+Add to sudoers:
+
+postfix ALL=(ALL) NOPASSWD: /opt/eset/efs/bin/odscan
+postfix ALL=(ALL) NOPASSWD: /opt/eset/efs/bin/lslog
+
+where /opt/eset/efs/sbin/ is the real path to your esets scan binary
+and postfix is the real Run As user for MailScanner
