@@ -7,11 +7,16 @@
 #
 # Tested distributions:     OpenSUSE Leap 15.1
 #
-# Updated: 16 Feb 200
+# Updated: 14 Nov 2021
 # MailScanner Team <https://www.mailscanner.info>
 
 # clear the screen. yay!
 clear
+
+# check for missing path to /usr/local/bin
+if [[ !($PATH =~ /\/usr\/local\/bin/) ]]; then
+  export PATH="$PATH:/usr/local/bin"
+fi
 
 # unattended configuration: command line parameter parsing
 parsedCommands=0;
