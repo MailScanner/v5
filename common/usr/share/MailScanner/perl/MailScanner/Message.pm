@@ -747,7 +747,8 @@ sub IsSpam {
   }
 
   my $isauthenticated = 0;
-  if (MailScanner::Config::Value('mta') == "postfix" && MailScanner::Config::Value('spamlistskipifauthenticated')) {
+  if ((MailScanner::Config::Value('mta') == "postfix" ||  MailScanner::Config::Value('mta') == "msmail") &&
+    MailScanner::Config::Value('spamlistskipifauthenticated')) {
     # MailScanner::Log::InfoLog(Dumper($metadata));
     # Test if sender is authenticated on mta
     foreach my $metadata (@{$this->{metadata}}) {
@@ -762,6 +763,11 @@ sub IsSpam {
         MailScanner::Log::InfoLog("Sender was authenticated - Not checking RBLs");
         $isauthenticated = 1;
     }
+  }
+
+  if($isauthenticated && MailScanner::Config::Value('autowhitelistauthusers') ) {
+    $iswhitelisted = 1;
+    MailScanner::Log::InfoLog("Authenticated user auto whitelisted");
   }
 
   if (!$iswhitelisted && !$isauthenticated) {
@@ -7448,8 +7454,10 @@ sub DisarmHTMLEntity {
       print $pipe "$ddskey\n";
     }
     print $pipe "ENDENDEND\n";
-    $pipe->close;
-    $pipe = undef;
+    # Instead of closing pipe immediately and exiting, rely on parent to close this (prevent race condition)
+    # https://github.com/MailScanner/v5/issues/546
+    # $pipe->close;
+    # $pipe = undef;
     exit 0;
     # The child will never get here.
   }

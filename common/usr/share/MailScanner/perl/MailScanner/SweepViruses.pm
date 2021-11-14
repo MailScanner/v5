@@ -118,6 +118,17 @@ my %Scanners = (
     SupportScanning	=> $S_SUPPORTED,
     SupportDisinfect	=> $S_SUPPORTED,
   },
+  "f-secure-12" => {
+    name => "F-Secure-12",
+    Lock => 'f-secure12Busy.lock',
+    CommonOptions => '--quiet --scan-archives=yes --detect-encrypted-archives=yes',
+    DisinfectOptions => '--malware=remove --pua=remove',
+    ScanOptions => '',
+    InitParser => \&InitFSecure12Parser,
+    ProcessOutput => \&ProcessFSecure12Output,
+    SupportScanning => $S_SUPPORTED,
+    SupportDisinfect	=> $S_SUPPORTED,
+  },
   "f-secure"	=> {
     Name		=> 'F-Secure',
     Lock		=> 'f-secureBusy.lock',
@@ -250,6 +261,17 @@ my %Scanners = (
     SupportScanning	=> $S_SUPPORTED,
     SupportDisinfect	=> $S_SUPPORTED,
   },
+  "esetsefs"		=> {
+    Name		=> 'esetsefs',
+    Lock		=> 'esetsefsBusy.lock',
+    CommonOptions	=> '-s --profile="@In-depth scan"',
+    DisinfectOptions	=> '',
+    ScanOptions		=> '--readonly',
+    InitParser		=> \&InitEsetsEFSParser,
+    ProcessOutput	=> \&ProcessEsetsEFSOutput,
+    SupportScanning	=> $S_SUPPORTED,
+    SupportDisinfect	=> $S_SUPPORTED,
+  },
   "kse" => {
       Name             => 'KSE',
       Lock             => 'kseBusy.lock',
@@ -262,7 +284,7 @@ my %Scanners = (
       SupportDisinfect => $S_NONE,
   },
   "drweb"   => {
-      Name		=> 'DrWeb',
+      Name                => 'DrWeb',
       Lock                => 'drwebBusy.lock',
       CommonOptions       => '',
       DisinfectOptions    => '-cu',
@@ -944,6 +966,13 @@ sub TryOneCommercial {
       } elsif ( $scanner eq 'savid' ) {
         SAVIDScan( $subdir, $disinfect, $batch );
         exit;
+      } elsif ( $scanner eq 'esetsefs' ) {
+        # Pass entire $BaseDir instead of $subdir so that lslog
+        # can identify full path of threats in wrapper
+        exec "$sweepcommand $instdir $voptions $BaseDir";
+        MailScanner::Log::WarnLog("Cannot run esetsefs AV $scanner " .
+                                  "(\"$sweepcommand\"): $!");
+        exit 1;
       } else {
         exec "$sweepcommand $instdir $voptions $subdir";
         MailScanner::Log::WarnLog("Cannot run commercial AV $scanner " .
@@ -1227,6 +1256,11 @@ sub InitFSecureParser {
   %fsecure_Seen = ();
 }
 
+# Initialise any state variables the F-Secure-12 output parser uses
+sub InitFSecure12Parser {
+  ;
+}
+
 # Initialise any state variables the F-Secured output parser uses
 my (%FSDFiles);
 
@@ -1299,6 +1333,11 @@ sub InitAvastdParser {
 
 # Initialise any state variables the esets output parser uses
 sub InitEsetsParser {
+  ;
+}
+
+# Initialise any state variables the esets output parser uses
+sub InitEsetsEFSParser {
   ;
 }
 
@@ -1628,6 +1667,41 @@ sub ProcessSophosOutput {
   $report = $Name . ': ' . $report if $Name;
   $infections->{"$id"}{"$part"} .= $report . "\n";
   $types->{"$id"}{"$part"} .= "v"; # it's a real virus
+  return 1;
+}
+
+sub ProcessFSecure12Output {
+  my($line, $infections, $types, $BaseDir, $Name) = @_;
+
+  my($report, $infected, $dot, $id, $part, @rest);
+  my($logout, $virus, $BeenSeen);
+
+  chomp $line;
+ 
+  $report = $line;
+  $logout = $line;
+  $logout =~ s/%/%%/g;
+  $logout =~ s/\s{20,}/ /g;
+
+  return 0 unless $line =~ /\sresult=infected\s/;
+
+  $line =~ s/^(.*):\sresult=infected(\sinfection=.*)/$1$2/;
+
+  # Get to the meat or die trying...
+  $line =~ s/\sinfection=(\S+).*$//
+    or MailScanner::Log::DieLog("Dodgy things going on in F-Secure-12 output:\n$report\n");
+  $virus = $1;
+  MailScanner::Log::NoticeLog("Virus Scanning: F-Secure found virus %s",$virus);
+
+  ($dot,$id,$part,@rest) = split(/\//, $line);
+  my $notype = substr($part,1);
+  $logout =~ s/\Q$part\E/$notype/;
+  $report =~ s/\Q$part\E/$notype/;
+
+  MailScanner::Log::InfoLog($logout);
+  $report = $Name . ': ' . $report if $Name;
+  $infections->{"$id"}{"$part"} .= $report . "\n";
+  $types->{"$id"}{"$part"} .= "v"; # so we know what to tell sender
   return 1;
 }
 
@@ -2082,6 +2156,35 @@ sub ProcessEsetsOutput {
   MailScanner::Log::InfoLog("Esets::INFECTED::$threat");
   return 1;
 }
+
+sub ProcessEsetsEFSOutput {
+  use File::Basename;
+
+  my ($line, $infections, $types, $BaseDir, $Name) = @_;
+  chomp $line;
+
+  # return if line does not had threat
+  return 0 if $line !~ m/(?:retained|cleaned)/i;
+
+  my ($a, $b, $c, $d, $e, $f, $g, $h) = split(/,/, $line);
+ 
+  my ($fileuri) = $c;
+  my ($threat) = $d;
+  my ($info) = $e;
+  my ($action) = $f;
+
+  $fileuri =~ s/file:\/\/$BaseDir/\./;
+
+  my ($dot, $id, $part, @rest) = split(/\//, $fileuri);
+  my $file = substr($part,1);
+
+  my $report = "Esets: found $threat in $file";
+  $infections->{"$id"}{"$part"} .= $report . "\n";
+  $types->{"$id"}{"$part"} .= "v"; # it's a real virus
+  MailScanner::Log::InfoLog("Esets::INFECTED::$threat");
+  return 1;
+}
+
 
 # Parse the output of the DrWeb output.
 # Konrad Madej <kmadej@nask.pl>

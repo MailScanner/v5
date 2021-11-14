@@ -158,7 +158,7 @@ sub helo_callback
     my $message_ref = $ctx->getpriv();
     my $message = "Received: from $helohost";
     # Watch for the second callback
-    if ( $message ne substr(${$message_ref}, 0, length($message)) ) {
+    if ( ${$message_ref} !~ /^Received:/ ) {
         ${$message_ref} = $message . ' (' . ${$message_ref} . ')' ."\n";
         MailScanner::Log::DebugLog("helo_callback: $message");
     }
@@ -191,7 +191,6 @@ sub envrcpt_callback
                 return;
             }
             my $file = @{$incoming}[0] . '/temp-' . ${$message_ref};
-            my $file2 = @{$incoming}[0] . '/' . ${$message_ref};
 
             MailScanner::Log::DebugLog("envrcpt_callback: file = $file");
 
@@ -207,14 +206,14 @@ sub envrcpt_callback
             my $pos;
             # Locate predata header
             while($data = readline $queuehandle) {
-                last if $data !~ /^(O<|S<|E<)/;
+                last if $data !~ /^(O<|S<|E<|A<)/;
             }
 
             ${$message_ref} = $data;
             MailScanner::Lock::unlockclose($queuehandle);
 
-            # Done with previous message, make ready for mailscanner
-            move($file, $file2);
+            # Done with previous message
+            unlink $file;
         }
 
 
@@ -238,8 +237,9 @@ sub envrcpt_callback
             MailScanner::Log::DebugLog("envrcpt_callback: no client certificate requested");
         }
         if (defined($symbols->{'M'}->{'{auth_type}'}) && defined($symbols->{'M'}->{'{auth_authen}'})) {
-            ${$message_ref} .= "\t(Authenticated sender: " . $symbols->{'M'}->{'{auth_authen}'} . ")\n";
+            ${$message_ref} .= "\t(Authenticated sender)\n";
             MailScanner::Log::DebugLog("envrcpt_callback: Authenticated sender: " . $symbols->{'M'}->{'{auth_authen}'});
+            ${$message_ref} = "A<sasl_method=" . $symbols->{'M'}->{'{auth_type}'} . ">\n" . ${$message_ref};
         } else {
             ${$message_ref} .= "\n";
         }
@@ -510,6 +510,18 @@ sub eom_callback
     # Store reference for subsequent messages in connection or for connection close
     $ctx->setpriv($message_ref);
 
+    my $incoming = MailScanner::Config::Value('inqueuedir');
+    MailScanner::Log::DebugLog("eom_callback: incoming = " . @{$incoming}[0]);
+    if ($incoming eq '') {
+        MailScanner::Log::WarnLog("Unable to determine incoming queue!");
+        Sendmail::PMilter::SMFIS_TEMPFAIL;
+        return;
+    }
+    my $file = @{$incoming}[0] . '/temp-' . ${$message_ref};
+    my $file2 = @{$incoming}[0] . '/' . ${$message_ref};
+
+    copy($file, $file2);
+
     # Send DISCARD signal to accept message and drop from postfix
     # for mailscanner processing
     Sendmail::PMilter::SMFIS_DISCARD;
@@ -528,9 +540,8 @@ sub close_callback
         return;
     }
     my $file = @{$incoming}[0] . '/temp-' . ${$message_ref};
-    my $file2 = @{$incoming}[0] . '/' . ${$message_ref};
 
-    move($file, $file2);
+    unlink $file;
 
     $ctx->setpriv(undef);
 
@@ -572,34 +583,6 @@ sub StartLogging {
 
     MailScanner::Log::Start($procname, $facility, $logsock);
 }
-
-sub ExitParent {
-    my($sig) = @_; # Arg is the signal name
-
-    # Reap children (wait up to one minute)
-    my $counter=0;
-    while ($counter < 30) {
-        if (wait() > 0) {
-            # Still active children
-            sleep(2);
-            $counter++;
-            MailScanner::Log::NoticeLog("Milter closing, waiting on children to finish...");
-        } else {
-            $counter=30;
-        }
-    }
-
-    # Cleanup partial writes
-    my $incoming = MailScanner::Config::Value('inqueuedir');
-    unlink glob @{$incoming}[0] . "/temp-*";
-
-    unlink $PidFile; # Ditch the pid file
-
-    MailScanner::Log::Stop();
-
-    exit 0;
-}
-
 
 BEGIN {
     chdir('/usr/share/MailScanner/perl');
@@ -645,10 +628,6 @@ BEGIN {
     if ($pid == 0) {
         $0 = "MSMilter Daemon";
 
-        # Need this new parent process to ignore SIGHUP, and catch SIGTERM
-        $SIG{'HUP'} = 'IGNORE';
-        $SIG{'TERM'} = \&ExitParent;
-
         my $PidFile = MailScanner::Config::Value('milterpidfile');
         WritePIDFile($$,$PidFile) or die("Unable to Write PID!");
 
@@ -662,6 +641,15 @@ BEGIN {
         MailScanner::Log::Reset();
 
         MailScanner::Log::DebugLog("initialization:\n PidFile = $PidFile\n user = $user\n group = $group\n bind = $bind\n port = $port");
+
+        # Cleanup temps after a start/restart
+        my $incoming = MailScanner::Config::Value('inqueuedir');
+        if ($incoming eq '') {
+          MailScanner::Log::WarnLog("Unable to determine incoming queue!");
+          exit 1
+        }
+
+        unlink glob @{$incoming}[0] . "/temp-*";
 
         my %my_callbacks =
         (

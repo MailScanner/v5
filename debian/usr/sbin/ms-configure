@@ -6,9 +6,15 @@
 # MailScanner via apt-get and CPAN based on user input.  
 #
 #
-# Updated: 16 Feb 2020
+# Updated: 14 Nov 2021
 # MailScanner Team <https://www.mailscanner.info>
 clear
+
+# check for missing path to /usr/local/bin
+if [[ !($PATH =~ /\/usr\/local\/bin/) ]]; then
+  export PATH="$PATH:/usr/local/bin"
+fi
+
 
 # unattended install: command line parameter parsing
 parsedCommands=0;
