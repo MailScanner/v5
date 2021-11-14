@@ -584,34 +584,6 @@ sub StartLogging {
     MailScanner::Log::Start($procname, $facility, $logsock);
 }
 
-sub ExitParent {
-    my($sig) = @_; # Arg is the signal name
-
-    # Reap children (wait up to one minute)
-    my $counter=0;
-    while ($counter < 30) {
-        if (wait() > 0) {
-            # Still active children
-            sleep(2);
-            $counter++;
-            MailScanner::Log::NoticeLog("Milter closing, waiting on children to finish...");
-        } else {
-            $counter=30;
-        }
-    }
-
-    # Cleanup partial writes
-    my $incoming = MailScanner::Config::Value('inqueuedir');
-    unlink glob @{$incoming}[0] . "/temp-*";
-
-    unlink $PidFile; # Ditch the pid file
-
-    MailScanner::Log::Stop();
-
-    exit 0;
-}
-
-
 BEGIN {
     chdir('/usr/share/MailScanner/perl');
 
@@ -656,10 +628,6 @@ BEGIN {
     if ($pid == 0) {
         $0 = "MSMilter Daemon";
 
-        # Need this new parent process to ignore SIGHUP, and catch SIGTERM
-        $SIG{'HUP'} = 'IGNORE';
-        $SIG{'TERM'} = \&ExitParent;
-
         my $PidFile = MailScanner::Config::Value('milterpidfile');
         WritePIDFile($$,$PidFile) or die("Unable to Write PID!");
 
@@ -673,6 +641,9 @@ BEGIN {
         MailScanner::Log::Reset();
 
         MailScanner::Log::DebugLog("initialization:\n PidFile = $PidFile\n user = $user\n group = $group\n bind = $bind\n port = $port");
+
+        # Cleanup temps after a start/restart
+        unlink glob @{$incoming}[0] . "/temp-*";
 
         my %my_callbacks =
         (
