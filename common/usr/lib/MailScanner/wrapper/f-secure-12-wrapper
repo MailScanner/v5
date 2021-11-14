@@ -27,11 +27,10 @@ shift
 
 FS_SCAN=fsanalyze
 PackageDir=$Root/bin
-ScanOptions="--quiet --scan-archives=yes --detect-encrypted-archives=yes  --malware=remove --pua=remove"
 
 if [ "x$1" = "x-IsItInstalled" ]; then
   [ -x ${PackageDir}/${FS_SCAN} ] && exit 0
   exit 1
 fi
 
-exec ${PackageDir}/${FS_SCAN} $ScanOptions "$@"
+exec ${PackageDir}/${FS_SCAN} "$@"
