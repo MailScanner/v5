@@ -643,6 +643,12 @@ BEGIN {
         MailScanner::Log::DebugLog("initialization:\n PidFile = $PidFile\n user = $user\n group = $group\n bind = $bind\n port = $port");
 
         # Cleanup temps after a start/restart
+        my $incoming = MailScanner::Config::Value('inqueuedir');
+        if ($incoming eq '') {
+          MailScanner::Log::WarnLog("Unable to determine incoming queue!");
+          exit 1
+        }
+
         unlink glob @{$incoming}[0] . "/temp-*";
 
         my %my_callbacks =
