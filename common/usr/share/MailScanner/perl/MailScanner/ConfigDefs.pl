@@ -303,6 +303,7 @@ runinforeground		0	no	0	yes	1
 showscanner		1	no	0	yes	1
 spamassassinautowhitelist	1	no	0	yes	1
 spamlistskipifauthenticated	0	no	0	yes	1
+autowhitelistauthusers	0	no	0	yes	1
 spliteximspool		0	no	0	yes	1
 storeentireasdfqf	0	no	0	yes	1
 syntaxcheck		1	no	0	yes	1
