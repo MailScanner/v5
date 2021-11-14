@@ -1,4 +1,19 @@
-09/19/2021 Changed in    v5.4.1-3 (beta)
+11/14/2021 Changes in    v5.4.2-1 (beta)
+==================================
+
+- Check for /usr/local/bin in path for ms-configure
+- ESETS EFS Support
+- Milter cleanup after restart
+- MSMilter handle file handling before DISCARD
+- Set F-Secure to use ScanOptions
+- Close pipe in parent only for HTML Disarm
+- Milter Authenticated Spam Skip enhancements
+- Fix Received header detection in MSMilter
+- F-Secure 12 Support
+- Limit queue processing to child-owned queue files in MSMail.pm
+- Properly detect permfails with code 5xx in MSMail.pm
+
+09/19/2021 Changes in    v5.4.1-3 (beta)
 ==================================
 
 - Support for F-Secure version 12+
