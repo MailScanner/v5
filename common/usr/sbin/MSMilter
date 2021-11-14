@@ -191,7 +191,6 @@ sub envrcpt_callback
                 return;
             }
             my $file = @{$incoming}[0] . '/temp-' . ${$message_ref};
-            my $file2 = @{$incoming}[0] . '/' . ${$message_ref};
 
             MailScanner::Log::DebugLog("envrcpt_callback: file = $file");
 
@@ -213,8 +212,8 @@ sub envrcpt_callback
             ${$message_ref} = $data;
             MailScanner::Lock::unlockclose($queuehandle);
 
-            # Done with previous message, make ready for mailscanner
-            move($file, $file2);
+            # Done with previous message
+            unlink $file;
         }
 
 
@@ -511,6 +510,18 @@ sub eom_callback
     # Store reference for subsequent messages in connection or for connection close
     $ctx->setpriv($message_ref);
 
+    my $incoming = MailScanner::Config::Value('inqueuedir');
+    MailScanner::Log::DebugLog("eom_callback: incoming = " . @{$incoming}[0]);
+    if ($incoming eq '') {
+        MailScanner::Log::WarnLog("Unable to determine incoming queue!");
+        Sendmail::PMilter::SMFIS_TEMPFAIL;
+        return;
+    }
+    my $file = @{$incoming}[0] . '/temp-' . ${$message_ref};
+    my $file2 = @{$incoming}[0] . '/' . ${$message_ref};
+
+    copy($file, $file2);
+
     # Send DISCARD signal to accept message and drop from postfix
     # for mailscanner processing
     Sendmail::PMilter::SMFIS_DISCARD;
@@ -529,9 +540,8 @@ sub close_callback
         return;
     }
     my $file = @{$incoming}[0] . '/temp-' . ${$message_ref};
-    my $file2 = @{$incoming}[0] . '/' . ${$message_ref};
 
-    move($file, $file2);
+    unlink $file;
 
     $ctx->setpriv(undef);
 
