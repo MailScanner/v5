@@ -335,14 +335,10 @@ sub WriteHeader {
   MailScanner::Lock::unlockclose($Tf);
   undef $Tf; # Try to ensure Tf is completely closed, flushed, everything
 
-  my $hdoutfile;
-  my $hddirbase; 
-  ($hddirbase, $hdoutfile) =
-      MailScanner::Sendmail::HDOutFileName($tfile);
-  rename "$tfile", "$hddirbase/$hdoutfile"
+  rename "$tfile", $Outq . '/' . $message->{id}
       or MailScanner::Log::DieLog("Cannot rename clean %s to %s, %s",
-                                  $tfile, $hdoutfile, $!);
-  MailScanner::Log::InfoLog("Requeue: %s to %s", $message->{id},$hdoutfile);
+                                  $tfile, $message->{id}, $!);
+  MailScanner::Log::InfoLog("Requeue: %s to %s", $message->{id},$message->{id});
 }
 
 # Return the size of the message (Header+body)
