@@ -1,3 +1,8 @@
+11/14/2021 Changes in    v5.4.2-2 (beta)
+==================================
+
+- Eliminate queue id change in MSDiskStore.pm
+
 11/14/2021 Changes in    v5.4.2-1 (beta)
 ==================================
 
