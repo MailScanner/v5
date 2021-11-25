@@ -7409,7 +7409,7 @@ sub DisarmHTMLEntity {
     or MailScanner::Log::DieLog('Failed to create pipe, %s, while parsing ' .
                   'HTML. Try reducing the maximum number of unscanned ' .
                   'messages per batch', $!);
-  my $PipeReturn = 0;
+  my $ChildReturn = 0;
   my $pid = fork();
   die "Can't fork: $!" unless defined($pid);
   if ($pid == 0) {
@@ -7454,10 +7454,8 @@ sub DisarmHTMLEntity {
       print $pipe "$ddskey\n";
     }
     print $pipe "ENDENDEND\n";
-    # Instead of closing pipe immediately and exiting, rely on parent to close this (prevent race condition)
-    # https://github.com/MailScanner/v5/issues/546
-    # $pipe->close;
-    # $pipe = undef;
+    $pipe->close;
+    $pipe = undef;
     exit 0;
     # The child will never get here.
   }
@@ -7477,10 +7475,15 @@ sub DisarmHTMLEntity {
       #print STDERR "DisarmDoneSomething $pipedata\n";
     }
     waitpid $pid, 0;
-    $pipe->close;
-    $PipeReturn = $?;
+    # If we made it here, the child has safely closed, do not close pipe in the parent
+    # We will check for pid instead of relying on the pipe close logic to determine failure
+    # https://github.com/MailScanner/v5/issues/546
+    #$pipe->close;
+    #$PipeReturn = $?;
     alarm 0;
     $pid = 0;
+    # Clean exit
+    $ChildReturn = 0;
   };
   alarm 0;
   # Workaround for bug in perl shipped with Solaris 9,
@@ -7492,9 +7495,9 @@ sub DisarmHTMLEntity {
   };
 
   # If pid != 0 then it failed so we have to kill the child and mark it somehow
-  #print STDERR "pid==$pid\n";
-  #print STDERR "PipeReturn==$PipeReturn\n";
   if ($pid>0) {
+    # Instead of looking at the pipe, raise error here
+    $ChildReturn = 1;
     kill 15, $pid; # Was -15
     # Wait for up to 10 seconds for it to die
     for (my $i=0; $i<5; $i++) {
@@ -7517,12 +7520,12 @@ sub DisarmHTMLEntity {
   #print STDERR "Keys are " . join(', ', keys %DisarmDoneSomething) . "\n";
   #return keys %DisarmDoneSomething;
 
-  if ($PipeReturn) {
+  if ($ChildReturn) {
     if ( MailScanner::Config::Value("ignoredenialofservice", $this) =~ /0/ ) {
         # It went badly wrong!
         # Overwrite the output file to kill it, and return the error.
         # Log the fact and the exit status.
-        MailScanner::Log::WarnLog("HTML disarming died, status = $PipeReturn");
+        MailScanner::Log::WarnLog("HTML disarming died, status = $ChildReturn");
         $outfh = new FileHandle;
         unless ($outfh->open(">$newname")) {
           MailScanner::Log::WarnLog('Could not wipe deadly HTML file %s',
@@ -7538,9 +7541,8 @@ sub DisarmHTMLEntity {
         push @DisarmDoneSomething, 'denialofservice';
      } else {
        # Ignore the denial of service per configuration
-       # This does not solve the root causes of the DOS/fork pipe failure message
        # Use with caution
-       MailScanner::Log::WarnLog("HTML disarming died, status = $PipeReturn");
+       MailScanner::Log::WarnLog("HTML disarming died, status = $ChildReturn");
        MailScanner::Log::WarnLog("Ignore Denial of Service is enabled, proceeding");
      }
   }
