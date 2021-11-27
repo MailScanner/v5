@@ -7462,6 +7462,7 @@ sub DisarmHTMLEntity {
 
   # In the parent.
   my @DisarmDoneSomething;
+  my $pipeEnd = 0;
   eval {
     $pipe->reader();
     local $SIG{ALRM} = sub { die "Command Timed Out" };
@@ -7469,21 +7470,29 @@ sub DisarmHTMLEntity {
     # Read the contents of %DisarmDoneSomething from the pipe
     my($pipedata);
     while (defined($pipedata = <$pipe>)) {
-      last if $pipedata eq "ENDENDEND\n";
+      if ($pipedata eq "ENDENDEND\n") {
+        $pipeEnd = 1;
+        last;
+      }
       chomp $pipedata;
       push @DisarmDoneSomething, $pipedata;
       #print STDERR "DisarmDoneSomething $pipedata\n";
     }
     waitpid $pid, 0;
-    # If we made it here, the child has safely closed, do not close pipe in the parent
-    # We will check for pid instead of relying on the pipe close logic to determine failure
+    # If we made it here, the child has hopefully safely closed, we'll still close pipe in the parent
+    # We will check for pid and pipeEnd instead of relying on the pipe close logic to determine failure
     # https://github.com/MailScanner/v5/issues/546
-    #$pipe->close;
+    $pipe->close;
     #$PipeReturn = $?;
     alarm 0;
     $pid = 0;
-    # Clean exit
-    $ChildReturn = 0;
+    # Clean exit, unless it does so before reaching the end
+    if ($pipeEnd == 1) {
+      $ChildReturn = 0;
+    } else {
+      $ChildReturn = 2;
+    }
+    
   };
   alarm 0;
   # Workaround for bug in perl shipped with Solaris 9,
