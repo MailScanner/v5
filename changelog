@@ -1,3 +1,8 @@
+11/28/2021 Changes in    v5.4.3-1
+==================================
+
+- Refine HTML Disarm logic (detect premature pipe end)
+
 11/25/2021 Changes in    v5.4.2-3 (beta)
 ==================================
 
