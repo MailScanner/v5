@@ -632,7 +632,7 @@ exit 0
 %attr(755,root,root) /usr/lib/MailScanner/wrapper/esets-wrapper
 %attr(644,root,root) /usr/lib/MailScanner/wrapper/esets-wrapper-README
 %attr(755,root,root) /usr/lib/MailScanner/wrapper/esetsefs-wrapper
-%attr(755,root,root) /usr/lib/MailScanner/wrapper/esetsefs-wrapper-README
+%attr(644,root,root) /usr/lib/MailScanner/wrapper/esetsefs-wrapper-README
 %attr(755,root,root) /usr/lib/MailScanner/wrapper/f-secure12-wrapper
 %attr(755,root,root) /usr/lib/MailScanner/wrapper/f-secure-autoupdate
 %attr(755,root,root) /usr/lib/MailScanner/wrapper/f-secure-wrapper
