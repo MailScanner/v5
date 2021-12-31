@@ -7906,14 +7906,18 @@ sub DisarmEndtagCallback {
           #print STDERR "Not strict phishing\n";
           # We are just looking at the domain name and country code (more or less)
           # Find the end of the domain name so we know what to strip
-          my $domain = $linkurl;
+          # https://github.com/MailScanner/v5/issues/577
+          # lowercase for comparisons
+          my $domain = lc($linkurl);
           $domain =~ s/\/*$//; # Take off trailing /
           $domain =~ s/\.([^.]{2,100})$//; # Take off .TLD
           my $tld = $1;
           $domain =~ s/([^.]{2,100})$//; # Take off SLD
           my $sld = $1;
           # Now do the same for the squashed text, i.e. where they claim it is
-          my $text = $squashedtext;
+          # https://github.com/MailScanner/v5/issues/577
+          # lowercase for comparisons
+          my $text = lc($squashedtext);
           #print STDERR "Comparing $linkurl and $squashedtext\n";
           #print STDERR "tld = $tld and sld = $sld\n";
           $text =~ s/\/*$//; # Take off trailing /
@@ -8032,7 +8036,9 @@ sub DisarmEndtagCallback {
 
           unless (InPhishingWhitelist($linkurl)) {
             use bytes; # Don't send UTF16 to syslog, it breaks!
-            if ($linkurl ne "" && $numbertrap && $linkurl eq $squashedtext && $DisarmLinkURL !~ m/^(fax|tel)[:;]/i) {
+            # https://github.com/MailScanner/v5/issues/577
+            # lowercase for comparisons
+            if ($linkurl ne "" && $numbertrap && lc($linkurl) eq lc($squashedtext) && $DisarmLinkURL !~ m/^(fax|tel)[:;]/i) {
               # It's not a real phishing trap, just a use of numberic IP links
               print MailScanner::Config::LanguageValue(0, 'numericlinkwarning') .
                     ' ' if $PhishingHighlight && !$AlreadyReported;
@@ -8079,7 +8085,9 @@ sub DisarmEndtagCallback {
       MailScanner::Log::DebugLog("Debug: DisarmLinkText = %s", $DisarmLinkText);
       MailScanner::Log::DebugLog("Debug: squashedtext = %s", $squashedtext);
       MailScanner::Log::DebugLog("Debug: linkurl = %s", $linkurl);
-      if ($squashedtext ne $linkurl && $squashedtext ne "www.$linkurl" && $DisarmLinkURL !~ m/^(mailto|fax|tel):/) {
+      # https://github.com/MailScanner/v5/issues/577
+      # lowercase for comparisons
+      if (lc($squashedtext) ne lc($linkurl) && lc($squashedtext) ne lc("www.$linkurl") && $DisarmLinkURL !~ m/^(mailto|fax|tel):/) {
         MailScanner::Log::DebugLog("Debug: Modifying Hidden URL");
         print "$DisarmLinkText" . ' ' . MailScanner::Config::LanguageValue(0, 'hiddenlinkwarningstart') . ' ' . $DisarmLinkURL . MailScanner::Config::LanguageValue(0, 'hiddenlinkwarningend');
         $DisarmDoneSomething{'hidden'} = 1;
