@@ -286,9 +286,17 @@ while(<$newfh>) {
   }
 
   # Exception to force everyone with the default to change. Silently...
-  #if ($oldsettings{'webbugreplacement'} =~ /mailscanner\.info/i) {
+  if ($oldsettings{'webbugreplacement'} =~ /s3\.amazonaws\.com\/msv5/i) {
     delete $oldsettings{'webbugreplacement'};
-  #}
+    print STDERR "Important Note\n--------------\n";
+    print STDERR "Web Bug Replacement (1x1 pixel spacer) has been removed\n";
+    print STDERR "from pointing to our Amazon S3 in this version. Please host\n";
+    print STDERR "your own copy of the 1x1spacer.gif for disarming web bugs. A\n";
+    print STDERR "copy is included in this package for your convenience here:\n";
+    print STDERR "/usr/share/MailScanner/doc/1x1spacer.gif or package base.\n";
+    print STDERR "\n";
+    sleep(5);
+  }
   # Force new lockfile directory into existence.
   delete $oldsettings{'lockfiledir'};
 
