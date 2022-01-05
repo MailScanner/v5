@@ -293,12 +293,8 @@ while(<$newfh>) {
     print STDERR "from pointing to our Amazon S3 in this version. Please host\n";
     print STDERR "your own copy of the 1x1spacer.gif for disarming web bugs. A\n";
     print STDERR "copy is included in this package for your convenience here:\n";
-    print STDERR "/usr/share/MailScanner/doc/1x1spacer.gif\n";
-    print STDERR "\a\n";
-    sleep(1);
-    print STDERR "\a";
-    sleep(1);
-    print STDERR "\a";
+    print STDERR "/usr/share/MailScanner/doc/1x1spacer.gif or package base.\n";
+    print STDERR "\n";
     sleep(5);
   }
   # Force new lockfile directory into existence.
