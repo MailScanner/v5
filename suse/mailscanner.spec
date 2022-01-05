@@ -293,15 +293,18 @@ bitdefender-autoupdate
 clamav-autoupdate
 clamav-wrapper
 esets-wrapper
+esets-wrapper-README
+esetsefs-wrapper
+esetsefs-wrapper-README
 f-secure-wrapper
 f-secure-autoupdate
+f-secure12-wrapper
 generic-autoupdate
 generic-wrapper
 sophos-autoupdate
 sophos-wrapper
 drweb-wrapper
 kaspersky-wrapper
-esets-wrapper-README
 EOF
 
 MSVERSION=%{version}
@@ -627,6 +630,10 @@ exit 0
 %attr(755,root,root) /usr/lib/MailScanner/wrapper/clamav-autoupdate
 %attr(755,root,root) /usr/lib/MailScanner/wrapper/clamav-wrapper
 %attr(755,root,root) /usr/lib/MailScanner/wrapper/esets-wrapper
+%attr(644,root,root) /usr/lib/MailScanner/wrapper/esets-wrapper-README
+%attr(755,root,root) /usr/lib/MailScanner/wrapper/esetsefs-wrapper
+%attr(644,root,root) /usr/lib/MailScanner/wrapper/esetsefs-wrapper-README
+%attr(755,root,root) /usr/lib/MailScanner/wrapper/f-secure12-wrapper
 %attr(755,root,root) /usr/lib/MailScanner/wrapper/f-secure-autoupdate
 %attr(755,root,root) /usr/lib/MailScanner/wrapper/f-secure-wrapper
 %attr(755,root,root) /usr/lib/MailScanner/wrapper/generic-autoupdate
@@ -635,7 +642,6 @@ exit 0
 %attr(755,root,root) /usr/lib/MailScanner/wrapper/sophos-wrapper
 %attr(755,root,root) /usr/lib/MailScanner/wrapper/drweb-wrapper
 %attr(755,root,root) /usr/lib/MailScanner/wrapper/kaspersky-wrapper
-%attr(644,root,root) /usr/lib/MailScanner/wrapper/esets-wrapper-README
 
 %config(noreplace) /usr/share/MailScanner/perl/custom/CustomAction.pm
 %config(noreplace) /usr/share/MailScanner/perl/custom/GenericSpamScanner.pm
