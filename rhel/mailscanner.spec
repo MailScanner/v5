@@ -271,7 +271,6 @@ done << EOF
 changelog
 README.md
 LICENSE
-1x1spacer.gif
 EOF
 
 ### usr/lib/MailScanner
@@ -517,6 +516,13 @@ if [ -f /etc/MailScanner/MailScanner.conf.original -a -f /etc/MailScanner/MailSc
     mkdir -p ${SAVEDIR}/etc/MailScanner
     mv -f /etc/MailScanner/MailScanner.conf.* ${SAVEDIR}/etc/MailScanner > /dev/null 2>&1
     cp -f /etc/MailScanner/MailScanner.conf ${SAVEDIR}/etc/MailScanner/MailScanner.new > /dev/null 2>&1
+fi
+
+# update web bug link
+OLD="^Web Bug Replacement.*";
+NEW="Web Bug Replacement = data:image\/gif;base64,R0lGODlhAQABAJEAAP\/\/\/wAAAAAAAAAAACH5BAkAAAAALAAAAAABAAEAAAgEAAEEBAA7";
+if [ -f '/etc/MailScanner/MailScanner.conf' ]; then
+    sed -i "s/${OLD}/${NEW}/g" /etc/MailScanner/MailScanner.conf
 fi
 
 # fix reports directory
@@ -791,7 +797,6 @@ exit 0
 %attr(644,root,root) /usr/share/MailScanner/doc/changelog
 %attr(644,root,root) /usr/share/MailScanner/doc/LICENSE
 %attr(644,root,root) /usr/share/MailScanner/doc/README.md
-%attr(644,root,root) /usr/share/MailScanner/doc/1x1spacer.gif
 
 %config(noreplace) /usr/share/MailScanner/reports/en/deleted.content.message.txt
 %config(noreplace) /usr/share/MailScanner/reports/en/stored.content.message.txt
@@ -1275,6 +1280,9 @@ exit 0
 %config(noreplace) /usr/share/MailScanner/reports/ca/stored.virus.message.txt
 
 %changelog
+* Sat Jan 08 2022 Shawn Iverson <shawniverson@efa-project.org>
+- Revert addition of 1x1spacer.gif in favor of base64 embedding
+
 * Tue Jan 04 2022 Shawn Iverson <shawniverson@efa-project.org>
 - Remove 1x1spacer.gif default hosted url
 

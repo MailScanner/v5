@@ -108,7 +108,6 @@ mkdir -p $WORK/usr/share/MailScanner/doc
 cp $DEVBASEDIR/changelog 						$WORK/usr/share/MailScanner/doc/
 cp $DEVBASEDIR/LICENSE 							$WORK/usr/share/MailScanner/doc/
 cp $DEVBASEDIR/README.md						$WORK/usr/share/MailScanner/doc/
-cp $DEVBASEDIR/1x1spacer.gif					$WORK/usr/share/MailScanner/doc/
 fakeroot dpkg -b $WORK $PKGTMP/MailScanner-$VERSION.noarch.deb
 #chmod +x $PKGTMP/MailScanner-${FULLMSVER}/install.sh
 cd $PKGTMP
