@@ -2,7 +2,7 @@
 ==================================
 
 - Remove default hosted 1x1spacer.gif
-- Include sample 1x1spacer.gif in doc directory
+- Include base64 encoded 1x1 spacer
 - Add missing file wrappers to packages
 
 11/28/2021 Changes in    v5.4.3-1
