@@ -298,7 +298,7 @@ esetsefs-wrapper
 esetsefs-wrapper-README
 f-secure-wrapper
 f-secure-autoupdate
-f-secure12-wrapper
+f-secure-12-wrapper
 generic-autoupdate
 generic-wrapper
 sophos-autoupdate
@@ -633,7 +633,7 @@ exit 0
 %attr(644,root,root) /usr/lib/MailScanner/wrapper/esets-wrapper-README
 %attr(755,root,root) /usr/lib/MailScanner/wrapper/esetsefs-wrapper
 %attr(644,root,root) /usr/lib/MailScanner/wrapper/esetsefs-wrapper-README
-%attr(755,root,root) /usr/lib/MailScanner/wrapper/f-secure12-wrapper
+%attr(755,root,root) /usr/lib/MailScanner/wrapper/f-secure-12-wrapper
 %attr(755,root,root) /usr/lib/MailScanner/wrapper/f-secure-autoupdate
 %attr(755,root,root) /usr/lib/MailScanner/wrapper/f-secure-wrapper
 %attr(755,root,root) /usr/lib/MailScanner/wrapper/generic-autoupdate
