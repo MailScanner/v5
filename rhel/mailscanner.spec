@@ -308,7 +308,11 @@ bitdefender-autoupdate
 clamav-autoupdate
 clamav-wrapper
 esets-wrapper
+esets-wrapper-README
+esetsefs-wrapper
+esetsefs-wrapper-README
 f-secure-wrapper
+f-secure-12-wrapper
 f-secure-autoupdate
 generic-autoupdate
 generic-wrapper
@@ -316,7 +320,6 @@ sophos-autoupdate
 sophos-wrapper
 drweb-wrapper
 kaspersky-wrapper
-esets-wrapper-README
 EOF
 
 MSVERSION=%{version}
@@ -517,7 +520,7 @@ fi
 
 # update web bug link
 OLD="^Web Bug Replacement.*";
-NEW="Web Bug Replacement = https\:\/\/s3\.amazonaws\.com\/msv5\/images\/spacer\.gif";
+NEW="Web Bug Replacement = data:image\/gif;base64,R0lGODlhAQABAJEAAP\/\/\/wAAAAAAAAAAACH5BAkAAAAALAAAAAABAAEAAAgEAAEEBAA7";
 if [ -f '/etc/MailScanner/MailScanner.conf' ]; then
     sed -i "s/${OLD}/${NEW}/g" /etc/MailScanner/MailScanner.conf
 fi
@@ -702,16 +705,18 @@ exit 0
 %attr(755,root,root) /usr/lib/MailScanner/wrapper/clamav-autoupdate
 %attr(755,root,root) /usr/lib/MailScanner/wrapper/clamav-wrapper
 %attr(755,root,root) /usr/lib/MailScanner/wrapper/esets-wrapper
+%attr(644,root,root) /usr/lib/MailScanner/wrapper/esets-wrapper-README
+%attr(755,root,root) /usr/lib/MailScanner/wrapper/esetsefs-wrapper
+%attr(644,root,root) /usr/lib/MailScanner/wrapper/esetsefs-wrapper-README
 %attr(755,root,root) /usr/lib/MailScanner/wrapper/f-secure-autoupdate
 %attr(755,root,root) /usr/lib/MailScanner/wrapper/f-secure-wrapper
+%attr(755,root,root) /usr/lib/MailScanner/wrapper/f-secure-12-wrapper
 %attr(755,root,root) /usr/lib/MailScanner/wrapper/generic-autoupdate
 %attr(755,root,root) /usr/lib/MailScanner/wrapper/generic-wrapper
 %attr(755,root,root) /usr/lib/MailScanner/wrapper/sophos-autoupdate
 %attr(755,root,root) /usr/lib/MailScanner/wrapper/sophos-wrapper
 %attr(755,root,root) /usr/lib/MailScanner/wrapper/drweb-wrapper
 %attr(755,root,root) /usr/lib/MailScanner/wrapper/kaspersky-wrapper
-%attr(644,root,root) /usr/lib/MailScanner/wrapper/esets-wrapper-README
-
 
 %config(noreplace) /usr/share/MailScanner/perl/custom/CustomAction.pm
 %config(noreplace) /usr/share/MailScanner/perl/custom/GenericSpamScanner.pm
@@ -1275,6 +1280,12 @@ exit 0
 %config(noreplace) /usr/share/MailScanner/reports/ca/stored.virus.message.txt
 
 %changelog
+* Sat Jan 08 2022 Shawn Iverson <shawniverson@efa-project.org>
+- Revert addition of 1x1spacer.gif in favor of base64 embedding
+
+* Tue Jan 04 2022 Shawn Iverson <shawniverson@efa-project.org>
+- Remove 1x1spacer.gif default hosted url
+
 * Sat May 16 2020 Shawn Iverson <shawniverson@efa-project.org>
 - Refactor to simplify build and spec
 

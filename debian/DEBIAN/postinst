@@ -162,7 +162,7 @@ fi
 
 # update web bug link
 OLD="^Web Bug Replacement.*";
-NEW="Web Bug Replacement = https\:\/\/s3\.amazonaws\.com\/msv5\/images\/spacer\.gif";
+NEW="Web Bug Replacement = data:image\/gif;base64,R0lGODlhAQABAJEAAP\/\/\/wAAAAAAAAAAACH5BAkAAAAALAAAAAABAAEAAAgEAAEEBAA7";
 if [ -f '/etc/MailScanner/MailScanner.conf' ]; then
     sed -i "s/${OLD}/${NEW}/g" /etc/MailScanner/MailScanner.conf
 fi

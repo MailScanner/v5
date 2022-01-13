@@ -286,9 +286,16 @@ while(<$newfh>) {
   }
 
   # Exception to force everyone with the default to change. Silently...
-  #if ($oldsettings{'webbugreplacement'} =~ /mailscanner\.info/i) {
+  if ($oldsettings{'webbugreplacement'} =~ /s3\.amazonaws\.com\/msv5/i) {
     delete $oldsettings{'webbugreplacement'};
-  #}
+    print STDERR "Important Note\n--------------\n";
+    print STDERR "Web Bug Replacement (1x1 pixel spacer) has been removed\n";
+    print STDERR "from pointing to our Amazon S3 in this version. A\n";
+    print STDERR "base64 encoded spacer has been substituted and does not\n";
+    print STDERR "require pointing to a URL\n";
+    print STDERR "\n";
+    sleep(5);
+  }
   # Force new lockfile directory into existence.
   delete $oldsettings{'lockfiledir'};
 
