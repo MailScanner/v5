@@ -413,7 +413,7 @@ ARMOD+=('Net::DNS');				ARMOD+=('Net::LDAP');				ARMOD+=('Net::DNS::Resolver::Pr
 ARMOD+=('NetAddr::IP');				ARMOD+=('Parse::RecDescent');		ARMOD+=('Test::Harness');
 ARMOD+=('Test::Manifest');			ARMOD+=('Text::Balanced');			ARMOD+=('URI');
 ARMOD+=('version');					ARMOD+=('IO::Compress::Bzip2');		ARMOD+=('Sendmail::PMilter');
-ARMOD+=('Math::Int64');				ARMOD+=('IP::Country;;DB_File');	ARMOD+=('namespace::autoclean');
+ARMOD+=('Math::Int64');				ARMOD+=('IP::Country::DB_File');	ARMOD+=('namespace::autoclean');
 ARMOD+=('Data::IEEE754');			ARMOD+=('Data::Printer');			ARMOD+=('Data::Validate::IP');
 ARMOD+=('List::AllUtils');			ARMOD+=('List::SomeUtils');			ARMOD+=('Net::Works::Network');
 ARMOD+=('List::UtilsBy');			ARMOD+=('MaxMind::DB::Metadata');	ARMOD+=('MaxMind::DB::Reader');
