@@ -419,7 +419,7 @@ ARMOD+=('List::AllUtils');			ARMOD+=('List::SomeUtils');			ARMOD+=('Net::Works::
 ARMOD+=('List::UtilsBy');			ARMOD+=('MaxMind::DB::Metadata');	ARMOD+=('MaxMind::DB::Reader');
 ARMOD+=('Module::Runtime');			ARMOD+=('Moo');						ARMOD+=('MooX::StrictConstructor');
 ARMOD+=('Role::Tiny');				ARMOD+=('strictures');				ARMOD+=('MaxMind::DB::Reader::XS');
-ARMOD+=('Sub::Quote');				ARMOD+=('Math::Int128');
+ARMOD+=('Sub::Quote');				ARMOD+=('Math::Int128');			ARMOD+=('HTTP::Date');
 
 # additional spamassassin plugins
 SAMOD=();

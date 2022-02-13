@@ -436,6 +436,7 @@ ARMOD+=('List::UtilsBy');			ARMOD+=('MaxMind::DB::Metadata');	ARMOD+=('MaxMind::
 ARMOD+=('Module::Runtime');			ARMOD+=('Moo');						ARMOD+=('MooX::StrictConstructor');
 ARMOD+=('Role::Tiny');				ARMOD+=('strictures');				ARMOD+=('MaxMind::DB::Reader::XS');
 ARMOD+=('Sub::Quote');				ARMOD+=('Math::Int128');			ARMOD+=('Net::Works::Network');
+ARMOD+=('HTTP::Date');
 
 # additional spamassassin plugins
 SAMOD=();
