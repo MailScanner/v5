@@ -4,6 +4,7 @@
 - Override Filetypes feature
 - Generalize detection of dat files
 - Improved handling of milterout queue files
+- Unfold Received header (postfix/sendmail)
 - Ensure HTTP::Date perl module is installed
 - Fix IP::Country::DB_File (Suse)
 
