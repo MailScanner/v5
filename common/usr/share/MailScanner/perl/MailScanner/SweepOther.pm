@@ -695,7 +695,7 @@ sub CheckFileTypesRules {
       next if $attach eq "" && $safename eq "";
 
       if (MailScanner::Config::Value('overridefiletypes', $message) =~ /1/ && $message->{override}->{$safename} == 1) {
-        MailScanner::Log::InfoLog("Filetype Checks: Overriding checks for %s %s", $id, $safename);
+        MailScanner::Log::DebugLog("Debug: Filetype Checks: Overriding checks for %s %s", $id, $safename);
         next;
       }
 
@@ -910,7 +910,7 @@ sub CheckFileTypesRules {
       next if $attach eq "" && $safename eq "";
 
       if (MailScanner::Config::Value('overridefiletypes', $message) =~ /1/ && $message->{override}->{$safename} == 1) {
-        MailScanner::Log::InfoLog("Filetype Checks: Overriding checks for %s %s", $id, $safename);
+        MailScanner::Log::DebugLog("Debug: Filetype Checks: Overriding checks for %s %s", $id, $safename);
         next;
       }
 
