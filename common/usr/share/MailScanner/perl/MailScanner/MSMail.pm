@@ -383,6 +383,7 @@ sub new {
     my $InSubject = 0; # Are we adding continuation subject lines?
     my $InTo = 0;
     my $InFrom = 0;
+    my $InReceived = 0;
     my(@rcvdiplist);
     my $RecvFound = 0;
     my $UnfoldBuffer = '';
@@ -474,6 +475,7 @@ sub new {
                 # In a continuation line
                 $recdata =~ s/^\s//;
                 $UnfoldBuffer .= ' ' . $recdata;
+                next;
             } else {
                 # End of To field
                 my $to = $UnfoldBuffer;
@@ -492,21 +494,35 @@ sub new {
                     MailScanner::Log::DebugLog("MSMail: ReadQf: to = $recdata");
                 }
                 $InTo=0;
-             }
-         }
+            }
+          }
 
-         if ($recdata =~ m/^To: /i) {
+          if ($InReceived) {
+              if ($recdata =~ /^\s/) {
+                  # In a continuation line
+                  $recdata =~ s/^\s//;
+                  $UnfoldBuffer .= ' ' . $recdata;
+                  next;
+              } else {
+                  # End of Received field
+                  my $rcvdip = '127.0.0.1';
+                  if ($UnfoldBuffer =~ /^Received: .+?\(.*?\[(?:IPv6:)?([0-9a-f.:]+)\]/i) {
+                      $rcvdip = $1;
+                      push @rcvdiplist, $rcvdip;
+                      MailScanner::Log::DebugLog("MSMail: ReadQf: ip = $rcvdip");
+                  }
+                  $InReceived=0;
+              }
+          }
+
+          if ($recdata =~ m/^To: /i) {
             # RFC 822 unfold address field
             $UnfoldBuffer = $recdata;
             $InTo = 1;
             next;
           } elsif ($recdata =~ /^Received:/i) {
-             my $rcvdip = '127.0.0.1';
-             if ($recdata =~ /^Received: .+?\(.*?\[(?:IPv6:)?([0-9a-f.:]+)\]/i) {
-                 $rcvdip = $1;
-                 push @rcvdiplist, $rcvdip;
-                 MailScanner::Log::DebugLog("MSMail: ReadQf: ip = $rcvdip");
-            }
+            $UnfoldBuffer = $recdata;
+            $InReceived = 1;
             next;
           } elsif ($recdata eq '') {
             # Empty line signals end of header

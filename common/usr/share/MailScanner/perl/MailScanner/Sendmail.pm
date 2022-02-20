@@ -273,6 +273,8 @@ my($sed) = "/bin/sed";
     my($Line, $Flags);
     my($RFound, $SFound, $IPFound);
     my(@rcvdiplist);
+    my $InReceived = 0;
+    my $UnfoldBuffer;
 
     #$message->{store}->print();
 
@@ -336,6 +338,29 @@ my($sed) = "/bin/sed";
       if ($InSubject && $Line =~ /^\s/) {
         $message->{subject} .= $Line;
       }
+      if ($InReceived) {
+        if ($Line =~ /^\s/) {
+          $UnfoldBuffer .= $Line;
+        } else {
+          my $rcvdip = '127.0.0.1';
+          if ($UnfoldBuffer =~ /^Received: .+?\[(\d+\.\d+\.\d+\.\d+)\]/i) {
+            $rcvdip = $1;
+            #unless ($read1strcvd) {
+            #  $ipfromheader = $1;
+            #  $read1strcvd = 1;
+            #}
+          # Non-greedy match to pull out 1st IP address on the line
+          } elsif ($UnfoldBuffer =~ /^Received: .+?\[([\dabcdef.:]+)\]/i) {
+            $rcvdip = $1;
+            #unless ($read1strcvd) {
+            #  $ipfromheader = $1;
+            #  $read1strcvd = 1;
+            #}
+          }
+          push @rcvdiplist, $rcvdip;
+          $InReceived = 0;
+        }
+      }
       $Line =~ s/^H//;
       # JKF 18/04/2001 Delete ?flags? for 0 or more flags for sendmail 8.11
       $Line =~ s/^(\?[^?]*\?)//;
@@ -350,25 +375,9 @@ my($sed) = "/bin/sed";
       if ($Line =~ /^Subject:\s*(\S.*)?$/i) {
         $message->{subject} = $1;
         $InSubject = 1;
-      }
-      # Non-greedy match to pull out 1st IP address on the line
-      if ($Line =~ /^Received:/i) {
-        my $rcvdip = '127.0.0.1';
-        if ($Line =~ /^Received: .+?\[(\d+\.\d+\.\d+\.\d+)\]/i) {
-          $rcvdip = $1;
-          #unless ($read1strcvd) {
-          #  $ipfromheader = $1;
-          #  $read1strcvd = 1;
-          #}
-        # Non-greedy match to pull out 1st IP address on the line
-        } elsif ($Line =~ /^Received: .+?\[([\dabcdef.:]+)\]/i) {
-          $rcvdip = $1;
-          #unless ($read1strcvd) {
-          #  $ipfromheader = $1;
-          #  $read1strcvd = 1;
-          #}
-        }
-        push @rcvdiplist, $rcvdip;
+      } elsif ($Line =~ /^Received:/i) {
+        $InReceived = 1;
+        $UnfoldBuffer = $Line;
       }
     }
     # Not every qf file defined an IP address if it is a bounce.
