@@ -688,7 +688,7 @@ sub CheckFileTypesRules {
       $attach = $message->{safefile2file}{$safename} || $tnefname;
       next if $attach eq "" && $safename eq "";
 
-      if (MailScanner::Config::Value('aignoredatexecutable', $message) =~ /1/ && $attach =~ /\.(?:dat|cdr)$/) {
+      if (MailScanner::Config::Value('aignoredatexecutable', $message) =~ /1/ && $attach =~ /\.dat$/ && $TypeIndicator =~ /$ArchivesAre/) {
         ## Will prevent to quarantine email if MS Office/Corel
         ## attachment contains a .dat file
         ## .dat files are detected as executable in some instances
@@ -898,7 +898,7 @@ sub CheckFileTypesRules {
       $attach = $message->{safefile2file}{$safename} || $tnefname;
       next if $attach eq "" && $safename eq "";
 
-      if (MailScanner::Config::Value('aignoredatexecutable', $message) =~ /1/ && $attach =~ /\.(?:dat|cdr)$/) {
+      if (MailScanner::Config::Value('aignoredatexecutable', $message) =~ /1/ && $attach =~ /\.dat$/ && $TypeIndicator =~ /$ArchivesAre/) {
         ## Will prevent to quarantine email if MS Office/Corel
         ## attachment contains a .dat file
         ## .dat files are detected as executable in some instances
