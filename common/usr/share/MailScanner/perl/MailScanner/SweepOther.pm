@@ -261,6 +261,9 @@ sub ScanBatch {
           #print STDERR "Allow exists\n";
           if ($attach =~ /$megaallow/is || $notypesafename =~ /$megaallow/is) {
             $MatchFound = 1;
+            if (MailScanner::Config::Value('overridefiletypes', $message) =~ /1/) {
+              $message->{override}->{$safename} = 1;
+            }
             #print STDERR "Allowing filename $id\t$notypesafename\n";
             MailScanner::Log::InfoLog("Filename Checks: Allowing %s %s",
                                       $id, $notypesafename)
@@ -391,6 +394,9 @@ sub ScanBatch {
             MailScanner::Log::InfoLog("Filename Checks: Allowing %s %s",
                                       $id, $notypesafename)
               if $LogNames;
+            if (MailScanner::Config::Value('overridefiletypes', $message) =~ /1/) {
+              $message->{override}->{$safename} = 1;
+            }
           }
         }
         MailScanner::Log::InfoLog("Filename Checks: Allowing %s %s " .
@@ -688,6 +694,11 @@ sub CheckFileTypesRules {
       $attach = $message->{safefile2file}{$safename} || $tnefname;
       next if $attach eq "" && $safename eq "";
 
+      if (MailScanner::Config::Value('overridefiletypes', $message) =~ /1/ && $message->{override}->{$safename} == 1) {
+        MailScanner::Log::InfoLog("Filetype Checks: Overriding checks for %s %s", $id, $safename);
+        next;
+      }
+
       if (MailScanner::Config::Value('aignoredatexecutable', $message) =~ /1/ && $attach =~ /\.dat$/ && $TypeIndicator =~ /$ArchivesAre/) {
         ## Will prevent to quarantine email if MS Office/Corel
         ## attachment contains a .dat file
@@ -897,6 +908,11 @@ sub CheckFileTypesRules {
     while(($safename, $type) = each %$attachtypes) {
       $attach = $message->{safefile2file}{$safename} || $tnefname;
       next if $attach eq "" && $safename eq "";
+
+      if (MailScanner::Config::Value('overridefiletypes', $message) =~ /1/ && $message->{override}->{$safename} == 1) {
+        MailScanner::Log::InfoLog("Filetype Checks: Overriding checks for %s %s", $id, $safename);
+        next;
+      }
 
       if (MailScanner::Config::Value('aignoredatexecutable', $message) =~ /1/ && $attach =~ /\.dat$/ && $TypeIndicator =~ /$ArchivesAre/) {
         ## Will prevent to quarantine email if MS Office/Corel
