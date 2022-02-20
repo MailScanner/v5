@@ -692,6 +692,7 @@ UseSpamAssassin		1	no	0	yes	1
 UseWatermarking		1	no	0	yes	1
 VirusScan		1	no	0	yes	1
 ZipAttachments		0	no	0	yes	1
+OverrideFiletypes		0	no	0	yes	1
 
 [All,File]
 #FilenameRules		/etc/MailScanner/filename.rules.conf
