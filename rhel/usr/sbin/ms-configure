@@ -785,7 +785,7 @@ ARMOD+=('Module::Runtime');			ARMOD+=('Moo');						ARMOD+=('MooX::StrictConstruc
 ARMOD+=('Role::Tiny');				ARMOD+=('strictures');				ARMOD+=('DBD::mysql');
 ARMOD+=('Sub::Quote');				ARMOD+=('Math::Int128');			ARMOD+=('Net::Works::Network');
 ARMOD+=('MaxMind::DB::Reader::XS');	ARMOD+=('Geo::IP');					ARMOD+=('GeoIP2::Database::Reader');
-ARMOD+=('Net::DNS::Resolver::Programmable');
+ARMOD+=('Net::DNS::Resolver::Programmable');							ARMOD+=('HTTP::Date');
 
 # SA and plugins
 SAMOD=();

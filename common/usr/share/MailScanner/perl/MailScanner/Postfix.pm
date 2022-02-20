@@ -392,6 +392,8 @@ sub new {
     my($ORIGFound, $TOFound, $FROMFound, $IPFound, $TIMEFound);
     my($ErrorFound, $ERecordFound, $rectype, $recdata, $mtime);
     my $InSubject = 0; # Are we adding continuation subject lines?
+    my $InReceived = 0;
+    my $UnfoldBuffer;
     my $pRecordsFound = 0; # p record spin-through of body? //Glenn
     my $OriginalPos = 0; # p record jumpoff point //Glenn
     my $MaxpRecPos = 0; # Max position where a p record might occur.
@@ -646,6 +648,38 @@ sub new {
           $InSubject = 0;
         }
       }
+      if ($InReceived) {
+        if ($recdata =~ /^\s/) {
+          $recdata =~ s/^\s//;
+          $UnfoldBuffer .= ' ' . $recdata;
+          next;
+        } else {
+          my $rcvdip = '127.0.0.1';
+          if ($UnfoldBuffer =~ /^Received: .+?\(.*?\[(?:IPv6:)?([0-9a-f.:]+)\]/i) {
+            $rcvdip = $1;
+            #unless ($read1strcvd) {
+            #  $ipfromheader = $1;
+            #  $read1strcvd = 1;
+            #}
+            #15 if ($getipfromheader && $getipfromheader <= @rcvdiplist) {
+            #15   $message->{clientip} = $rcvdiplist[$getipfromheader-1];
+            #15   $IPFound = 1;
+            #15 }
+            #unless ($IPFound) {
+            #  $message->{clientip} = $1;
+            #  $IPFound = 1;
+            #}
+          }#15  elsif (!$IPFound &&
+           #15         $getipfromheader==1 &&
+           #15         $recdata =~ /^Received: .+\(Postfix/i) {
+           #15  $message->{clientip} = '127.0.0.1';  #spoof local sender from localhost
+           #15  $rcvdip = '127.0.0.1';
+           #15  $IPFound = 1;
+          #15 }
+          push @rcvdiplist, $rcvdip;
+          $InReceived = 0;
+        }
+      }
       #if ($recdata =~ /^Received: .+\[(\d+\.\d+\.\d+\.\d+)\]/i) {
       #  unless ($read1strcvd) {
       #    $ipfromheader = $1;
@@ -658,29 +692,9 @@ sub new {
       #} elsif ($recdata =~ /^Received: .+\[([\dabcdef.:]+)\]/i) {
       # Linux adds "IPv6:" on the front of the IPv6 address, so remove it
       if ($recdata =~ /^Received:/i) {
-        my $rcvdip = '127.0.0.1';
-        if ($recdata =~ /^Received: .+?\(.*?\[(?:IPv6:)?([0-9a-f.:]+)\]/i) {
-          $rcvdip = $1;
-          #unless ($read1strcvd) {
-          #  $ipfromheader = $1;
-          #  $read1strcvd = 1;
-          #}
-          #15 if ($getipfromheader && $getipfromheader <= @rcvdiplist) {
-          #15   $message->{clientip} = $rcvdiplist[$getipfromheader-1];
-          #15   $IPFound = 1;
-          #15 }
-          #unless ($IPFound) {
-          #  $message->{clientip} = $1;
-          #  $IPFound = 1;
-          #}
-        }#15  elsif (!$IPFound &&
-         #15         $getipfromheader==1 &&
-         #15         $recdata =~ /^Received: .+\(Postfix/i) {
-         #15  $message->{clientip} = '127.0.0.1';  #spoof local sender from localhost
-         #15  $rcvdip = '127.0.0.1';
-         #15  $IPFound = 1;
-        #15 }
-        push @rcvdiplist, $rcvdip;
+        $InReceived = 1;
+        $UnfoldBuffer = $recdata;
+        next;
       }
     }
     # Must remember to add empty "X" record after the message data.

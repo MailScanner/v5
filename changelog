@@ -1,3 +1,13 @@
+02/20/2022 Changes in    v5.4.4-1
+==================================
+
+- Override Filetypes feature
+- Generalize detection of dat files
+- Improved handling of milterout queue files
+- Unfold Received header (postfix/sendmail)
+- Ensure HTTP::Date perl module is installed
+- Fix IP::Country::DB_File (Suse)
+
 01/04/2022 Changes in    v5.4.3-2
 ==================================
 
