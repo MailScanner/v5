@@ -953,7 +953,7 @@ sub new {
 
           # Should be only one queuedir in this setup
           $queuedirname = $queue;
-          $queuedir->$close;
+          $queuedir->close();
       }
 
       $queuehandle = new FileHandle();
