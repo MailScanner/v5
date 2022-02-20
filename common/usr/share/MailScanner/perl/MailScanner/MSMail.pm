@@ -932,32 +932,52 @@ sub new {
       my $method = MailScanner::Config::Value('msmaildeliverymethod');
       my $sockettype = MailScanner::Config::Value('msmailsockettype');
       my $socketdir = MailScanner::Config::Value('msmailsocketdir');
-      my @ids;
 
       MailScanner::Log::DebugLog("MSMail: KickMessage:\n org = $orgname\n port = $port\n address = $address");
       foreach $queue (keys %$queue2ids) {
           next unless $queue2ids->{$queue};
 
-          @ids = split(' ', $queue2ids->{$queue});
+          $queuedir  = new DirHandle;
+          unless (chdir $queue) {
+              MailScanner::Log::WarnLog("Cannot cd to dir %s to kick messages, %s",
+                                    $queue, $!);
+          }
           
+          $queuedir->open('.')
+              or MailScanner::Log::DieLog("Cannot open queue dir %s for kicking messages " .
+                                      "message batch, %s", $queue, $!);
+          while(defined($file = $queuedir->read())) {
+              next if $file eq '.' || $file eq '..';
+              push @Files, $file;
+          }
+
           # Should be only one queuedir in this setup
           $queuedirname = $queue;
+          $queuedir->$close;
       }
 
       $queuehandle = new FileHandle();
 
-      foreach $file (@ids) {
+      foreach $file (@Files) {
 
           undef(@recipient);
           $opts = '';
 
           my $filename = $file;
           my $file = $queuedirname . '/' . $file;
-          # Open file
-          my $ret = MailScanner::Lock::openlock($queuehandle,'+<' . $file, 'w');
-          if ($ret != 1) {
-              MailScanner::Log::WarnLog("Cannot open $file for relaying, will try again later");
-              next;
+          # Check that the file is in the queue still
+          # Since no child "owns" the files ($queue2ids is ignored), this will
+          # double check for the file before locking
+          if (-e $file) {
+            # Open file
+            my $ret = MailScanner::Lock::openlock($queuehandle,'+<' . $file, 'w');
+            if ($ret != 1) {
+                MailScanner::Log::WarnLog("Cannot open $file for relaying, will try again later");
+                next;
+            }
+          } else {
+            MailScanner::Log::DebugLog("MSMail: File $file gone from disk, skipping");
+            next;
           }
           $recipientfound = 0;
           $senderfound = 0;
