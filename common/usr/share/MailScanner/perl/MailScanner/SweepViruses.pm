@@ -121,7 +121,7 @@ my %Scanners = (
   "f-secure-12" => {
     name => "F-Secure-12",
     Lock => 'f-secure12Busy.lock',
-    CommonOptions => '--quiet --scan-archives=yes --detect-encrypted-archives=yes',
+    CommonOptions => '--quiet --scan-archives=yes --detect-encrypted-archives=no',
     DisinfectOptions => '--malware=remove --pua=remove',
     ScanOptions => '',
     InitParser => \&InitFSecure12Parser,
@@ -1258,7 +1258,9 @@ sub InitFSecureParser {
 
 # Initialise any state variables the F-Secure-12 output parser uses
 sub InitFSecure12Parser {
-  ;
+  if (MailScanner::Config::Value("allowpasszips") =~ /0/) {
+    $Scanners{'f-secure-12'}{'CommonOptions'} = '--quiet --scan-archives=yes --detect-encrypted-archives=yes';
+  }
 }
 
 # Initialise any state variables the F-Secured output parser uses
