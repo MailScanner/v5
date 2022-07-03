@@ -1,6 +1,7 @@
 #
 #   MailScanner - SMTP Email Processor
 #   Copyright (C) 2002  Julian Field
+#   Copyright (C) 2022 MailScanner Team <https://mailscanner.info>
 #
 #   $Id: Message.pm 5099 2011-06-27 10:40:34Z sysjkf $
 #
@@ -3348,13 +3349,13 @@ sub UnpackRar {
   # Unrar Version 5.21 (and possibly others in the future do not use --help, grab without --help here)
   $UnrarVersion = (split /\ /, (split /\n/, SafePipe("$unrar 2>&1",$PipeTimeOut))[1])[1];
 
-  # Check for version 4 or 5 of unrar.
+  # Check for version 4, 5, 6 of unrar.
   # Future versions of unrar will need tested
   # If unrar itself does not output version, grab again using --help as a fail safe
   $UnrarVersion = (split /\ /, (split /\n/, SafePipe("$unrar --help 2>&1",$PipeTimeOut))[1])[1] unless  $UnrarVersion =~ /^\d+\.\d*$/;
 
   # Check version
-  return 1 unless $UnrarVersion =~ /^\d+\.\d*$/ && ( $UnrarVersion >= 4.0 && $UnrarVersion < 6.0 );
+  return 1 unless $UnrarVersion =~ /^\d+\.\d*$/ && ( $UnrarVersion >= 4.0 && $UnrarVersion < 7.0 );
 
   # Escape spaces in filename
   # $zipname =~ s/\ /\\\ /g;
@@ -3447,7 +3448,7 @@ sub UnpackRar {
     @members = split /\n/, $memb;
 
   # Unrar Version 5x file parse
-  } elsif ($UnrarVersion >= 5.0 && $UnrarVersion < 6.0) {
+  } elsif ($UnrarVersion >= 5.0 && $UnrarVersion < 7.0) {
     # This part lists the archive contents and makes the list of
     # file names within. "This is a list verbose option"
     $memb = SafePipe("$unrar vt -idcp -p- '$explodeinto/$zipname' 2>&1",
