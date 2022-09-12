@@ -4990,8 +4990,12 @@ sub SignExternalMessage {
 
     my $sigcounter = 0;
     $sigcounter += $this->SignExternalMessage($top->parts(0));
-    $sigcounter += $this->SignExternalMessage($top->parts(1))
-      if $top->head and $top->effective_type =~ /multipart\/alternative/i;
+    # https://github.com/MailScanner/v5/issues/611
+    my $parts = $top->parts;
+    for (my $i = 1; $i < $parts; $i++) {
+      $sigcounter += $this->SignExternalMessage($top->parts($i))
+        if $top->head and $top->effective_type =~ /multipart\/alternative/i;
+    } unless $parts <= 1;
 
     return $sigcounter;
   }
@@ -5008,7 +5012,8 @@ sub SignExternalMessage {
   # Output message back into body, followed by original data
   my($line, $io, $warning);
   $io = $top->open("w");
-  if ($MimeType =~ /text\/html/i) {
+  # https://github.com/MailScanner/v5/issues/610
+  if ($MimeType =~ /text\/(.*)?html/i) {
     MailScanner::Log::DebugLog("Debug: Adding external html for message %s", $this->{id});
     $warning = $this->ReadExternalWarning('inlineexternalhtml');
     #$warning = quotemeta $warning; # Must leave HTML tags alone!
