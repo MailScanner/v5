@@ -4992,10 +4992,12 @@ sub SignExternalMessage {
     $sigcounter += $this->SignExternalMessage($top->parts(0));
     # https://github.com/MailScanner/v5/issues/611
     my $parts = $top->parts;
-    for (my $i = 1; $i < $parts; $i++) {
-      $sigcounter += $this->SignExternalMessage($top->parts($i))
-        if $top->head and $top->effective_type =~ /multipart\/alternative/i;
-    } unless $parts <= 1;
+    if ($parts > 1) {
+      for (my $i = 1; $i < $parts; $i++) {
+        $sigcounter += $this->SignExternalMessage($top->parts($i))
+          if $top->head and $top->effective_type =~ /multipart\/alternative/i;
+      }
+    }  
 
     return $sigcounter;
   }
