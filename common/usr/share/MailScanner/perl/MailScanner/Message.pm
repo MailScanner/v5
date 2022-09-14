@@ -5927,7 +5927,7 @@ sub DeliverModifiedBody {
   # Leave utf-8 encodings in place
   # https://github.com/MailScanner/v5/issues/287
   # https://github.com/MailScanner/v5/issues/607
-  if ($this->{headermodifed}) {
+  if ($this->{headermodified}) {
     $global::MS->{mta}->AddHeadersToQf($this, $this->{entity}->stringify_header);
   } else {
     $global::MS->{mta}->AddHeadersToQf($this);
