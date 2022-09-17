@@ -5933,9 +5933,12 @@ sub DeliverModifiedBody {
   # Set up the output envelope with its (possibly modified) headers
   # Leave utf-8 encodings in place
   # https://github.com/MailScanner/v5/issues/287
-  #$global::MS->{mta}->AddHeadersToQf($this, $this->{entity}->stringify_header);
-  $global::MS->{mta}->AddHeadersToQf($this);
-
+  # https://github.com/MailScanner/v5/issues/607
+  if ($this->{headermodified}) {
+    $global::MS->{mta}->AddHeadersToQf($this, $this->{entity}->stringify_header);
+  } else {
+    $global::MS->{mta}->AddHeadersToQf($this);
+  }
   # Remove duplicate subject: lines
   $global::MS->{mta}->UniqHeader($this, 'Subject:');
 
@@ -7290,7 +7293,10 @@ sub EncapsulateMessage {
   $entity->preamble(undef);
   $entity->epilogue(undef);
   $entity->head->add('MIME-Version', '1.0') unless $mimeversion;
-  $this->{bodymodified} = 1; # No infection but we changed the MIIME tree
+  $this->{bodymodified} = 1; # No infection but we changed the MIME tree
+  # https://github.com/MailScanner/v5/issues/607
+  # Since this encapsulates with a new mime boundary we can't use the old header and preserve utf8 encodings
+  $this->{headermodified} = 1; 
 }
 
 sub DisarmHTMLTree {
