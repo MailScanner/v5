@@ -699,6 +699,11 @@ sub CheckFileTypesRules {
         next;
       }
 
+      $notypesafename = substr($safename,1);
+
+      # Find the attachment type from the 1st letter of the filename
+      $TypeIndicator = substr($safename,0,1);
+
       if (MailScanner::Config::Value('aignoredatexecutable', $message) =~ /1/ && $attach =~ /\.dat$/ && $TypeIndicator =~ /$ArchivesAre/) {
         ## Will prevent to quarantine email if MS Office/Corel
         ## attachment contains a .dat file
@@ -706,11 +711,6 @@ sub CheckFileTypesRules {
         MailScanner::Log::InfoLog("Skipping archive .dat file type check (prevent wrong executable type)");
         next;
       }
-
-      $notypesafename = substr($safename,1);
-
-      # Find the attachment type from the 1st letter of the filename
-      $TypeIndicator = substr($safename,0,1);
 
       #
       # Implement simple all-matches rulesets for allowing and denying files
@@ -914,6 +914,10 @@ sub CheckFileTypesRules {
         next;
       }
 
+      $notypesafename = substr($safename,1);
+      
+      $TypeIndicator = substr($safename,0,1);
+
       if (MailScanner::Config::Value('aignoredatexecutable', $message) =~ /1/ && $attach =~ /\.dat$/ && $TypeIndicator =~ /$ArchivesAre/) {
         ## Will prevent to quarantine email if MS Office/Corel
         ## attachment contains a .dat file
@@ -922,8 +926,6 @@ sub CheckFileTypesRules {
         next;
       }
 
-      $notypesafename = substr($safename,1);
-      $TypeIndicator = substr($safename,0,1);
       if ($TypeIndicator =~ /$ArchivesAre/) {
         $allowexists   = $Aallowexists;
         $megaallow     = $Amegaallow;
