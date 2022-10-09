@@ -1,4 +1,12 @@
-07/03/2022 Changes in    v5.4.5-1 (beta)
+10/09/2022 Changes in    v5.4.5-2 (beta)
+==================================
+
+- Remove v5.4.5-1 from beta
+- Fix dat file check not allowing files through
+- Fix attachment mode not adding new MIME header
+- Fix external message warning not always appearing
+
+07/03/2022 Changes in    v5.4.5-1
 ==================================
 
 - Add support for unrar v6x
