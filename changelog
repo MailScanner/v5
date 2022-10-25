@@ -1,10 +1,12 @@
-10/09/2022 Changes in    v5.4.5-2 (beta)
+10/09/2022 Changes in    v5.4.5-2
 ==================================
 
 - Remove v5.4.5-1 from beta
 - Fix dat file check not allowing files through
 - Fix attachment mode not adding new MIME header
 - Fix external message warning not always appearing
+- Fix extraneous newline appearing in received header (milter)
+- Bump milter to v1.7
 
 07/03/2022 Changes in    v5.4.5-1
 ==================================
