@@ -515,14 +515,20 @@ sub eom_callback
         Sendmail::PMilter::SMFIS_TEMPFAIL;
         return;
     }
+    
     my $file = @{$incoming}[0] . '/temp-' . ${$message_ref};
     my $file2 = @{$incoming}[0] . '/' . ${$message_ref};
 
-    copy($file, $file2);
+    if ( -e $file) { 
+      copy($file, $file2);
 
-    # Send DISCARD signal to accept message and drop from postfix
-    # for mailscanner processing
-    Sendmail::PMilter::SMFIS_DISCARD;
+      # Send DISCARD signal to accept message and drop from postfix
+      # for mailscanner processing
+      Sendmail::PMilter::SMFIS_DISCARD;
+    } else {
+      # Something went wrong (file not present, could indicate broken module dependency)
+      Sendmail::PMilter::SMFIS_TEMPFAIL;
+    }
 }
 
 sub close_callback

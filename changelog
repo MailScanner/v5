@@ -1,3 +1,9 @@
+10/29/2022 Changes in    v5.4.5-3
+==================================
+
+- Integrate working version of Sendmail::PMilter (milter)
+  (Version 1.2x from CPAN not working with postfix currently)
+
 10/09/2022 Changes in    v5.4.5-2
 ==================================
 
