@@ -74,6 +74,7 @@ MailScanner/reports/ro
 MailScanner/reports/sk
 MailScanner/perl/MailScanner
 MailScanner/perl/custom
+MailScanner/perl/Sendmail/PMilter
 EOF
 
 while read f
@@ -206,6 +207,10 @@ EOF
 done
 
 install common/usr/share/MailScanner/perl/MailScanner.pm ${RPM_BUILD_ROOT}/usr/share/MailScanner/perl/
+
+install common/usr/share/MailScanner/perl/Sendmail/Milter.pm ${RPM_BUILD_ROOT}/usr/share/MailScanner/perl/Sendmail/
+install common/usr/share/MailScanner/perl/Sendmail/PMilter.pm ${RPM_BUILD_ROOT}/usr/share/MailScanner/perl/Sendmail/
+install common/usr/share/MailScanner/perl/Sendmail/PMilter/Context.pm ${RPM_BUILD_ROOT}/usr/share/MailScanner/perl/Sendmail/PMilter
 
 while read f 
 do
@@ -766,6 +771,10 @@ exit 0
 %attr(644,root,root) /usr/share/MailScanner/perl/MailScanner/ZMailer.pm
 %attr(644,root,root) /usr/share/MailScanner/perl/MailScanner/ZMDiskStore.pm
 
+%attr(644,root,root) /usr/share/MailScanner/perl/Sendmail/Milter.pm
+%attr(644,root,root) /usr/share/MailScanner/perl/Sendmail/PMilter.pm
+%attr(644,root,root) /usr/share/MailScanner/perl/Sendmail/PMilter/Context.pm
+
 %attr(755,root,root) /etc/cron.daily/mailscanner
 %attr(755,root,root) /etc/cron.hourly/mailscanner
 
@@ -1280,6 +1289,9 @@ exit 0
 %config(noreplace) /usr/share/MailScanner/reports/ca/stored.virus.message.txt
 
 %changelog
+* Sat Oct 29 2022 Shawn Iverson <shawniverson@efa-project.org>
+- Integrate working PMilter code into MailScanner
+
 * Sat Jan 08 2022 Shawn Iverson <shawniverson@efa-project.org>
 - Revert addition of 1x1spacer.gif in favor of base64 embedding
 
