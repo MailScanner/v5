@@ -48,8 +48,6 @@ use MailScanner::Message;
 my $ConfFile;
 my $PidFile;
 
-my $tz = DateTime::TimeZone->new( name => 'local' );
-
 sub smtp_id {
   my $type = MailScanner::Config::Value('msmailqueuetype');
   MailScanner::Log::DebugLog("msmailqueuetype = $type");
@@ -282,6 +280,7 @@ sub header_callback
     my $message_ref = $ctx->getpriv();
     my $symbols = $ctx->{symbols};
     my $id;
+    my $tz = DateTime::TimeZone->new( name => 'local' );
     my $datestring = DateTime->now(time_zone => $tz)->strftime("%a, %e %b %Y %T %z (%Z)");
 
     # Postfix queue id revealed during this phase, capture it if defined
