@@ -2664,7 +2664,7 @@ sub DeleteEntity {
     push @keep, $part;
     $message->{entity}->parts(\@keep);
     $message->{bodymodified} = 1;
-    $this->{headermodified} = 1;
+    $message->{headermodified} = 1;
     #print STDERR "Replaced single part with empty text/plain attachment\n";
     return 2;
   }
@@ -2703,7 +2703,7 @@ sub DeleteEntity {
   }
   $subtree->parts(\@keep);
   $message->{bodymodified} = 1;
-  $this->{headermodified} = 1;
+  $message->{headermodified} = 1;
 
   # If there are no parts left, make this entity a singlepart entity
   $subtree->make_singlepart unless scalar(@keep);
@@ -4820,6 +4820,7 @@ sub CleanEntity {
   #  $parent->make_singlepart();
   }
   #print STDERR "Finished CleanEntity\n";
+  $this->{headermodified} = 1;
 }
 
 
