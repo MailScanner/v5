@@ -5504,6 +5504,7 @@ sub AppendSignCleanEntity {
   }
 
   # We signed something
+  $this->{headermodified} = 1;
   return 1;
 }
 
