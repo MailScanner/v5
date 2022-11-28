@@ -1617,6 +1617,7 @@ sub HandleSpamBounceAttachment {
     MailScanner::Log::WarnLog(
       "Failed to create sender spam bounce attachment, %s", $!);
   }
+  $this->{headermodified} = 1;
 }
 
 
@@ -2235,6 +2236,7 @@ sub ZipAttachments {
                                       Disposition => "attachment");
   $entity->add_part($newentity);
   $this->{bodymodified} = 1;
+  $this->{headermodified} = 1;
 
   # Create all the Helpers for the new attachment
   $this->{entity2file}{$newentity} = $newzipname;
@@ -2662,6 +2664,7 @@ sub DeleteEntity {
     push @keep, $part;
     $message->{entity}->parts(\@keep);
     $message->{bodymodified} = 1;
+    $this->{headermodified} = 1;
     #print STDERR "Replaced single part with empty text/plain attachment\n";
     return 2;
   }
@@ -2700,6 +2703,7 @@ sub DeleteEntity {
   }
   $subtree->parts(\@keep);
   $message->{bodymodified} = 1;
+  $this->{headermodified} = 1;
 
   # If there are no parts left, make this entity a singlepart entity
   $subtree->make_singlepart unless scalar(@keep);
@@ -4748,6 +4752,7 @@ sub CleanEntity {
       $entity->make_multipart()
         if $entity->head && $entity->head->mime_attr('content-type') eq "";
       $entity->parts(\@parts);
+      $this->{headermodified} = 1;
       return;
     }
   }
@@ -6845,6 +6850,7 @@ sub DeliverFiles {
   }
 
   # Now send the message
+  $this->{headermodified} = 1;
   $global::MS->{mta}->SendMessageEntity($this, $top, $localpostmaster)
     or MailScanner::Log::WarnLog("Could not send disinfected message, %s",$!);
 }
@@ -7172,6 +7178,7 @@ sub EncapsulateMessageHTML {
   $this->{entity}->head->add('MIME-Version', '1.0')
     unless $this->{entity}->head->get('mime-version');
   $this->{bodymodified} = 1;
+  $this->{headermodified} = 1;
   return;
 }
 
