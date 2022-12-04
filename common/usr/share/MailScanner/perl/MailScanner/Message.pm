@@ -7858,6 +7858,7 @@ sub DisarmEndtagCallback {
       $squashedtext =~ /[.,]com?[.,][a-z][a-z]/i ||
       $squashedtext =~ /^(ht+ps?|ft+p|fpt+|mailto|webcal)[:;](\/\/)?(.*(\.|\%2e))/i ||
       $numbertrap) {
+      $squashedtext =~ s/["'](.*)["']/$1/;
       $squashedtext =~  s/^(ht+ps?|ft+p|fpt+|mailto|webcal)[:;](\/\/)?(.*(\.|\%2e))/$3/i;
       $squashedtext =~ s/^.*?-http:\/\///; # 20080206 Delete common pre-pended text
       $squashedtext =~ s/\/.*$//; # Only compare the hostnames
