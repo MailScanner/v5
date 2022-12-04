@@ -748,7 +748,7 @@ sub IsSpam {
   }
 
   my $isauthenticated = 0;
-  if ((MailScanner::Config::Value('mta') == "postfix" ||  MailScanner::Config::Value('mta') == "msmail") &&
+  if ((MailScanner::Config::Value('mta') eq "postfix" ||  MailScanner::Config::Value('mta') eq "msmail") &&
     MailScanner::Config::Value('spamlistskipifauthenticated')) {
     # MailScanner::Log::InfoLog(Dumper($metadata));
     # Test if sender is authenticated on mta
@@ -759,7 +759,7 @@ sub IsSpam {
         $isauthenticated = 1;
       }
     }
-  } elsif (MailScanner::Config::Value('mta') == "exim" && MailScanner::Config::Value('spamlistskipifauthenticated')) {
+  } elsif (MailScanner::Config::Value('mta') eq "exim" && MailScanner::Config::Value('spamlistskipifauthenticated')) {
     if (exists $this->{metadata}->{dv_auth_id}) {
         MailScanner::Log::InfoLog("Sender was authenticated - Not checking RBLs");
         $isauthenticated = 1;
