@@ -249,6 +249,9 @@ unzipmimetype			= UnzipMimeType
 #virusbeforespammcp		= virusscanningbeforespamormcp
 virusmodifysubject		= virusmodifysubject
 virusscan			= virusscanning
+virusscanattempts		= VirusScanAttempts
+stilldeliverunscannable		= StillDeliverUnscannableMessages
+retrybatchscanner		= RetryBatchOnScannerFailure
 warnsenders			= notifysenders
 warnvirussenders		= notifysendersofviruses
 warnnamesenders			= notifysendersofblockedfilenamesorfiletypes
@@ -313,6 +316,8 @@ SQLDebug		0	no	0	yes	1
 MilterScanner	1	no	0	yes	1
 MilterIgnoreLoopback	1	no	0	yes	1
 aignoredatexecutable	0	no	0	yes	1
+stilldeliverunscannable	0	no	0	yes	1
+retrybatchscanner	1	no	0	yes	1
 
 
 # These should be checked for dir existence
@@ -372,6 +377,7 @@ WhitelistMaxRecips		20
 # For Qmail users
 qmailhashdirectorynumber	23
 qmailintdhashnumber		1
+virusscanattempts		3
 
 # These are all the other strings I haven't categorised.
 # inqueuedir is here as it can be a glob (if it contains a * or a ?) or a

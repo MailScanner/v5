@@ -567,38 +567,50 @@ sub ScanBatch {
 
   chdir $BaseDir or die "Cannot chdir $BaseDir for virus scanning, $!";
 
-  # Dropping the message batch and trying again over and over is not good...
-  # Let's remain in a loop here to suspend processing and log periodically.
-  # This prevents other things, such as loggers, from having repeat interactions
-  # with the same message batch indefinitely...
+  my $scanattempts = MailScanner::Config::Value('virusscanattempts');
+  my $counter = 0;
+
   my $scanstatus = 1;
 
-  while($scanstatus) {
+  while ($counter < $scanattempts) {
     #print STDERR (($ScanType =~ /dis/i)?"Disinfecting":"Scanning") . " using ".
     #             "commercial virus scanners\n";
-    $success = TryCommercial($batch, '.', $BaseDir, \%Reports, \%Types,
-                           \$NumInfections, $ScanType);
-    #print STDERR "Found $NumInfections infections\n";
-    if ($success eq 'ScAnNeRfAiLeD') {
-      MailScanner::Log::WarnLog("Virus Scanning: No virus scanners worked, so message batch will be tried again");
-      # Delete all the messages from this batch as if we weren't scanning
-      # them, and reject the batch.
-      # MailScanner::Log::WarnLog("Virus Scanning: No virus scanners worked, so message batch was abandoned and retried!");
-      # Since we are looping in this spot now, do not drop the messages from the batch
-      #$batch->DropBatch();
-      sleep 30;
-      #return 1;
+    while($scanstatus) {
+      $success = TryCommercial($batch, '.', $BaseDir, \%Reports, \%Types,
+                     \$NumInfections, $ScanType);
+      if ($success eq "ScAnNeRfAiLeD") {
+        if (MailScanner::Config::Value('retrybatchscanner') =~ /1/) { 
+          MailScanner::Log::WarnLog("Virus Scanning: Batch scan failed, check A/V scanners! Trying again...");
+          # Match behvior of DropBatch delay since we aren't dropping the batch
+          sleep 10;    
+        } else {
+          # Drop the batch instead of retrying
+          MailScanner::Log::WarnLog("Virus Scanning: No virus scanners worked, so message batch was abandoned and retried!");
+          $batch->DropBatch();
+          return 1;
+        }
+      } else {
+        $scanstatus = 0;
+      }
+    }
+  
+    unless ($success) {
+      $counter++;  
+      MailScanner::Log::WarnLog("Virus Scanning: Batch scan timed out, retry attempt %s", $counter);
+      # Small delay to give clamd another chance
+      sleep 10;
     } else {
-      $scanstatus = 0;
+      last;
     }
   }
 
   unless ($success) {
     # Virus checking the whole batch of messages timed out, so now check them
     # one at a time to find the one with the DoS attack in it.
+    MailScanner::Log::WarnLog("Virus Scanning: No virus scanners worked, so messages will be tried again individually");
     my $BaseDirH = new DirHandle;
-    MailScanner::Log::WarnLog("Virus Scanning: Denial Of Service attack " .
-                              "detected!");
+    MailScanner::Log::WarnLog("Virus Scanning: Clamd scan problem " .
+                              "detected, trying individual messages!");
     $BaseDirH->open('.')
       or MailScanner::Log::DieLog("Can't open directory for scanning 1 message, $!");
     while(defined($id = $BaseDirH->read())) {
@@ -607,27 +619,44 @@ sub ScanBatch {
       $id =~ /^(.*)$/;
       $id = $1;
       next unless MailScanner::Config::Value('virusscan',$batch->{messages}{id}) =~ /1/;
-      # The "./" is important as it gets the path right for parser code
-      $success = TryCommercial($batch, "./$id", $BaseDir, \%Reports,
-                               \%Types, \$NumInfections, $ScanType);
-      # If none of the scanners worked, then we need to abandon this batch
-      if ($success eq 'ScAnNeRfAiLeD') {
-        # Delete all the messages from this batch as if we weren't scanning
-        # them, and reject the batch.
-        MailScanner::Log::WarnLog("Virus Scanning: No virus scanners worked, so message batch was abandoned and retried!");
-        $batch->DropBatch();
-        last;
+
+      $scanstatus = 1;
+
+      while($scanstatus) {
+        # The "./" is important as it gets the path right for parser code
+        $success = TryCommercial($batch, "./$id", $BaseDir, \%Reports,
+                                 \%Types, \$NumInfections, $ScanType);
+        if ($success eq 'ScAnNeRfAiLeD') {
+          if (MailScanner::Config::Value('retrybatchscanner') =~ /1/) { 
+            MailScanner::Log::WarnLog("Virus Scanning: Batch scan failed, check A/V scanners! Trying again...");
+            # Match behvior of DropBatch delay since we aren't dropping the batch
+            sleep 10;    
+          } else {
+            # If none of the scanners worked, then we need to abandon this batch
+            # Drop the batch instead of retrying
+            MailScanner::Log::WarnLog("Virus Scanning: No virus scanners worked, so message batch was abandoned and retried!");
+            $batch->DropBatch();
+            $BaseDirH->close();
+            return 1;
+          }
+        } else {
+          $scanstatus = 0;
+        }
       }
 
       unless ($success) {
         # We have found the DoS attack message
-        $Reports{"$id"}{""} .=
-          MailScanner::Config::LanguageValue($batch->{messages}{$id},
+        if (MailScanner::Config::Value('stilldeliverunscannable') =~ /0/ ) {
+          $Reports{"$id"}{""} .=
+            MailScanner::Config::LanguageValue($batch->{messages}{$id},
                                              'dosattack') . "\n";
-        $Types{"$id"}{""}   .= "d";
-        MailScanner::Log::WarnLog("Virus Scanning: Denial Of Service " .
-                                  "attack is in message %s", $id);
-        # No way here of incrementing the "otherproblems" counter. Ho hum.
+          $Types{"$id"}{""}   .= "d";
+          MailScanner::Log::WarnLog("Virus Scanning: Failed to scan " .
+                                    "message due to Denial of Service or scan timeout %s", $id);
+          # No way here of incrementing the "otherproblems" counter. Ho hum.
+        } else {
+          MailScanner::Log::WarnLog("Virus Scanning: Unable to virus scan message, set to still deliver.");
+        }
       }
     }
     $BaseDirH->close();
