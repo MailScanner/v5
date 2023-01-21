@@ -5010,6 +5010,7 @@ sub SignExternalMessage {
 
   my $MimeType = $top->head->mime_type if $top->head;
   return 0 unless $MimeType =~ m{text/}i; # Won't sign non-text message.
+  return 0 if $MimeType =~ /text\/calendar/i; # Don't sign calendars
   # Won't sign attachments.
   return 0 if $top->head->mime_attr('content-disposition') =~ /attachment/i;
 
