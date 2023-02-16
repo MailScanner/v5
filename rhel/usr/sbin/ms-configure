@@ -728,7 +728,7 @@ ARMOD+=('HTML::Tagset');            ARMOD+=('HTML::TokeParser');            ARMO
 ARMOD+=('Mail::Header');            ARMOD+=('Mail::IMAPClient');            ARMOD+=('Mail::Internet');     
 ARMOD+=('Math::BigInt');            ARMOD+=('Math::BigRat');                ARMOD+=('MIME::Base64');     
 ARMOD+=('MIME::Decoder');           ARMOD+=('MIME::Decoder::UU');           ARMOD+=('MIME::Head');     
-ARMOD+=('MIME::Parser');            ARMOD+=('MIME::QuotedPrint');           ARMOD+=('MIME::tools');     
+ARMOD+=('MIME::Parser');            ARMOD+=('MIME::QuotedPrint');           ARMOD+=('MIME::Tools');     
 ARMOD+=('MIME::WordDecoder');       ARMOD+=('Net::CIDR');                   ARMOD+=('Net::DNS');     
 ARMOD+=('Net::IP');                 ARMOD+=('OLE::Storage_Lite');           ARMOD+=('Pod::Escapes');     
 ARMOD+=('Pod::Simple');             ARMOD+=('POSIX');                       ARMOD+=('Scalar::Util');     
@@ -798,10 +798,10 @@ echo;
 timewait 2
 
 # install base packages
-if [ -n $EPELOPTION ]; then
+if [ -n "$EPELOPTION" ]; then
   $YUM -y install $EPELOPTION
 fi
-if [ -n $POWERTOOLSOPTION ]; then
+if [ -n "$POWERTOOLSOPTION" ]; then
   $YUM -y install $POWERTOOLSOPTION
 fi
 $YUM -y --skip-broken install $BASEPACKAGES
@@ -855,7 +855,7 @@ if [ $CPANOPTION -eq 1 ]; then
         echo "CPAN config missing. Creating one ..."; echo;
         mkdir -p /root/.cpan/CPAN
         cd /root/.cpan/CPAN
-        $CURL -O https://mirrors.efa-project.org/msv5/CPAN/root/MyConfig.pm
+        $CURL -O https://dl.efa-project.org/msv5/CPAN/root/MyConfig.pm
         cd "$THISCURRPMDIR"
     fi
     AUTOCPAN=1
@@ -1004,7 +1004,7 @@ function install_sa() {
             echo "CPAN config missing. Creating one ..."; echo;
             mkdir -p /home/sabuild/.cpan/CPAN
             cd /home/sabuild/.cpan/CPAN
-            $CURL -O https://mirrors.efa-project.org/msv5/CPAN/sabuild/MyConfig.pm
+            $CURL -O https://dl.efa-project.org/msv5/CPAN/sabuild/MyConfig.pm
             chown -R sabuild:sabuild /home/sabuild/.cpan
             cd "$THISCURRPMDIR"
         fi
