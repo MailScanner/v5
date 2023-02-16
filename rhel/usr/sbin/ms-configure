@@ -662,7 +662,7 @@ MOREPACKAGES="
             perl-Mail-Header            perl-Mail-IMAPClient        perl-Mail-Internet
             perl-Math-BigInt            perl-Math-BigRat            perl-MIME-Base64
             perl-MIME-Decoder           perl-MIME-Decoder-UU        perl-MIME-Head
-            perl-MIME-Parser            perl-MIME-QuotedPrint       perl-MIME-Tools
+            perl-MIME-Parser            perl-MIME-QuotedPrint       perl-MIME-tools
             perl-MIME-WordDecoder       perl-Net-CIDR               perl-Net-DNS
             perl-Net-IP                 perl-OLE-Storage_Lite       perl-Pod-Escapes
             perl-Pod-Simple             perl-POSIX                  perl-Scalar-Util
@@ -728,7 +728,7 @@ ARMOD+=('HTML::Tagset');            ARMOD+=('HTML::TokeParser');            ARMO
 ARMOD+=('Mail::Header');            ARMOD+=('Mail::IMAPClient');            ARMOD+=('Mail::Internet');     
 ARMOD+=('Math::BigInt');            ARMOD+=('Math::BigRat');                ARMOD+=('MIME::Base64');     
 ARMOD+=('MIME::Decoder');           ARMOD+=('MIME::Decoder::UU');           ARMOD+=('MIME::Head');     
-ARMOD+=('MIME::Parser');            ARMOD+=('MIME::QuotedPrint');           ARMOD+=('MIME::Tools');     
+ARMOD+=('MIME::Parser');            ARMOD+=('MIME::QuotedPrint');           ARMOD+=('MIME::tools');     
 ARMOD+=('MIME::WordDecoder');       ARMOD+=('Net::CIDR');                   ARMOD+=('Net::DNS');     
 ARMOD+=('Net::IP');                 ARMOD+=('OLE::Storage_Lite');           ARMOD+=('Pod::Escapes');     
 ARMOD+=('Pod::Simple');             ARMOD+=('POSIX');                       ARMOD+=('Scalar::Util');     
@@ -798,7 +798,13 @@ echo;
 timewait 2
 
 # install base packages
-$YUM -y --skip-broken install $BASEPACKAGES $EPELOPTION $POWERTOOLSOPTION
+if [ -n $EPELOPTION ]; then
+  $YUM -y install $EPELOPTION
+fi
+if [ -n $POWERTOOLSOPTION ]; then
+  $YUM -y install $POWERTOOLSOPTION
+fi
+$YUM -y --skip-broken install $BASEPACKAGES
 
 # install this separate in case it conflicts
 if [ "x$MTAOPTION" != "x" ]; then
@@ -892,7 +898,7 @@ if [ $TNEFOPTION -eq 1 ]; then
         echo "Tnef missing. Installing via RPM ..."; echo;
 
         if [ $RHEL -eq 9 ]; then
-          $CURL -O https://mirrors.efa-project.org/msv5/EL9/tnef-1.4.18-1.el9.x86_64.rpm
+          $CURL -O https://dl.efa-project.org/msv5/EL9/tnef-1.4.18-1.el9.x86_64.rpm
           if [ -f 'tnef-1.4.18-1.el9.x86_64.rpm' ]; then
             $RPM -Uvh tnef-1.4.18-1.el9.x86_64.rpm
           fi
@@ -918,7 +924,7 @@ if [ $UNRAROPTION -eq 1 ]; then
         echo "unrar missing. Installing via RPM ..."; echo;
 
         if [ $RHEL -eq 9 ]; then
-          $CURL -O https://mirrors.efa-project.org/msv5/EL9/unrar-6.2.5-1.el9.x86_64.rpm
+          $CURL -O https://dl.efa-project.org/msv5/EL9/unrar-6.2.5-1.el9.x86_64.rpm
           if [ -f 'unrar-6.2.5-1.el9.x86_64.rpm' ]; then
             $RPM -Uvh unrar-6.2.5-1.el9.x86_64.rpm
           fi
@@ -1006,7 +1012,7 @@ function install_sa() {
         for i in "${SAMOD[@]}"
         do
         perldoc -l $i >/dev/null 2>&1
-            if [ $? -ne 0 -o $1 == "update" ]; then
+            if [[ $? -ne 0 || $1 == "update" ]]; then
                 if [ $CPANOPTION -eq 1 ]; then
                     clear
                     echo "$i is missing or needs updated. Installing via CPAN ..."; echo;
@@ -1031,7 +1037,7 @@ function install_sa() {
         for i in "${SAMOD[@]}"
         do
             perldoc -l $i >/dev/null 2>&1
-            if [ $? -ne 0 -o $1 == "update" ]; then
+            if [[ $? -ne 0 || $1 == "update" ]]; then
                 if [ $CPANOPTION -eq 1 ]; then
                     clear
                     echo "$i is missing or needs updated. Installing via CPAN ..."; echo;
