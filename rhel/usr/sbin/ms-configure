@@ -800,6 +800,9 @@ timewait 2
 # install base packages
 if [ -n "$EPELOPTION" ]; then
   $YUM -y install $EPELOPTION
+  if [ $RHEL -eq 9 ]; then
+    dnf config-manager --set-enabled crb
+  fi
 fi
 if [ -n "$POWERTOOLSOPTION" ]; then
   $YUM -y install $POWERTOOLSOPTION
