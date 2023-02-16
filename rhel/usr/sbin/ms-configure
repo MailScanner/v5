@@ -5,8 +5,8 @@
 # This script installs the required software for
 # MailScanner via yum and CPAN based on user input.  
 #
-# Tested distributions:     CentOS 6,7,8
-#                           RHEL 6,7,8 
+# Tested distributions:     CentOS 7,8,9
+#                           RHEL 7,8,9 
 #                           Fedora 29,30,31
 #
 # Updated: 14 Nov 2021
@@ -30,13 +30,11 @@ while [ $# -gt 0 ]; do
             arg_installClamav=0;
             arg_configClamav=0;
             arg_installCPAN=1;
-            arg_ignoreDeps=0;
             arg_ramdiskSize=0
             arg_installEPEL=0;
             arg_installPowerTools=0;
             arg_installTNEF=0;
             arg_installUnrar=0;
-            arg_installDf=0;
             arg_SELPermissive=0;
             arg_update=1;
             ((parsedCommands++));
@@ -89,19 +87,6 @@ while [ $# -gt 0 ]; do
                 ((parsedCommands++));
             else
                 printf "Error: Invalid value for installCPAN: only Y or N values are accepted.\n"
-                exit 1
-            fi
-        ;;
-
-        --ignoreDeps=*)
-            if [[ ${1#*=} =~ ^([yY])$ ]]; then
-                arg_ignoreDeps=1;
-                ((parsedCommands++));
-            elif [[ ${1#*=} =~ ^([nN])$ ]]; then
-                arg_ignoreDeps=0;
-                ((parsedCommands++));
-            else
-                printf "Error: Invalid value for ignoreDeps: only Y or N values are accepted.\n"
                 exit 1
             fi
         ;;
@@ -168,19 +153,6 @@ while [ $# -gt 0 ]; do
             fi
         ;;
 
-        --installDf=*)
-            if [[ ${1#*=} =~ ^([yY])$ ]]; then
-                arg_installDf=1;
-                ((parsedCommands++));
-            elif [[ ${1#*=} =~ ^([nN])$ ]]; then
-                arg_installDf=0;
-                ((parsedCommands++));
-            else
-                printf "Error: Invalid value for installDf: only Y or N values are accepted.\n"
-                exit 1
-            fi
-        ;;
-
         --SELPermissive=*)
             if [[ ${1#*=} =~ ^([yY])$ ]]; then
                 arg_SELPermissive=1;
@@ -206,9 +178,7 @@ while [ $# -gt 0 ]; do
             printf    "                        --installTNEF=N          (assumed already installed)\n"
             printf    "                        --installUnrar=N         (assumed already installed)\n"
             printf    "                        --installCPAN=Y\n"
-            printf    "                        --installDf=N            (assumed already installed)\n"
             printf    "                        --SELPermissive=N        (assumed already configured)\n"
-            printf    "                        --ignoreDeps=N\n"
             printf    "                        --ramdiskSize=0          (assumed already configured)\n\n"
             printf -- "--MTA=value             Select the Mail Transfer Agent (MTA) to be installed            (sendmail|postfix|exim|none)\n"
             printf    "                        Recommended: sendmail\n\n"
@@ -226,12 +196,8 @@ while [ $# -gt 0 ]; do
             printf    "                        Recommended: Y (yes)\n\n"
             printf -- "--installCPAN=Y|N       Install missing perl modules via CPAN                           (Y or N)\n"
             printf    "                        Recommended: Y (yes)\n\n"
-            printf -- "--installDf=Y|N         Install perl-Filesys-Df and perl-Sys-Hostname-Long (CentOS 7)   (Y or N)\n"
-            printf    "                        Recommended: Y (yes)\n\n"
             printf -- "--SELPermissive=Y|N     Set SELinux to Permissive mode                                  (Y or N)\n"
             printf    "                        Recommended: Y (yes)\n\n"
-            printf -- "--ignoreDeps=Y|N        Force .rpm package install regardless of missing dependencies   (Y or N)\n"
-            printf    "                        Recommended: N (no)\n\n"
             printf -- "--ramdiskSize=value     Create a RAMDISK for incoming spool directory                   (integer value or 0 for none)\n"
             printf    "                        Suggestions:\n";
             printf    "                        None         0\n";
@@ -285,15 +251,15 @@ if [ ! -f '/etc/redhat-release' ]; then
     exit 192
 else
     # figure out what release is being used
-    if grep -qs 'release 6' /etc/redhat-release ; then
-            # RHEL 6
-            RHEL=6
-    elif grep -qs 'release 7' /etc/redhat-release ; then
+    if grep -qs 'release 7' /etc/redhat-release ; then
             # RHEL 7
             RHEL=7
     elif grep -qs 'release 8' /etc/redhat-release ; then
             # RHEL 8
             RHEL=8
+    elif grep -qs 'release 9' /etc/redhat-release ; then
+            # RHEL 8
+            RHEL=9
     else
             # No supported release match
             RHEL=0
@@ -599,66 +565,6 @@ else
         NODEPS='--nodeps';
     fi
 fi
-# ask if the user wants to install 3rd party rpms for missing
-# perl-Filesys-Df and perl-Sys-Hostname-Long
-DFOPTION=0
-if [ $RHEL -eq 7 ]; then
-    clear
-    echo;
-    echo "Do you want to install perl-Filesys-Df and perl-Sys-Hostname-Long via RPM if missing?"; echo;
-    echo "perl-Filesys-Df and perl-Sys-Hostname-Long and known to be missing from the Yum base and the";
-    echo "EPEL repo for RHEL7 at the release of this installer. I will try to install them from the";
-    echo "official Yum base and EPEL repo first. (If you elected the EPEL option.) If they are still ";
-    echo "missing I can attempt to install these two missing RPMs with 3rd party RPM packages. If they";
-    echo "are still missing and you selected the CPAN remediation I will try to install them from CPAN.";
-    echo;
-    echo "Recommended: Y (yes)"; echo;
-    if [ -z "${arg_installDf+x}" ]; then
-        read -r -p "Install these missing items via RPM? [n/Y] : " response
-        if [[ $response =~ ^([yY][eE][sS]|[yY])$ ]]; then
-            # user wants to use RPM for missing stuff
-            DFOPTION=1
-        elif [ -z $response ]; then 
-            # user wants to use RPM for missing stuff
-            DFOPTION=1
-        else
-            # user does not want to use RPM
-            DFOPTION=0
-        fi
-    else
-        DFOPTION=${arg_installDf}
-    fi
-fi
-
-# ask if the user wants to ignore dependencies. they are automatically ignored
-# if the user elected the CPAN option as explained above
-if [ $CPANOPTION -ne 1 ]; then
-    clear
-    echo;
-    echo "Do you want to ignore MailScanner dependencies?"; echo;
-    echo "This will force install the MailScanner RPM package regardless of missing"; 
-    echo "dependencies. It is highly recommended that you DO NOT do this unless you"; 
-    echo "are debugging.";
-    echo;
-    echo "Recommended: N (no)"; echo;
-    if [ -z "${arg_ignoreDeps+x}" ]; then
-        read -r -p "Ignore MailScanner dependencies (nodeps)? [y/N] : " response
-
-        if [[ $response =~ ^([yY][eE][sS]|[yY])$ ]]; then
-            # user wants to ignore deps
-            NODEPS='--nodeps --force'
-        else
-            # requiring deps
-            NODEPS=
-        fi
-    else
-        if [ ${arg_ignoreDeps} -eq 1 ]; then
-            NODEPS='--nodeps --force'
-        else
-            NODEPS=
-        fi
-    fi
-fi
 
 # ask about setting permissive mode for SeLinux
 clear
@@ -733,59 +639,142 @@ else
 fi
 
 # base system packages
-BASEPACKAGES="binutils gcc glibc-devel libaio make man-pages man-pages-overrides patch rpm tar time unzip which zip libtool-ltdl perl curl wget openssl openssl-devel bzip2-devel";
+BASEPACKAGES="binutils gcc glibc-devel libaio make man-pages man-pages-overrides patch rpm tar time unzip which zip libtool-ltdl perl curl wget openssl openssl-devel bzip2-devel libmaxminddb-devel libmaxminddb libidn-devel libidn2-devel pyzor re2c unrar tnef p7zip p7zip-plugins sudo"
 
-# Packages available in the yum base of RHEL 5,6,7
+# Packages (maybe) available in the yum base of RHEL 7,8,9
 # and EPEL. If the user elects not to use EPEL or if the 
 # package is not available for their distro release it
 # will be ignored during the install.
 #
-MOREPACKAGES="perl-Archive-Tar perl-Archive-Zip perl-Compress-Raw-Zlib perl-Compress-Zlib perl-Convert-BinHex perl-CPAN perl-Data-Dump perl-DBD-SQLite perl-DBI perl-Digest-HMAC perl-Digest-SHA1 perl-Env perl-ExtUtils-MakeMaker perl-File-ShareDir-Install perl-File-Temp perl-Filesys-Df perl-Getopt-Long perl-IO-String perl-IO-stringy perl-HTML-Parser perl-HTML-Tagset perl-Inline perl-IO-Zlib perl-Mail-DKIM perl-Mail-IMAPClient perl-Mail-SPF perl-MailTools perl-Net-CIDR perl-Net-DNS perl-Net-DNS-Resolver-Programmable perl-MIME-tools perl-Convert-TNEF perl-Net-IP perl-OLE-Storage_Lite perl-Pod-Escapes perl-Pod-Simple perl-Scalar-List-Utils perl-Storable perl-Pod-Escapes perl-Pod-Simple perl-Razor-Agent perl-Sys-Hostname-Long perl-Sys-SigAction perl-Test-Manifest perl-Test-Pod perl-Time-HiRes perl-TimeDate perl-URI perl-YAML pyzor re2c unrar tnef perl-Encode-Detect perl-LDAP perl-IO-Compress-Bzip2 p7zip p7zip-plugins perl-LWP-Protocol-https perl-Test-Simple perl-Math-Int64 perl-Path-Class perl-Test-Fatal perl-Test-Number-Delta perl-namespace-autoclean perl-Role-Tiny perl-Data-Dumper-Concise perl-DateTime perl-Test-Warnings perl-autodie perl-Test-Requires perl-Test-Tester perl-Clone-PP perl-File-HomeDir perl-Sort-Naturally perl-JSON-MaybeXS perl-Test-LeakTrace perl-Throwable libmaxminddb-devel";
+MOREPACKAGES="
+            perl-Archive-Tar            perl-Archive-Zip            perl-bignum
+            perl-Carp                   perl-Compress-Zlib          perl-Compress-Raw-Zlib
+            perl-Convert-BinHex         perl-Convert-TNEF           perl-Data-Dumper
+            perl-Date-Parse             perl-DBD-SQLite             perl-DBI
+            perl-Digest-HMAC            perl-Digest-MD5             perl-Digest-SHA1
+            perl-DirHandle              perl-ExtUtils-MakeMaker     perl-Fcntl
+            perl-File-Basename          perl-File-Copy              perl-File-Path
+            perl-File-Spec              perl-File-Temp              perl-FileHandle
+            perl-Filesys-Df             perl-Getopt-Long            perl-Inline-C
+            perl-IO                     perl-IO-File                perl-IO-Pipe
+            perl-IO-Stringy             perl-HTML-Entities          perl-HTML-Parser
+            perl-HTML-Tagset            perl-HTML-TokeParser        perl-Mail-Field
+            perl-Mail-Header            perl-Mail-IMAPClient        perl-Mail-Internet
+            perl-Math-BigInt            perl-Math-BigRat            perl-MIME-Base64
+            perl-MIME-Decoder           perl-MIME-Decoder-UU        perl-MIME-Head
+            perl-MIME-Parser            perl-MIME-QuotedPrint       perl-MIME-Tools
+            perl-MIME-WordDecoder       perl-Net-CIDR               perl-Net-DNS
+            perl-Net-IP                 perl-OLE-Storage_Lite       perl-Pod-Escapes
+            perl-Pod-Simple             perl-POSIX                  perl-Scalar-Util
+            perl-Socket                 perl-Storable               perl-Test-Harness
+            perl-Test-Pod               perl-Test-Simple            perl-Time-HiRes
+            perl-Time-localtime         perl-Sys-Hostname-Long      perl-Sys-SigAction
+            perl-Sys-Syslog             perl-Env                    perl-Filesys-Df
+            perl-IO-Wrap                perl-CPAN                   perl-Data-Dump
+            perl-DB_File                perl-DBD-SQLite             perl-File-ShareDir-Install
+            perl-Digest                 perl-Encode-Detect          perl-Error
+            perl-ExtUtils-CBuilder      perl-ExtUtils-ParseXS       perl-Inline
+            perl-IO-String              perl-IO-Zlib                perl-IP-Country
+            perl-Mail-SPF               perl-Mail-SPF-Query         perl-Module-Build
+            perl-Net-CIDR-Lite          perl-Mail-DKIM              perl-Net-LDAP
+            perl-NetAddr-IP             perl-Parse-RecDescent       perl-MailTools
+            perl-Test-Manifest          perl-Text-Balanced          perl-URI
+            perl-version                perl-IO-Compress-Bzip2      perl-Sendmail-PMilter
+            perl-Math-Int64             perl-IP-Country-DB_File     perl-namespace-autoclean
+            perl-Data-IEEE754           perl-Data-Printer           perl-Data-Validate-IP
+            perl-List-AllUtils          perl-List-SomeUtils         perl-Net-DNS-Nameserver
+            perl-List-UtilsBy           perl-MaxMind-DB-Metadata    perl-MaxMind-DB-Reader
+            perl-Module-Runtime         perl-Moo                    perl-MooX-StrictConstructor
+            perl-Role-Tiny              perl-strictures             perl-DBD-mysql
+            perl-Sub-Quote              perl-Math-Int128            perl-Net-Works-Network
+            perl-MaxMind-DB-Reader-XS   perl-Geo-IP                 perl-GeoIP2-Database-Reader
+            perl-HTTP-Date              perl-Scalar-List-Utils      perl-Net-DNS-Resolver-Programmable
+            perl-Net-LibIDN             perl-Net-LibIDN2            perl-Test-Perl-Critic
+            perl-Devel-Cycle            perl-Perl-Critic-Policy     perl-Perl-Critic-Policy-TestingAndDebugging-ProhibitNoStrict
+            perl-Razor-Agent            perl-TimeDate               perl-Perl-Critic-Policy-Perlsecret
+            perl-YAML                   perl-LDAP                   perl-LWP-Protocol-https
+            perl-Path-Class             perl-Test-Fatal             perl-Test-Number-Delta
+            perl-Data-Dumper-Concise    perl-DateTime               perl-Test-Warnings
+            perl-autodie                perl-Test-Requires          perl-Test-Tester
+            perl-Clone-PP               perl-File-HomeDir           perl-Sort-Naturally
+            perl-JSON-MaybeXS           perl-Test-LeakTrace         perl-Throwable
+            perl-Alien-Build            perl-Alien-Libxml2          perl-Alien-Build-Plugin-Download-GitLab
+            perl-BSD-Resource           perl-DBIx-Simple            perl-Email-Abstract
+            perl-Email-Address-XS       perl-Email-Date-Format      perl-Email-MessageID
+            perl-Email-MIME             perl-Email-MIME-ContentType perl-Email-MIME-Encodings
+            perl-Email-Sender           perl-Email-Simple           perl-FFI-CheckLib
+            perl-File-chdir             perl-IO-Socket-INET6        perl-Mail-DMARC
+            perl-MIME-Types             perl-MooX-Types-MooseLike   perl-Net-IDN-Encode
+            perl-Net-IMAP-Simple        perl-Net-Patricia           perl-Net-SMTPS
+            perl-Regexp-Common          perl-Test-Exception         perl-Test-Output
+            perl-Test-Regexp            perl-XML-LibXML             perl-XML-NamespaceSupport
+            perl-XML-SAX                perl-XML-SAX-Base
+"
 
 # the array of perl modules needed
 ARMOD=();
-ARMOD+=('Archive::Tar'); 			ARMOD+=('Archive::Zip');			ARMOD+=('bignum');
-ARMOD+=('Carp');					ARMOD+=('Compress::Zlib');			ARMOD+=('Compress::Raw::Zlib');
-ARMOD+=('Convert::BinHex'); 		ARMOD+=('Convert::TNEF');			ARMOD+=('Data::Dumper');
-ARMOD+=('Date::Parse');				ARMOD+=('DBD::SQLite');				ARMOD+=('DBI');
-ARMOD+=('Digest::HMAC');			ARMOD+=('Digest::MD5');				ARMOD+=('Digest::SHA1');
-ARMOD+=('DirHandle');				ARMOD+=('ExtUtils::MakeMaker');		ARMOD+=('Fcntl');
-ARMOD+=('File::Basename');			ARMOD+=('File::Copy');				ARMOD+=('File::Path');
-ARMOD+=('File::Spec');				ARMOD+=('File::Temp');				ARMOD+=('FileHandle');
-ARMOD+=('Filesys::Df');				ARMOD+=('Getopt::Long');			ARMOD+=('Inline::C');
-ARMOD+=('IO');						ARMOD+=('IO::File');				ARMOD+=('IO::Pipe');
-ARMOD+=('IO::Stringy');				ARMOD+=('HTML::Entities');			ARMOD+=('HTML::Parser');
-ARMOD+=('HTML::Tagset');			ARMOD+=('HTML::TokeParser');		ARMOD+=('Mail::Field');
-ARMOD+=('Mail::Header');			ARMOD+=('Mail::IMAPClient');		ARMOD+=('Mail::Internet');
-ARMOD+=('Math::BigInt');			ARMOD+=('Math::BigRat');			ARMOD+=('MIME::Base64');
-ARMOD+=('MIME::Decoder');			ARMOD+=('MIME::Decoder::UU');		ARMOD+=('MIME::Head');
-ARMOD+=('MIME::Parser');			ARMOD+=('MIME::QuotedPrint');		ARMOD+=('MIME::Tools');
-ARMOD+=('MIME::WordDecoder');		ARMOD+=('Net::CIDR');				ARMOD+=('Net::DNS');
-ARMOD+=('Net::IP');					ARMOD+=('OLE::Storage_Lite');		ARMOD+=('Pod::Escapes');
-ARMOD+=('Pod::Simple');				ARMOD+=('POSIX');					ARMOD+=('Scalar::Util');
-ARMOD+=('Socket'); 					ARMOD+=('Storable'); 	 		 	ARMOD+=('Test::Harness');
-ARMOD+=('Test::Pod');				ARMOD+=('Test::Simple');			ARMOD+=('Time::HiRes');
-ARMOD+=('Time::localtime'); 		ARMOD+=('Sys::Hostname::Long');		ARMOD+=('Sys::SigAction');
-ARMOD+=('Sys::Syslog'); 			ARMOD+=('Env');						ARMOD+=('Filesys::Df');
-ARMOD+=('IO::Wrap');				ARMOD+=('bignum');					ARMOD+=('Data::Dump');
-ARMOD+=('DB_File');					ARMOD+=('DBD::SQLite');				ARMOD+=('DBI');
-ARMOD+=('Digest');					ARMOD+=('Encode::Detect');			ARMOD+=('Error');
-ARMOD+=('ExtUtils::CBuilder');		ARMOD+=('ExtUtils::ParseXS');		ARMOD+=('Inline');
-ARMOD+=('IO::String');				ARMOD+=('IO::Zlib');				ARMOD+=('IP::Country');
-ARMOD+=('Mail::SPF');				ARMOD+=('Mail::SPF::Query');		ARMOD+=('Module::Build');
-ARMOD+=('Net::CIDR::Lite');			ARMOD+=('Net::DNS');				ARMOD+=('Net::LDAP');
-ARMOD+=('NetAddr::IP');				ARMOD+=('Parse::RecDescent');		ARMOD+=('Test::Harness');
-ARMOD+=('Test::Manifest');			ARMOD+=('Text::Balanced');			ARMOD+=('URI');	
-ARMOD+=('version');					ARMOD+=('IO::Compress::Bzip2');		ARMOD+=('Sendmail::PMilter');
-ARMOD+=('Math::Int64');				ARMOD+=('IP::Country::DB_File');	ARMOD+=('namespace::autoclean');
-ARMOD+=('Data::IEEE754');			ARMOD+=('Data::Printer');			ARMOD+=('Data::Validate::IP');
-ARMOD+=('List::AllUtils');			ARMOD+=('List::SomeUtils');			ARMOD+=('Net::DNS::Nameserver');
-ARMOD+=('List::UtilsBy');			ARMOD+=('MaxMind::DB::Metadata');	ARMOD+=('MaxMind::DB::Reader');
-ARMOD+=('Module::Runtime');			ARMOD+=('Moo');						ARMOD+=('MooX::StrictConstructor');
-ARMOD+=('Role::Tiny');				ARMOD+=('strictures');				ARMOD+=('DBD::mysql');
-ARMOD+=('Sub::Quote');				ARMOD+=('Math::Int128');			ARMOD+=('Net::Works::Network');
-ARMOD+=('MaxMind::DB::Reader::XS');	ARMOD+=('Geo::IP');					ARMOD+=('GeoIP2::Database::Reader');
-ARMOD+=('Net::DNS::Resolver::Programmable');							ARMOD+=('HTTP::Date');
+ARMOD+=('Archive::Tar');            ARMOD+=('Archive::Zip');                ARMOD+=('bignum');     
+ARMOD+=('Carp');                    ARMOD+=('Compress::Zlib');              ARMOD+=('Compress::Raw::Zlib');     
+ARMOD+=('Convert::BinHex');         ARMOD+=('Convert::TNEF');               ARMOD+=('Data::Dumper');     
+ARMOD+=('Date::Parse');             ARMOD+=('DBD::SQLite');                 ARMOD+=('DBI');     
+ARMOD+=('Digest::HMAC');            ARMOD+=('Digest::MD5');                 ARMOD+=('Digest::SHA1');     
+ARMOD+=('DirHandle');               ARMOD+=('ExtUtils::MakeMaker');         ARMOD+=('Fcntl');     
+ARMOD+=('File::Basename');          ARMOD+=('File::Copy');                  ARMOD+=('File::Path');     
+ARMOD+=('File::Spec');              ARMOD+=('File::Temp');                  ARMOD+=('FileHandle');     
+ARMOD+=('Filesys::Df');             ARMOD+=('Getopt::Long');                ARMOD+=('Inline::C');     
+ARMOD+=('IO');                      ARMOD+=('IO::File');                    ARMOD+=('IO::Pipe');     
+ARMOD+=('IO::Stringy');             ARMOD+=('HTML::Entities');              ARMOD+=('HTML::Parser');     
+ARMOD+=('HTML::Tagset');            ARMOD+=('HTML::TokeParser');            ARMOD+=('Mail::Field');     
+ARMOD+=('Mail::Header');            ARMOD+=('Mail::IMAPClient');            ARMOD+=('Mail::Internet');     
+ARMOD+=('Math::BigInt');            ARMOD+=('Math::BigRat');                ARMOD+=('MIME::Base64');     
+ARMOD+=('MIME::Decoder');           ARMOD+=('MIME::Decoder::UU');           ARMOD+=('MIME::Head');     
+ARMOD+=('MIME::Parser');            ARMOD+=('MIME::QuotedPrint');           ARMOD+=('MIME::Tools');     
+ARMOD+=('MIME::WordDecoder');       ARMOD+=('Net::CIDR');                   ARMOD+=('Net::DNS');     
+ARMOD+=('Net::IP');                 ARMOD+=('OLE::Storage_Lite');           ARMOD+=('Pod::Escapes');     
+ARMOD+=('Pod::Simple');             ARMOD+=('POSIX');                       ARMOD+=('Scalar::Util');     
+ARMOD+=('Socket');                  ARMOD+=('Storable');                    ARMOD+=('Test::Harness');     
+ARMOD+=('Test::Pod');               ARMOD+=('Test::Simple');                ARMOD+=('Time::HiRes');     
+ARMOD+=('Time::localtime');         ARMOD+=('Sys::Hostname::Long');         ARMOD+=('Sys::SigAction');     
+ARMOD+=('Sys::Syslog');             ARMOD+=('Env');                         ARMOD+=('Filesys::Df');     
+ARMOD+=('IO::Wrap');                ARMOD+=('CPAN');                        ARMOD+=('Data::Dump');     
+ARMOD+=('DB_File');                 ARMOD+=('DBD::SQLite');                 ARMOD+=('File::ShareDir::Install');     
+ARMOD+=('Digest');                  ARMOD+=('Encode::Detect');              ARMOD+=('Error');     
+ARMOD+=('ExtUtils::CBuilder');      ARMOD+=('ExtUtils::ParseXS');           ARMOD+=('Inline');     
+ARMOD+=('IO::String');              ARMOD+=('IO::Zlib');                    ARMOD+=('IP::Country');     
+ARMOD+=('Mail::SPF');               ARMOD+=('Mail::SPF::Query');            ARMOD+=('Module::Build');     
+ARMOD+=('Net::CIDR::Lite');         ARMOD+=('Mail::DKIM');                  ARMOD+=('Net::LDAP');     
+ARMOD+=('NetAddr::IP');             ARMOD+=('Parse::RecDescent');           ARMOD+=('MailTools');     
+ARMOD+=('Test::Manifest');          ARMOD+=('Text::Balanced');              ARMOD+=('URI');        
+ARMOD+=('version');                 ARMOD+=('IO::Compress::Bzip2');         ARMOD+=('Sendmail::PMilter');     
+ARMOD+=('Math::Int64');             ARMOD+=('IP::Country::DB_File');        ARMOD+=('namespace::autoclean');     
+ARMOD+=('Data::IEEE754');           ARMOD+=('Data::Printer');               ARMOD+=('Data::Validate::IP');     
+ARMOD+=('List::AllUtils');          ARMOD+=('List::SomeUtils');             ARMOD+=('Net::DNS::Nameserver');     
+ARMOD+=('List::UtilsBy');           ARMOD+=('MaxMind::DB::Metadata');       ARMOD+=('MaxMind::DB::Reader');     
+ARMOD+=('Module::Runtime');         ARMOD+=('Moo');                         ARMOD+=('MooX::StrictConstructor');     
+ARMOD+=('Role::Tiny');              ARMOD+=('strictures');                  ARMOD+=('DBD::mysql');     
+ARMOD+=('Sub::Quote');              ARMOD+=('Math::Int128');                ARMOD+=('Net::Works::Network');     
+ARMOD+=('MaxMind::DB::Reader::XS'); ARMOD+=('Geo::IP');                     ARMOD+=('GeoIP2::Database::Reader');     
+ARMOD+=('HTTP::Date');              ARMOD+=('Scalar::List::Utils');         ARMOD+=('Net::DNS::Resolver::Programmable');
+ARMOD+=('Net::LibIDN');             ARMOD+=('Net::LibIDN2');                ARMOD+=('Test::Perl::Critic');     
+ARMOD+=('Devel::Cycle');            ARMOD+=('Perl::Critic::Policy');        ARMOD+=('Perl::Critic::Policy::TestingAndDebugging::ProhibitNoStrict');
+ARMOD+=('Razor::Agent');            ARMOD+=('TimeDate');                    ARMOD+=('Perl::Critic::Policy::Perlsecret');
+ARMOD+=('YAML');                    ARMOD+=('LDAP');                        ARMOD+=('LWP::Protocol::https');
+ARMOD+=('Path::Class');             ARMOD+=('Test::Fatal');                 ARMOD+=('Test::Number::Delta');
+ARMOD+=('Data::Dumper::Concise');   ARMOD+=('DateTime');                    ARMOD+=('Test::Warnings');
+ARMOD+=('autodie');                 ARMOD+=('Test::Requires');              ARMOD+=('Test::Tester');
+ARMOD+=('Clone::PP');               ARMOD+=('File::HomeDir');               ARMOD+=('Sort::Naturally');
+ARMOD+=('JSON::MaybeXS');           ARMOD+=('Test::LeakTrace');             ARMOD+=('Throwable');
+ARMOD+=('Alien::Build');            ARMOD+=('Alien::Libxml2');              ARMOD+=('Alien::Build::Plugin::Download::GitLab');
+ARMOD+=('BSD::Resource');           ARMOD+=('DBIx::Simple');                ARMOD+=('Email::Abstract');
+ARMOD+=('Email::Address::XS');      ARMOD+=('Email::Date::Format');         ARMOD+=('Email::MessageID');
+ARMOD+=('Email::MIME');             ARMOD+=('Email::MIME::ContentType');    ARMOD+=('Email::MIME::Encodings');
+ARMOD+=('Email::Sender');           ARMOD+=('Email::Simple');               ARMOD+=('FFI::CheckLib');
+ARMOD+=('File::chdir');             ARMOD+=('IO::Socket::INET6');           ARMOD+=('Mail::DMARC');
+ARMOD+=('MIME::Types');             ARMOD+=('MooX::Types::MooseLike');      ARMOD+=('Net::IDN::Encode');
+ARMOD+=('Net::IMAP::Simple');       ARMOD+=('Net::Patricia');               ARMOD+=('Net::SMTPS');
+ARMOD+=('Regexp::Common');          ARMOD+=('Test::Exception');             ARMOD+=('Test::Output');
+ARMOD+=('Test::Regexp');            ARMOD+=('XML::LibXML');                 ARMOD+=('XML::NamespaceSupport');
+ARMOD+=('XML::SAX');                ARMOD+=('XML::SAX::Base');
 
 # SA and plugins
 SAMOD=();
@@ -793,9 +782,6 @@ SAMOD+=('Mail::SpamAssassin');
 SAMOD+=('Mail::SpamAssassin::Plugin::Rule2XSBody');
 SAMOD+=('Mail::SpamAssassin::Plugin::DCC');
 SAMOD+=('Mail::SpamAssassin::Plugin::Pyzor');
-
-# 32 or 64 bit
-MACHINE_TYPE=`uname -m`
 
 # logging starts here
 (
@@ -863,7 +849,7 @@ if [ $CPANOPTION -eq 1 ]; then
         echo "CPAN config missing. Creating one ..."; echo;
         mkdir -p /root/.cpan/CPAN
         cd /root/.cpan/CPAN
-        $CURL -O https://s3.amazonaws.com/msv5/CPAN/MyConfig.pm
+        $CURL -O https://mirrors.efa-project.org/msv5/CPAN/root/MyConfig.pm
         cd "$THISCURRPMDIR"
     fi
     AUTOCPAN=1
@@ -900,35 +886,23 @@ if [ $TNEFOPTION -eq 1 ]; then
     # user elected to use tnef RPM option
     if [ ! -x '/usr/bin/tnef' ]; then
         cd /tmp
-        rm -f tnef-1.4.12*
+        rm -f tnef-1.4.18*
         clear
         echo;
         echo "Tnef missing. Installing via RPM ..."; echo;
-        if [ $MACHINE_TYPE == 'x86_64' ]; then
-            # 64-bit stuff here
-            $CURL -O https://s3.amazonaws.com/msv5/rpm/tnef-1.4.12-1.x86_64.rpm
-            if [ -f 'tnef-1.4.12-1.x86_64.rpm' ]; then
-                $RPM -Uvh tnef-1.4.12-1.x86_64.rpm
-            fi
-        elif [ $MACHINE_TYPE == 'i686' ]; then
-            # i686 stuff here
-            $CURL -O https://s3.amazonaws.com/msv5/rpm/tnef-1.4.12-1.i686.rpm
-            if [ -f 'tnef-1.4.12-1.i686.rpm' ]; then
-                $RPM -Uvh tnef-1.4.12-1.i686.rpm
-            fi
-        elif [ $MACHINE_TYPE == 'i386' ]; then
-            # i386 stuff here
-            $CURL -O https://s3.amazonaws.com/msv5/rpm/tnef-1.4.12-1.i386.rpm
-            if [ -f 'tnef-1.4.12-1.i686.rpm' ]; then
-                $RPM -Uvh tnef-1.4.12-1.i686.rpm
-            fi
+
+        if [ $RHEL -eq 9 ]; then
+          $CURL -O https://mirrors.efa-project.org/msv5/EL9/tnef-1.4.18-1.el9.x86_64.rpm
+          if [ -f 'tnef-1.4.18-1.el9.x86_64.rpm' ]; then
+            $RPM -Uvh tnef-1.4.18-1.el9.x86_64.rpm
+          fi
         else
-            echo "NOTICE: I cannot find a suitable RPM to install tnef (x86_64, i686, i386)";
-            timewait 5
+          echo "NOTICE: I cannot find a suitable RPM to install tnef";
+          timewait 5
         fi
-        
+
         # back to where i started
-        rm -f tnef-1.4.12*
+        rm -f tnef-1.4.18*
         cd "$THISCURRPMDIR"
     fi
 fi
@@ -938,68 +912,25 @@ if [ $UNRAROPTION -eq 1 ]; then
     # user elected to use unrar RPM option
     if [ ! -x '/usr/bin/unrar' ]; then
         cd /tmp
-        rm -f unrar-5.0.3*
+        rm -f unrar-6.2.5*
         clear
         echo;
         echo "unrar missing. Installing via RPM ..."; echo;
-        if [ $MACHINE_TYPE == 'x86_64' ]; then
-            # 64-bit stuff here
-            $CURL -O https://s3.amazonaws.com/msv5/rpm/unrar-5.0.3-1.x86_64.rpm
-            if [ -f 'unrar-5.0.3-1.x86_64.rpm' ]; then
-                $RPM -Uvh unrar-5.0.3-1.x86_64.rpm
-            fi
-        elif [ $MACHINE_TYPE == 'i686' ]; then
-            # i686 stuff here
-            $CURL -O https://s3.amazonaws.com/msv5/rpm/unrar-5.0.3-1.i686.rpm
-            if [ -f 'unrar-5.0.3-1.i686.rpm' ]; then
-                $RPM -Uvh unrar-5.0.3-1.i686.rpm
-            fi
-        elif [ $MACHINE_TYPE == 'i386' ]; then
-            # i386 stuff here
-            $CURL -O https://s3.amazonaws.com/msv5/rpm/unrar-5.0.3-1.i386.rpm
-            if [ -f 'unrar-5.0.3-1.i386.rpm' ]; then
-                $RPM -Uvh unrar-5.0.3-1.i386.rpm
-            fi
+
+        if [ $RHEL -eq 9 ]; then
+          $CURL -O https://mirrors.efa-project.org/msv5/EL9/unrar-6.2.5-1.el9.x86_64.rpm
+          if [ -f 'unrar-6.2.5-1.el9.x86_64.rpm' ]; then
+            $RPM -Uvh unrar-6.2.5-1.el9.x86_64.rpm
+          fi
         else
-            echo "NOTICE: I cannot find a suitable RPM to install unrar (x86_64, i686, i386)";
-            timewait 5
+          echo "NOTICE: I cannot find a suitable RPM to install tnef";
+          timewait 5
         fi
         
         # back to where i started
-        rm -f unrar-5.0.3*
+        rm -f unrar-6.2.5*
         cd "$THISCURRPMDIR"
     fi
-fi
-
-# install missing perl-Filesys-Df and perl-Sys-Hostname-Long on RHEL 7
-if [ $DFOPTION -eq 1 ]; then
-    # test to see if these are installed. if not install from RPM
-    cd /tmp
-    rm -f perl-Filesys-Df*
-    rm -f perl-Sys-Hostname-Long*
-        
-    # perl-Filesys-Df
-    perldoc -l Filesys::Df >/dev/null 2>&1
-    if [ $? -ne 0 ]; then
-        if [ $MACHINE_TYPE == 'x86_64' ]; then
-            $CURL -O https://s3.amazonaws.com/msv5/rpm/perl-Filesys-Df-0.92-1.el7.x86_64.rpm
-            if [ -f 'perl-Filesys-Df-0.92-1.el7.x86_64.rpm' ]; then
-                rpm -Uvh perl-Filesys-Df-0.92-1.el7.x86_64.rpm
-            fi
-        fi
-    fi
-    
-    # perl-Sys-Hostname-Long
-    perldoc -l Sys::Hostname::Long >/dev/null 2>&1
-    if [ $? -ne 0 ]; then
-        $CURL -O https://s3.amazonaws.com/msv5/rpm/perl-Sys-Hostname-Long-1.5-1.el7.noarch.rpm
-        if [ -f 'perl-Sys-Hostname-Long-1.5-1.el7.noarch.rpm' ]; then
-            rpm -Uvh perl-Sys-Hostname-Long-1.5-1.el7.noarch.rpm
-        fi
-    fi
-    
-    # go back to where i started
-    cd "$THISCURRPMDIR"
 fi
 
 # fix the stupid line in /etc/freshclam.conf that disables freshclam 
@@ -1020,7 +951,7 @@ if [ $CONFCAV -eq 1 ]; then
     sed -i '/#LogFile \/var\/log\/clamd.scan/ c\LogFile /var/log/clamd.scan' /etc/clamd.d/scan.conf
     chown -R clamscan:mtagroup /var/run/clamd.scan
     echo "d /run/clamd.scan 0750 clamscan mtagroup -" > /usr/lib/tmpfiles.d/clamd.scan.conf
-	echo "d /run/clamd.scan 0750 clamscan mtagroup -" > /etc/tmpfiles.d/clamd.scan.conf
+    echo "d /run/clamd.scan 0750 clamscan mtagroup -" > /etc/tmpfiles.d/clamd.scan.conf
     touch /var/log/clamd.scan
     chown clamscan:clamscan /var/log/clamd.scan
     usermod -G mtagroup,virusgroup,clamupdate clamscan
@@ -1034,18 +965,6 @@ timewait 2
 # used to trigger a wait if something this missing
 PMODWAIT=0
 
-# first try to install missing perl modules via yum
-# using this trick
-for i in "${ARMOD[@]}"
-do
-    perldoc -l $i >/dev/null 2>&1
-    if [ $? -ne 0 ]; then
-        echo "$i is missing. Trying to install via Yum ..."; echo;
-        THING="perl($i)";
-        $YUM -y install $THING
-    fi
-done
-
 for i in "${ARMOD[@]}"
 do
     perldoc -l $i >/dev/null 2>&1
@@ -1068,39 +987,90 @@ do
     fi
 done
 
-for i in "${SAMOD[@]}"
-do
-    perldoc -l $i >/dev/null 2>&1
-    if [ $? -ne 0 ]; then
-        if [ $CPANOPTION -eq 1 ]; then
-            clear
-            echo "$i is missing. Installing via CPAN ..."; echo;
-            timewait 1
-            if [ $AUTOCPAN -eq 0 ]; then
-                perl -MCPAN -e "CPAN::Shell->force(qw(install $i ));"
-            else
-                cpanm --force --no-interactive $i
-            fi
-        else
-            echo "WARNING: $i is missing. You should fix this.";
-            PMODWAIT=5
+function install_sa() {
+    # Create sabuild user and set up for sudo build (SA 4.0+)
+    useradd -m -s /bin/bash sabuild &>/dev/null
+    id -u sabuild &>/dev/null
+    if [ $? -eq 0 ]; then
+        echo "sabuild    ALL=(ALL)    NOPASSWD: ALL" > /etc/sudoers.d/sabuild
+        if [ ! -f '/home/sabuild/.cpan/CPAN/MyConfig.pm' ]; then
+            echo;
+            echo "CPAN config missing. Creating one ..."; echo;
+            mkdir -p /home/sabuild/.cpan/CPAN
+            cd /home/sabuild/.cpan/CPAN
+            $CURL -O https://mirrors.efa-project.org/msv5/CPAN/sabuild/MyConfig.pm
+            chown -R sabuild:sabuild /home/sabuild/.cpan
+            cd "$THISCURRPMDIR"
         fi
+
+        for i in "${SAMOD[@]}"
+        do
+        perldoc -l $i >/dev/null 2>&1
+            if [ $? -ne 0 -o $1 == "update" ]; then
+                if [ $CPANOPTION -eq 1 ]; then
+                    clear
+                    echo "$i is missing or needs updated. Installing via CPAN ..."; echo;
+                    timewait 1
+                    su - sabuild -c "echo \"\\\n\" | perl -MCPAN -e \"CPAN::Shell->force(qw(install $i ));\""
+                else
+                    echo "WARNING: $i is missing. You should fix this.";
+                    PMODWAIT=5
+                fi
+            else
+                echo "$i => OK";
+            fi
+        done
+
+        # Cleanup
+        rm -f /etc/sudoers.d/sabuild
+        userdel sabuild
+        rm -rf /home/sabuild
+        
     else
-        echo "$i => OK";
+        echo "Unable to create sabuild user, falling back to root"
+        for i in "${SAMOD[@]}"
+        do
+            perldoc -l $i >/dev/null 2>&1
+            if [ $? -ne 0 -o $1 == "update" ]; then
+                if [ $CPANOPTION -eq 1 ]; then
+                    clear
+                    echo "$i is missing or needs updated. Installing via CPAN ..."; echo;
+                    timewait 1
+                    if [ $AUTOCPAN -eq 0 ]; then
+                        perl -MCPAN -e "CPAN::Shell->force(qw(install $i ));"
+                    else
+                        cpanm --force --no-interactive $i
+                    fi
+                else
+                    echo "WARNING: $i is missing. You should fix this.";
+                    PMODWAIT=5
+                fi
+            else
+                echo "$i => OK";
+            fi
+        done
     fi
-done
+}
+
+install_sa
 
 # Update perl modules
 if [[ -n "${arg_update+x}" && $AUTOCPAN -ne 0 ]]; then
     cpanm App::cpanoutdated
-    cpan-outdated -p | cpanm --force --no-interactive
+    for i in $(cpan-outdated -p); do
+      if [ $i == "Mail::SpamAssassin" ]; then
+        install_sa "update"
+      else
+        cpanm --force --no-interactive $i
+      fi
+    done
 
     # Check for and override spamassassin rpm, if present
     # RHEL variants ship SA with security vulnerabilities present
     if [[ -n $(rpm -qa | grep spamassassin) ]]; then
         echo "Possibly outdated Spamassassin detected, installing from CPAN..."
         $RPM -e spamassassin
-        cpanm --force --no-interactive Mail::SpamAssassin
+        install_sa
         perldoc -l Mail::SpamAssassin >/dev/null 2>&1
         if [ $? -ne 0 ]; then
             echo "Error installing spamassassin from CPAN, rolling back..."
@@ -1121,7 +1091,7 @@ if [ $SELMODE -eq 1 ]; then
     if [ -f '/etc/selinux/config' ]; then
         perl -pi -e 's/'$OLDTHING'/'$NEWTHING'/;' /etc/selinux/config
         setenforce 0
-    else	
+    else
         clear
         echo;
         echo "WARNING: I was unable to find the SELinux configuration file to set";
