@@ -836,7 +836,7 @@ if [ $CPANOPTION -eq 1 ]; then
         echo "CPAN config missing. Creating one ..."; echo;
         mkdir -p /root/.cpan/CPAN
         cd /root/.cpan/CPAN
-        $CURL -LO https://mirrors.efa-project.org/msv5/CPAN/root/MyConfig.pm
+        $CURL -LO https://mirrors.efa-project.org/msv5/CPAN/RHEL/root/MyConfig.pm
         cd "$THISCURRPMDIR"
     fi
     AUTOCPAN=1
@@ -1005,7 +1005,7 @@ function install_sa() {
             echo "CPAN config missing. Creating one ..."; echo;
             mkdir -p /home/sabuild/.cpan/CPAN
             cd /home/sabuild/.cpan/CPAN
-            $CURL -LO https://mirrors.efa-project.org/msv5/CPAN/sabuild/MyConfig.pm
+            $CURL -LO https://mirrors.efa-project.org/msv5/CPAN/RHEL/sabuild/MyConfig.pm
             chown -R sabuild:sabuild /home/sabuild/.cpan
             cd "$THISCURRPMDIR"
         fi

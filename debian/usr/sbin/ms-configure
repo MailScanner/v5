@@ -6,7 +6,7 @@
 # MailScanner via apt-get and CPAN based on user input.  
 #
 #
-# Updated: 14 Nov 2021
+# Updated: 17 Feb 2023
 # MailScanner Team <https://www.mailscanner.info>
 clear
 
@@ -25,7 +25,6 @@ while [ $# -gt 0 ]; do
             arg_MTA="none";
             arg_installClamav=0;
             arg_installCPAN=1;
-            arg_ignoreDeps=0;
             arg_ramdiskSize=0;
             arg_update=1;
             ((parsedCommands++));
@@ -69,19 +68,6 @@ while [ $# -gt 0 ]; do
             fi
         ;;
 
-        --ignoreDeps=*)
-            if [[ ${1#*=} =~ ^([yY])$ ]]; then
-                arg_ignoreDeps=1;
-                ((parsedCommands++));
-            elif [[ ${1#*=} =~ ^([nN])$ ]]; then
-                arg_ignoreDeps=0;
-                ((parsedCommands++));
-            else
-                printf "Error: Invalid value for ignoreDeps: only Y or N values are accepted.\n"
-                exit 1
-            fi
-        ;;
-
         --ramdiskSize=*)
             if [[ ${1#*=} =~ ^-?[0-9]+$ ]]; then
                 arg_ramdiskSize="${1#*=}";
@@ -107,8 +93,6 @@ while [ $# -gt 0 ]; do
             printf    "                      Recommended: Y (yes)\n\n"
             printf -- "--installCPAN=Y|N     Install missing perl modules via CPAN                           (Y or N)\n"
             printf    "                      Recommended: Y (yes)\n\n"
-            printf -- "--ignoreDeps=Y|N      Force .deb package install regardless of missing dependencies   (Y or N)\n"
-            printf    "                      Recommended: N (no)\n\n"
             printf -- "--ramdiskSize=value   Create a RAMDISK for incoming spool directory                   (integer value or 0 for none)\n"
             printf    "                      Suggestions:\n";
             printf    "                      None         0\n";
@@ -289,34 +273,6 @@ else
     fi
 fi
 
-# ask if the user wants to ignore dependencies. they are automatically ignored
-# if the user elected the CPAN option as explained above
-clear
-echo;
-echo "Do you want to ignore MailScanner dependencies?"; echo;
-echo "This will force install the MailScanner .deb package regardless of missing";
-echo "dependencies. It is highly recommended that you DO NOT do this unless you";
-echo "are debugging.";
-echo;
-echo "Recommended: N (no)"; echo;
-if [ -z "${arg_ignoreDeps+x}" ]; then
-    read -r -p "Ignore MailScanner dependencies (nodeps)? [y/N] : " response
-
-    if [[ $response =~ ^([yY][eE][sS]|[yY])$ ]]; then
-        # user wants to ignore deps
-        NODEPS='--force-depends'
-    else
-        # requiring deps
-        NODEPS=
-    fi
-else
-    if [ ${arg_ignoreDeps} -eq 1 ]; then
-        NODEPS='--force-depends'
-    else
-        NODEPS=
-    fi
-fi
-
 # ask if the user wants to add a ramdisk
 clear
 echo;
@@ -363,80 +319,121 @@ fi
 
 # base system packages
 BASEPACKAGES=();
-BASEPACKAGES+=('perl-doc');						BASEPACKAGES+=('libmailtools-perl');			BASEPACKAGES+=('re2c');
-BASEPACKAGES+=('curl');							BASEPACKAGES+=('libnet-cidr-lite-perl');        BASEPACKAGES+=('libmime-tools-perl');
-BASEPACKAGES+=('wget');							BASEPACKAGES+=('libtest-manifest-perl');		BASEPACKAGES+=('libnet-cidr-perl');
-BASEPACKAGES+=('tar');							BASEPACKAGES+=('libdata-dump-perl');			BASEPACKAGES+=('libsys-syslog-perl');
-BASEPACKAGES+=('binutils');						BASEPACKAGES+=('libbusiness-isbn-perl');		BASEPACKAGES+=('libio-stringy-perl');
-BASEPACKAGES+=('unrar');						BASEPACKAGES+=('libdbd-mysql-perl');			BASEPACKAGES+=('perl-modules');
-BASEPACKAGES+=('gcc');							BASEPACKAGES+=('libconvert-tnef-perl');			BASEPACKAGES+=('libdbd-mysql-perl');
-BASEPACKAGES+=('make');							BASEPACKAGES+=('libdbd-sqlite3-perl');			BASEPACKAGES+=('libencode-detect-perl');
-BASEPACKAGES+=('patch');						BASEPACKAGES+=('libfilesys-df-perl');			BASEPACKAGES+=('libc6-dev');
-BASEPACKAGES+=('antiword');						BASEPACKAGES+=('libarchive-zip-perl');			BASEPACKAGES+=('libconfig-yaml-perl');
-BASEPACKAGES+=('pyzor');						BASEPACKAGES+=('libole-storage-lite-perl');		BASEPACKAGES+=('libsys-sigaction-perl');
-BASEPACKAGES+=('razor');						BASEPACKAGES+=('libinline-perl');				BASEPACKAGES+=('libmail-imapclient-perl');
-BASEPACKAGES+=('tnef');							BASEPACKAGES+=('libmail-spf-perl');				BASEPACKAGES+=('libtest-pod-coverage-perl');
-BASEPACKAGES+=('gzip');							BASEPACKAGES+=('libnetaddr-ip-perl');			BASEPACKAGES+=('libfile-sharedir-install-perl');
-BASEPACKAGES+=('unzip');						BASEPACKAGES+=('libnet-ldap-perl');				BASEPACKAGES+=('libsys-hostname-long-perl');
-BASEPACKAGES+=('openssl');						BASEPACKAGES+=('libmail-dkim-perl');			BASEPACKAGES+=('libhtml-tokeparser-simple-perl');
-BASEPACKAGES+=('perl');							BASEPACKAGES+=('libbusiness-isbn-data-perl');	BASEPACKAGES+=('libnet-dns-resolver-programmable-perl');
-BASEPACKAGES+=('p7zip-full');					BASEPACKAGES+=('libgeo-ip-perl');				BASEPACKAGES+=('libnet-patricia-perl');
-BASEPACKAGES+=('arj');							BASEPACKAGES+=('lhasa');						BASEPACKAGES+=('bzip2');  
-BASEPACKAGES+=('cabextract');					BASEPACKAGES+=('cpio');							BASEPACKAGES+=('file');  
-BASEPACKAGES+=('gzip');							BASEPACKAGES+=('nomarch');						BASEPACKAGES+=('pax');  
-BASEPACKAGES+=('rar');							BASEPACKAGES+=('unrar');						BASEPACKAGES+=('unzip');  
-BASEPACKAGES+=('zip');							BASEPACKAGES+=('zoo');							BASEPACKAGES+=('libsendmail-pmilter-perl');
-BASEPACKAGES+=('libdb-dev');					BASEPACKAGES+=('libmime-tools-perl');			BASEPACKAGES+=('libtest-deep-perl');
-BASEPACKAGES+=('cpanminus');					BASEPACKAGES+=('libmath-int64-perl');			BASEPACKAGES+=('libpath-class-perl');
-BASEPACKAGES+=('libtest-fatal-perl');			BASEPACKAGES+=('libnamespace-autoclean-perl');	BASEPACKAGES+=('librole-tiny-perl');
-BASEPACKAGES+=('libdata-dumper-concise-perl');	BASEPACKAGES+=('libdatetime-perl');				BASEPACKAGES+=('libtest-warnings-perl');
-BASEPACKAGES+=('libautodie-perl');				BASEPACKAGES+=('libtest-requires-perl');		BASEPACKAGES+=('libclone-pp-perl');
-BASEPACKAGES+=('libfile-homedir-perl');			BASEPACKAGES+=('libsort-naturally-perl');		BASEPACKAGES+=('libjson-maybexs-perl');
-BASEPACKAGES+=('libtest-leaktrace-perl');		BASEPACKAGES+=('libthrowable-perl');			BASEPACKAGES+=('libmaxminddb-dev');
+BASEPACKAGES+=('perl-doc');                    BASEPACKAGES+=('re2c');              BASEPACKAGES+=('curl');
+BASEPACKAGES+=('wget');                        BASEPACKAGES+=('tar');               BASEPACKAGES+=('binutils');                        
+BASEPACKAGES+=('unrar');                       BASEPACKAGES+=('perl-modules');      BASEPACKAGES+=('gcc');                            
+BASEPACKAGES+=('make');                        BASEPACKAGES+=('patch');             BASEPACKAGES+=('libc6-dev');
+BASEPACKAGES+=('antiword');                    BASEPACKAGES+=('pyzor');             BASEPACKAGES+=('razor');                                        
+BASEPACKAGES+=('tnef');                        BASEPACKAGES+=('gzip');              BASEPACKAGES+=('unzip');
+BASEPACKAGES+=('openssl');                     BASEPACKAGES+=('perl');              BASEPACKAGES+=('p7zip-full');                    
+BASEPACKAGES+=('arj');                         BASEPACKAGES+=('lhasa');             BASEPACKAGES+=('bzip2');  
+BASEPACKAGES+=('cabextract');                  BASEPACKAGES+=('cpio');              BASEPACKAGES+=('file');  
+BASEPACKAGES+=('gzip');                        BASEPACKAGES+=('nomarch');           BASEPACKAGES+=('pax');  
+BASEPACKAGES+=('rar');                         BASEPACKAGES+=('unrar');             BASEPACKAGES+=('unzip');  
+BASEPACKAGES+=('zip');                         BASEPACKAGES+=('zoo');               BASEPACKAGES+=('libdb-dev');                    
+BASEPACKAGES+=('cpanminus');                   BASEPACKAGES+=('libmaxminddb-dev');
+
+# Look for perl modules that may exist in repositories, missing/non-existant packages will be skipped
+EXTRAPACKAGES=();
+EXTRAPACKAGES+=('libarchive-tar-perl');         EXTRAPACKAGES+=('libarchive-zip-perl');         EXTRAPACKAGES+=('libbignum-perl');
+EXTRAPACKAGES+=('libcarp-perl');                EXTRAPACKAGES+=('libcompress-zlib-perl');       EXTRAPACKAGES+=('libcompress-raw-zlib-perl');
+EXTRAPACKAGES+=('libconvert-binhex-perl');      EXTRAPACKAGES+=('libconvert-tnef-perl');        EXTRAPACKAGES+=('libdata-dumper-perl');
+EXTRAPACKAGES+=('libdata-perse-perl');          EXTRAPACKAGES+=('libdbd-sqlite3-perl');         EXTRAPACKAGES+=('libdbi-perl');
+EXTRAPACKAGES+=('libdigest-hmac-perl');         EXTRAPACKAGES+=('libdigest-md5-perl');          EXTRAPACKAGES+=('libdigest-sha1-perl');
+EXTRAPACKAGES+=('libdirhandle-perl');           EXTRAPACKAGES+=('libextutils-makemaker-perl');  EXTRAPACKAGES+=('libfcntl-perl');
+EXTRAPACKAGES+=('libfile-basename-perl');       EXTRAPACKAGES+=('libfile-copy-perl');           EXTRAPACKAGES+=('libfile-path-perl');
+EXTRAPACKAGES+=('libfile-spec-perl');           EXTRAPACKAGES+=('libfile-temp-perl');           EXTRAPACKAGES+=('libfilehandle-perl');
+EXTRAPACKAGES+=('libfilesys-df-perl');          EXTRAPACKAGES+=('libgetopt-long-perl');         EXTRAPACKAGES+=('libinline-c-perl');
+EXTRAPACKAGES+=('libio-perl');                  EXTRAPACKAGES+=('libio-file-perl');             EXTRAPACKAGES+=('libio-pipe-perl');
+EXTRAPACKAGES+=('libio-stringy-perl');          EXTRAPACKAGES+=('libhtml-entities-perl');       EXTRAPACKAGES+=('libhtml-parser-perl');
+EXTRAPACKAGES+=('libhtml-tagset-perl');         EXTRAPACKAGES+=('libhtml-tokeparser-perl');     EXTRAPACKAGES+=('libmail-field-perl');
+EXTRAPACKAGES+=('libmail-header-perl');         EXTRAPACKAGES+=('libmail-imapclient-perl');     EXTRAPACKAGES+=('libmail-internet-perl');
+EXTRAPACKAGES+=('libmath-bigint-perl');         EXTRAPACKAGES+=('libmath-bigrat-perl');         EXTRAPACKAGES+=('libmime-base64-perl');
+EXTRAPACKAGES+=('libmime-decoder-perl');        EXTRAPACKAGES+=('libmime-decorder-uu-perl');    EXTRAPACKAGES+=('libmime-head-perl');
+EXTRAPACKAGES+=('libmime-parser-perl');         EXTRAPACKAGES+=('libmime-quotedprint-perl');    EXTRAPACKAGES+=('libmime-tools-perl');
+EXTRAPACKAGES+=('libmime-worddecoder-perl');    EXTRAPACKAGES+=('libnet-cidr-perl');            EXTRAPACKAGES+=('libnet-dns-perl');
+EXTRAPACKAGES+=('libnet-ip-perl');              EXTRAPACKAGES+=('libole-storage-lite-perl');    EXTRAPACKAGES+=('libpod-escapes-perl');
+EXTRAPACKAGES+=('libpod-simple-perl');          EXTRAPACKAGES+=('libposix-perl');               EXTRAPACKAGES+=('libscalar-util-perl');
+EXTRAPACKAGES+=('libsocket-perl');              EXTRAPACKAGES+=('libstorable-perl');            EXTRAPACKAGES+=('libtest-harness-perl');
+EXTRAPACKAGES+=('libtest-pod-perl');            EXTRAPACKAGES+=('libtest-simple-perl');         EXTRAPACKAGES+=('libtime-hires-perl');
+EXTRAPACKAGES+=('libtime-localtime-perl');      EXTRAPACKAGES+=('libsys-hostname-long-perl');   EXTRAPACKAGES+=('libsys-sigaction-perl');
+EXTRAPACKAGES+=('libsys-syslog-perl');          EXTRAPACKAGES+=('libenv-perl');                 EXTRAPACKAGES+=('libtest-fatal-perl');
+EXTRAPACKAGES+=('libdata-dump-perl');           EXTRAPACKAGES+=('libdb-file-perl');             EXTRAPACKAGES+=('libnamespace-autoclean-perl');
+EXTRAPACKAGES+=('libmailtools-perl');           EXTRAPACKAGES+=('libdigest-perl');              EXTRAPACKAGES+=('libencode-detect-perl');
+EXTRAPACKAGES+=('liberror-perl');               EXTRAPACKAGES+=('libextutils-cbuilder-perl');   EXTRAPACKAGES+=('libextutils-parsexs-perl');
+EXTRAPACKAGES+=('libgetopt-long-perl');         EXTRAPACKAGES+=('libinline-perl');              EXTRAPACKAGES+=('libio-string-perl');
+EXTRAPACKAGES+=('libio-zlib-perl');             EXTRAPACKAGES+=('libip-country-perl');          EXTRAPACKAGES+=('libmail-spf-perl');
+EXTRAPACKAGES+=('libmail-spf-query-perl');      EXTRAPACKAGES+=('libmodule-build-perl');        EXTRAPACKAGES+=('libnet-cidr-lite-perl');
+EXTRAPACKAGES+=('libnet-dns-perl');             EXTRAPACKAGES+=('libnet-ldap-perl');            EXTRAPACKAGES+=('libnet-dns-resolver-programmable-perl');
+EXTRAPACKAGES+=('libnetaddr-ip-perl');          EXTRAPACKAGES+=('libparse-recdescent-perl');    EXTRAPACKAGES+=('libtest-harness-perl');
+EXTRAPACKAGES+=('libtest-manifest-perl');       EXTRAPACKAGES+=('libtext-balanced-perl');       EXTRAPACKAGES+=('liburi-perl');
+EXTRAPACKAGES+=('libversion-perl');             EXTRAPACKAGES+=('libio-compress-bzip2-perl');   EXTRAPACKAGES+=('libsendmail-pmilter-perl');
+EXTRAPACKAGES+=('libmath-int64-perl');          EXTRAPACKAGES+=('libip-country-db-file-perl');  EXTRAPACKAGES+=('libnamespace-autoclean-perl');
+EXTRAPACKAGES+=('libdata-ieee754-perl');        EXTRAPACKAGES+=('libdata-printer-perl');        EXTRAPACKAGES+=('libdata-validate-ip-perl');
+EXTRAPACKAGES+=('liblist-allutils-perl');       EXTRAPACKAGES+=('liblist-someutils-perl');      EXTRAPACKAGES+=('libtest-tester-perl');
+EXTRAPACKAGES+=('liblist-utilsby-perl');        EXTRAPACKAGES+=('libmaxmind-db-metadata-perl'); EXTRAPACKAGES+=('libmaxmind-db-reader-perl');
+EXTRAPACKAGES+=('libmodule-runtime-perl');      EXTRAPACKAGES+=('libmoo-perl');                 EXTRAPACKAGES+=('libmoox-strictconstructor-perl');
+EXTRAPACKAGES+=('librole-tiny-perl');           EXTRAPACKAGES+=('libstrictures-perl');          EXTRAPACKAGES+=('libmaxmind-db-reader-xs-perl');
+EXTRAPACKAGES+=('libsub-quote-perl');           EXTRAPACKAGES+=('libmath-int128-perl');         EXTRAPACKAGES+=('libnet-works-network-perl');
+EXTRAPACKAGES+=('libhttp-date-perl');           EXTRAPACKAGES+=('libbusiness-isbn-perl');       EXTRAPACKAGES+=('libdbd-mysql-perl');
+EXTRAPACKAGES+=('libconfig-yaml-perl');         EXTRAPACKAGES+=('libtest-pod-coverage-perl');   EXTRAPACKAGES+=('libfile-sharedir-install-perl');
+EXTRAPACKAGES+=('libmail-dkim-perl');           EXTRAPACKAGES+=('libbusiness-isbn-data-perl');  EXTRAPACKAGES+=('libhtml-tokeparser-simple-perl');
+EXTRAPACKAGES+=('libgeo-ip-perl');              EXTRAPACKAGES+=('libnet-patricia-perl');        EXTRAPACKAGES+=('libtest-deep-perl');
+EXTRAPACKAGES+=('libpath-class-perl');          EXTRAPACKAGES+=('libdata-dumper-concise-perl'); EXTRAPACKAGES+=('libautodie-perl');
+EXTRAPACKAGES+=('libtest-requires-perl');       EXTRAPACKAGES+=('libclone-pp-perl');            EXTRAPACKAGES+=('libfile-homedir-perl');
+EXTRAPACKAGES+=('libsort-naturally-perl');      EXTRAPACKAGES+=('libjson-maybexs-perl');        EXTRAPACKAGES+=('libdatetime-perl');
+EXTRAPACKAGES+=('libtest-warnings-perl');       EXTRAPACKAGES+=('libtest-leaktrace-perl');      EXTRAPACKAGES+=('libthrowable-perl');
 
 # the array of perl modules needed
 ARMOD=();
-ARMOD+=('Archive::Tar');			ARMOD+=('Archive::Zip');			ARMOD+=('bignum');
-ARMOD+=('Carp');					ARMOD+=('Compress::Zlib');			ARMOD+=('Compress::Raw::Zlib');
-ARMOD+=('Convert::BinHex');			ARMOD+=('Convert::TNEF');			ARMOD+=('Data::Dumper');
-ARMOD+=('Date::Parse');				ARMOD+=('DBD::SQLite');				ARMOD+=('DBI');
-ARMOD+=('Digest::HMAC');			ARMOD+=('Digest::MD5');				ARMOD+=('Digest::SHA1');
-ARMOD+=('DirHandle');				ARMOD+=('ExtUtils::MakeMaker');		ARMOD+=('Fcntl');
-ARMOD+=('File::Basename');			ARMOD+=('File::Copy');				ARMOD+=('File::Path');
-ARMOD+=('File::Spec');				ARMOD+=('File::Temp');				ARMOD+=('FileHandle');
-ARMOD+=('Filesys::Df');				ARMOD+=('Getopt::Long');			ARMOD+=('Inline::C');
-ARMOD+=('IO');						ARMOD+=('IO::File');				ARMOD+=('IO::Pipe');
-ARMOD+=('IO::Stringy');				ARMOD+=('HTML::Entities');			ARMOD+=('HTML::Parser');
-ARMOD+=('HTML::Tagset');			ARMOD+=('HTML::TokeParser');		ARMOD+=('Mail::Field');
-ARMOD+=('Mail::Header');			ARMOD+=('Mail::IMAPClient');		ARMOD+=('Mail::Internet');
-ARMOD+=('Math::BigInt');			ARMOD+=('Math::BigRat');			ARMOD+=('MIME::Base64');
-ARMOD+=('MIME::Decoder');			ARMOD+=('MIME::Decoder::UU');		ARMOD+=('MIME::Head');
-ARMOD+=('MIME::Parser');			ARMOD+=('MIME::QuotedPrint');		ARMOD+=('MIME::Tools');
-ARMOD+=('MIME::WordDecoder');		ARMOD+=('Net::CIDR');				ARMOD+=('Net::DNS');
-ARMOD+=('Net::IP');					ARMOD+=('OLE::Storage_Lite');		ARMOD+=('Pod::Escapes');
-ARMOD+=('Pod::Simple');				ARMOD+=('POSIX');					ARMOD+=('Scalar::Util');
-ARMOD+=('Socket');					ARMOD+=('Storable');				ARMOD+=('Test::Harness');
-ARMOD+=('Test::Pod');				ARMOD+=('Test::Simple');			ARMOD+=('Time::HiRes');
-ARMOD+=('Time::localtime');			ARMOD+=('Sys::Hostname::Long');		ARMOD+=('Sys::SigAction');
-ARMOD+=('Sys::Syslog');				ARMOD+=('Env');						ARMOD+=('bignum');
-ARMOD+=('Data::Dump');				ARMOD+=('DB_File');					ARMOD+=('DBD::SQLite');
-ARMOD+=('DBI');						ARMOD+=('Digest');					ARMOD+=('Encode::Detect');
-ARMOD+=('Error');					ARMOD+=('ExtUtils::CBuilder');		ARMOD+=('ExtUtils::ParseXS');
-ARMOD+=('Getopt::Long');			ARMOD+=('Inline');					ARMOD+=('IO::String');
-ARMOD+=('IO::Zlib');				ARMOD+=('IP::Country');				ARMOD+=('Mail::SPF');
-ARMOD+=('Mail::SPF::Query');		ARMOD+=('Module::Build');			ARMOD+=('Net::CIDR::Lite');
-ARMOD+=('Net::DNS');				ARMOD+=('Net::LDAP');				ARMOD+=('Net::DNS::Resolver::Programmable');
-ARMOD+=('NetAddr::IP');				ARMOD+=('Parse::RecDescent');		ARMOD+=('Test::Harness');
-ARMOD+=('Test::Manifest');			ARMOD+=('Text::Balanced');			ARMOD+=('URI');
-ARMOD+=('version');					ARMOD+=('IO::Compress::Bzip2');		ARMOD+=('Sendmail::PMilter');
-ARMOD+=('Math::Int64');				ARMOD+=('IP::Country::DB_File');	ARMOD+=('namespace::autoclean');
-ARMOD+=('Data::IEEE754');			ARMOD+=('Data::Printer');			ARMOD+=('Data::Validate::IP');
-ARMOD+=('List::AllUtils');			ARMOD+=('List::SomeUtils');			ARMOD+=('Test::Tester');
-ARMOD+=('List::UtilsBy');			ARMOD+=('MaxMind::DB::Metadata');	ARMOD+=('MaxMind::DB::Reader');
-ARMOD+=('Module::Runtime');			ARMOD+=('Moo');						ARMOD+=('MooX::StrictConstructor');
-ARMOD+=('Role::Tiny');				ARMOD+=('strictures');				ARMOD+=('MaxMind::DB::Reader::XS');
-ARMOD+=('Sub::Quote');				ARMOD+=('Math::Int128');			ARMOD+=('Net::Works::Network');
-ARMOD+=('HTTP::Date');
+ARMOD+=('Archive::Tar');            ARMOD+=('Archive::Zip');            ARMOD+=('bignum'); #
+ARMOD+=('Carp');                    ARMOD+=('Compress::Zlib');          ARMOD+=('Compress::Raw::Zlib'); #
+ARMOD+=('Convert::BinHex');         ARMOD+=('Convert::TNEF');           ARMOD+=('Data::Dumper'); #
+ARMOD+=('Date::Parse');             ARMOD+=('DBD::SQLite');             ARMOD+=('DBI'); #
+ARMOD+=('Digest::HMAC');            ARMOD+=('Digest::MD5');             ARMOD+=('Digest::SHA1'); #
+ARMOD+=('DirHandle');               ARMOD+=('ExtUtils::MakeMaker');     ARMOD+=('Fcntl'); #
+ARMOD+=('File::Basename');          ARMOD+=('File::Copy');              ARMOD+=('File::Path'); #
+ARMOD+=('File::Spec');              ARMOD+=('File::Temp');              ARMOD+=('FileHandle'); #
+ARMOD+=('Filesys::Df');             ARMOD+=('Getopt::Long');            ARMOD+=('Inline::C'); #
+ARMOD+=('IO');                      ARMOD+=('IO::File');                ARMOD+=('IO::Pipe'); #
+ARMOD+=('IO::Stringy');             ARMOD+=('HTML::Entities');          ARMOD+=('HTML::Parser'); #
+ARMOD+=('HTML::Tagset');            ARMOD+=('HTML::TokeParser');        ARMOD+=('Mail::Field'); #
+ARMOD+=('Mail::Header');            ARMOD+=('Mail::IMAPClient');        ARMOD+=('Mail::Internet'); #
+ARMOD+=('Math::BigInt');            ARMOD+=('Math::BigRat');            ARMOD+=('MIME::Base64'); #
+ARMOD+=('MIME::Decoder');           ARMOD+=('MIME::Decoder::UU');       ARMOD+=('MIME::Head'); #
+ARMOD+=('MIME::Parser');            ARMOD+=('MIME::QuotedPrint');       ARMOD+=('MIME::Tools'); #
+ARMOD+=('MIME::WordDecoder');       ARMOD+=('Net::CIDR');               ARMOD+=('Net::DNS'); #
+ARMOD+=('Net::IP');                 ARMOD+=('OLE::Storage_Lite');       ARMOD+=('Pod::Escapes'); #
+ARMOD+=('Pod::Simple');             ARMOD+=('POSIX');                   ARMOD+=('Scalar::Util'); #
+ARMOD+=('Socket');                  ARMOD+=('Storable');                ARMOD+=('Test::Harness'); #
+ARMOD+=('Test::Pod');               ARMOD+=('Test::Simple');            ARMOD+=('Time::HiRes'); #
+ARMOD+=('Time::localtime');         ARMOD+=('Sys::Hostname::Long');     ARMOD+=('Sys::SigAction'); #
+ARMOD+=('Sys::Syslog');             ARMOD+=('Env');                     ARMOD+=('Test::Fatal'); #
+ARMOD+=('Data::Dump');              ARMOD+=('DB_File');                 ARMOD+=('namespace::autoclean'); #
+ARMOD+=('MailTools');               ARMOD+=('Digest');                  ARMOD+=('Encode::Detect'); #
+ARMOD+=('Error');                   ARMOD+=('ExtUtils::CBuilder');      ARMOD+=('ExtUtils::ParseXS'); #
+ARMOD+=('Getopt::Long');            ARMOD+=('Inline');                  ARMOD+=('IO::String'); #
+ARMOD+=('IO::Zlib');                ARMOD+=('IP::Country');             ARMOD+=('Mail::SPF'); #
+ARMOD+=('Mail::SPF::Query');        ARMOD+=('Module::Build');           ARMOD+=('Net::CIDR::Lite'); #
+ARMOD+=('Net::DNS');                ARMOD+=('Net::LDAP');               ARMOD+=('Net::DNS::Resolver::Programmable'); #
+ARMOD+=('NetAddr::IP');             ARMOD+=('Parse::RecDescent');       ARMOD+=('Test::Harness'); #
+ARMOD+=('Test::Manifest');          ARMOD+=('Text::Balanced');          ARMOD+=('URI'); #
+ARMOD+=('version');                 ARMOD+=('IO::Compress::Bzip2');     ARMOD+=('Sendmail::PMilter'); #
+ARMOD+=('Math::Int64');             ARMOD+=('IP::Country::DB_File');    ARMOD+=('namespace::autoclean'); #
+ARMOD+=('Data::IEEE754');           ARMOD+=('Data::Printer');           ARMOD+=('Data::Validate::IP'); #
+ARMOD+=('List::AllUtils');          ARMOD+=('List::SomeUtils');         ARMOD+=('Test::Tester'); #
+ARMOD+=('List::UtilsBy');           ARMOD+=('MaxMind::DB::Metadata');   ARMOD+=('MaxMind::DB::Reader'); #
+ARMOD+=('Module::Runtime');         ARMOD+=('Moo');                     ARMOD+=('MooX::StrictConstructor'); #
+ARMOD+=('Role::Tiny');              ARMOD+=('strictures');              ARMOD+=('MaxMind::DB::Reader::XS'); #
+ARMOD+=('Sub::Quote');              ARMOD+=('Math::Int128');            ARMOD+=('Net::Works::Network');
+ARMOD+=('HTTP::Date');              ARMOD+=('Business::ISBN');          ARMOD+=('DBD::mysql');
+ARMOD+=('Config::YAML');            ARMOD+=('Test::Pod::Coverage');     ARMOD+=('File::ShareDir::Install');
+ARMOD+=('Mail::DKIM');              ARMOD+=('Business::ISBN::Data');    ARMOD+=('HTML::TokeParser::Simple');
+ARMOD+=('Geo::IP');                 ARMOD+=('Net::Patricia');           ARMOD+=('Test::Deep');
+ARMOD+=('Path::Class');             ARMOD+=('Data::Dumper::Concise');   ARMOD+=('autodie');
+ARMOD+=('Test::Requires');          ARMOD+=('Clone::PP');               ARMOD+=('File::HomeDir');
+ARMOD+=('Sort::Naturally');         ARMOD+=('JSON::MaybeXS');           ARMOD+=('DateTime');
+ARMOD+=('Test::Warnings');          ARMOD+=('Test::LeakTrace');         ARMOD+=('Throwable');
 
 # additional spamassassin plugins
 SAMOD=();
@@ -458,12 +455,18 @@ timewait 2
 
 # install required perl and base packages that are available via apt
 #
-# some items may not be available depending on the distribution 
-# release but those items will be checked after this and installed
-# via cpan if the user elected to do so.
 $APTGET update
 
 for i in "${BASEPACKAGES[@]}"
+do
+    $APTGET -yf install $i
+done
+
+# Look for packaged perl modules and install them via apt
+# some items may not be available depending on the distribution 
+# release but those items will be checked after this and installed
+# via cpan if the user elected to do so.
+for i in "${EXTRAPACKAGES[@]}"
 do
     $APTGET -yf install $i
 done
@@ -512,7 +515,7 @@ if [ $CPANOPTION -eq 1 ]; then
         echo "CPAN config missing. Creating one ..."; echo;
         mkdir -p /root/.cpan/CPAN
         cd /root/.cpan/CPAN
-        $CURL -O https://s3.amazonaws.com/msv5/CPAN/MyConfig.pm
+        $CURL -LO https://mirrors.efa-project.org/msv5/CPAN/DEB/root/MyConfig.pm
         cd $THISCURRPMDIR
         timewait 1
         perl -MCPAN -e 'my $c = "CPAN::HandleConfig"; $c->load(doit => 1, autoconfig => 1); $c->edit(prerequisites_policy => "follow"); $c->edit(build_requires_install_policy => "yes"); $c->commit'
