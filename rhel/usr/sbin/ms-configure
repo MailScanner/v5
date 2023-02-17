@@ -5,11 +5,9 @@
 # This script installs the required software for
 # MailScanner via yum and CPAN based on user input.  
 #
-# Tested distributions:     CentOS 7,8,9
-#                           RHEL 7,8,9 
-#                           Fedora 29,30,31
+# Tested distributions:     CentOS 7,8,9 or equivalent
 #
-# Updated: 14 Nov 2021
+# Updated: 17 Feb 2023
 # MailScanner Team <https://www.mailscanner.info>
 
 # clear the screen. yay!
@@ -266,29 +264,11 @@ else
     fi
 fi
 
-FEDORA=
-# Is this a Fedora System?
-if [ -f /etc/fedora-release ]; then
-    if grep -qs 'release 29' /etc/fedora-release ; then
-        # Fedora 29
-        FEDORA=29
-    elif grep -qs 'release 30' /etc/fedora-release ; then
-        # Fedora 30
-        FEDORA=30
-    elif grep -qs 'release 31' /etc/fedora-release ; then
-        # Fedora 31
-        FEDORA=31
-    else
-        # Unsupported release
-        FEDORA=0
-    fi
-fi
-
 # user info screen before the install process starts
 echo "MailScanner Configuration for RPM Based Systems"; echo; echo;
 echo "This will INSTALL or UPGRADE the required software for MailScanner on RPM based systems";
-echo "via the Yum package manager. Supported distributions are RHEL 6,7,8 and associated";
-echo "variants such as CentOS and Fedora. Internet connectivity is required for"; 
+echo "via the Yum package manager. Supported distributions are CentOS 7,8,9 and associated";
+echo "variants. Internet connectivity is required for"; 
 echo "this configuration script to execute. "; echo;
 echo;
 echo "WARNING - Make a backup of any custom configuration files if upgrading - WARNING";
@@ -348,40 +328,40 @@ fi
 SA=1
 SAOPTION="spamassassin"
 
-if [ -z $FEDORA ]; then
-    # ask if the user wants to install EPEL
-    clear
-    echo;
-    echo "Do you want to install EPEL? (Extra Packages for Enterprise Linux)"; echo;
-    echo "Installing EPEL will make more yum packages available, such as extra perl modules"; 
-    echo "and ClamAV, which is recommended. This will also reduce the number of Perl modules";
-    echo "installed via CPAN. Note that EPEL is considered a third party repository."; 
-    echo;
-    echo "Recommended: Y (yes)"; echo;
-    if [ -z "${arg_installEPEL+x}" ]; then
-        read -r -p "Install EPEL? [n/Y] : " response
-        if [[ $response =~ ^([yY][eE][sS]|[yY])$ ]]; then
-            # user wants EPEL installed
-            EPEL=1
-            EPELOPTION="epel-release";
-        elif [ -z $response ]; then    
-            # user wants EPEL installed
-            EPEL=1
-            EPELOPTION="epel-release";
-        else
-            # user does not want EPEL
-            EPEL=0
-            EPELOPTION=
-        fi
+
+# ask if the user wants to install EPEL
+clear
+echo;
+echo "Do you want to install EPEL? (Extra Packages for Enterprise Linux)"; echo;
+echo "Installing EPEL will make more yum packages available, such as extra perl modules"; 
+echo "and ClamAV, which is recommended. This will also reduce the number of Perl modules";
+echo "installed via CPAN. Note that EPEL is considered a third party repository. On RHEL 9, the CRB repository will also be enabled."; 
+echo;
+echo "Recommended: Y (yes)"; echo;
+if [ -z "${arg_installEPEL+x}" ]; then
+    read -r -p "Install EPEL? [n/Y] : " response
+    if [[ $response =~ ^([yY][eE][sS]|[yY])$ ]]; then
+        # user wants EPEL installed
+        EPEL=1
+        EPELOPTION="epel-release";
+    elif [ -z $response ]; then    
+        # user wants EPEL installed
+        EPEL=1
+        EPELOPTION="epel-release";
     else
-        EPEL=${arg_installEPEL};
-        if [ $EPEL -eq 1 ]; then
-            EPELOPTION="epel-release";
-        fi
+        # user does not want EPEL
+        EPEL=0
+        EPELOPTION=
+    fi
+else
+    EPEL=${arg_installEPEL};
+    if [ $EPEL -eq 1 ]; then
+        EPELOPTION="epel-release";
     fi
 fi
 
-if [[ -z $FEDORA && $RHEL -eq 8 ]]; then
+
+if [[ $RHEL -eq 8 ]]; then
     # ask if the user wants to install PowerTools
     clear
     echo;
@@ -411,8 +391,8 @@ if [[ -z $FEDORA && $RHEL -eq 8 ]]; then
     fi
 fi
 
-# ask if the user wants ClamAV installed if they selected EPEL or if this is a Fedora Server
-if [[ $EPEL -eq 1 || -n $FEDORA ]]; then
+# ask if the user wants ClamAV installed if they selected EPEL
+if [[ $EPEL -eq 1 ]]; then
     clear
     echo;
     echo "Do you want to install or update ClamAV during this installation process?"; echo;
@@ -445,7 +425,7 @@ if [[ $EPEL -eq 1 || -n $FEDORA ]]; then
         fi
     fi
 else
-    # user did not select EPEL or is not on Fedora Server so clamav is not available via yum
+    # user did not select EPEL so clamav is not available via yum
     CAV=0
     CAVOPTION=
 fi
@@ -639,7 +619,7 @@ else
 fi
 
 # base system packages
-BASEPACKAGES="binutils gcc glibc-devel libaio make man-pages man-pages-overrides patch rpm tar time unzip which zip libtool-ltdl perl curl wget openssl openssl-devel bzip2-devel libmaxminddb-devel libmaxminddb libidn-devel libidn2-devel pyzor re2c unrar tnef p7zip p7zip-plugins sudo"
+BASEPACKAGES="binutils gcc glibc-devel libaio make man-pages man-pages-overrides patch rpm tar time unzip which zip libtool-ltdl perl curl wget openssl openssl-devel bzip2-devel libmaxminddb-devel libidn-devel libidn2-devel pyzor re2c unrar tnef p7zip p7zip-plugins sudo"
 
 # Packages (maybe) available in the yum base of RHEL 7,8,9
 # and EPEL. If the user elects not to use EPEL or if the 
@@ -688,11 +668,10 @@ MOREPACKAGES="
             perl-Role-Tiny              perl-strictures             perl-DBD-mysql
             perl-Sub-Quote              perl-Math-Int128            perl-Net-Works-Network
             perl-MaxMind-DB-Reader-XS   perl-Geo-IP                 perl-GeoIP2-Database-Reader
-            perl-HTTP-Date              perl-Scalar-List-Utils      perl-Net-DNS-Resolver-Programmable
+            perl-HTTP-Date              perl-LWP-Protocol-https     perl-Net-DNS-Resolver-Programmable
             perl-Net-LibIDN             perl-Net-LibIDN2            perl-Test-Perl-Critic
             perl-Devel-Cycle            perl-Perl-Critic-Policy     perl-Perl-Critic-Policy-TestingAndDebugging-ProhibitNoStrict
-            perl-Razor-Agent            perl-TimeDate               perl-Perl-Critic-Policy-Perlsecret
-            perl-YAML                   perl-LDAP                   perl-LWP-Protocol-https
+            perl-TimeDate               perl-YAML                   perl-Perl-Critic-Policy-Perlsecret
             perl-Path-Class             perl-Test-Fatal             perl-Test-Number-Delta
             perl-Data-Dumper-Concise    perl-DateTime               perl-Test-Warnings
             perl-autodie                perl-Test-Requires          perl-Test-Tester
@@ -754,11 +733,10 @@ ARMOD+=('Module::Runtime');         ARMOD+=('Moo');                         ARMO
 ARMOD+=('Role::Tiny');              ARMOD+=('strictures');                  ARMOD+=('DBD::mysql');     
 ARMOD+=('Sub::Quote');              ARMOD+=('Math::Int128');                ARMOD+=('Net::Works::Network');     
 ARMOD+=('MaxMind::DB::Reader::XS'); ARMOD+=('Geo::IP');                     ARMOD+=('GeoIP2::Database::Reader');     
-ARMOD+=('HTTP::Date');              ARMOD+=('Scalar::List::Utils');         ARMOD+=('Net::DNS::Resolver::Programmable');
+ARMOD+=('HTTP::Date');              ARMOD+=('LWP::Protocol::https');        ARMOD+=('Net::DNS::Resolver::Programmable');
 ARMOD+=('Net::LibIDN');             ARMOD+=('Net::LibIDN2');                ARMOD+=('Test::Perl::Critic');     
 ARMOD+=('Devel::Cycle');            ARMOD+=('Perl::Critic::Policy');        ARMOD+=('Perl::Critic::Policy::TestingAndDebugging::ProhibitNoStrict');
-ARMOD+=('Razor::Agent');            ARMOD+=('TimeDate');                    ARMOD+=('Perl::Critic::Policy::Perlsecret');
-ARMOD+=('YAML');                    ARMOD+=('LDAP');                        ARMOD+=('LWP::Protocol::https');
+ARMOD+=('TimeDate');                ARMOD+=('YAML');                        ARMOD+=('Perl::Critic::Policy::Perlsecret');
 ARMOD+=('Path::Class');             ARMOD+=('Test::Fatal');                 ARMOD+=('Test::Number::Delta');
 ARMOD+=('Data::Dumper::Concise');   ARMOD+=('DateTime');                    ARMOD+=('Test::Warnings');
 ARMOD+=('autodie');                 ARMOD+=('Test::Requires');              ARMOD+=('Test::Tester');
@@ -858,7 +836,7 @@ if [ $CPANOPTION -eq 1 ]; then
         echo "CPAN config missing. Creating one ..."; echo;
         mkdir -p /root/.cpan/CPAN
         cd /root/.cpan/CPAN
-        $CURL -O https://dl.efa-project.org/msv5/CPAN/root/MyConfig.pm
+        $CURL -O https://mirrors.efa-project.org/msv5/CPAN/root/MyConfig.pm
         cd "$THISCURRPMDIR"
     fi
     AUTOCPAN=1
@@ -901,9 +879,14 @@ if [ $TNEFOPTION -eq 1 ]; then
         echo "Tnef missing. Installing via RPM ..."; echo;
 
         if [ $RHEL -eq 9 ]; then
-          $CURL -O https://dl.efa-project.org/msv5/EL9/tnef-1.4.18-1.el9.x86_64.rpm
+          $CURL -O https://mirrors.efa-project.org/msv5/EL9/tnef-1.4.18-1.el9.x86_64.rpm
           if [ -f 'tnef-1.4.18-1.el9.x86_64.rpm' ]; then
             $RPM -Uvh tnef-1.4.18-1.el9.x86_64.rpm
+          fi
+        elif [ $RHEL -eq 8 ]; then
+          $CURL -O https://mirrors.efa-project.org/msv5/EL8/tnef-1.4.18-1.el8.x86_64.rpm
+          if [ -f 'tnef-1.4.18-1.el8.x86_64.rpm' ]; then
+            $RPM -Uvh tnef-1.4.18-1.el8.x86_64.rpm
           fi
         else
           echo "NOTICE: I cannot find a suitable RPM to install tnef";
@@ -927,12 +910,17 @@ if [ $UNRAROPTION -eq 1 ]; then
         echo "unrar missing. Installing via RPM ..."; echo;
 
         if [ $RHEL -eq 9 ]; then
-          $CURL -O https://dl.efa-project.org/msv5/EL9/unrar-6.2.5-1.el9.x86_64.rpm
+          $CURL -O https://mirrors.efa-project.org/msv5/EL9/unrar-6.2.5-1.el9.x86_64.rpm
           if [ -f 'unrar-6.2.5-1.el9.x86_64.rpm' ]; then
             $RPM -Uvh unrar-6.2.5-1.el9.x86_64.rpm
           fi
+        elif [ $RHEL -eq 8 ]; then
+          $CURL -O https://mirrors.efa-project.org/msv5/EL8/unrar-6.2.5-1.el8.x86_64.rpm
+          if [ -f 'unrar-6.2.5-1.el8.x86_64.rpm' ]; then
+            $RPM -Uvh unrar-6.2.5-1.el8.x86_64.rpm
+          fi
         else
-          echo "NOTICE: I cannot find a suitable RPM to install tnef";
+          echo "NOTICE: I cannot find a suitable RPM to install unrar";
           timewait 5
         fi
         
@@ -998,7 +986,7 @@ done
 
 function install_sa() {
     # Create sabuild user and set up for sudo build (SA 4.0+)
-    useradd -m -s /bin/bash sabuild &>/dev/null
+    useradd -m -s /sbin/nologin sabuild &>/dev/null
     id -u sabuild &>/dev/null
     if [ $? -eq 0 ]; then
         echo "sabuild    ALL=(ALL)    NOPASSWD: ALL" > /etc/sudoers.d/sabuild
@@ -1007,7 +995,7 @@ function install_sa() {
             echo "CPAN config missing. Creating one ..."; echo;
             mkdir -p /home/sabuild/.cpan/CPAN
             cd /home/sabuild/.cpan/CPAN
-            $CURL -O https://dl.efa-project.org/msv5/CPAN/sabuild/MyConfig.pm
+            $CURL -O https://mirrors.efa-project.org/msv5/CPAN/sabuild/MyConfig.pm
             chown -R sabuild:sabuild /home/sabuild/.cpan
             cd "$THISCURRPMDIR"
         fi
@@ -1020,7 +1008,7 @@ function install_sa() {
                     clear
                     echo "$i is missing or needs updated. Installing via CPAN ..."; echo;
                     timewait 1
-                    su - sabuild -c "echo \"\\\n\" | perl -MCPAN -e \"CPAN::Shell->force(qw(install $i ));\""
+                    su - sabuild -s /bin/bash -c "echo \"\\\n\" | perl -MCPAN -e \"CPAN::Shell->force(qw(install $i ));\""
                 else
                     echo "WARNING: $i is missing. You should fix this.";
                     PMODWAIT=5
@@ -1030,34 +1018,11 @@ function install_sa() {
             fi
         done
 
-        # Cleanup
+        # Cleanup, just revoke sudo privs
         rm -f /etc/sudoers.d/sabuild
-        userdel sabuild
-        rm -rf /home/sabuild
-        
     else
-        echo "Unable to create sabuild user, falling back to root"
-        for i in "${SAMOD[@]}"
-        do
-            perldoc -l $i >/dev/null 2>&1
-            if [[ $? -ne 0 || $1 == "update" ]]; then
-                if [ $CPANOPTION -eq 1 ]; then
-                    clear
-                    echo "$i is missing or needs updated. Installing via CPAN ..."; echo;
-                    timewait 1
-                    if [ $AUTOCPAN -eq 0 ]; then
-                        perl -MCPAN -e "CPAN::Shell->force(qw(install $i ));"
-                    else
-                        cpanm --force --no-interactive $i
-                    fi
-                else
-                    echo "WARNING: $i is missing. You should fix this.";
-                    PMODWAIT=5
-                fi
-            else
-                echo "$i => OK";
-            fi
-        done
+        echo "Unable to create sabuild user, cannot install spamassassin"
+        echo "You should fix this."
     fi
 }
 
@@ -1067,26 +1032,22 @@ install_sa
 if [[ -n "${arg_update+x}" && $AUTOCPAN -ne 0 ]]; then
     cpanm App::cpanoutdated
     for i in $(cpan-outdated -p); do
-      if [ $i == "Mail::SpamAssassin" ]; then
-        install_sa "update"
+      if [ "$i" == "Mail::SpamAssassin" ]; then
+        # Check for spamassassin rpm and notify user
+        if [[ -n $($RPM -qa | grep spamassassin) ]]; then
+          echo "Spamassassin detected installed via rpm.  To update spamassassin use your package manager."
+          timewait 1
+        else
+          install_sa "update"
+        fi
       else
-        cpanm --force --no-interactive $i
+        if [ $AUTOCPAN -eq 0 ]; then
+          perl -MCPAN -e "CPAN::Shell->force(qw(install $i ));"
+        else
+          cpanm --force --no-interactive $i
+        fi
       fi
     done
-
-    # Check for and override spamassassin rpm, if present
-    # RHEL variants ship SA with security vulnerabilities present
-    if [[ -n $(rpm -qa | grep spamassassin) ]]; then
-        echo "Possibly outdated Spamassassin detected, installing from CPAN..."
-        $RPM -e spamassassin
-        install_sa
-        perldoc -l Mail::SpamAssassin >/dev/null 2>&1
-        if [ $? -ne 0 ]; then
-            echo "Error installing spamassassin from CPAN, rolling back..."
-            $YUM -y install spamassassin
-            echo "WARNING: spamassassin is potentially outdated, you should fix this."
-        fi
-    fi
 fi
 
 # will pause if a perl module was missing
@@ -1111,9 +1072,6 @@ if [ $SELMODE -eq 1 ]; then
 fi
 
 # Freshclam
-if [ -f '/etc/init.d/clamd' ]; then
-    chkconfig clamd on
-fi
 freshclam 2>/dev/null
 
 # make sure in starting directory
