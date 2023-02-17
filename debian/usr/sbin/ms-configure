@@ -331,7 +331,7 @@ BASEPACKAGES+=('cabextract');                  BASEPACKAGES+=('cpio');          
 BASEPACKAGES+=('gzip');                        BASEPACKAGES+=('nomarch');           BASEPACKAGES+=('pax');  
 BASEPACKAGES+=('rar');                         BASEPACKAGES+=('unrar');             BASEPACKAGES+=('unzip');  
 BASEPACKAGES+=('zip');                         BASEPACKAGES+=('zoo');               BASEPACKAGES+=('libdb-dev');                    
-BASEPACKAGES+=('cpanminus');                   BASEPACKAGES+=('libmaxminddb-dev');
+BASEPACKAGES+=('cpanminus');                   BASEPACKAGES+=('libmaxminddb-dev');  BASEPACKAGES+=('sudo');
 
 # Look for perl modules that may exist in repositories, missing/non-existant packages will be skipped
 EXTRAPACKAGES=();
