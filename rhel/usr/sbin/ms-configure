@@ -637,7 +637,7 @@ MOREPACKAGES="
             perl-File-Spec              perl-File-Temp              perl-FileHandle
             perl-Filesys-Df             perl-Getopt-Long            perl-Inline-C
             perl-IO                     perl-IO-File                perl-IO-Pipe
-            perl-IO-Stringy             perl-HTML-Entities          perl-HTML-Parser
+            perl-IO-stringy             perl-HTML-Entities          perl-HTML-Parser
             perl-HTML-Tagset            perl-HTML-TokeParser        perl-Mail-Field
             perl-Mail-Header            perl-Mail-IMAPClient        perl-Mail-Internet
             perl-Math-BigInt            perl-Math-BigRat            perl-MIME-Base64
