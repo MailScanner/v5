@@ -836,7 +836,7 @@ if [ $CPANOPTION -eq 1 ]; then
         echo "CPAN config missing. Creating one ..."; echo;
         mkdir -p /root/.cpan/CPAN
         cd /root/.cpan/CPAN
-        $CURL -O https://mirrors.efa-project.org/msv5/CPAN/root/MyConfig.pm
+        $CURL -O https://dl.efa-project.org/msv5/CPAN/root/MyConfig.pm
         cd "$THISCURRPMDIR"
     fi
     AUTOCPAN=1
@@ -879,12 +879,12 @@ if [ $TNEFOPTION -eq 1 ]; then
         echo "Tnef missing. Installing via RPM ..."; echo;
 
         if [ $RHEL -eq 9 ]; then
-          $CURL -O https://mirrors.efa-project.org/msv5/EL9/tnef-1.4.18-1.el9.x86_64.rpm
+          $CURL -O https://dl.efa-project.org/msv5/EL9/tnef-1.4.18-1.el9.x86_64.rpm
           if [ -f 'tnef-1.4.18-1.el9.x86_64.rpm' ]; then
             $RPM -Uvh tnef-1.4.18-1.el9.x86_64.rpm
           fi
         elif [ $RHEL -eq 8 ]; then
-          $CURL -O https://mirrors.efa-project.org/msv5/EL8/tnef-1.4.18-1.el8.x86_64.rpm
+          $CURL -O https://dl.efa-project.org/msv5/EL8/tnef-1.4.18-1.el8.x86_64.rpm
           if [ -f 'tnef-1.4.18-1.el8.x86_64.rpm' ]; then
             $RPM -Uvh tnef-1.4.18-1.el8.x86_64.rpm
           fi
@@ -910,12 +910,12 @@ if [ $UNRAROPTION -eq 1 ]; then
         echo "unrar missing. Installing via RPM ..."; echo;
 
         if [ $RHEL -eq 9 ]; then
-          $CURL -O https://mirrors.efa-project.org/msv5/EL9/unrar-6.2.5-1.el9.x86_64.rpm
+          $CURL -O https://dl.efa-project.org/msv5/EL9/unrar-6.2.5-1.el9.x86_64.rpm
           if [ -f 'unrar-6.2.5-1.el9.x86_64.rpm' ]; then
             $RPM -Uvh unrar-6.2.5-1.el9.x86_64.rpm
           fi
         elif [ $RHEL -eq 8 ]; then
-          $CURL -O https://mirrors.efa-project.org/msv5/EL8/unrar-6.2.5-1.el8.x86_64.rpm
+          $CURL -O https://dl.efa-project.org/msv5/EL8/unrar-6.2.5-1.el8.x86_64.rpm
           if [ -f 'unrar-6.2.5-1.el8.x86_64.rpm' ]; then
             $RPM -Uvh unrar-6.2.5-1.el8.x86_64.rpm
           fi
@@ -995,7 +995,7 @@ function install_sa() {
             echo "CPAN config missing. Creating one ..."; echo;
             mkdir -p /home/sabuild/.cpan/CPAN
             cd /home/sabuild/.cpan/CPAN
-            $CURL -O https://mirrors.efa-project.org/msv5/CPAN/sabuild/MyConfig.pm
+            $CURL -O https://dl.efa-project.org/msv5/CPAN/sabuild/MyConfig.pm
             chown -R sabuild:sabuild /home/sabuild/.cpan
             cd "$THISCURRPMDIR"
         fi
