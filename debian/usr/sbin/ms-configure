@@ -560,28 +560,68 @@ if [ ${CPANOPTION} -eq 1 ]; then
             fi
         fi
     done
+fi
 
-    #Install SpamAssassin modules
-    for i in "${SAMOD[@]}"
-    do
-        perldoc -l ${i} >/dev/null 2>&1
-        if [ $? -ne 0 ]; then
-            clear
-            echo "${i} is missing. Installing via CPAN ..."; echo;
-            timewait 1
-            if [ $AUTOCPAN -eq 0 ]; then
-                perl -MCPAN -e "CPAN::Shell->force(qw(install ${i} ));"
-            else
-                cpanm --force --no-interactive $i
-            fi
+function install_sa() {
+    # Create sabuild user and set up for sudo build (SA 4.0+)
+    useradd -m -s /usr/sbin/nologin sabuild &>/dev/null
+    id -u sabuild &>/dev/null
+    if [ $? -eq 0 ]; then
+        echo "sabuild    ALL=(ALL)    NOPASSWD: ALL" > /etc/sudoers.d/sabuild
+        if [ ! -f '/home/sabuild/.cpan/CPAN/MyConfig.pm' ]; then
+            echo;
+            echo "CPAN config missing. Creating one ..."; echo;
+            mkdir -p /home/sabuild/.cpan/CPAN
+            cd /home/sabuild/.cpan/CPAN
+            $CURL -LO https://mirrors.efa-project.org/msv5/CPAN/DEB/sabuild/MyConfig.pm
+            chown -R sabuild:sabuild /home/sabuild/.cpan
+            cd "$THISCURRPMDIR"
         fi
-    done
 
-    # Update perl modules
-    if [[ -n "${arg_update+x}" && $AUTOCPAN -ne 0 ]]; then
-        cpanm App::cpanoutdated
-        cpan-outdated -p | cpanm --force --no-interactive
+        for i in "${SAMOD[@]}"
+        do
+            perldoc -l $i >/dev/null 2>&1
+            if [[ $? -ne 0 || $1 == "update" ]]; then
+                if [ $CPANOPTION -eq 1 ]; then
+                    clear
+                    echo "$i is missing or needs updated. Installing via CPAN ..."; echo;
+                    timewait 1
+                    su - sabuild -s /bin/bash -c "echo \"\\\n\" | perl -MCPAN -e \"CPAN::Shell->force(qw(install $i ));\""
+                else
+                    echo "WARNING: $i is missing. You should fix this.";
+                    PMODWAIT=5
+                fi
+            else
+                echo "$i => OK";
+            fi
+        done
+
+        # Cleanup, just revoke sudo privs
+        rm -f /etc/sudoers.d/sabuild
+    else
+        echo "Unable to create sabuild user, cannot install spamassassin"
+        echo "You should fix this."
     fi
+}
+
+install_sa
+
+# Update perl modules
+if [[ -n "${arg_update+x}" && $AUTOCPAN -ne 0 ]]; then
+    cpanm App::cpanoutdated
+    for i in $(cpan-outdated -p); do
+      if [ "$i" == "Mail::SpamAssassin" ]; then
+        # Check for spamassassin rpm and notify user
+        if [[ -n $($RPM -qa | grep spamassassin) ]]; then
+          echo "Spamassassin detected installed via rpm.  To update spamassassin use your package manager."
+          timewait 1
+        else
+          install_sa "update"
+        fi
+      else
+        cpanm --force --no-interactive $i
+      fi
+    done
 fi
 
 # check and notify of any missing modules

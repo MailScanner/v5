@@ -1012,7 +1012,7 @@ function install_sa() {
 
         for i in "${SAMOD[@]}"
         do
-        perldoc -l $i >/dev/null 2>&1
+            perldoc -l $i >/dev/null 2>&1
             if [[ $? -ne 0 || $1 == "update" ]]; then
                 if [ $CPANOPTION -eq 1 ]; then
                     clear
@@ -1051,11 +1051,7 @@ if [[ -n "${arg_update+x}" && $AUTOCPAN -ne 0 ]]; then
           install_sa "update"
         fi
       else
-        if [ $AUTOCPAN -eq 0 ]; then
-          perl -MCPAN -e "CPAN::Shell->force(qw(install $i ));"
-        else
-          cpanm --force --no-interactive $i
-        fi
+        cpanm --force --no-interactive $i
       fi
     done
 fi
