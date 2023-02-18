@@ -570,30 +570,6 @@ if [ "x$MTAOPTION" != "x" ]; then
     fi
 fi
 
-# install missing unrar if the user elected to do so
-if [ $UNRAROPTION -eq 1 ]; then
-    # user elected to use unrar RPM option
-    if [ ! -x '/usr/bin/unrar' ]; then
-        cd /tmp
-        rm -f unrar-6.2.5*
-        clear
-        echo;
-        echo "unrar missing. Installing via dpkg ..."; echo;
-
-        $CURL -LO https://mirrors.efa-project.org/msv5/DEB/unrar_6.2.5-1_amd64.deb
-        if [ -f 'unrar_6.2.5-1_amd64.deb' ]; then
-          /usr/bin/dpkg -i unrar_6.2.5-1_amd64.deb
-        else
-          echo "NOTICE: I cannot find a suitable deb to install unrar";
-          timewait 5
-        fi
-        
-        # back to where i started
-        rm -f unrar-6.2.5*
-        cd "$THISCURRPMDIR"
-    fi
-fi
-
 # fix the stupid line in /etc/freshclam.conf that disables freshclam 
 if [ $CAV -eq 1 ]; then
     clear
@@ -618,6 +594,30 @@ if [ ! -x /usr/bin/curl ]; then
     exit 1
 else
     CURL='/usr/bin/curl';
+fi
+
+# install missing unrar if the user elected to do so
+if [ $UNRAROPTION -eq 1 ]; then
+    # user elected to use unrar RPM option
+    if [ ! -x '/usr/bin/unrar' ]; then
+        cd /tmp
+        rm -f unrar-6.2.5*
+        clear
+        echo;
+        echo "unrar missing. Installing via dpkg ..."; echo;
+
+        $CURL -LO https://mirrors.efa-project.org/msv5/DEB/unrar_6.2.5-1_amd64.deb
+        if [ -f 'unrar_6.2.5-1_amd64.deb' ]; then
+          /usr/bin/dpkg -i unrar_6.2.5-1_amd64.deb
+        else
+          echo "NOTICE: I cannot find a suitable deb to install unrar";
+          timewait 5
+        fi
+        
+        # back to where i started
+        rm -f unrar-6.2.5*
+        cd "$THISCURRPMDIR"
+    fi
 fi
 
 # create the cpan config if there isn't one and the user
