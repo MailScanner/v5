@@ -25,6 +25,7 @@ while [ $# -gt 0 ]; do
             arg_MTA="none";
             arg_installClamav=0;
             arg_installCPAN=1;
+            arg_installUnrar=0;
             arg_ramdiskSize=0;
             arg_update=1;
             ((parsedCommands++));
@@ -68,6 +69,19 @@ while [ $# -gt 0 ]; do
             fi
         ;;
 
+        --installUnrar=*)
+            if [[ ${1#*=} =~ ^([yY])$ ]]; then
+                arg_installUnrar=1;
+                ((parsedCommands++));
+            elif [[ ${1#*=} =~ ^([nN])$ ]]; then
+                arg_installUnrar=0;
+                ((parsedCommands++));
+            else
+                printf "Error: Invalid value for installUnrar: only Y or N values are accepted.\n"
+                exit 1
+            fi
+        ;;
+
         --ramdiskSize=*)
             if [[ ${1#*=} =~ ^-?[0-9]+$ ]]; then
                 arg_ramdiskSize="${1#*=}";
@@ -87,13 +101,15 @@ while [ $# -gt 0 ]; do
             printf    "                        --installCPAN=Y\n"
             printf    "                        --ignoreDeps=N\n"
             printf    "                        --ramdiskSize=0   (assumed already configured)\n\n"
-            printf -- "--MTA=value           Select the Mail Transfer Agent (MTA) to be installed            (sendmail|postfix|exim|none)\n"
+            printf -- "--MTA=value           Select the Mail Transfer Agent (MTA) to be installed           (sendmail|postfix|exim|none)\n"
             printf    "                      Recommended: sendmail\n\n"
             printf -- "--installClamav=Y|N   Install or update ClamAV during installation                   (Y or N)\n"
             printf    "                      Recommended: Y (yes)\n\n"
-            printf -- "--installCPAN=Y|N     Install missing perl modules via CPAN                           (Y or N)\n"
+            printf -- "--installCPAN=Y|N     Install missing perl modules via CPAN                          (Y or N)\n"
             printf    "                      Recommended: Y (yes)\n\n"
-            printf -- "--ramdiskSize=value   Create a RAMDISK for incoming spool directory                   (integer value or 0 for none)\n"
+            printf -- "--installUnrar=Y|N    Install unrar via dpkg                                         (Y or N)\n"
+            printf    "                      Recommended: Y (yes)\n\n"
+            printf -- "--ramdiskSize=value   Create a RAMDISK for incoming spool directory                  (integer value or 0 for none)\n"
             printf    "                      Suggestions:\n";
             printf    "                      None         0\n";
             printf    "                      Small        256\n";
@@ -273,6 +289,31 @@ else
     fi
 fi
 
+# ask if the user wants to install unrar by RPM if missing
+clear
+echo;
+echo "Do you want to install unrar via dpkg if missing?"; echo;
+echo "I will attempt to install unrar via the apt Package Manager, but if not found I can ";
+echo "install this from an deb provided by MailScanner Community Project. unrar allows";
+echo "MailScanner to handle archives compressed with rar.";
+echo;
+echo "Recommended: Y (yes)"; echo;
+if [ -z "${arg_installUnrar+x}" ]; then
+    read -r -p "Install missing unrar via RPM? [n/Y] : " response
+    if [[ $response =~ ^([yY][eE][sS]|[yY])$ ]]; then
+        # user wants to use RPM for missing unrar
+        UNRAROPTION=1
+    elif [ -z $response ]; then 
+        # user wants to use RPM for missing unrar
+        UNRAROPTION=1
+    else
+        # user does not want to use RPM
+        UNRAROPTION=0
+    fi
+else
+    UNRAROPTION=${arg_installUnrar}
+fi
+
 # ask if the user wants to add a ramdisk
 clear
 echo;
@@ -332,6 +373,7 @@ BASEPACKAGES+=('gzip');                        BASEPACKAGES+=('nomarch');       
 BASEPACKAGES+=('rar');                         BASEPACKAGES+=('unrar');             BASEPACKAGES+=('unzip');  
 BASEPACKAGES+=('zip');                         BASEPACKAGES+=('zoo');               BASEPACKAGES+=('libdb-dev');                    
 BASEPACKAGES+=('cpanminus');                   BASEPACKAGES+=('libmaxminddb-dev');  BASEPACKAGES+=('sudo');
+BASEPACKAGES+=('libidn2-dev');
 
 # Look for perl modules that may exist in repositories, missing/non-existant packages will be skipped
 EXTRAPACKAGES=();
@@ -525,6 +567,30 @@ if [ "x$MTAOPTION" != "x" ]; then
     if [ $? != 0 ]; then
         echo "Error installing $MTAOPTION MTA"
         echo "This usually means an MTA is already installed."
+    fi
+fi
+
+# install missing unrar if the user elected to do so
+if [ $UNRAROPTION -eq 1 ]; then
+    # user elected to use unrar RPM option
+    if [ ! -x '/usr/bin/unrar' ]; then
+        cd /tmp
+        rm -f unrar-6.2.5*
+        clear
+        echo;
+        echo "unrar missing. Installing via dpkg ..."; echo;
+
+        $CURL -LO https://mirrors.efa-project.org/msv5/DEB/unrar_6.2.5-1_amd64.deb
+        if [ -f 'unrar_6.2.5-1_amd64.deb' ]; then
+          /usr/bin/dpkg -i unrar_6.2.5-1_amd64.deb
+        else
+          echo "NOTICE: I cannot find a suitable deb to install unrar";
+          timewait 5
+        fi
+        
+        # back to where i started
+        rm -f unrar-6.2.5*
+        cd "$THISCURRPMDIR"
     fi
 fi
 
