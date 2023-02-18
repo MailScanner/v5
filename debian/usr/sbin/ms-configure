@@ -383,48 +383,72 @@ EXTRAPACKAGES+=('libpath-class-perl');          EXTRAPACKAGES+=('libdata-dumper-
 EXTRAPACKAGES+=('libtest-requires-perl');       EXTRAPACKAGES+=('libclone-pp-perl');            EXTRAPACKAGES+=('libfile-homedir-perl');
 EXTRAPACKAGES+=('libsort-naturally-perl');      EXTRAPACKAGES+=('libjson-maybexs-perl');        EXTRAPACKAGES+=('libdatetime-perl');
 EXTRAPACKAGES+=('libtest-warnings-perl');       EXTRAPACKAGES+=('libtest-leaktrace-perl');      EXTRAPACKAGES+=('libthrowable-perl');
+EXTRAPACKAGES+=('libalgorithm-diff-perl');      EXTRAPACKAGES+=('libalien-build-perl');         EXTRAPACKAGES+=('libalien-build-plugin-download-gitlab-perl');
+EXTRAPACKAGES+=('libalien-libxml2-perl');       EXTRAPACKAGES+=('libb-keywords-perl');          EXTRAPACKAGES+=('libbsd-resource-perl');
+EXTRAPACKAGES+=('libcapture-tiny-perl');        EXTRAPACKAGES+=('libconfig-tiny-perl');         EXTRAPACKAGES+=('libdbix-simple-perl');
+EXTRAPACKAGES+=('libdevel-cycle-perl');         EXTRAPACKAGES+=('libdevel-hide-perl');          EXTRAPACKAGES+=('libemail-abstract-perl');
+EXTRAPACKAGES+=('libemail-address-xs-perl');    EXTRAPACKAGES+=('libemail-date-format-perl');   EXTRAPACKAGES+=('libemail-mime-perl');
+EXTRAPACKAGES+=('libemail-mime-encodings-perl');EXTRAPACKAGES+=('libemail-messageid-perl');     EXTRAPACKAGES+=('libemail-mime-contenttype-perl');
+EXTRAPACKAGES+=('libemail-sender-perl');        EXTRAPACKAGES+=('libemail-simple-perl');        EXTRAPACKAGES+=('libffi-checklib-perl');
+EXTRAPACKAGES+=('libfile-copy-recursive-perl'); EXTRAPACKAGES+=('libfile-chdir-perl');          EXTRAPACKAGES+=('libhook-lexwrap-perl');
+EXTRAPACKAGES+=('libio-socket-inet6-perl');     EXTRAPACKAGES+=('libimporter-perl');            EXTRAPACKAGES+=('liblingua-en-inflect-perl');
+EXTRAPACKAGES+=('libmime-charset-perl');        EXTRAPACKAGES+=('libmime-types-perl');          EXTRAPACKAGES+=('libmail-dmarc-perl');
+EXTRAPACKAGES+=('libmodule-pluggable-perl');    EXTRAPACKAGES+=('libmoox-types-mooselike-perl');EXTRAPACKAGES+=('libmozilla-ca-perl');
+EXTRAPACKAGES+=('libnet-idn-encode-perl');      EXTRAPACKAGES+=('libnet-imap-simple-perl');     EXTRAPACKAGES+=('libnet-libidn2-perl');
+EXTRAPACKAGES+=('libnet-smtps-perl');           EXTRAPACKAGES+=('libppi-perl');                 EXTRAPACKAGES+=('libppix-quotelike-perl');
+EXTRAPACKAGES+=('libppix-regexp-perl');         EXTRAPACKAGES+=('libppix-utilities-perl');      EXTRAPACKAGES+=('libperl-critic-perl');
+EXTRAPACKAGES+=('libperl-tidy-perl');           EXTRAPACKAGES+=('libpod-spell-perl');           EXTRAPACKAGES+=('libperl-critic-policy-perlsecret-perl');
+EXTRAPACKAGES+=('libreadonly-xs-perl');         EXTRAPACKAGES+=('libregexp-common-perl');       EXTRAPACKAGES+=('libscope-guard-perl');
+EXTRAPACKAGES+=('libstring-format-perl');       EXTRAPACKAGES+=('libsub-info-perl');            EXTRAPACKAGES+=('libsub-uplevel-perl');
+EXTRAPACKAGES+=('libtask-weaken-perl');         EXTRAPACKAGES+=('libterm-size-any-perl');       EXTRAPACKAGES+=('libterm-size-perl-perl');
+EXTRAPACKAGES+=('libterm-table-perl');          EXTRAPACKAGES+=('libtest-exception-perl');      EXTRAPACKAGES+=('libtest-failwarnings-perl');
+EXTRAPACKAGES+=('libtest-file-perl');           EXTRAPACKAGES+=('libtest-file-sharedir-perl');  EXTRAPACKAGES+=('libtest-nowarnings-perl');
+EXTRAPACKAGES+=('libtest-object-perl');         EXTRAPACKAGES+=('libtest-output-perl');         EXTRAPACKAGES+=('libtest-regexp-perl');
+EXTRAPACKAGES+=('libtest-subcalls-perl');       EXTRAPACKAGES+=('libtest2-suite-perl');         EXTRAPACKAGES+=('libtext-diff-perl');
+EXTRAPACKAGES+=('libtext-unidecode-perl');      EXTRAPACKAGES+=('libunicode-linebreak-perl');   EXTRAPACKAGES+=('libxml-libxml-perl');
+EXTRAPACKAGES+=('libxml-namespacesupport-perl');EXTRAPACKAGES+=('libxml-sax-perl');             EXTRAPACKAGES+=('libxml-sax-base-perl');
 
 # the array of perl modules needed
 ARMOD=();
-ARMOD+=('Archive::Tar');            ARMOD+=('Archive::Zip');            ARMOD+=('bignum'); #
-ARMOD+=('Carp');                    ARMOD+=('Compress::Zlib');          ARMOD+=('Compress::Raw::Zlib'); #
-ARMOD+=('Convert::BinHex');         ARMOD+=('Convert::TNEF');           ARMOD+=('Data::Dumper'); #
-ARMOD+=('Date::Parse');             ARMOD+=('DBD::SQLite');             ARMOD+=('DBI'); #
-ARMOD+=('Digest::HMAC');            ARMOD+=('Digest::MD5');             ARMOD+=('Digest::SHA1'); #
-ARMOD+=('DirHandle');               ARMOD+=('ExtUtils::MakeMaker');     ARMOD+=('Fcntl'); #
-ARMOD+=('File::Basename');          ARMOD+=('File::Copy');              ARMOD+=('File::Path'); #
-ARMOD+=('File::Spec');              ARMOD+=('File::Temp');              ARMOD+=('FileHandle'); #
-ARMOD+=('Filesys::Df');             ARMOD+=('Getopt::Long');            ARMOD+=('Inline::C'); #
-ARMOD+=('IO');                      ARMOD+=('IO::File');                ARMOD+=('IO::Pipe'); #
-ARMOD+=('IO::Stringy');             ARMOD+=('HTML::Entities');          ARMOD+=('HTML::Parser'); #
-ARMOD+=('HTML::Tagset');            ARMOD+=('HTML::TokeParser');        ARMOD+=('Mail::Field'); #
-ARMOD+=('Mail::Header');            ARMOD+=('Mail::IMAPClient');        ARMOD+=('Mail::Internet'); #
-ARMOD+=('Math::BigInt');            ARMOD+=('Math::BigRat');            ARMOD+=('MIME::Base64'); #
-ARMOD+=('MIME::Decoder');           ARMOD+=('MIME::Decoder::UU');       ARMOD+=('MIME::Head'); #
-ARMOD+=('MIME::Parser');            ARMOD+=('MIME::QuotedPrint');       ARMOD+=('MIME::Tools'); #
-ARMOD+=('MIME::WordDecoder');       ARMOD+=('Net::CIDR');               ARMOD+=('Net::DNS'); #
-ARMOD+=('Net::IP');                 ARMOD+=('OLE::Storage_Lite');       ARMOD+=('Pod::Escapes'); #
-ARMOD+=('Pod::Simple');             ARMOD+=('POSIX');                   ARMOD+=('Scalar::Util'); #
-ARMOD+=('Socket');                  ARMOD+=('Storable');                ARMOD+=('Test::Harness'); #
-ARMOD+=('Test::Pod');               ARMOD+=('Test::Simple');            ARMOD+=('Time::HiRes'); #
-ARMOD+=('Time::localtime');         ARMOD+=('Sys::Hostname::Long');     ARMOD+=('Sys::SigAction'); #
-ARMOD+=('Sys::Syslog');             ARMOD+=('Env');                     ARMOD+=('Test::Fatal'); #
-ARMOD+=('Data::Dump');              ARMOD+=('DB_File');                 ARMOD+=('namespace::autoclean'); #
-ARMOD+=('MailTools');               ARMOD+=('Digest');                  ARMOD+=('Encode::Detect'); #
-ARMOD+=('Error');                   ARMOD+=('ExtUtils::CBuilder');      ARMOD+=('ExtUtils::ParseXS'); #
-ARMOD+=('Getopt::Long');            ARMOD+=('Inline');                  ARMOD+=('IO::String'); #
-ARMOD+=('IO::Zlib');                ARMOD+=('IP::Country');             ARMOD+=('Mail::SPF'); #
-ARMOD+=('Mail::SPF::Query');        ARMOD+=('Module::Build');           ARMOD+=('Net::CIDR::Lite'); #
-ARMOD+=('Net::DNS');                ARMOD+=('Net::LDAP');               ARMOD+=('Net::DNS::Resolver::Programmable'); #
-ARMOD+=('NetAddr::IP');             ARMOD+=('Parse::RecDescent');       ARMOD+=('Test::Harness'); #
-ARMOD+=('Test::Manifest');          ARMOD+=('Text::Balanced');          ARMOD+=('URI'); #
-ARMOD+=('version');                 ARMOD+=('IO::Compress::Bzip2');     ARMOD+=('Sendmail::PMilter'); #
-ARMOD+=('Math::Int64');             ARMOD+=('IP::Country::DB_File');    ARMOD+=('namespace::autoclean'); #
-ARMOD+=('Data::IEEE754');           ARMOD+=('Data::Printer');           ARMOD+=('Data::Validate::IP'); #
-ARMOD+=('List::AllUtils');          ARMOD+=('List::SomeUtils');         ARMOD+=('Test::Tester'); #
-ARMOD+=('List::UtilsBy');           ARMOD+=('MaxMind::DB::Metadata');   ARMOD+=('MaxMind::DB::Reader'); #
-ARMOD+=('Module::Runtime');         ARMOD+=('Moo');                     ARMOD+=('MooX::StrictConstructor'); #
-ARMOD+=('Role::Tiny');              ARMOD+=('strictures');              ARMOD+=('MaxMind::DB::Reader::XS'); #
+ARMOD+=('Archive::Tar');            ARMOD+=('Archive::Zip');            ARMOD+=('bignum');
+ARMOD+=('Carp');                    ARMOD+=('Compress::Zlib');          ARMOD+=('Compress::Raw::Zlib');
+ARMOD+=('Convert::BinHex');         ARMOD+=('Convert::TNEF');           ARMOD+=('Data::Dumper');
+ARMOD+=('Date::Parse');             ARMOD+=('DBD::SQLite');             ARMOD+=('DBI');
+ARMOD+=('Digest::HMAC');            ARMOD+=('Digest::MD5');             ARMOD+=('Digest::SHA1');
+ARMOD+=('DirHandle');               ARMOD+=('ExtUtils::MakeMaker');     ARMOD+=('Fcntl');
+ARMOD+=('File::Basename');          ARMOD+=('File::Copy');              ARMOD+=('File::Path');
+ARMOD+=('File::Spec');              ARMOD+=('File::Temp');              ARMOD+=('FileHandle');
+ARMOD+=('Filesys::Df');             ARMOD+=('Getopt::Long');            ARMOD+=('Inline::C');
+ARMOD+=('IO');                      ARMOD+=('IO::File');                ARMOD+=('IO::Pipe');
+ARMOD+=('IO::Stringy');             ARMOD+=('HTML::Entities');          ARMOD+=('HTML::Parser');
+ARMOD+=('HTML::Tagset');            ARMOD+=('HTML::TokeParser');        ARMOD+=('Mail::Field');
+ARMOD+=('Mail::Header');            ARMOD+=('Mail::IMAPClient');        ARMOD+=('Mail::Internet');
+ARMOD+=('Math::BigInt');            ARMOD+=('Math::BigRat');            ARMOD+=('MIME::Base64');
+ARMOD+=('MIME::Decoder');           ARMOD+=('MIME::Decoder::UU');       ARMOD+=('MIME::Head');
+ARMOD+=('MIME::Parser');            ARMOD+=('MIME::QuotedPrint');       ARMOD+=('MIME::Tools');
+ARMOD+=('MIME::WordDecoder');       ARMOD+=('Net::CIDR');               ARMOD+=('Net::DNS');
+ARMOD+=('Net::IP');                 ARMOD+=('OLE::Storage_Lite');       ARMOD+=('Pod::Escapes');
+ARMOD+=('Pod::Simple');             ARMOD+=('POSIX');                   ARMOD+=('Scalar::Util');
+ARMOD+=('Socket');                  ARMOD+=('Storable');                ARMOD+=('Test::Harness');
+ARMOD+=('Test::Pod');               ARMOD+=('Test::Simple');            ARMOD+=('Time::HiRes');
+ARMOD+=('Time::localtime');         ARMOD+=('Sys::Hostname::Long');     ARMOD+=('Sys::SigAction');
+ARMOD+=('Sys::Syslog');             ARMOD+=('Env');                     ARMOD+=('Test::Fatal');
+ARMOD+=('Data::Dump');              ARMOD+=('DB_File');                 ARMOD+=('namespace::autoclean');
+ARMOD+=('MailTools');               ARMOD+=('Digest');                  ARMOD+=('Encode::Detect');
+ARMOD+=('Error');                   ARMOD+=('ExtUtils::CBuilder');      ARMOD+=('ExtUtils::ParseXS');
+ARMOD+=('Getopt::Long');            ARMOD+=('Inline');                  ARMOD+=('IO::String');
+ARMOD+=('IO::Zlib');                ARMOD+=('IP::Country');             ARMOD+=('Mail::SPF');
+ARMOD+=('Mail::SPF::Query');        ARMOD+=('Module::Build');           ARMOD+=('Net::CIDR::Lite');
+ARMOD+=('Net::DNS');                ARMOD+=('Net::LDAP');               ARMOD+=('Net::DNS::Resolver::Programmable');
+ARMOD+=('NetAddr::IP');             ARMOD+=('Parse::RecDescent');       ARMOD+=('Test::Harness');
+ARMOD+=('Test::Manifest');          ARMOD+=('Text::Balanced');          ARMOD+=('URI');
+ARMOD+=('version');                 ARMOD+=('IO::Compress::Bzip2');     ARMOD+=('Sendmail::PMilter');
+ARMOD+=('Math::Int64');             ARMOD+=('IP::Country::DB_File');    ARMOD+=('namespace::autoclean');
+ARMOD+=('Data::IEEE754');           ARMOD+=('Data::Printer');           ARMOD+=('Data::Validate::IP');
+ARMOD+=('List::AllUtils');          ARMOD+=('List::SomeUtils');         ARMOD+=('Test::Tester');
+ARMOD+=('List::UtilsBy');           ARMOD+=('MaxMind::DB::Metadata');   ARMOD+=('MaxMind::DB::Reader');
+ARMOD+=('Module::Runtime');         ARMOD+=('Moo');                     ARMOD+=('MooX::StrictConstructor');
+ARMOD+=('Role::Tiny');              ARMOD+=('strictures');              ARMOD+=('MaxMind::DB::Reader::XS');
 ARMOD+=('Sub::Quote');              ARMOD+=('Math::Int128');            ARMOD+=('Net::Works::Network');
 ARMOD+=('HTTP::Date');              ARMOD+=('Business::ISBN');          ARMOD+=('DBD::mysql');
 ARMOD+=('Config::YAML');            ARMOD+=('Test::Pod::Coverage');     ARMOD+=('File::ShareDir::Install');
@@ -434,6 +458,30 @@ ARMOD+=('Path::Class');             ARMOD+=('Data::Dumper::Concise');   ARMOD+=(
 ARMOD+=('Test::Requires');          ARMOD+=('Clone::PP');               ARMOD+=('File::HomeDir');
 ARMOD+=('Sort::Naturally');         ARMOD+=('JSON::MaybeXS');           ARMOD+=('DateTime');
 ARMOD+=('Test::Warnings');          ARMOD+=('Test::LeakTrace');         ARMOD+=('Throwable');
+ARMOD+=('Algorithm::Diff');         ARMOD+=('Alien::Build');            ARMOD+=('Alien::Build::Plugin::Download::GitLab');
+ARMOD+=('Alien::Libxml2');          ARMOD+=('B::Keywords');             ARMOD+=('BSD::Resource');
+ARMOD+=('Capture::Tiny');           ARMOD+=('Config::Tiny');            ARMOD+=('DBIx::Simple');
+ARMOD+=('Devel::Cycle');            ARMOD+=('Devel::Hide');             ARMOD+=('Email::Abstract');
+ARMOD+=('Email::Address::XS');      ARMOD+=('Email::Date::Format');     ARMOD+=('Email::MIME');
+ARMOD+=('Email::MIME::Encodings');  ARMOD+=('Email::MessageID');        ARMOD+=('Email::MIME::ContentType');
+ARMOD+=('Email::Sender');           ARMOD+=('Email::Simple');           ARMOD+=('FFI::CheckLib');
+ARMOD+=('File::Copy::Recursive');   ARMOD+=('File::chdir');             ARMOD+=('Hook::LexWrap');
+ARMOD+=('IO::Socket::INET6');       ARMOD+=('Importer');                ARMOD+=('Lingua::EN::Inflect');
+ARMOD+=('MIME::Charset');           ARMOD+=('MIME::Types');             ARMOD+=('Mail::DMARC');
+ARMOD+=('Module::Pluggable');       ARMOD+=('MooX::Types::MooseLike');  ARMOD+=('Mozilla::CA');
+ARMOD+=('Net::IDN::Encode');        ARMOD+=('Net::IMAP::Simple');       ARMOD+=('Net::LibIDN2');
+ARMOD+=('Net::SMTPS');              ARMOD+=('PPI');                     ARMOD+=('PPIx::QuoteLike');
+ARMOD+=('PPIx::Regexp');            ARMOD+=('PPIx::Utilities');         ARMOD+=('Perl::Critic');
+ARMOD+=('Perl::Tidy');              ARMOD+=('Pod::Spell');              ARMOD+=('Perl::Critic::Policy::Perlsecret');
+ARMOD+=('Readonly::XS');            ARMOD+=('Regexp::Common');          ARMOD+=('Scope::Guard');
+ARMOD+=('String::Format');          ARMOD+=('Sub::Info');               ARMOD+=('Sub::Uplevel');
+ARMOD+=('Task::Weaken');            ARMOD+=('Term::Size::Any');         ARMOD+=('Term::Size::Perl');
+ARMOD+=('Term::Table');             ARMOD+=('Test::Exception');         ARMOD+=('Test::FailWarnings');
+ARMOD+=('Test::File');              ARMOD+=('Test::File::ShareDir');    ARMOD+=('Test::NoWarnings');
+ARMOD+=('Test::Object');            ARMOD+=('Test::Output');            ARMOD+=('Test::Regexp');
+ARMOD+=('Test::SubCalls');          ARMOD+=('Test2::Suite');            ARMOD+=('Text::Diff');
+ARMOD+=('Text::Unidecode');         ARMOD+=('Unicode::LineBreak');      ARMOD+=('XML::LibXML');
+ARMOD+=('XML::NamespaceSupport');   ARMOD+=('XML::SAX');                ARMOD+=('XML::SAX::Base');
 
 # additional spamassassin plugins
 SAMOD=();
@@ -611,9 +659,10 @@ if [[ -n "${arg_update+x}" && $AUTOCPAN -ne 0 ]]; then
     cpanm App::cpanoutdated
     for i in $(cpan-outdated -p); do
       if [ "$i" == "Mail::SpamAssassin" ]; then
-        # Check for spamassassin rpm and notify user
-        if [[ -n $($RPM -qa | grep spamassassin) ]]; then
-          echo "Spamassassin detected installed via rpm.  To update spamassassin use your package manager."
+        # Check for spamassassin apt and notify user
+        /usr/bin/dpkg-query -W libmail-spamassassin-perl &>/dev/null
+        if [ $? -eq 0 ]; then
+          echo "Spamassassin detected installed via apt.  To update spamassassin use your package manager."
           timewait 1
         else
           install_sa "update"
