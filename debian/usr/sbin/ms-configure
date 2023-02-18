@@ -449,6 +449,7 @@ EXTRAPACKAGES+=('libtest-object-perl');         EXTRAPACKAGES+=('libtest-output-
 EXTRAPACKAGES+=('libtest-subcalls-perl');       EXTRAPACKAGES+=('libtest2-suite-perl');         EXTRAPACKAGES+=('libtext-diff-perl');
 EXTRAPACKAGES+=('libtext-unidecode-perl');      EXTRAPACKAGES+=('libunicode-linebreak-perl');   EXTRAPACKAGES+=('libxml-libxml-perl');
 EXTRAPACKAGES+=('libxml-namespacesupport-perl');EXTRAPACKAGES+=('libxml-sax-perl');             EXTRAPACKAGES+=('libxml-sax-base-perl');
+EXTRAPACKAGES+=('libtest-perl-critic-perl');
 
 # the array of perl modules needed
 ARMOD=();
@@ -524,6 +525,7 @@ ARMOD+=('Test::Object');            ARMOD+=('Test::Output');            ARMOD+=(
 ARMOD+=('Test::SubCalls');          ARMOD+=('Test2::Suite');            ARMOD+=('Text::Diff');
 ARMOD+=('Text::Unidecode');         ARMOD+=('Unicode::LineBreak');      ARMOD+=('XML::LibXML');
 ARMOD+=('XML::NamespaceSupport');   ARMOD+=('XML::SAX');                ARMOD+=('XML::SAX::Base');
+ARMOD+=('Test::Perl::Critic');
 
 # additional spamassassin plugins
 SAMOD=();
