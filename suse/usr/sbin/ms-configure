@@ -575,7 +575,7 @@ do
     fi
 done
 
-unction install_sa() {
+function install_sa() {
     # Create sabuild user and set up for sudo build (SA 4.0+)
     useradd -m -s /sbin/nologin sabuild &>/dev/null
     id -u sabuild &>/dev/null
