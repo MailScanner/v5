@@ -336,7 +336,7 @@ BASEPACKAGES="
         unrar               razor-agents    libbz2-devel
         sudo                tnef            unrar
         re2c                p7zip           libmaxminddb-devel
-        sudo
+        sudo                libdb-4_8-devel
 ";
 
 # Packages (maybe) available in the suse base 15.4. If the user elects not to use EPEL or if the 
@@ -389,7 +389,42 @@ MOREPACKAGES="
             perl-DateTime           perl-Test-Warnings          perl-autodie
             perl-Test-Requires      perl-Test-Tester            perl-Clone-PP
             perl-File-HomeDir       perl-Sort-Naturally         perl-JSON-MaybeXS
-            perl-Test-LeakTrace     perl-Throwable
+            perl-Test-LeakTrace     perl-Throwable              perl-Email-Address-XS
+            perl-Net-LibIDN         perl-Net-LibIDN2            perl-Test-Perl-Critic
+            perl-IO-Socket-INET6    perl-Devel-Hide             perl-Algorithm-Diff
+            perl-Alien-Build        perl-Alien-Libxml2          perl-Alien-Build-Plugin-Download-GitLab
+            perl-Authen-SASL        perl-B-COW                  perl-B-Keywords
+            perl-BSD-Resource       perl-Capture-Tiny           perl-Class-Tiny
+            perl-Clone              perl-Config-Tiny            perl-DBIx-Simple
+            perl-Devel-Cycle        perl-Email-Abstract         perl-Email-Address-XS
+            perl-Email-Date-Format  perl-Email-MIME             perl-Email-MIME-ContentType
+            perl-Email-MessageID    perl-Email-Sender           perl-Email-MIME-Encodings
+            perl-Email-Simple       perl-Encode                 perl-Encode-Locale
+            perl-ExtUtils-Config    perl-ExtUtils-Helpers       perl-ExtUtils-InstallPaths
+            perl-FFI-CheckLib       perl-File-Listing           perl-File-Slurper
+            perl-File-chdir         perl-GSSAPI                 perl-Geo-IP
+            perl-HTTP-Cookies       perl-HTTP-Daemon            perl-HTTP-Message
+            perl-HTTP-Negotiate     perl-Hook-LexWrap           perl-IO-Compress-Brotli
+            perl-IO-HTML            perl-IO-Socket-SSL          perl-Importer
+            perl-LWP-MediaTypes     perl-Lingua-EN-Inflect      perl-MIME-Charset
+            perl-MIME-Types         perl-Mail-DMARC             perl-Module-Build-Tiny
+            perl-Module-Pluggable   perl-MooX-Types-MooseLike   perl-Mozilla-CA
+            perl-Net-HTTP           perl-Net-IDN-Encode         perl-Net-IMAP-Simple
+            perl-Net-Patricia       perl-Net-SMTPS              perl-Net-SSLeay
+            perl-PPI                perl-PPIx-QuoteLike         perl-PPIx-Regexp
+            perl-PPIx-Utilities     perl-Perl-Critic            perl-Perl-Critic-Policy-Perlsecret
+            perl-Perl-Tidy          perl-PerlIO-utf8_strict     perl-Pod-Spell
+            perl-Readonly           perl-Readonly-XS            perl-Regexp-Common
+            perl-Scope-Guard        perl-Socket6                perl-String-Format
+            perl-Sub-Info           perl-Task-Weaken            perl-Term-Size-Any
+            perl-Term-Size-Perl     perl-Term-Table             perl-Test-Exception
+            perl-Test-FailWarnings  perl-Test-File-ShareDir     perl-Test-Needs
+            perl-Test-NoWarnings    perl-Test-Object            perl-Test-Output
+            perl-Test-Regexp        perl-Test-RequiresInternet  perl-Test-Simple
+            perl-Test-SubCalls      perl-Test2-Suite            perl-Text-Diff
+            perl-Text-Unidecode     perl-Time-Local             perl-Unicode-LineBreak
+            perl-WWW-RobotRules     perl-XML-LibXML             perl-XML-NamespaceSupport
+            perl-XML-SAX            perl-XML-SAX-Base           perl-libwww-perl
 "
 
 # the array of perl modules needed
@@ -398,8 +433,8 @@ ARMOD=();
 ARMOD+=('Archive::Tar');            ARMOD+=('Archive::Zip');            ARMOD+=('bignum');
 ARMOD+=('Carp');                    ARMOD+=('Compress::Zlib');          ARMOD+=('Compress::Raw::Zlib');
 ARMOD+=('Convert::BinHex');         ARMOD+=('Convert::TNEF');           ARMOD+=('Data::Dumper');
-ARMOD+=('Date::Parse');             ARMOD+=('DBD::SQLite');             ARMOD+=('DBI');
-ARMOD+=('Digest::HMAC');            ARMOD+=('Digest::MD5');             ARMOD+=('Digest::SHA1');
+ARMOD+=('Date::Parse');             ARMOD+=('DBD::SQLite');             ARMOD+=('Digest::SHA1');
+ARMOD+=('Digest::HMAC');            ARMOD+=('Digest::MD5');             ARMOD+=('DBI');
 ARMOD+=('DirHandle');               ARMOD+=('ExtUtils::MakeMaker');     ARMOD+=('Fcntl');
 ARMOD+=('File::Basename');          ARMOD+=('File::Copy');              ARMOD+=('File::Path');
 ARMOD+=('File::Spec');              ARMOD+=('File::Temp');              ARMOD+=('FileHandle');
@@ -441,9 +476,42 @@ ARMOD+=('Test::Fatal');             ARMOD+=('Test::Number::Delta');     ARMOD+=(
 ARMOD+=('DateTime');                ARMOD+=('Test::Warnings');          ARMOD+=('autodie');
 ARMOD+=('Test::Requires');          ARMOD+=('Test::Tester');            ARMOD+=('Clone::PP');
 ARMOD+=('File::HomeDir');           ARMOD+=('Sort::Naturally');         ARMOD+=('JSON::MaybeXS');
-ARMOD+=('Test::LeakTrace');         ARMOD+=('Throwable');               ARMOD+=('');
-ARMOD+=('');            ARMOD+=('');            ARMOD+=('');
-ARMOD+=('');            ARMOD+=('');            ARMOD+=('');
+ARMOD+=('Test::LeakTrace');         ARMOD+=('Throwable');               ARMOD+=('Email::Address::XS');
+ARMOD+=('Net::LibIDN');             ARMOD+=('Net::LibIDN2');            ARMOD+=('Test::Perl::Critic');
+ARMOD+=('IO::Socket::INET6');       ARMOD+=('Devel::Hide');             ARMOD+=('Algorithm::Diff');
+ARMOD+=('Alien::Build');            ARMOD+=('Alien::Libxml2');          ARMOD+=('Alien::Build::Plugin::Download::GitLab');
+ARMOD+=('Authen::SASL');            ARMOD+=('B::COW');                  ARMOD+=('B::Keywords');
+ARMOD+=('BSD::Resource');           ARMOD+=('Capture::Tiny');           ARMOD+=('Class::Tiny');
+ARMOD+=('Clone');                   ARMOD+=('Config::Tiny');            ARMOD+=('DBIx::Simple');
+ARMOD+=('Devel::Cycle');            ARMOD+=('Email::Abstract');         ARMOD+=('Email::Address::XS');
+ARMOD+=('Email::Date::Format');     ARMOD+=('Email::MIME');             ARMOD+=('Email::MIME::ContentType');
+ARMOD+=('Email::MessageID');        ARMOD+=('Email::Sender');           ARMOD+=('Email::MIME::Encodings');
+ARMOD+=('Email::Simple');           ARMOD+=('Encode');                  ARMOD+=('Encode::Locale');
+ARMOD+=('ExtUtils::Config');        ARMOD+=('ExtUtils::Helpers');       ARMOD+=('ExtUtils::InstallPaths');
+ARMOD+=('FFI::CheckLib');           ARMOD+=('File::Listing');           ARMOD+=('File::Slurper');
+ARMOD+=('File::chdir');             ARMOD+=('GSSAPI');                  ARMOD+=('Geo::IP');
+ARMOD+=('HTTP::Cookies');           ARMOD+=('HTTP::Daemon');            ARMOD+=('HTTP::Message');
+ARMOD+=('HTTP::Negotiate');         ARMOD+=('Hook::LexWrap');           ARMOD+=('IO::Compress::Brotli');
+ARMOD+=('IO::HTML');                ARMOD+=('IO::Socket::SSL');         ARMOD+=('Importer');
+ARMOD+=('LWP::MediaTypes');         ARMOD+=('Lingua::EN::Inflect');     ARMOD+=('MIME::Charset');
+ARMOD+=('MIME::Types');             ARMOD+=('Mail::DMARC');             ARMOD+=('Module::Build::Tiny');
+ARMOD+=('Module::Pluggable');       ARMOD+=('MooX::Types::MooseLike');  ARMOD+=('Mozilla::CA');
+ARMOD+=('Net::HTTP');               ARMOD+=('Net::IDN::Encode');        ARMOD+=('Net::IMAP::Simple');
+ARMOD+=('Net::Patricia');           ARMOD+=('Net::SMTPS');              ARMOD+=('Net::SSLeay');
+ARMOD+=('PPI');                     ARMOD+=('PPIx::QuoteLike');         ARMOD+=('PPIx::Regexp');
+ARMOD+=('PPIx::Utilities');         ARMOD+=('Perl::Critic');            ARMOD+=('Perl::Critic::Policy::Perlsecret');
+ARMOD+=('Perl::Tidy');              ARMOD+=('PerlIO::utf8_strict');     ARMOD+=('Pod::Spell');
+ARMOD+=('Readonly');                ARMOD+=('Readonly::XS');            ARMOD+=('Regexp::Common');
+ARMOD+=('Scope::Guard');            ARMOD+=('Socket6');                 ARMOD+=('String::Format');
+ARMOD+=('Sub::Info');               ARMOD+=('Task::Weaken');            ARMOD+=('Term::Size::Any');
+ARMOD+=('Term::Size::Perl');        ARMOD+=('Term::Table');             ARMOD+=('Test::Exception');
+ARMOD+=('Test::FailWarnings');      ARMOD+=('Test::File::ShareDir');    ARMOD+=('Test::Needs');
+ARMOD+=('Test::NoWarnings');        ARMOD+=('Test::Object');            ARMOD+=('Test::Output');
+ARMOD+=('Test::Regexp');            ARMOD+=('Test::RequiresInternet');  ARMOD+=('Test::Simple');
+ARMOD+=('Test::SubCalls');          ARMOD+=('Test2::Suite');            ARMOD+=('Text::Diff');
+ARMOD+=('Text::Unidecode');         ARMOD+=('Time::Local');             ARMOD+=('Unicode::LineBreak');
+ARMOD+=('WWW::RobotRules');         ARMOD+=('XML::LibXML');             ARMOD+=('XML::NamespaceSupport');
+ARMOD+=('XML::SAX');                ARMOD+=('XML::SAX::Base');          ARMOD+=('libwww::perl');
 
 # additional spamassassin plugins
 SAMOD=();
