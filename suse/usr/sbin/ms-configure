@@ -426,7 +426,7 @@ MOREPACKAGES="
             perl-Test-SubCalls      perl-Test2-Suite            perl-Text-Diff
             perl-Text-Unidecode     perl-Time-Local             perl-Unicode-LineBreak
             perl-WWW-RobotRules     perl-XML-LibXML             perl-XML-NamespaceSupport
-            perl-XML-SAX            perl-XML-SAX-Base
+            perl-XML-SAX            perl-XML-SAX-Base           perl-LWP-UserAgent  
 "
 
 # the array of perl modules needed
@@ -512,7 +512,8 @@ ARMOD+=('Test::Regexp');            ARMOD+=('Test::RequiresInternet');  ARMOD+=(
 ARMOD+=('Test::SubCalls');          ARMOD+=('Test2::Suite');            ARMOD+=('Text::Diff');
 ARMOD+=('Text::Unidecode');         ARMOD+=('Time::Local');             ARMOD+=('Unicode::LineBreak');
 ARMOD+=('WWW::RobotRules');         ARMOD+=('XML::LibXML');             ARMOD+=('XML::NamespaceSupport');
-ARMOD+=('XML::SAX');                ARMOD+=('XML::SAX::Base');
+ARMOD+=('XML::SAX');                ARMOD+=('XML::SAX::Base');          ARMOD+=('LWP::UserAgent')
+
 
 # additional spamassassin plugins
 SAMOD=();
