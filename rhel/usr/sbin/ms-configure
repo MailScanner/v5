@@ -259,10 +259,25 @@ else
 fi
 
 # confirm the RHEL release is known before continuing
+FEDORA=
+RHEL=
 if [ ! -f '/etc/redhat-release' ]; then
-    # this is mostly to prevent accidental configuration on a non redhat based system
-    echo "Unable to determine distribution release from /etc/redhat-release. Configuration aborted."; echo;
-    exit 192
+    # maybe it is fedora
+
+    # Is this a Fedora System?
+    if [ -f /etc/fedora-release ]; then
+        if grep -qs 'release 38' /etc/fedora-release ; then
+            # Fedora 29
+            FEDORA=38
+         else
+            # Unsupported release
+            FEDORA=0
+        fi
+    else
+        # this is mostly to prevent accidental configuration on a non redhat based system
+        echo "Unable to determine distribution release from /etc/redhat-release or /etc/fedora-release. Configuration aborted."; echo;
+        exit 192
+    fi
 else
     # figure out what release is being used
     if grep -qs 'release 7' /etc/redhat-release ; then
@@ -348,35 +363,38 @@ fi
 SA=1
 SAOPTION="spamassassin"
 
-
-# ask if the user wants to install EPEL
-clear
-echo;
-echo "Do you want to install EPEL? (Extra Packages for Enterprise Linux)"; echo;
-echo "Installing EPEL will make more yum packages available, such as extra perl modules"; 
-echo "and ClamAV, which is recommended. This will also reduce the number of Perl modules";
-echo "installed via CPAN. Note that EPEL is considered a third party repository. On RHEL 9, the CRB repository will also be enabled."; 
-echo;
-echo "Recommended: Y (yes)"; echo;
-if [ -z "${arg_installEPEL+x}" ]; then
-    read -r -p "Install EPEL? [n/Y] : " response
-    if [[ $response =~ ^([yY][eE][sS]|[yY])$ ]]; then
-        # user wants EPEL installed
-        EPEL=1
-        EPELOPTION="epel-release";
-    elif [ -z $response ]; then    
-        # user wants EPEL installed
-        EPEL=1
-        EPELOPTION="epel-release";
+EPEL=0
+EPELOPTION=
+if [ -z $FEDORA ]; then
+    # ask if the user wants to install EPEL
+    clear
+    echo;
+    echo "Do you want to install EPEL? (Extra Packages for Enterprise Linux)"; echo;
+    echo "Installing EPEL will make more yum packages available, such as extra perl modules"; 
+    echo "and ClamAV, which is recommended. This will also reduce the number of Perl modules";
+    echo "installed via CPAN. Note that EPEL is considered a third party repository. On RHEL 9, the CRB repository will also be enabled."; 
+    echo;
+    echo "Recommended: Y (yes)"; echo;
+    if [ -z "${arg_installEPEL+x}" ]; then
+        read -r -p "Install EPEL? [n/Y] : " response
+        if [[ $response =~ ^([yY][eE][sS]|[yY])$ ]]; then
+            # user wants EPEL installed
+            EPEL=1
+            EPELOPTION="epel-release";
+        elif [ -z $response ]; then    
+            # user wants EPEL installed
+            EPEL=1
+            EPELOPTION="epel-release";
+        else
+            # user does not want EPEL
+            EPEL=0
+            EPELOPTION=
+        fi
     else
-        # user does not want EPEL
-        EPEL=0
-        EPELOPTION=
-    fi
-else
-    EPEL=${arg_installEPEL};
-    if [ $EPEL -eq 1 ]; then
-        EPELOPTION="epel-release";
+        EPEL=${arg_installEPEL};
+        if [ $EPEL -eq 1 ]; then
+            EPELOPTION="epel-release";
+        fi
     fi
 fi
 
@@ -412,7 +430,7 @@ if [[ $RHEL -eq 8 ]]; then
 fi
 
 # ask if the user wants ClamAV installed if they selected EPEL
-if [[ $EPEL -eq 1 ]]; then
+if [[ $EPEL -eq 1 || -n $FEDORA ]]; then
     clear
     echo;
     echo "Do you want to install or update ClamAV during this installation process?"; echo;
@@ -570,27 +588,12 @@ if [ -z "${arg_installCPAN+x}" ]; then
     if [[ $response =~ ^([yY][eE][sS]|[yY])$ ]]; then
         # user wants to use CPAN for missing modules
         CPANOPTION=1
-        
-        # rpm install will fail if the modules were not installed via RPM
-        # so i am setting the --nodeps flag here since the user elected to 
-        # use CPAN to remediate the modules
-        NODEPS='--nodeps';
     elif [ -z $response ]; then 
          # user wants to use CPAN for missing modules
         CPANOPTION=1
-        
-        # rpm install will fail if the modules were not installed via RPM
-        # so i am setting the --nodeps flag here since the user elected to 
-        # use CPAN to remediate the modules
-        NODEPS='--nodeps';
     else
         # user does not want to use CPAN
         CPANOPTION=0
-    fi
-else
-    CPANOPTION=${arg_installCPAN}
-    if [ $CPANOPTION -eq 1 ]; then
-        NODEPS='--nodeps';
     fi
 fi
 
