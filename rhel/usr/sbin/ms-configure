@@ -201,7 +201,7 @@ while [ $# -gt 0 ]; do
             printf    "                        Recommended: Y (yes)\n\n"
             printf -- "--installClamav=Y|N     Install or update ClamAV during installation (requires EPEL)    (Y or N)\n"
             printf    "                        Recommended: Y (yes)\n\n"
-            printf -- "--configClamav=Y|N      Configure ClamAV (CentOS 7 only)                                (Y or N)\n"
+            printf -- "--configClamav=Y|N      Configure ClamAV                                                (Y or N)\n"
             printf    "                        Recommended: Y (yes)\n\n"
             printf -- "--installTNEF=Y|N       Install tnef via RPM                                            (Y or N)\n"
             printf    "                        Recommended: Y (yes)\n\n"
