@@ -163,6 +163,10 @@ echo "such as Ubuntu. Internet connectivity is required for this installation sc
 echo;
 echo "WARNING - Make a backup of any custom configuration files if upgrading - WARNING";
 echo;
+echo "To install SpamAssassin 4.0, an unprivileged user 'sabuild' will be created and granted";
+echo "temporary sudo privileges. This is necessary to obtain a successful build. sudo privileges";
+echo "will be removed after install, and you can optionally remove the 'sabuild' user at any time";
+echo;
 echo "You may press CTRL + C at any time to abort the installation. Note that you may see";
 echo "some errors during the perl module installation. You may safely ignore errors regarding";
 echo "failed tests for optional packages."; echo;
