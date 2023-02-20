@@ -262,22 +262,9 @@ fi
 FEDORA=
 RHEL=
 if [ ! -f '/etc/redhat-release' ]; then
-    # maybe it is fedora
-
-    # Is this a Fedora System?
-    if [ -f /etc/fedora-release ]; then
-        if grep -qs 'release 37' /etc/fedora-release ; then
-            # Fedora 29
-            FEDORA=37
-         else
-            # Unsupported release
-            FEDORA=0
-        fi
-    else
-        # this is mostly to prevent accidental configuration on a non redhat based system
-        echo "Unable to determine distribution release from /etc/redhat-release or /etc/fedora-release. Configuration aborted."; echo;
-        exit 192
-    fi
+    # this is mostly to prevent accidental configuration on a non redhat based system
+    echo "Unable to determine distribution release from /etc/redhat-release or /etc/fedora-release. Configuration aborted."; echo;
+    exit 192
 else
     # figure out what release is being used
     if grep -qs 'release 7' /etc/redhat-release ; then
@@ -292,6 +279,19 @@ else
     else
             # No supported release match
             RHEL=0
+    fi
+fi
+
+# maybe it is fedora
+
+# Is this a Fedora System?
+if [ -f /etc/fedora-release ]; then
+    if grep -qs 'release 37' /etc/fedora-release ; then
+        # Fedora 29
+        FEDORA=37
+        else
+        # Unsupported release
+        FEDORA=0
     fi
 fi
 
