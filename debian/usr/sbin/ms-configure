@@ -374,10 +374,10 @@ BASEPACKAGES+=('openssl');                     BASEPACKAGES+=('perl');          
 BASEPACKAGES+=('arj');                         BASEPACKAGES+=('lhasa');             BASEPACKAGES+=('bzip2');  
 BASEPACKAGES+=('cabextract');                  BASEPACKAGES+=('cpio');              BASEPACKAGES+=('file');  
 BASEPACKAGES+=('gzip');                        BASEPACKAGES+=('nomarch');           BASEPACKAGES+=('pax');  
-BASEPACKAGES+=('rar');                         BASEPACKAGES+=('unrar');             BASEPACKAGES+=('unzip');  
-BASEPACKAGES+=('zip');                         BASEPACKAGES+=('zoo');               BASEPACKAGES+=('libdb-dev');                    
-BASEPACKAGES+=('cpanminus');                   BASEPACKAGES+=('libmaxminddb-dev');  BASEPACKAGES+=('sudo');
-BASEPACKAGES+=('libidn2-dev');
+BASEPACKAGES+=('unrar');                       BASEPACKAGES+=('unzip');             BASEPACKAGES+=('libidn2-dev');
+BASEPACKAGES+=('zip');                         BASEPACKAGES+=('libdb-dev');         BASEPACKAGES+=('sudo');
+BASEPACKAGES+=('cpanminus');                   BASEPACKAGES+=('libmaxminddb-dev');  
+
 
 # Look for perl modules that may exist in repositories, missing/non-existant packages will be skipped
 EXTRAPACKAGES=();
