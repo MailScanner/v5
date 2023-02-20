@@ -5454,6 +5454,9 @@ sub AppendSignCleanEntity {
   $FoundSigMark = 0; # Try to replace _SIGNATURE_ with the sig if it's there
   $html = 0;
   $io = $top->open("w");
+  # https://github.com/MailScanner/v5/issues/640
+  # Add a newline at the top of the body to prevent runon with header
+  $io->print("\n");
   if ($MimeType =~ /text\/html/i) {
     $signature = $this->ReadVirusWarning('inlinehtmlsig');
     foreach $line (@body) {
