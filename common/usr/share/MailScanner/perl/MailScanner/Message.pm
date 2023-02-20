@@ -2715,7 +2715,9 @@ sub DeleteEntity {
 # space.
 sub DropFromBatch {
   my($message) = @_;
-  $message->{deleted} = 1;
+  # https://github.com/MailScanner/v5/issues/641
+  # This is mutually exclusive to abandoned and stomps on the processing database
+  # $message->{deleted} = 1; 
   $message->{gonefromdisk} = 1; # Don't try to delete the original
   $message->{store}->Unlock(); # Unlock it so other processes can pick it up
   $message->{abandoned} = 1; # This message was abandoned, re-try it n times
