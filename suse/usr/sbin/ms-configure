@@ -426,7 +426,7 @@ MOREPACKAGES="
             perl-Test-SubCalls      perl-Test2-Suite            perl-Text-Diff
             perl-Text-Unidecode     perl-Time-Local             perl-Unicode-LineBreak
             perl-WWW-RobotRules     perl-XML-LibXML             perl-XML-NamespaceSupport
-            perl-XML-SAX            perl-XML-SAX-Base           perl-LWP-UserAgent  
+            perl-XML-SAX            perl-XML-SAX-Base           perl-libwww-perl
 "
 
 # the array of perl modules needed
