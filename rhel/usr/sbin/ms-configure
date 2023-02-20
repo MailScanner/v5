@@ -266,7 +266,7 @@ if [ ! -f '/etc/redhat-release' ]; then
 
     # Is this a Fedora System?
     if [ -f /etc/fedora-release ]; then
-        if grep -qs 'release 38' /etc/fedora-release ; then
+        if grep -qs 'release 37' /etc/fedora-release ; then
             # Fedora 29
             FEDORA=38
          else
