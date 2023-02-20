@@ -268,7 +268,7 @@ if [ ! -f '/etc/redhat-release' ]; then
     if [ -f /etc/fedora-release ]; then
         if grep -qs 'release 37' /etc/fedora-release ; then
             # Fedora 29
-            FEDORA=38
+            FEDORA=37
          else
             # Unsupported release
             FEDORA=0
