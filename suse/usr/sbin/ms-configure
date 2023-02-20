@@ -334,9 +334,8 @@ BASEPACKAGES="
         curl                wget            openssl
         libopenssl-devel    bzip2           tnef
         unrar               razor-agents    libbz2-devel
-        sudo                tnef            unrar
+        sudo                libidn2-devel   libdb-4_8-devel
         re2c                p7zip           libmaxminddb-devel
-        sudo                libdb-4_8-devel
 ";
 
 # Packages (maybe) available in the suse base 15.4. If the user elects not to use EPEL or if the 
@@ -383,8 +382,7 @@ MOREPACKAGES="
             perl-Module-Runtime     perl-Moo                    perl-MooX-StrictConstructor
             perl-Role-Tiny          perl-strictures             perl-MaxMind-DB-Reader-XS
             perl-Sub-Quote          perl-Math-Int128            perl-HTTP-Date
-            perl-MailTools          perl-Net-CIDR-Set           perl-Scalar-List-Utils
-            perl-razor-agents       perl-TimeDate               perl-Path-Class
+            perl-MailTools          perl-Net-CIDR-Set           perl-TimeDate
             perl-Test-Fatal         perl-Test-Number-Delta      perl-Data-Dumper-Concise
             perl-DateTime           perl-Test-Warnings          perl-autodie
             perl-Test-Requires      perl-Test-Tester            perl-Clone-PP
@@ -402,7 +400,7 @@ MOREPACKAGES="
             perl-Email-Simple       perl-Encode                 perl-Encode-Locale
             perl-ExtUtils-Config    perl-ExtUtils-Helpers       perl-ExtUtils-InstallPaths
             perl-FFI-CheckLib       perl-File-Listing           perl-File-Slurper
-            perl-File-chdir         perl-GSSAPI                 perl-Geo-IP
+            perl-File-chdir         perl-Path-Class             perl-Geo-IP
             perl-HTTP-Cookies       perl-HTTP-Daemon            perl-HTTP-Message
             perl-HTTP-Negotiate     perl-Hook-LexWrap           perl-IO-Compress-Brotli
             perl-IO-HTML            perl-IO-Socket-SSL          perl-Importer
@@ -424,7 +422,7 @@ MOREPACKAGES="
             perl-Test-SubCalls      perl-Test2-Suite            perl-Text-Diff
             perl-Text-Unidecode     perl-Time-Local             perl-Unicode-LineBreak
             perl-WWW-RobotRules     perl-XML-LibXML             perl-XML-NamespaceSupport
-            perl-XML-SAX            perl-XML-SAX-Base           perl-libwww-perl
+            perl-XML-SAX            perl-XML-SAX-Base
 "
 
 # the array of perl modules needed
@@ -470,8 +468,7 @@ ARMOD+=('List::UtilsBy');           ARMOD+=('MaxMind::DB::Metadata');   ARMOD+=(
 ARMOD+=('Module::Runtime');         ARMOD+=('Moo');                     ARMOD+=('MooX::StrictConstructor');
 ARMOD+=('Role::Tiny');              ARMOD+=('strictures');              ARMOD+=('MaxMind::DB::Reader::XS');
 ARMOD+=('Sub::Quote');              ARMOD+=('Math::Int128');            ARMOD+=('HTTP::Date');
-ARMOD+=('MailTools');               ARMOD+=('Net::CIDR::Set');          ARMOD+=('Scalar::List::Utils');
-ARMOD+=('razor::agents');           ARMOD+=('TimeDate');                ARMOD+=('Path::Class');
+ARMOD+=('MailTools');               ARMOD+=('Net::CIDR::Set');          ARMOD+=('TimeDate');
 ARMOD+=('Test::Fatal');             ARMOD+=('Test::Number::Delta');     ARMOD+=('Data::Dumper::Concise');
 ARMOD+=('DateTime');                ARMOD+=('Test::Warnings');          ARMOD+=('autodie');
 ARMOD+=('Test::Requires');          ARMOD+=('Test::Tester');            ARMOD+=('Clone::PP');
@@ -489,7 +486,7 @@ ARMOD+=('Email::MessageID');        ARMOD+=('Email::Sender');           ARMOD+=(
 ARMOD+=('Email::Simple');           ARMOD+=('Encode');                  ARMOD+=('Encode::Locale');
 ARMOD+=('ExtUtils::Config');        ARMOD+=('ExtUtils::Helpers');       ARMOD+=('ExtUtils::InstallPaths');
 ARMOD+=('FFI::CheckLib');           ARMOD+=('File::Listing');           ARMOD+=('File::Slurper');
-ARMOD+=('File::chdir');             ARMOD+=('GSSAPI');                  ARMOD+=('Geo::IP');
+ARMOD+=('File::chdir');             ARMOD+=('Path::Class');             ARMOD+=('Geo::IP');
 ARMOD+=('HTTP::Cookies');           ARMOD+=('HTTP::Daemon');            ARMOD+=('HTTP::Message');
 ARMOD+=('HTTP::Negotiate');         ARMOD+=('Hook::LexWrap');           ARMOD+=('IO::Compress::Brotli');
 ARMOD+=('IO::HTML');                ARMOD+=('IO::Socket::SSL');         ARMOD+=('Importer');
@@ -511,7 +508,7 @@ ARMOD+=('Test::Regexp');            ARMOD+=('Test::RequiresInternet');  ARMOD+=(
 ARMOD+=('Test::SubCalls');          ARMOD+=('Test2::Suite');            ARMOD+=('Text::Diff');
 ARMOD+=('Text::Unidecode');         ARMOD+=('Time::Local');             ARMOD+=('Unicode::LineBreak');
 ARMOD+=('WWW::RobotRules');         ARMOD+=('XML::LibXML');             ARMOD+=('XML::NamespaceSupport');
-ARMOD+=('XML::SAX');                ARMOD+=('XML::SAX::Base');          ARMOD+=('libwww::perl');
+ARMOD+=('XML::SAX');                ARMOD+=('XML::SAX::Base');
 
 # additional spamassassin plugins
 SAMOD=();
@@ -645,7 +642,8 @@ done
 
 function install_sa() {
     # Create sabuild user and set up for sudo build (SA 4.0+)
-    useradd -m -s /sbin/nologin sabuild &>/dev/null
+    groupadd sabuild
+    useradd -m -s /sbin/nologin -g sabuild sabuild &>/dev/null
     id -u sabuild &>/dev/null
     if [ $? -eq 0 ]; then
         echo "sabuild    ALL=(ALL)    NOPASSWD: ALL" > /etc/sudoers.d/sabuild
