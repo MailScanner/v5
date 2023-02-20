@@ -497,54 +497,59 @@ fi
 
 # ask if the user wants to install tnef by RPM if missing
 TNEF="tnef";
-clear
-echo;
-echo "Do you want to install tnef via RPM if missing?"; echo;
-echo "I will attempt to install tnef via the Yum Package Manager, but if not found I can ";
-echo "install this from an RPM provided by the MailScanner Community Project. Tnef allows";
-echo "MailScanner to handle Microsoft specific winmail.dat files.";
-echo;
-echo "Recommended: Y (yes)"; echo;
-if [ -z "${arg_installTNEF+x}" ]; then
-    read -r -p "Install missing tnef via RPM? [n/Y] : " response
+TNEFOPTION=0
+if [ -z $FEDORA ]; then
+    clear
+    echo;
+    echo "Do you want to install tnef via RPM if missing?"; echo;
+    echo "I will attempt to install tnef via the Yum Package Manager, but if not found I can ";
+    echo "install this from an RPM provided by the MailScanner Community Project. Tnef allows";
+    echo "MailScanner to handle Microsoft specific winmail.dat files.";
+    echo;
+    echo "Recommended: Y (yes)"; echo;
+    if [ -z "${arg_installTNEF+x}" ]; then
+        read -r -p "Install missing tnef via RPM? [n/Y] : " response
 
-    if [[ $response =~ ^([yY][eE][sS]|[yY])$ ]]; then
-        # user wants to use RPM for missing tnef
-        TNEFOPTION=1
-    elif [ -z $response ]; then 
-        # user wants to use RPM for missing tnef
-        TNEFOPTION=1
+        if [[ $response =~ ^([yY][eE][sS]|[yY])$ ]]; then
+            # user wants to use RPM for missing tnef
+            TNEFOPTION=1
+        elif [ -z $response ]; then 
+            # user wants to use RPM for missing tnef
+            TNEFOPTION=1
+        else
+            # user does not want to use RPM
+            TNEFOPTION=0
+        fi
     else
-        # user does not want to use RPM
-        TNEFOPTION=0
+        TNEFOPTION=${arg_installTNEF}
     fi
-else
-    TNEFOPTION=${arg_installTNEF}
 fi
 
-# ask if the user wants to install unrar by RPM if missing
-clear
-echo;
-echo "Do you want to install unrar via RPM if missing?"; echo;
-echo "I will attempt to install unrar via the Yum Package Manager, but if not found I can ";
-echo "install this from an RPM provided by MailScanner Community Project. unrar allows";
-echo "MailScanner to handle archives compressed with rar.";
-echo;
-echo "Recommended: Y (yes)"; echo;
-if [ -z "${arg_installUnrar+x}" ]; then
-    read -r -p "Install missing unrar via RPM? [n/Y] : " response
-    if [[ $response =~ ^([yY][eE][sS]|[yY])$ ]]; then
-        # user wants to use RPM for missing unrar
-        UNRAROPTION=1
-    elif [ -z $response ]; then 
-        # user wants to use RPM for missing unrar
-        UNRAROPTION=1
+if [ -z $FEDORA ]; then
+    # ask if the user wants to install unrar by RPM if missing
+    clear
+    echo;
+    echo "Do you want to install unrar via RPM if missing?"; echo;
+    echo "I will attempt to install unrar via the Yum Package Manager, but if not found I can ";
+    echo "install this from an RPM provided by MailScanner Community Project. unrar allows";
+    echo "MailScanner to handle archives compressed with rar.";
+    echo;
+    echo "Recommended: Y (yes)"; echo;
+    if [ -z "${arg_installUnrar+x}" ]; then
+        read -r -p "Install missing unrar via RPM? [n/Y] : " response
+        if [[ $response =~ ^([yY][eE][sS]|[yY])$ ]]; then
+            # user wants to use RPM for missing unrar
+            UNRAROPTION=1
+        elif [ -z $response ]; then 
+            # user wants to use RPM for missing unrar
+            UNRAROPTION=1
+        else
+            # user does not want to use RPM
+            UNRAROPTION=0
+        fi
     else
-        # user does not want to use RPM
-        UNRAROPTION=0
+        UNRAROPTION=${arg_installUnrar}
     fi
-else
-    UNRAROPTION=${arg_installUnrar}
 fi
 
 if [ $RHEL -eq 9 ]; then
