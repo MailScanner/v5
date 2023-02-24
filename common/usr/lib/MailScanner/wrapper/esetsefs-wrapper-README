@@ -5,5 +5,12 @@ Add to sudoers:
 postfix ALL=(ALL) NOPASSWD: /opt/eset/efs/bin/odscan
 postfix ALL=(ALL) NOPASSWD: /opt/eset/efs/bin/lslog
 
-where /opt/eset/efs/sbin/ is the real path to your esets scan binary
+where /opt/eset/efs/bin/ is the real path to your esets scan binary
 and postfix is the real Run As user for MailScanner
+
+If you have difficulties with the wrapper in your locale change
+the date format variables in the esetsefs-wrapper at the top
+
+Also, as another helpful note, you have to disable realtime scanning
+after installing EFS via the web ui or else it will rip out files
+before they have a chance to be scanned
