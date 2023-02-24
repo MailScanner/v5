@@ -295,6 +295,11 @@ sub WriteHeader {
   $Tf->flush();
   } elsif ($this->{body}[0] eq "MIME") {
       my ($type, $id, $entity, $outq)= @{$this->{body}};
+      
+      # https://github.com/MailScanner/v5/issues/638
+      # Newline separation between header and body was missing here
+      $Tf->print("\n");
+
       # This needs re-writing, as we need to massage every line
 
       # Create a pipe to squirt the message body through
