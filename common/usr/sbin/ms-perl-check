@@ -158,7 +158,6 @@ ARMOD+=('Test::Fatal');
 ARMOD+=('Test::File');
 ARMOD+=('Test::File::ShareDir');
 ARMOD+=('Test::LeakTrace');
-ARMOD+=('Test::Needs');
 ARMOD+=('Test::Requires');
 ARMOD+=('Test::Simple');
 ARMOD+=('Test::Warnings');
