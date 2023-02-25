@@ -11,16 +11,26 @@
 #
 # Support: http://lists.mailscanner.info/mailman/listinfo/mailscanner
 #
-# Updated: 2 Nov 2019			
+# Updated: 24 Feb 2023	
 # MailScanner Team <https://www.mailscanner.info>
 # 
 
-
 The install for NIX* is very straightforward. It simply copies the files into place. From
-there you will need to create the links to get MailScanner to start at boot. 
+there you will need to create the links to get MailScanner to start at boot, etc.
 
-Requirements: perl, perldoc, curl, cpan, and network access if you want to install missing Perl modules
-via CPAN. 
+Requirements: perl, perldoc, curl, wget, cpan, sudo, tar, essential perl build tools such as 
+make, and network access, if you want to install modules from CPAN.
+
+It is necessary for you to generate your on cpan configuration for root and the sabuild
+user before proceeding with cpan installation with this script, since your flavor of NIX
+is not known and paths for various tooling differ.
+root can be autoconfigured by choosing yes, but sabuild needs to be manually configured
+(by saying no to auto config) and to use sudo while the rest of the configuration
+can be defaults. If sabuild doesn't exist yet, create the user.
+
+If you are using RHEL derivatives, Debian derivatives (including Ubuntu), or openSUSE
+derivatives, use the appropriate package and not this method from tarball for a greater
+chance of success.
 
 Important files to note:
 
