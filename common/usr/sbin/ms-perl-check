@@ -182,6 +182,7 @@ ARMOD2+=('Digest::MD5');
 ARMOD2+=('Carp');
 ARMOD2+=('IO::Socket::UNIX');
 ARMOD2+=('IO::Handle');
+ARMOD2+=('Mail::SpamAssassin');
 
 # SpamAssassin (4.0) optional modules
 ARMOD3+=('Digest::SHA1');
@@ -340,11 +341,6 @@ ARMOD3+=('Mail::DMARC');
 # ARMOD2+=('XML::SAX::Base');
 # ARMOD2+=('XML::SAX');
 
-# additional spamassassin plugins				
-ARMOD+=('Mail::SpamAssassin::Plugin::Rule2XSBody');		
-ARMOD+=('Mail::SpamAssassin::Plugin::DCC');				
-ARMOD+=('Mail::SpamAssassin::Plugin::Pyzor');
-ARMOD+=('Mail::SpamAssassin');
 
 for i in "${ARMOD[@]}"
 do
