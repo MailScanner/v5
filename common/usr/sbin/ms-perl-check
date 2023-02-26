@@ -196,7 +196,8 @@ ARMOD3+=('MaxMind::DB::Reader');
 ARMOD3+=('Geo::IP');
 ARMOD3+=('IP::Country::DB_File');
 ARMOD3+=('IP::Country::Fast');
-ARMOD3+=('Razor2::Client::Agent');
+# No perl documentation will always report missing
+#ARMOD3+=('Razor2::Client::Agent');
 ARMOD3+=('IO::Socket::IP');
 ARMOD3+=('IO::Socket::INET6');
 ARMOD3+=('IO::Socket::SSL');
