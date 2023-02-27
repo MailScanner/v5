@@ -19,7 +19,10 @@ else
 	PERLDOC='/usr/bin/perldoc';
 fi
 
-# the array of perl modules needed
+# The array of core perl modules needed.
+# This is not a comprehensive check.
+# Does not include the vast array of dependencies, if the module
+# is installed, it is likely any of its dependencies are also installed.
 
 # MailScanner (based on code dependencies and run checks)
 ARMOD=();
@@ -75,79 +78,6 @@ ARMOD+=('Sys::Syslog');
 ARMOD+=('Time::HiRes');
 ARMOD+=('Time::Local');
 ARMOD+=('Time::localtime');
-
-# Various mailscanner module potential dependencies
-# Not checked just here for reference
-# test, build, or runtime dependency
-# ARMOD+=('Algorithm::Diff');
-# ARMOD+=('B::Hooks::EndOfScope');
-# ARMOD+=('Capture::Tiny');
-# ARMOD+=('Class::Data::Inheritable');
-# ARMOD+=('Class::Inspector');
-# ARMOD+=('Class::Method::Modifiers');
-# ARMOD+=('Class::Singleton');
-# ARMOD+=('Class::Tiny');
-# ARMOD+=('Clone'); 
-# ARMOD+=('Compress::Raw::Bzip2'); 
-# ARMOD+=('Convert::BinHex');
-# ARMOD+=('DateTime::Locale');
-# ARMOD+=('DateTime::TimeZone');
-# ARMOD+=('Devel::StackTrace');
-# ARMOD+=('Digest::HMAC');
-# ARMOD+=('Dist::CheckConflicts');
-# ARMOD+=('Encode::Locale');
-# ARMOD+=('Eval::Closure');
-# ARMOD+=('Exception::Class');
-# ARMOD+=('File::Copy::Recursive');
-# ARMOD+=('File::Listing');
-# ARMOD+=('File::ShareDir');
-# ARMOD+=('File::ShareDir::Install');
-# ARMOD+=('HTML::Tagset');
-# ARMOD+=('HTTP::Cookies');
-# ARMOD+=('HTTP::Date');
-# ARMOD+=('HTTP::Message');
-# ARMOD+=('HTTP::Negotiate');
-# ARMOD+=('Importer');
-# ARMOD+=('IO');
-# ARMOD+=('IO::HTML');
-# ARMOD+=('LWP::MediaTypes');
-# ARMOD+=('MailTools');
-# ARMOD+=('MIME::Tools');
-# ARMOD+=('Module::Build');
-# ARMOD+=('Module::Implementation');
-# ARMOD+=('Module::Pluggable');
-# ARMOD+=('Module::Runtime');
-# ARMOD+=('MRO::Compat');
-# ARMOD+=('namespace::autoclean');
-# ARMOD+=('namespace::clean');
-# ARMOD+=('Net::HTTP');
-# ARMOD+=('Package::Stash');
-# ARMOD+=('Package::Stash::XS');
-# ARMOD+=('Params::Util');
-# ARMOD+=('Path::Tiny');
-# ARMOD+=('Perl::Tidy');
-# ARMOD+=('Role::Tiny');
-# ARMOD+=('Scope::Guard');
-# ARMOD+=('Sub::Exporter::Progressive');
-# ARMOD+=('Sub::Identify');
-# ARMOD+=('Sub::Info');
-# ARMOD+=('Sub::Quote');
-# ARMOD+=('Sub::Uplevel');
-# ARMOD+=('Term::Table');
-# ARMOD+=('Test2::Suite');
-# ARMOD+=('Test::Deep');
-# ARMOD+=('Test::Exception');
-# ARMOD+=('Test::FailWarnings');
-# ARMOD+=('Test::Fatal');
-# ARMOD+=('Test::File::ShareDir');
-# ARMOD+=('Test::LeakTrace');
-# ARMOD+=('Test::Requires');
-# ARMOD+=('Test::Simple');
-# ARMOD+=('Test::Warnings');
-# ARMOD+=('Text::Diff');
-# ARMOD+=('Try::Tiny');
-# ARMOD+=('URI');
-# ARMOD+=('WWW::RobotRules');
 
 # SpamAssassin (4.0) required modules
 # based on lint test, and runtime includes
@@ -217,130 +147,6 @@ ARMOD3+=('Net::Patricia');
 ARMOD3+=('Net::SMTP');
 # No perl documentation will always report missing
 #ARMOD3+=('Razor2::Client::Agent');
-
-# SpamAssassin (4.0) dependencies
-# Not checked just here for reference
-# test, build, or runtime dependency
-# ARMOD2+=('Alien::Build::Plugin::Download::GitLab');
-# ARMOD2+=('Alien::Build');
-# ARMOD2+=('Alien::Libxml2');
-# ARMOD2+=('Authen::SASL');
-# ARMOD2+=('B::Keywords');
-# ARMOD2+=('Config::Tiny');
-# ARMOD2+=('Crypt::OpenSSL::Random');
-# ARMOD2+=('Crypt::OpenSSL::RSA');
-# ARMOD2+=('Data::Dumper::Concise');
-# ARMOD2+=('Data::IEEE754');
-# ARMOD2+=('Data::OptList');
-# ARMOD2+=('Data::Printer');
-# ARMOD2+=('Data::Validate::IP');
-# ARMOD2+=('DBIx::Simple');
-# ARMOD2+=('Devel::Cycle');
-# ARMOD2+=('Email::Abstract');
-# ARMOD2+=('Email::Date::Format');
-# ARMOD2+=('Email::MessageID');
-# ARMOD2+=('Email::MIME::ContentType');
-# ARMOD2+=('Email::MIME::Encodings');
-# ARMOD2+=('Email::MIME');
-# ARMOD2+=('Email::Sender');
-# ARMOD2+=('Email::Simple');
-# ARMOD2+=('Encode::Detect');
-# ARMOD2+=('FFI::CheckLib');
-# ARMOD2+=('File::chdir');
-# ARMOD2+=('File::Which');
-# ARMOD2+=('Geography::Countries');
-# ARMOD2+=('IP::Country');
-# ARMOD2+=('List::AllUtils');
-# ARMOD2+=('List::SomeUtils::XS');
-# ARMOD2+=('List::SomeUtils');
-# ARMOD2+=('List::UtilsBy');
-# ARMOD2+=('Math::Int64');
-# ARMOD2+=('MaxMind::DB::Common');
-# ARMOD2+=('MIME::Types');
-# ARMOD2+=('Moo');
-# ARMOD2+=('MooX::StrictConstructor');
-# ARMOD2+=('MooX::Types::MooseLike');
-# ARMOD2+=('Mozilla::CA');
-# ARMOD2+=('Net::IDN::Encode');
-# ARMOD2+=('Net::IMAP::Simple');
-# ARMOD2+=('Net::IP');
-# ARMOD2+=('Net::SMTPS');
-# ARMOD2+=('Net::SSLeay');
-# ARMOD2+=('Parse::RecDescent');
-# ARMOD2+=('Path::Class');
-# ARMOD2+=('Perl::Critic::Policy::Perlsecret');
-# ARMOD2+=('Perl::Critic');
-# ARMOD2+=('Pod::Parser');
-# ARMOD2+=('Pod::Spell');
-# ARMOD2+=('PPI');
-# ARMOD2+=('PPIx::Regexp');
-# ARMOD2+=('PPIx::Utilities');   
-# ARMOD2+=('Readonly');
-# ARMOD2+=('Regexp::Common');
-# ARMOD2+=('Socket6');
-# ARMOD2+=('strictures');
-# ARMOD2+=('String::Format');
-# ARMOD2+=('Sub::Exporter');
-# ARMOD2+=('Sub::Install');
-# ARMOD2+=('Task::Weaken');
-# ARMOD2+=('Test::Output');
-# ARMOD2+=('Test::Pod');
-# ARMOD2+=('Test::Regexp');
-# ARMOD2+=('Throwable');
-# ARMOD2+=('XML::LibXML');
-# ARMOD2+=('YAML');
-
-# More modules
-# Not checked just here for reference
-# test, build, or runtime dependency
-# ARMOD2+=('autodie');
-# ARMOD2+=('bignum');
-# ARMOD2+=('Clone::PP');
-# ARMOD2+=('Convert::TNEF');
-# ARMOD2+=('CPAN');
-# ARMOD2+=('Data::Dump');
-# ARMOD2+=('Date::Parse');
-# ARMOD2+=('Digest');
-# ARMOD2+=('Error');
-# ARMOD2+=('ExtUtils::CBuilder');
-# ARMOD2+=('ExtUtils::MakeMaker');
-# ARMOD2+=('ExtUtils::ParseXS');
-# ARMOD2+=('File::HomeDir');
-# ARMOD2+=('Inline::C');
-# ARMOD2+=('Inline');
-# ARMOD2+=('IO::Compress::Bzip2');
-# ARMOD2+=('IO::Wrap');
-# ARMOD2+=('JSON::MaybeXS');
-# ARMOD2+=('Mail::Field');
-# ARMOD2+=('Mail::Header');
-# ARMOD2+=('Mail::IMAPClient');
-# ARMOD2+=('Mail::Internet');
-# ARMOD2+=('Mail::SPF::Query');
-# ARMOD2+=('Math::BigInt');
-# ARMOD2+=('Math::BigRat');
-# ARMOD2+=('Math::Int128');
-# ARMOD2+=('MaxMind::DB::Metadata');
-# ARMOD2+=('MIME::QuotedPrint');
-# ARMOD2+=('Net::LDAP');
-# ARMOD2+=('Net::SSLeay');
-# ARMOD2+=('Net::Works::Network');
-# ARMOD2+=('Parse::RecDescent');
-# ARMOD2+=('Perl::Critic::Policy::TestingAndDebugging::ProhibitNoStrict');
-# ARMOD2+=('Perl::Critic::Policy');
-# ARMOD2+=('Pod::Escapes');
-# ARMOD2+=('Pod::Simple');
-# ARMOD2+=('Sort::Naturally');
-# ARMOD2+=('String::Format');
-# ARMOD2+=('Test::Harness');
-# ARMOD2+=('Test::Manifest');
-# ARMOD2+=('Test::Output');
-# ARMOD2+=('Test::Perl::Critic');
-# ARMOD2+=('Test::Tester');
-# ARMOD2+=('Text::Balanced');
-# ARMOD2+=('XML::NamespaceSupport');
-# ARMOD2+=('XML::SAX::Base');
-# ARMOD2+=('XML::SAX');
-
 
 for i in "${ARMOD[@]}"
 do
