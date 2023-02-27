@@ -2124,7 +2124,6 @@ sub ProcessAvastOutput {
 }
 
 sub ProcessEsetsOutput {
-  use File::Basename;
 
   my ($line, $infections, $types, $BaseDir, $Name) = @_;
   chomp $line;
@@ -2160,20 +2159,19 @@ sub ProcessEsetsOutput {
 }
 
 sub ProcessEsetsEFSOutput {
-  use File::Basename;
 
   my ($line, $infections, $types, $BaseDir, $Name) = @_;
   chomp $line;
 
   # return if line does not had threat
-  return 0 if $line !~ m/(?:retained|cleaned)/i;
+  return 0 if $line !~ m/(?:retained|cleaned|beibehalten|gesäubert)/i;
 
   my ($a, $b, $c, $d, $e, $f, $g, $h) = split(/,/, $line);
  
   my ($fileuri) = $c;
   my ($threat) = $d;
-  my ($info) = $e;
-  my ($action) = $f;
+  #my ($info) = $e;
+  #my ($action) = $f;
 
   $fileuri =~ s/file:\/\/$BaseDir/\./;
 

@@ -9,7 +9,10 @@ where /opt/eset/efs/bin/ is the real path to your esets scan binary
 and postfix is the real Run As user for MailScanner
 
 If you have difficulties with the wrapper in your locale change
-the date format variables in the esetsefs-wrapper at the top
+the date format variables in the esetsefs-wrapper at the top.
+Currently EFS works in US and DE locales, additional locale
+support can be added by request since this requires localized
+code changes (EFS log output gets localized along with actions).
 
 Also, as another helpful note, you have to disable realtime scanning
 after installing EFS via the web ui or else it will rip out files
