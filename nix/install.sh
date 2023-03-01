@@ -33,13 +33,6 @@ echo;
 echo "These items should be installed before proceeding: perl, perldoc, curl, wget, cpan, sudo,"
 echo "tar, and essential perl build tools such as make.";
 echo;
-echo "It is necessary for you to generate your own cpan configuration for root and the sabuild"
-echo "user before proceeding with cpan installation with this script, since your flavor of NIX"
-echo "is not known and paths for various tooling differ."
-echo "root can be autoconfigured by choosing yes by running cpan, but sabuild needs to be"
-echo "manually configured (by saying no to auto config) and to use sudo while the rest of the"
-echo "configuration can be defaults. If sabuild doesn't exist yet, create the user first."
-echo;
 echo "If you are using RHEL derivatives, Debian derivatives (including Ubuntu), or openSUSE"
 echo "derivatives, use the appropriate package and not this method from tarball for a greater"
 echo "chance of success."
@@ -200,15 +193,15 @@ fi
 
 # create the cpan config if there isn't one and the user
 # elected to use CPAN
-# since the NIX flavor is unknown, user needs to create their own cpan config
 if [ $CPANOPTION == 1 ]; then
 	# user elected to use CPAN option
 	if [ ! -f '/root/.cpan/CPAN/MyConfig.pm' ]; then
 		echo;
-		echo "CPAN config missing for root, have you configured cpan?"
-        echo "Hint: run cpan and answer yes to autoconfigure, then try again."
-        echo;
-        exit 1
+        echo "CPAN config missing. Creating one ..."; echo;
+        mkdir -p /root/.cpan/CPAN
+        cd /root/.cpan/CPAN
+        $CURL -LO https://mirrors.efa-project.org/msv5/CPAN/NIX/root/MyConfig.pm
+        cd "$THISCURRPMDIR"
 	fi
 fi
 
@@ -243,16 +236,18 @@ cd "$THISCURRPMDIR"
 # Since the NIX flavor is unknown, user has to create sabuild and generate
 # cpan config to use sudo
 if [ $CPANOPTION -eq 1 ]; then
+    groupadd sabuild
+    useradd -m -s /sbin/nologin -g sabuild sabuild &>/dev/null
     id -u sabuild &>/dev/null
     if [ $? -eq 0 ]; then
         if [ ! -f '/home/sabuild/.cpan/CPAN/MyConfig.pm' ]; then
             echo;
-            echo "sabuild user present but cpan config missing!"
-            echo "Have you configured cpan as sabuild?"
-            echo "Hint: run cpan as sabuild, answer no to auto configure, choose sudo,"
-            echo "and accept defaults for the rest (hit enter, many times)."
-            echo;
-            exit 1
+            echo "CPAN config missing. Creating one ..."; echo;
+            mkdir -p /home/sabuild/.cpan/CPAN
+            cd /home/sabuild/.cpan/CPAN
+            $CURL -LO https://mirrors.efa-project.org/msv5/CPAN/NIX/sabuild/MyConfig.pm
+            chown -R sabuild:sabuild /home/sabuild/.cpan
+            cd "$THISCURRPMDIR"
         fi
 
         echo "sabuild    ALL=(ALL)    NOPASSWD: ALL" > /etc/sudoers.d/sabuild
