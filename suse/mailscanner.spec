@@ -559,7 +559,7 @@ if [ $1 = 0 ]; then
         rm -f /usr/lib/systemd/system/mailscanner.service
         systemctl stop msmilter.service >/dev/null 2>&1
         systemctl disable msmilter.service >/dev/null 2>&1
-        rm -f /usr/lib/systemd/system/msmilter.service >/dev/null 2>&1
+        rm -f /usr/lib/systemd/system/msmilter.service
     else
         service mailscanner stop >/dev/null 2>&1
         chkconfig mailscanner off

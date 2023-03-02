@@ -624,7 +624,7 @@ if [ $1 = 0 ]; then
         rm -f /usr/lib/systemd/system/ms-sendmail-out.service
         systemctl stop msmilter.service >/dev/null 2>&1
         systemctl disable msmilter.service >/dev/null 2>&1
-        rm -f /usr/lib/systemd/system/msmilter.service >/dev/null 2>&1
+        rm -f /usr/lib/systemd/system/msmilter.service
     else
         service mailscanner stop >/dev/null 2>&1
         service ms-sendmail stop >/dev/null 2>&1
