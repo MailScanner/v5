@@ -559,6 +559,7 @@ if [ $1 = 0 ]; then
         rm -f /usr/lib/systemd/system/mailscanner.service
         systemctl stop msmilter.service >/dev/null 2>&1
         systemctl disable msmilter.service >/dev/null 2>&1
+        rm -f /usr/lib/systemd/system/msmilter.service
     else
         service mailscanner stop >/dev/null 2>&1
         chkconfig mailscanner off
@@ -1205,6 +1206,9 @@ exit 0
 %config(noreplace) /usr/share/MailScanner/reports/ca/stored.virus.message.txt
 
 %changelog
+* Thu Mar 02 2023 Shawn Iverson <shawniverson@efa-project.org>
+- Remove msmilter.service on remove
+
 * Sun Nov 20 2022 Shawn Iverson <shawniverson@efa-project.org>
 - Drop local PMilter code from MailScanner (fixed upstream)
 
