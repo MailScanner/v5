@@ -22,6 +22,12 @@
 #      https://www.mailscanner.info
 #
 #
+
+# Date Format (localization)
+# If your locale does not define date as MM/DD/YYYY, then change the following to suit
+DATEORDER='%m %d %Y'
+DATESEPARATOR='/'
+
 PackageDir=$1
 shift
 Prog=odscan
@@ -49,6 +55,27 @@ if [ $? -eq 50 -o $? -eq 1 ]; then
   do
     if [[ $p =~ ^[0-9] ]]; then
       Date=$(echo $p | awk -F',' '{print $1}')
+      # Localization
+      if [[ "$DATEORDER" != "%m %d %Y" && "$DATESEPARATOR" != "/" ]]; then
+        DATEONLY=$(echo $Date | awk -F' ' '{print $1}')
+        TIMEONLY=$(echo $Date | awk -F' ' '{print $2}')
+        pos=1
+        # Reset IFS for this section
+        IFS="$oldIFS"
+        for i in $DATEORDER; do
+          if [[ "$i" == "%m" ]]; then
+            MONTH=$(echo $DATEONLY | awk -F"$DATESEPARATOR" "{print \$$pos}")
+          elif [[ "$i" == "%d" ]]; then
+            DAY=$(echo $DATEONLY | awk -F"$DATESEPARATOR" "{print \$$pos}")
+          elif [[ "$i" == "%Y" ]]; then
+            YEAR=$(echo $DATEONLY | awk -F"$DATESEPARATOR" "{print \$$pos}")
+          fi
+          pos=$(($pos + 1))
+        done
+        IFS=''
+        Date="$MONTH/$DAY/$YEAR $TIMEONLY"
+      fi
+
       Epoch2=$(date --date="$Date" +%s)
       if [ $Epoch2 -ge $Epoch ]; then
         # Grab detections and filter to scan directory
