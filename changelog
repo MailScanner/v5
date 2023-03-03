@@ -1,3 +1,20 @@
+03/03/2023 Changes in    v5.5.1-1 (beta)
+==================================
+- Set headermodified flag on signature
+- Ignore quotes at start/end of link text for fraud check
+- Drop Sendmail::PMilter local perl module (fixed upstream)
+- Fix condition logic in authenticated spam list check
+- Fix date string in milter (rfc5322 section 3.3)
+- SpamAssassin 4x support and latest OSes updates
+- Skip signing calendar mimetypes with external message
+- Virus scan options and enhancements
+- Don't delete message from processing db if abandoned
+- Add newline between header and body in modified header
+  (milter mode)
+- Spec file updates for rhel and suse
+- Date localization workaround for Esets EFS wrapper
+- ms-perl-check update to check core modules
+
 10/29/2022 Changes in    v5.4.5-3
 ==================================
 
