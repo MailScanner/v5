@@ -7,7 +7,7 @@
 
 # Welcome to MailScanner!
 
-January 04, 2022
+March 03, 2023
 
 MailScanner Team <https://www.mailscanner.info>
 
@@ -73,11 +73,14 @@ Other *nix
 
 ## NIX:
 
-For generic NIX systems, create a symlink for controlling the start/stop/restart of the program to:
+For generic NIX systems, create a symlink for controlling the start/stop/restart
+of the program to scripts in:
 
-  /usr/lib/MailScanner/init/ms-init
+  /usr/lib/MailScanner/init, or
+  /usr/lib/MailScanner/systemd
   
   * This is not required for RHEL, CentOS, Debian, Ubuntu, SUSE
+  * Use appropriate package install for these instead of this one
 
 ## File Locations:
 

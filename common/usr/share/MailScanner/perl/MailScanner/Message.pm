@@ -748,7 +748,7 @@ sub IsSpam {
   }
 
   my $isauthenticated = 0;
-  if ((MailScanner::Config::Value('mta') == "postfix" ||  MailScanner::Config::Value('mta') == "msmail") &&
+  if ((MailScanner::Config::Value('mta') eq "postfix" ||  MailScanner::Config::Value('mta') eq "msmail") &&
     MailScanner::Config::Value('spamlistskipifauthenticated')) {
     # MailScanner::Log::InfoLog(Dumper($metadata));
     # Test if sender is authenticated on mta
@@ -759,7 +759,7 @@ sub IsSpam {
         $isauthenticated = 1;
       }
     }
-  } elsif (MailScanner::Config::Value('mta') == "exim" && MailScanner::Config::Value('spamlistskipifauthenticated')) {
+  } elsif (MailScanner::Config::Value('mta') eq "exim" && MailScanner::Config::Value('spamlistskipifauthenticated')) {
     if (exists $this->{metadata}->{dv_auth_id}) {
         MailScanner::Log::InfoLog("Sender was authenticated - Not checking RBLs");
         $isauthenticated = 1;
@@ -1617,6 +1617,7 @@ sub HandleSpamBounceAttachment {
     MailScanner::Log::WarnLog(
       "Failed to create sender spam bounce attachment, %s", $!);
   }
+  $this->{headermodified} = 1;
 }
 
 
@@ -2235,6 +2236,7 @@ sub ZipAttachments {
                                       Disposition => "attachment");
   $entity->add_part($newentity);
   $this->{bodymodified} = 1;
+  $this->{headermodified} = 1;
 
   # Create all the Helpers for the new attachment
   $this->{entity2file}{$newentity} = $newzipname;
@@ -2662,6 +2664,7 @@ sub DeleteEntity {
     push @keep, $part;
     $message->{entity}->parts(\@keep);
     $message->{bodymodified} = 1;
+    $message->{headermodified} = 1;
     #print STDERR "Replaced single part with empty text/plain attachment\n";
     return 2;
   }
@@ -2700,6 +2703,7 @@ sub DeleteEntity {
   }
   $subtree->parts(\@keep);
   $message->{bodymodified} = 1;
+  $message->{headermodified} = 1;
 
   # If there are no parts left, make this entity a singlepart entity
   $subtree->make_singlepart unless scalar(@keep);
@@ -2711,7 +2715,9 @@ sub DeleteEntity {
 # space.
 sub DropFromBatch {
   my($message) = @_;
-  $message->{deleted} = 1;
+  # https://github.com/MailScanner/v5/issues/641
+  # This is mutually exclusive to abandoned and stomps on the processing database
+  # $message->{deleted} = 1; 
   $message->{gonefromdisk} = 1; # Don't try to delete the original
   $message->{store}->Unlock(); # Unlock it so other processes can pick it up
   $message->{abandoned} = 1; # This message was abandoned, re-try it n times
@@ -4748,6 +4754,7 @@ sub CleanEntity {
       $entity->make_multipart()
         if $entity->head && $entity->head->mime_attr('content-type') eq "";
       $entity->parts(\@parts);
+      $this->{headermodified} = 1;
       return;
     }
   }
@@ -4815,6 +4822,7 @@ sub CleanEntity {
   #  $parent->make_singlepart();
   }
   #print STDERR "Finished CleanEntity\n";
+  $this->{headermodified} = 1;
 }
 
 
@@ -5004,6 +5012,7 @@ sub SignExternalMessage {
 
   my $MimeType = $top->head->mime_type if $top->head;
   return 0 unless $MimeType =~ m{text/}i; # Won't sign non-text message.
+  return 0 if $MimeType =~ /text\/calendar/i; # Don't sign calendars
   # Won't sign attachments.
   return 0 if $top->head->mime_attr('content-disposition') =~ /attachment/i;
 
@@ -5504,6 +5513,7 @@ sub AppendSignCleanEntity {
   }
 
   # We signed something
+  $this->{headermodified} = 1;
   return 1;
 }
 
@@ -6844,6 +6854,7 @@ sub DeliverFiles {
   }
 
   # Now send the message
+  $this->{headermodified} = 1;
   $global::MS->{mta}->SendMessageEntity($this, $top, $localpostmaster)
     or MailScanner::Log::WarnLog("Could not send disinfected message, %s",$!);
 }
@@ -7171,6 +7182,7 @@ sub EncapsulateMessageHTML {
   $this->{entity}->head->add('MIME-Version', '1.0')
     unless $this->{entity}->head->get('mime-version');
   $this->{bodymodified} = 1;
+  $this->{headermodified} = 1;
   return;
 }
 
@@ -7858,6 +7870,7 @@ sub DisarmEndtagCallback {
       $squashedtext =~ /[.,]com?[.,][a-z][a-z]/i ||
       $squashedtext =~ /^(ht+ps?|ft+p|fpt+|mailto|webcal)[:;](\/\/)?(.*(\.|\%2e))/i ||
       $numbertrap) {
+      $squashedtext =~ s/["'](.*)["']/$1/;
       $squashedtext =~  s/^(ht+ps?|ft+p|fpt+|mailto|webcal)[:;](\/\/)?(.*(\.|\%2e))/$3/i;
       $squashedtext =~ s/^.*?-http:\/\///; # 20080206 Delete common pre-pended text
       $squashedtext =~ s/\/.*$//; # Only compare the hostnames

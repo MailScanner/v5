@@ -4,8 +4,8 @@
 #
 # This script will check for any missing perl modules.
 #
-# Jerry Benton <mailscanner@mailborder.com>
-# 27 FEB 2015
+# MailScanner Team <https://mailscanner.info>
+# 25 Feb 2023
 
 # check for perldoc
 if [ ! -x /usr/bin/perldoc ]; then
@@ -19,58 +19,140 @@ else
 	PERLDOC='/usr/bin/perldoc';
 fi
 
-# the array of perl modules needed
+# The array of core perl modules needed.
+# This is not a comprehensive check.
+# Does not include the vast array of dependencies, if the module
+# is installed, it is likely any of its dependencies are also installed.
+
+# MailScanner (based on code dependencies and run checks)
 ARMOD=();
-ARMOD+=('Archive::Tar'); 		ARMOD+=('Archive::Zip');		ARMOD+=('bignum');				
-ARMOD+=('Carp');				ARMOD+=('Compress::Zlib');		ARMOD+=('Compress::Raw::Zlib');	
-ARMOD+=('Convert::BinHex'); 	ARMOD+=('Convert::TNEF');		ARMOD+=('Data::Dumper');		
-ARMOD+=('Date::Parse');			ARMOD+=('DBD::SQLite');			ARMOD+=('DBI');					
-ARMOD+=('Digest::HMAC');		ARMOD+=('Digest::MD5');			ARMOD+=('Digest::SHA1'); 		
-ARMOD+=('DirHandle');			ARMOD+=('ExtUtils::MakeMaker');	ARMOD+=('Fcntl');				
-ARMOD+=('File::Basename');		ARMOD+=('File::Copy');			ARMOD+=('File::Path');			
-ARMOD+=('File::Spec');			ARMOD+=('File::Temp');			ARMOD+=('FileHandle');			
-ARMOD+=('Filesys::Df');			ARMOD+=('Getopt::Long');		ARMOD+=('Inline::C');			
-ARMOD+=('IO');					ARMOD+=('IO::File');			ARMOD+=('IO::Pipe');			
-ARMOD+=('IO::Stringy');			ARMOD+=('HTML::Entities');		ARMOD+=('HTML::Parser');		
-ARMOD+=('HTML::Tagset');		ARMOD+=('HTML::TokeParser');	ARMOD+=('Mail::Field');			
-ARMOD+=('Mail::Header');		ARMOD+=('Mail::IMAPClient');	ARMOD+=('Mail::Internet');		
-ARMOD+=('Math::BigInt');		ARMOD+=('Math::BigRat');		ARMOD+=('MIME::Base64');		
-ARMOD+=('MIME::Decoder');		ARMOD+=('MIME::Decoder::UU');	ARMOD+=('MIME::Head');			
-ARMOD+=('MIME::Parser');		ARMOD+=('MIME::QuotedPrint');	ARMOD+=('MIME::Tools');			
-ARMOD+=('MIME::WordDecoder');	ARMOD+=('Net::CIDR');			ARMOD+=('Net::DNS');			
-ARMOD+=('Net::IP');				ARMOD+=('OLE::Storage_Lite');	ARMOD+=('Pod::Escapes');		
-ARMOD+=('Pod::Simple');			ARMOD+=('POSIX');				ARMOD+=('Scalar::Util');		
-ARMOD+=('Socket'); 				ARMOD+=('Storable'); 	 	 	ARMOD+=('Test::Harness');		
-ARMOD+=('Test::Pod');			ARMOD+=('Test::Simple');		ARMOD+=('Time::HiRes');			
-ARMOD+=('Time::localtime'); 	ARMOD+=('Sys::Hostname::Long');	ARMOD+=('Sys::SigAction');		
-ARMOD+=('Sys::Syslog'); 		ARMOD+=('Env'); 				
-ARMOD+=('Mail::SpamAssassin');
+ARMOD+=('AnyDBM_File');
+ARMOD+=('Archive::Zip');
+ARMOD+=('Carp');
+ARMOD+=('Compress::Raw::Zlib'); 
+ARMOD+=('Compress::Zlib');
+ARMOD+=('Cwd');
+ARMOD+=('Data::Dumper');
+ARMOD+=('DateTime');
+ARMOD+=('DBI');
+ARMOD+=('Digest::MD5');
+ARMOD+=('DirHandle');
+ARMOD+=('Encode');
+ARMOD+=('Env');
+ARMOD+=('Fcntl');
+ARMOD+=('File::Basename');
+ARMOD+=('File::Copy');
+ARMOD+=('FileHandle');
+ARMOD+=('File::Path');
+ARMOD+=('Filesys::Df');
+ARMOD+=('File::Temp');
+ARMOD+=('Getopt::Long');
+ARMOD+=('HTML::Entities');
+ARMOD+=('HTML::Parser');
+ARMOD+=('HTML::TokeParser');
+ARMOD+=('IO::File');
+ARMOD+=('IO::Handle');
+ARMOD+=('IO::Pipe');
+ARMOD+=('IO::Socket::INET');
+ARMOD+=('IO::Socket::UNIX');
+ARMOD+=('IO::Stringy');
+ARMOD+=('IPC::Open2');
+ARMOD+=('LWP::UserAgent');
+ARMOD+=('MIME::Decoder');
+ARMOD+=('MIME::Decoder::UU');
+ARMOD+=('MIME::Head');
+ARMOD+=('MIME::Parser');
+ARMOD+=('MIME::WordDecoder');
+ARMOD+=('Net::CIDR');
+ARMOD+=('Net::DNS');
+ARMOD+=('Net::DNS::Resolver::Programmable');
+ARMOD+=('Net::Domain');
+ARMOD+=('OLE::Storage_Lite');
+ARMOD+=('POSIX');
+ARMOD+=('Sendmail::PMilter');
+ARMOD+=('Socket');
+ARMOD+=('strict');
+ARMOD+=('Sys::Hostname::Long');
+ARMOD+=('Sys::SigAction');
+ARMOD+=('Sys::Syslog');
+ARMOD+=('Time::HiRes');
+ARMOD+=('Time::Local');
+ARMOD+=('Time::localtime');
 
-# not required but nice to have
-ARMOD+=('bignum');				
-ARMOD+=('Data::Dump');			ARMOD+=('DB_File');				ARMOD+=('DBD::SQLite');
-ARMOD+=('DBI');					ARMOD+=('Digest');				ARMOD+=('Encode::Detect');
-ARMOD+=('Error');				ARMOD+=('ExtUtils::CBuilder');	ARMOD+=('ExtUtils::ParseXS');
-ARMOD+=('Getopt::Long');		ARMOD+=('Inline');				ARMOD+=('IO::String');	
-ARMOD+=('IO::Zlib');			ARMOD+=('IP::Country');			ARMOD+=('Mail::SPF');
-ARMOD+=('Mail::SPF::Query');	ARMOD+=('Module::Build');		ARMOD+=('Net::CIDR::Lite');
-ARMOD+=('Net::DNS');			ARMOD+=('Net::LDAP');			ARMOD+=('Net::DNS::Resolver::Programmable');
-ARMOD+=('NetAddr::IP');			ARMOD+=('Parse::RecDescent');	ARMOD+=('Test::Harness');
-ARMOD+=('Test::Manifest');		ARMOD+=('Text::Balanced');		ARMOD+=('URI');	
-ARMOD+=('version');				ARMOD+=('IO::Compress::Bzip2');
+# SpamAssassin (4.0) required modules
+# based on lint test, and runtime includes
+ARMOD2+=('Archive::Tar');
+ARMOD2+=('Carp');
+ARMOD2+=('Config');
+ARMOD2+=('Cwd');
+ARMOD2+=('Data::Dumper');
+ARMOD2+=('Digest::MD5');
+ARMOD2+=('Digest::SHA');
+ARMOD2+=('Encode');
+ARMOD2+=('Errno');
+ARMOD2+=('Exporter');
+ARMOD2+=('Fcntl');
+ARMOD2+=('File::Basename');
+ARMOD2+=('File::Path');
+ARMOD2+=('File::Path');
+ARMOD2+=('File::Spec');
+ARMOD2+=('HTML::Parser');
+ARMOD2+=('IO::Handle');
+ARMOD2+=('IO::Select');
+ARMOD2+=('IO::Socket::UNIX');
+ARMOD2+=('IO::Socket');
+ARMOD2+=('IO::Zlib');
+ARMOD2+=('Mail::SpamAssassin');
+ARMOD2+=('Net::DNS');
+ARMOD2+=('NetAddr::IP');
+ARMOD2+=('POSIX');
+ARMOD2+=('Scalar::Util');
+ARMOD2+=('Socket');
+ARMOD2+=('Storable');
+ARMOD2+=('Sys::Syslog');
+ARMOD2+=('Time::HiRes');
+ARMOD2+=('Time::Local');
+ARMOD2+=('version');
 
-# additional spamassassin plugins				
-ARMOD+=('Mail::SpamAssassin::Plugin::Rule2XSBody');		
-ARMOD+=('Mail::SpamAssassin::Plugin::DCC');				
-ARMOD+=('Mail::SpamAssassin::Plugin::Pyzor');
-ARMOD+=('Mail::SpamAssassin');
-ARMOD+=('Mail::ClamAV');		
+# SpamAssassin (4.0) optional modules
+
+ARMOD3+=('Archive::Zip');
+ARMOD3+=('BSD::Resource');
+ARMOD3+=('Compress::Zlib');
+ARMOD3+=('DB_File');
+ARMOD3+=('DBD::SQLite');
+ARMOD3+=('DBI');
+ARMOD3+=('Digest::SHA1');
+ARMOD3+=('Email::Address::XS');
+ARMOD3+=('Encode::Detect::Detector');
+ARMOD3+=('Geo::IP');
+ARMOD3+=('IO::Socket::INET6');
+ARMOD3+=('IO::Socket::IP');
+ARMOD3+=('IO::Socket::SSL');
+ARMOD3+=('IO::String');
+ARMOD3+=('IP::Country::DB_File');
+ARMOD3+=('IP::Country::Fast');
+ARMOD3+=('LWP::UserAgent');
+ARMOD3+=('Mail::DKIM');
+ARMOD3+=('Mail::DMARC');
+ARMOD3+=('Mail::SPF');
+ARMOD3+=('MaxMind::DB::Reader::XS');
+ARMOD3+=('MaxMind::DB::Reader');
+ARMOD3+=('MIME::Base64');
+ARMOD3+=('Net::CIDR::Lite');
+ARMOD3+=('Net::DNS::Nameserver');
+ARMOD3+=('Net::LibIDN');
+ARMOD3+=('Net::LibIDN2');
+ARMOD3+=('Net::Patricia');
+ARMOD3+=('Net::SMTP');
+# No perl documentation will always report missing
+#ARMOD3+=('Razor2::Client::Agent');
 
 for i in "${ARMOD[@]}"
 do
 	$PERLDOC -l $i >/dev/null 2>&1
 	if [ $? != 0 ]; then
-		echo "WARNING: $i => Missing";
+		echo "WARNING: MailScanner module $i => Missing";
 	else
 		echo "$i => OK";
 	fi
@@ -80,7 +162,18 @@ for i in "${ARMOD2[@]}"
 do
 	$PERLDOC -l $i >/dev/null 2>&1
 	if [ $? != 0 ]; then
-		echo "OPTIONAL: $i => Missing";
+		echo "WARNING: SpamAssassin module $i => Missing";
+	else
+		echo "$i => OK";
+	fi
+done
+
+
+for i in "${ARMOD3[@]}"
+do
+	$PERLDOC -l $i >/dev/null 2>&1
+	if [ $? != 0 ]; then
+		echo "OPTIONAL: SpamAssassin module $i => Missing";
 	else
 		echo "$i => OK";
 	fi

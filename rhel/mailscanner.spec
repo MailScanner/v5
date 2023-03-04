@@ -74,7 +74,6 @@ MailScanner/reports/ro
 MailScanner/reports/sk
 MailScanner/perl/MailScanner
 MailScanner/perl/custom
-MailScanner/perl/Sendmail/PMilter
 EOF
 
 while read f
@@ -207,10 +206,6 @@ EOF
 done
 
 install common/usr/share/MailScanner/perl/MailScanner.pm ${RPM_BUILD_ROOT}/usr/share/MailScanner/perl/
-
-install common/usr/share/MailScanner/perl/Sendmail/Milter.pm ${RPM_BUILD_ROOT}/usr/share/MailScanner/perl/Sendmail/
-install common/usr/share/MailScanner/perl/Sendmail/PMilter.pm ${RPM_BUILD_ROOT}/usr/share/MailScanner/perl/Sendmail/
-install common/usr/share/MailScanner/perl/Sendmail/PMilter/Context.pm ${RPM_BUILD_ROOT}/usr/share/MailScanner/perl/Sendmail/PMilter
 
 while read f 
 do
@@ -629,6 +624,7 @@ if [ $1 = 0 ]; then
         rm -f /usr/lib/systemd/system/ms-sendmail-out.service
         systemctl stop msmilter.service >/dev/null 2>&1
         systemctl disable msmilter.service >/dev/null 2>&1
+        rm -f /usr/lib/systemd/system/msmilter.service
     else
         service mailscanner stop >/dev/null 2>&1
         service ms-sendmail stop >/dev/null 2>&1
@@ -770,10 +766,6 @@ exit 0
 %attr(644,root,root) /usr/share/MailScanner/perl/MailScanner/WorkArea.pm
 %attr(644,root,root) /usr/share/MailScanner/perl/MailScanner/ZMailer.pm
 %attr(644,root,root) /usr/share/MailScanner/perl/MailScanner/ZMDiskStore.pm
-
-%attr(644,root,root) /usr/share/MailScanner/perl/Sendmail/Milter.pm
-%attr(644,root,root) /usr/share/MailScanner/perl/Sendmail/PMilter.pm
-%attr(644,root,root) /usr/share/MailScanner/perl/Sendmail/PMilter/Context.pm
 
 %attr(755,root,root) /etc/cron.daily/mailscanner
 %attr(755,root,root) /etc/cron.hourly/mailscanner
@@ -1289,6 +1281,12 @@ exit 0
 %config(noreplace) /usr/share/MailScanner/reports/ca/stored.virus.message.txt
 
 %changelog
+* Thu Mar 02 2023 Shawn Iverson <shawniverson@efa-project.org>
+- Remove msmilter.service on remove
+
+* Sun Nov 20 2022 Shawn Iverson <shawniverson@efa-project.org>
+- Drop local PMilter code from MailScanner (fixed upstream)
+
 * Sat Oct 29 2022 Shawn Iverson <shawniverson@efa-project.org>
 - Integrate working PMilter code into MailScanner
 

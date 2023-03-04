@@ -34,7 +34,7 @@ use Sendmail::PMilter;
 use Socket;
 use Socket qw(inet_ntop);
 use POSIX qw(strftime);
-use POSIX qw(setlocale);
+use DateTime;
 use Sys::Hostname;
 use Time::HiRes qw( gettimeofday );
 use Getopt::Long;
@@ -280,8 +280,8 @@ sub header_callback
     my $message_ref = $ctx->getpriv();
     my $symbols = $ctx->{symbols};
     my $id;
-    setlocale(POSIX::LC_ALL,'en_US.ISO8859-1');
-    my $datestring = strftime "%a, %e %b %Y %T %z (%Z)", localtime;
+    my $tz = DateTime::TimeZone->new( name => 'local' );
+    my $datestring = DateTime->now(time_zone => $tz)->strftime("%a, %e %b %Y %T %z (%Z)");
 
     # Postfix queue id revealed during this phase, capture it if defined
     # and populate the rest of the Received: header

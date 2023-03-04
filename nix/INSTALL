@@ -11,16 +11,19 @@
 #
 # Support: http://lists.mailscanner.info/mailman/listinfo/mailscanner
 #
-# Updated: 2 Nov 2019			
+# Updated: 24 Feb 2023	
 # MailScanner Team <https://www.mailscanner.info>
 # 
 
-
 The install for NIX* is very straightforward. It simply copies the files into place. From
-there you will need to create the links to get MailScanner to start at boot. 
+there you will need to create the links to get MailScanner to start at boot, etc.
 
-Requirements: perl, perldoc, curl, cpan, and network access if you want to install missing Perl modules
-via CPAN. 
+Requirements: perl, perldoc, curl, wget, cpan, sudo, tar, essential perl build tools such as 
+make, and network access, if you want to install modules from CPAN.
+
+If you are using RHEL derivatives, Debian derivatives (including Ubuntu), or openSUSE
+derivatives, use the appropriate package and not this method from tarball for a greater
+chance of success.
 
 Important files to note:
 
@@ -38,8 +41,10 @@ The main configuration file for MailScanner's engine. You will also need to cust
 /usr/lib/MailScanner/init/ms-init
 
 This is the initialization script for MailScanner. This is the script you would symlink to control
-MailScanner using start/stop/restart/reload/kill. 
+MailScanner using start/stop/restart/reload/kill on sysv init-based systems
 
+/usr/lib/MailScanner/systemd/ms-*
+These are the systemd unit files that can be used on systemd systems
 
 /usr/sbin/ms-perl-check
 
