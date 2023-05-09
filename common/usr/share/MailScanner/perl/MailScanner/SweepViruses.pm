@@ -1540,7 +1540,7 @@ sub ProcessGenericOutput {
   chomp $line;
   $logout = $line;
   $logout =~ s/\s{20,}/ /g;
-  ($keyword, $virusname, $filename) = split(/::/, $line, 3);
+  ($keyword, $virusname, $filename) = split(/::/, $line, 2);
 
   if ($keyword =~ /^error/i) {
     MailScanner::Log::InfoLog("GenericScanner::%s", $logout);
