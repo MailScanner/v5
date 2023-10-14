@@ -2920,13 +2920,12 @@ sub ExplodePartAndArchives {
       if ($buffer =~ /^MZ/) {
         $failisokay = 1;
       }
-      $file->close, next unless $buffer eq "PK\003\004" ||
-                  $buffer eq "Rar!"       ||
-                  $part =~ /\.rar$/       ||
-                  defined($uudfilename) ||
-                  $failisokay;
-      #print STDERR "Found a zip or rar file\n" ;
+
       $file->close, next unless MailScanner::Config::Value('findarchivesbycontent', $this) ||
+                  $buffer eq "PK\003\004" ||
+                  $buffer eq "Rar!"       ||
+                  defined($uudfilename)   ||
+                  $failisokay             ||
                   $part =~ /\.(001|7z|arj|bz2|bzip2|cab|cpio|deb|dmg|fat|gz|gzip|hfs|iso|img|jar|lha|lzh|lzma|ntfs|rpm|squashfs|swm|tar|taz|tbz2?|tgz|tar\.g?z|tz|gz|zip|exe|rar|uue?|docx?|xlsx?|pptx?|dotx?|xltx?|ppsx?|tpz|txz|vhd|wim|xar|x?z)$/i;
       $foundnewfiles = 1;
       #print STDERR "Unpacking $part at level $level\n";
@@ -3150,6 +3149,8 @@ sub Unpack7zip {
   $memb =~ s/\r//gs;
   my @test = split /\n/, $memb;
   $memb = '';
+  my $namepos = 0;
+  my $attrpos = 0;
 
   # Have to parse the output from the 'v' command and parse the information
   # between the ----------------------------- lines
@@ -3161,9 +3162,16 @@ sub Unpack7zip {
     # If so then we are at the end
     $EndInfo = 1 if $what =~ /-{18,}$/ && $BeginInfo;
   
+    # DN: find positions of name and attr columns in 7z output
+    if ($what =~ /Date\s+Time\s+Attr\s+Size\s+Compressed\s+Name/) {
+      $namepos=index($what,"Name");
+      $attrpos=index($what,"Attr")-1;
+      #MailScanner::Log::WarnLog("7z namepos: %s / attrpos: %s",$namepos,$attrpos);
+    }
+
     # if we are after the begning but haven't reached the end,
     # then process this line
-    if ($BeginInfo && !$EndInfo) {
+    if ($BeginInfo && !$EndInfo && $namepos > 0) {
       # MailScanner::Log::WarnLog("7z what: %s", $what);
       # If we are on line one then it's the file name with full path
       # otherwise we are on the info line containing the attributes
@@ -3171,22 +3179,22 @@ sub Unpack7zip {
       ##my (@Zarray ) = split /\s/, $what;
 
       # Add support to filenames with spaces.
-      my @Zarray;
-      for (my $i=0; $i <= 4; $i++) {
-        $what =~ / +/;
-        $Zarray[$i]= substr($what, 0,     $-[0]),
-        $what=substr($what, $+[0]);
-      }
-      $Zarray[5]=$what;
+      #my @Zarray;
+      #for (my $i=0; $i <= 4; $i++) {
+      #  $what =~ / +/;
+      #  $Zarray[$i]= substr($what, 0,     $-[0]),
+      #  $what=substr($what, $+[0]);
+      #}
+      #$Zarray[5]=$what;
 
       # my $Zname = pop @Zarray; # this is the most important value, other values are nice to have but this one we must have
-      my $Zname = $Zarray[5]; # this is the most important value, other values are nice to have but this one we must have
-      my $Zdate = $Zarray[0];
-      my $Ztime = $Zarray[1];
-      my $Zattr = $Zarray[2];
+      my $Zname = substr($what,$namepos);
+      #my $Zdate = $Zarray[0];
+      #my $Ztime = $Zarray[1];
+      my $Zattr = substr($what,$attrpos,5);
       #my $Zsize = $Zarray[3];
       #my $ZCsize = $Zarray[4];
-      #MailScanner::Log::WarnLog("7z-members: [%s] [%s] [%s] [%s] [%s] [%s]", $Zdate, $Ztime, $Zattr, $Zsize, $ZCsize, $Zname);
+      MailScanner::Log::WarnLog("7z-members: [%s] [%s]", $Zattr, $Zname);
 
       $memb .= "$Zname\n" if $Zattr !~ /^d|^D/;
     }
