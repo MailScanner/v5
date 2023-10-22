@@ -158,6 +158,12 @@ sub helo_callback
     my $helohost = shift;
     my $message_ref = $ctx->getpriv();
     my $message = "Received: from $helohost";
+    # Check for unexpected helo
+    if ( ${$message_ref} =~ /^[0-9A-F]{7,20}|[0-9B-DF-HJ-NP-TV-Zb-df-hj-np-tv-z]{8,20}$/) {
+        MailScanner::Log::WarnLog("Unexpected helo callback");
+        Sendmail::PMilter::SMFIS_TEMPFAIL;
+        return;
+    }
     # Watch for the second callback
     if ( ${$message_ref} !~ /^Received:/ ) {
         ${$message_ref} = $message . ' (' . ${$message_ref} . ')' ."\n";
