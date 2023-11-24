@@ -1,6 +1,6 @@
 #
 #   MailScanner - SMTP Email Processor
-#   Copyright (C) 2002  Julian Field
+#   Copyright (C) 2023  MailScanner Project
 #
 #   $Id: EximDiskStore.pm 4446 2008-05-08 19:15:02Z sysjkf $
 #
@@ -208,9 +208,16 @@ sub DoPendingDeletes {
 # whether the spool is split or not.
 sub OutQDir {
   my $name = shift;
+  my $offset;
+
+  if (MailScanner::Config::Value('eximlongids') =~ /1/) {
+    $offset = -20;
+  } else {
+    $offset = -13;
+  }
 
   if (MailScanner::Config::Value('spliteximspool')) {
-    return '/' . substr($name,-13,1) . '/';
+    return '/' . substr($name,$offset,1) . '/';
   } else {
     return '/';
   }
@@ -433,9 +440,18 @@ sub WriteEntireMessage {
   # We have to strip the message-ID off the beginning of the file
   # using sysread since that is what File::Copy uses and it doesn't
   # play nicely with stdio operations such as $body->getline. The
-  # magic number 19 is from the length of NNNNNN-NNNNNN-NN-D\n.
+  # magic number 19 or 26 is from the length of message-ID in file\n.
   my $discard;
-  sysread($body, $discard, 19);
+
+  my $offset;
+
+  if (MailScanner::Config::Value('eximlongids') =~ /1/) {
+    $offset = 26;
+  } else {
+    $offset = 19;
+  }
+
+  sysread($body, $discard, $offset);
 
   copy($body, $handle);
 
@@ -509,17 +525,25 @@ sub ReadMessageHandle {
   # We have to strip the message-ID off the beginning of the file
   # using sysread since that is what File::Copy uses and it doesn't
   # play nicely with stdio operations such as $body->getline. The
-  # magic number 19 is from the length of NNNNNN-NNNNNN-NN-D\n.
+  # magic number 19 or 26 is from the length of message-ID in file\n.
   my $from_h = \do { local *FH1 };
   open($from_h, "< $dhandle");
   binmode $from_h or die "($!,$^E)";
 
-  sysseek($from_h, 19, 0);
+  my $offset;
+
+  if (MailScanner::Config::Value('eximlongids') =~ /1/) {
+    $offset = 26;
+  } else {
+    $offset = 19;
+  }
+
+  sysseek($from_h, $offset, 0);
 
   my $size;
   my $buf = "";
   my $lasteol = ' ';
-  my $dlength = -s $dhandle; # Catch case where -D file is 0 (ie 19) bytes
+  my $dlength = -s $dhandle; # Catch case where -D file is 0 (ie 19 or 26) bytes
   $size = $dlength;
   $size = 1024 if ($size < 512);
   $size = 1024*1024*2 if $size > 1024*1024*2;
@@ -538,7 +562,7 @@ sub ReadMessageHandle {
 
   # Need to ensure the end of the file is and new-line character,
   # unless it's a 0 length file.
-  if ($lasteol !~ /[\n\r]/s && $dlength>19) {
+  if ($lasteol !~ /[\n\r]/s && $dlength>$offset) {
     $lasteol = "\n";
     syswrite($to_h, $lasteol);
   }

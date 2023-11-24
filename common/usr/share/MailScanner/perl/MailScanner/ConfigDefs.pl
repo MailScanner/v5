@@ -278,6 +278,7 @@ milterignoreloopback            = MilterIgnoreLoopback
 msmaildeliverymethod            = MSMailDeliveryMethod
 msmailsockettype                = MSMailSocketType
 msmailsocketdir                 = MSMailSocketDir
+eximcommand                     = EximCommand
 
 #
 # Simple variables which can only have a single value, no rules allowed.
@@ -318,7 +319,6 @@ MilterIgnoreLoopback	1	no	0	yes	1
 aignoredatexecutable	0	no	0	yes	1
 stilldeliverunscannable	0	no	0	yes	1
 retrybatchscanner	1	no	0	yes	1
-
 
 # These should be checked for dir existence
 [Simple,Dir]
@@ -457,6 +457,7 @@ MSMailSocketDir          /var/spool/postfix/public/qmqp
 KseSocket                /var/run/kse/kse.sock
 FsecureSocket            /tmp/.fsav-0
 SAVIDSocket              /var/lib/savdid/savdid.sock
+EximCommand
 
 #
 # These variables match on any rule matching From:, else anything for To:
