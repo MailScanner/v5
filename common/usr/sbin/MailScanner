@@ -378,11 +378,11 @@ if (/exim/i) {
   if ($eximcommand eq "") {
     # try to find exim
     eval {
-        $eximcommand = `which exim`;
-    }
+      $eximcommand = `which exim`;
+    };
     if ($@ || $eximcommand eq "") {
-        print STDERR "Exim binary not found. Please supply the full path to Exim Command in MailScanner.conf";
-        exit 1;
+      print STDERR "Exim binary not found. Please supply the full path to Exim Command in MailScanner.conf";
+      exit 1;
     }
   }
   # Get exim version
@@ -394,7 +394,7 @@ if (/exim/i) {
     @line = split(/ /, $out[0]);
     $ver = $line[2];
     $ver =~ /\d+\.\d+/;
-  }
+  };
   if ($@) {
     print STDERR "Unable to obtain version of Exim. Please check the path to Exim Command in MailScanner.conf";
     exit 1;
