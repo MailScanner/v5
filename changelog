@@ -1,3 +1,9 @@
+12/27/2023 Changes in    v5.5.1-2
+==================================
+- Fix 7z/xz/bz2 etc. decompression
+- Check for bad helo callback in msmilter
+- Support new Exim Message-ID format in versions 4.97+
+
 03/03/2023 Changes in    v5.5.1-1 (beta)
 ==================================
 - Set headermodified flag on signature
