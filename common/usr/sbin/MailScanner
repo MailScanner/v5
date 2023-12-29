@@ -402,7 +402,7 @@ if (/exim/i) {
   if ($ver >= 4.97) {
     MailScanner::Config::SetValue('eximlongids',1);
   } else {
-    MailSCanner::Config::SetValue('eximlongids',0);
+    MailScanner::Config::SetValue('eximlongids',0);
   }
   $MTAmod = 'Exim.pm';
   $MTADSmod = 'EximDiskStore.pm';
