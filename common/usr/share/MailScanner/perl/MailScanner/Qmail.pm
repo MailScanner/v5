@@ -2,7 +2,7 @@
 #   MailScanner - SMTP Email Processor
 #   Copyright (C) 2002  Julian Field
 #
-#   OpenProtect - Server Side E-Mail Protection	
+#   OpenProtect - Server Side E-Mail Protection 
 #   Copyright (C) 2003 Opencomputing Technologies
 #
 #   $Id: Qmail.pm 5080 2011-02-05 19:35:17Z sysjkf $
@@ -173,9 +173,9 @@ sub new {
     my $hash = $file%MailScanner::Config::Value('qmailhashdirectorynumber');
     my $intdhash;
     if (MailScanner::Config::Value('qmailintdhashnumber') == 1)       {
-    	$intdhash = -1;
+      $intdhash = -1;
     } else {
-    	$intdhash = $file%MailScanner::Config::Value('qmailintdhashnumber');
+      $intdhash = $file%MailScanner::Config::Value('qmailintdhashnumber');
     }
     return ($dir,$hash,$file, $intdhash);
   }
@@ -192,17 +192,17 @@ sub new {
     my($RQf) = $message->{store}{inhdhandle};
     my($Rintdf) = $message->{store}{intdhandle};
     my($intdline) = readline($Rintdf);
-    #print STDERR $message->{id} . "\n";	
+    #print STDERR $message->{id} . "\n";
     my($temp,@headers,$line,@qfarr);
-    my($ipfromheader,$read1strcvd);
+    my($ipfromheader, $ip2fromheader, $read1strcvd, $read2ndrcvd);
     
     @qfarr = <$RQf>;
     my($FIELD_NAME) = '[^\x00-\x1f\x7f-\xff :]+:';
     shift @qfarr while scalar(@qfarr) && $qfarr[0] =~ /\A[ \t]+/o && $qfarr[1] =~ /\A$FIELD_NAME/o;
     while(scalar(@qfarr) && $qfarr[0] =~ /\A$FIELD_NAME|From /o) {
-    	$line = shift @qfarr;
-	$line .= shift @qfarr while(scalar(@qfarr) && $qfarr[0] =~ /\A[ \t]+/o);
-	push @headers, $line;
+      $line = shift @qfarr;
+    $line .= shift @qfarr while(scalar(@qfarr) && $qfarr[0] =~ /\A[ \t]+/o);
+    push @headers, $line;
     }
     
     my($from,$to);
@@ -224,66 +224,75 @@ sub new {
     
     $from = $intdline;
     if($from =~ /F(.*?)\0T/) {
-    	$message->{from} = $1;
-        $FROMFound = 1;
+      $message->{from} = $1;
+      $FROMFound = 1;
     }
     $to = $intdline;
     if($to =~ /T/) {
-	$to =~ s/(u.*?F.*?\0)//;
-        do {
-            if($to =~ s/^T((.*?)\0)//) {
- 		$TOFound = 1;
-    	        push @{$message->{to}}, $2;
-	    }
-        } while ($to =~ /^T.*?\0/);
+      $to =~ s/(u.*?F.*?\0)//;
+      do {
+        if($to =~ s/^T((.*?)\0)//) {
+          $TOFound = 1;
+          push @{$message->{to}}, $2;
+        }
+      } while ($to =~ /^T.*?\0/);
     } 
     
     my($reccount) = 0;
     while (scalar(@headers))
     {
-    	$line = shift @headers;
-	$line .= shift @headers while(scalar(@headers) && $headers[0] =~ /\A[ \t]+/o);
-	if ($line =~ /\AReceived:/i) {
-		if($reccount == 1) {
-			$ip = $line;
-			$reccount++;
-		} else {
-			$reccount++;
-		}
-	}
-	if ($line =~ /\ASubject:(.*)/i) {
-		$message->{subject} = $1;
-    		chomp $message->{subject};
-	}
-        if ($line =~ /\AReceived: .+\[(\d+\.\d+\.\d+\.\d+)\]/i) {
-          unless ($read1strcvd) {
-            $ipfromheader = $1;
-            $read1strcvd = 1;
-          }
-        } elsif ($line =~ /\AReceived: .+\[([\dabcdef.:]+)\]/i) {
-          unless ($read1strcvd) {
-            $ipfromheader = $1;
-            $read1strcvd = 1;
-          }
+      $line = shift @headers;
+      $line .= shift @headers while(scalar(@headers) && $headers[0] =~ /\A[ \t]+/o);
+      if ($line =~ /\AReceived:/i) {
+        if($reccount == 1) {
+          $ip = $line;
+          $reccount++;
+        } else {
+          $reccount++;
         }
+      }
+      if ($line =~ /\ASubject:(.*)/i) {
+        $message->{subject} = $1;
+        chomp $message->{subject};
+      }
+      if ($line =~ /\AReceived: .+\[(\d+\.\d+\.\d+\.\d+)\]/i) {
+        unless ($read1strcvd) {
+          $ipfromheader = $1;
+          $read1strcvd = 1;
+        }
+        if ($read1strcvd && !$read2ndrcvd) {
+          $ip2fromheader = $1;
+          $read2ndrcvd = 1;
+        }
+      } elsif ($line =~ /\AReceived: .+\[([\dabcdef.:]+)\]/i) {
+        unless ($read1strcvd) {
+          $ipfromheader = $1;
+          $read1strcvd = 1;
+        }
+        if ($read1strcvd && !$read2ndrcvd) {
+          $ip2fromheader = $1;
+          $read2ndrcvd = 1;
+        }
+      }
     } 
-			
-	    
+
     if($ip =~ /(\d+\.\d+\.\d+\.\d+)/) {
-#KMG: Again heads up to christophe @ digital network for this pattern
-	$message->{clientip} = $1;
-        $IPFound = 1;
+      #KMG: Again heads up to christophe @ digital network for this pattern
+      $message->{clientip} = $1;
+      $IPFound = 1;
     } elsif (!$IPFound && $ip =~ /([\dabcdef.:]+)/) { 
-#KMG: IPV6 ppl kindly test this
-	$message->{clientip} = $1;
-        $IPFound = 1;
+      #KMG: IPV6 ppl kindly test this
+      $message->{clientip} = $1;
+      $IPFound = 1;
     } else {
-	$message->{clientip} = '127.0.0.1';
-        $IPFound = 1;
+      $message->{clientip} = '127.0.0.1';
+      $IPFound = 1;
     }
     # If we were told to get the IP from the header, and it was there...
     $message->{clientip} = $ipfromheader
       if $getipfromheader && $read1strcvd && $ipfromheader ne "";
+    $message->{clientip2} = $ip2fromheader
+      if $getipfromheader && $read2ndrcvd && $ip2fromheader ne "";
 
     return 1 if $TOFound;
 
@@ -342,12 +351,12 @@ sub new {
     my($this, $message, $key) = @_;
     my($linenum);
     for($linenum=0; $linenum<@{$message->{wheaders}}; $linenum++) {
-    	next unless $message->{wheaders}[$linenum] =~ /^$key/i;
-	splice(@{$message->{wheaders}}, $linenum, 1);
-	while($message->{wheaders}[$linenum] =~ /^\s/) {
-		splice(@{$message->{wheaders}}, $linenum, 1);
-	}
-	$linenum--;
+      next unless $message->{wheaders}[$linenum] =~ /^$key/i;
+  splice(@{$message->{wheaders}}, $linenum, 1);
+  while($message->{wheaders}[$linenum] =~ /^\s/) {
+    splice(@{$message->{wheaders}}, $linenum, 1);
+  }
+  $linenum--;
     }
   }
 
@@ -357,13 +366,13 @@ sub new {
     my($linenum, $foundat);
     $foundat = -1;
     for($linenum=0; $linenum<@{$message->{wheaders}}; $linenum++) {
-    	next unless $message->{wheaders}[$linenum] =~ /^$key/i;
+      next unless $message->{wheaders}[$linenum] =~ /^$key/i;
         ($foundat = $linenum), next if $foundat == -1;
-	splice(@{$message->{wheaders}}, $linenum, 1);
-	while($message->{wheaders}[$linenum] =~ /^\s/) {
-		splice(@{$message->{wheaders}}, $linenum, 1);
-	}
-	$linenum--;
+  splice(@{$message->{wheaders}}, $linenum, 1);
+  while($message->{wheaders}[$linenum] =~ /^\s/) {
+    splice(@{$message->{wheaders}}, $linenum, 1);
+  }
+  $linenum--;
     }
   }
 
@@ -386,24 +395,24 @@ sub new {
     for($linenum=0; $linenum<$totallines; $linenum++) {
           next unless $message->{wheaders}[$linenum] =~ /^$key/i;
           $oldlocation = $linenum;
-	  last;
+    last;
     }
 
     if ($oldlocation<0) {
           $this->AddHeader($message, $key, $newvalue);
-	  return;
+    return;
     }
-		    
+
     do {
          $oldlocation++;
     } while($linenum<$totallines &&
-		$message->{wheaders}[$oldlocation] =~ /^\s/);
+    $message->{wheaders}[$oldlocation] =~ /^\s/);
     $oldlocation--;
 
     # KMG: the ugly hack of \n fiddling :(
     if($newvalue =~ /^\s*$/) {
         chomp $message->{wheaders}[$oldlocation];
-	$sep = ',' . $sep;
+  $sep = ',' . $sep;
     }
     
     $message->{wheaders}[$oldlocation] .= "$sep$newvalue\n";
@@ -428,7 +437,7 @@ sub new {
             $this->AddHeader($message, $key, $newvalue);
             return;
     }
-		      
+
     $message->{wheaders}[$oldlocation] =~
       s/^$key\s+/$key $newvalue$sep/i;
   }
@@ -478,7 +487,7 @@ sub new {
     } while($lastline<$totallines &&
       $message->{wheaders}[$lastline] =~ /^\s/);
     $lastline--;
-    $key = '\s' unless $lastline == $oldlocation;				
+    $key = '\s' unless $lastline == $oldlocation;        
 
     return 1 if $message->{wheaders}[$lastline] =~
                                         /^$key.+\Q$text\E$/i;
@@ -495,7 +504,7 @@ sub new {
        $tempintd = $tempintd . "T" . $temprecip . "\0";
     }
     @{$message->{metadata}}[0] = $tempintd;
-		 		
+
   }
 
   sub DeleteRecipients {
@@ -592,22 +601,22 @@ sub new {
     if($sender eq '<>')
     {
     
-    	use Env qw($QMAILINJECT $QMAILUSER);
-    	$QMAILINJECT = 'sf';
-    	$QMAILUSER = '';
+      use Env qw($QMAILINJECT $QMAILUSER);
+      $QMAILINJECT = 'sf';
+      $QMAILUSER = '';
     
-    	$fh->open('|' . MailScanner::Config::Value('sendmail', $message) .
+      $fh->open('|' . MailScanner::Config::Value('sendmail', $message) .
               " $SendmailOptionsNoBounce")
               or MailScanner::Log::WarnLog("Could not send email message, %s", $!),
-	
+
     }
     else
     {
-   	 use Env qw($QMAILINJECT $QMAILUSER);
-   	 $QMAILINJECT = 'sf';
-   	 $QMAILUSER = $sender;
-	 
-   	 $fh->open('|' . MailScanner::Config::Value('sendmail', $message) .
+      use Env qw($QMAILINJECT $QMAILUSER);
+      $QMAILINJECT = 'sf';
+      $QMAILUSER = $sender;
+
+      $fh->open('|' . MailScanner::Config::Value('sendmail', $message) .
               " $SendmailOptions '" . $sender . "'")
               or MailScanner::Log::WarnLog("Could not send email message, %s", $!),
     }
@@ -637,24 +646,24 @@ sub new {
     
     if($sender eq '<>')
     {
-    	    use Env qw($QMAILINJECT $QMAILUSER);
-    	    $QMAILINJECT = 'sf';
-    	    $QMAILUSER = '';
-	    
-	    $fh->open('|' . MailScanner::Config::Value('sendmail', $message) .
+          use Env qw($QMAILINJECT $QMAILUSER);
+          $QMAILINJECT = 'sf';
+          $QMAILUSER = '';
+
+      $fh->open('|' . MailScanner::Config::Value('sendmail', $message) .
               " $SendmailOptionsNoBounce")
               or MailScanner::Log::WarnLog("Could not send email message, %s", $!),
-	
+
     }
     else
     {
-    	    use Env qw($QMAILINJECT $QMAILUSER);
-    	    $QMAILINJECT = 'sf';
-    	    $QMAILUSER = $sender;
-	    
-	    $fh->open('|' . MailScanner::Config::Value('sendmail', $message) .
-	            " $SendmailOptions '" . $sender . "'")
-      			or MailScanner::Log::WarnLog("Could not send email entity, %s", $!),
+          use Env qw($QMAILINJECT $QMAILUSER);
+          $QMAILINJECT = 'sf';
+          $QMAILUSER = $sender;
+
+      $fh->open('|' . MailScanner::Config::Value('sendmail', $message) .
+              " $SendmailOptions '" . $sender . "'")
+            or MailScanner::Log::WarnLog("Could not send email entity, %s", $!),
     }
     $entity->print($fh);
     $fh->close();
@@ -734,13 +743,13 @@ sub new {
       # Loop through each of the inq directories
       foreach $queuedirname (@queuedirnames) {
         #print STDERR "Qmail.pm: Scanning dir $queuedirname\n";
-	my($todoqueuedirname) = $queuedirname;
-	
-	$todoqueuedirname =~ s/mess/todo/;
-	
-	#KMG: Assuming todo directory in incoming queue directories are flat with no conf-splits
+  my($todoqueuedirname) = $queuedirname;
 
-	unless (chdir $todoqueuedirname) {
+  $todoqueuedirname =~ s/mess/todo/;
+
+  #KMG: Assuming todo directory in incoming queue directories are flat with no conf-splits
+
+  unless (chdir $todoqueuedirname) {
           MailScanner::Log::WarnLog("Cannot cd to dir %s to read messages, %s",
                                     $todoqueuedirname, $!);
           next;
@@ -752,12 +761,12 @@ sub new {
                                       "message batch, %s", $todoqueuedirname, $!);
 
         # Got to read incoming todo directory and calculate mess directory hash
-	
+
         while(defined($file = $queuedir->read())) {
 
-	      next unless $file =~ /$mta->{HDFileRegexp}/;
-	      $hash = $1%MailScanner::Config::Value('qmailhashdirectorynumber');
-	      push @SortedFiles, "$queuedirname/$hash/$file";
+        next unless $file =~ /$mta->{HDFileRegexp}/;
+        $hash = $1%MailScanner::Config::Value('qmailhashdirectorynumber');
+        push @SortedFiles, "$queuedirname/$hash/$file";
               if ($UnsortedBatchesLeft<=0) {
                  $tmpdate = (stat($file))[9]; # 9 = mtime
                  next if -z _;
@@ -794,7 +803,7 @@ sub new {
 
         # In accelerated queue-clearing mode, so we don't know anything yet
         if ($UnsortedBatchesLeft>0) {
-	  stat $file;
+    stat $file;
           next if -z _; # Skip 0-length queue files
           next unless -f _;
           next unless -R _;
@@ -806,7 +815,7 @@ sub new {
         # Split pathname into dir and file again
         ($queuedirname, $h1, $file) = ($1,$2,$3)
              if $file =~ /^(.*)\/(\d+)\/(\d+)$/;
-	$queuedirname = $queuedirname . '/' . $h1;
+  $queuedirname = $queuedirname . '/' . $h1;
         next unless $file =~ /$mta->{HDFileRegexp}/;
         $id = $1;
 
@@ -902,7 +911,7 @@ sub CheckQueueIsFlat{
     my($dir) = @_;
     
     if($dir eq MailScanner::Config::Value('outqueuedir')) {
-    	return 1;
+      return 1;
     }
     $dir =~ s/mess/todo/;
     my($dirhandle, $f);
@@ -912,11 +921,11 @@ sub CheckQueueIsFlat{
           or MailScanner::Log::DieLog("Cannot read queue directory $dir");
     
     while($f = $dirhandle->read()) {
-    	next if $f =~ /^\.\.?$/;
-	MailScanner::Log::DieLog("Queue directory %s cannot contain sub-" .
+      next if $f =~ /^\.\.?$/;
+  MailScanner::Log::DieLog("Queue directory %s cannot contain sub-" .
                           "directories, currently contains dir %s",
                           $dir, $f)
-	      if -d "$dir/$f";
+        if -d "$dir/$f";
     }
     $dirhandle->close();
     return 1;
