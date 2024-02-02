@@ -169,12 +169,12 @@ my $DirToScan         = "";
 my $PidFile           = "";
 my $Debug             = "";
 my $DebugSpamAssassin = 0;
-my $result = GetOptions ("h|H|help"            => \$WantHelp,
-                         "v|V|version|Version" => \$Versions,
+my $result = GetOptions ("h|help"              => \$WantHelp,
+                         "v|version"           => \$Versions,
                          "lint"                => \$WantLintOnly,
                          "lintlite|lintlight"  => \$WantLintLiteOnly,
                          "processing:1"        => \$WantProcDBDumpOnly,
-                         "c|C|changed"         => \$WantChangedOnly,
+                         "c|changed"           => \$WantChangedOnly,
                          "value=s"             => \$WantRuleCheck,
                          "from=s"              => \$RuleCheckFrom,
                          "to=s@"               => \@RuleCheckTo,
