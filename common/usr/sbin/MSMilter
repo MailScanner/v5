@@ -161,8 +161,7 @@ sub helo_callback
     # Check for unexpected helo
     if ( ${$message_ref} =~ /^[0-9A-F]{7,20}|[0-9B-DF-HJ-NP-TV-Zb-df-hj-np-tv-z]{8,20}$/) {
         MailScanner::Log::WarnLog("Unexpected helo callback");
-        Sendmail::PMilter::SMFIS_TEMPFAIL;
-        return;
+        return Sendmail::PMilter::SMFIS_TEMPFAIL;
     }
     # Watch for the second callback
     if ( ${$message_ref} !~ /^Received:/ ) {
@@ -194,8 +193,7 @@ sub envrcpt_callback
             MailScanner::Log::DebugLog("envrcpt_callback: incoming = " . @{$incoming}[0]);
             if ($incoming eq '') {
                 MailScanner::Log::WarnLog("Unable to determine incoming queue!");
-                Sendmail::PMilter::SMFIS_TEMPFAIL;
-                return;
+                return Sendmail::PMilter::SMFIS_TEMPFAIL;
             }
             my $file = @{$incoming}[0] . '/temp-' . ${$message_ref};
 
@@ -205,8 +203,7 @@ sub envrcpt_callback
             $ret = MailScanner::Lock::openlock($queuehandle,'+<' . $file, 'w');
             if ($ret != 1) {
                 MailScanner::Log::WarnLog("Unable to to open temp queue file for reading!");
-                Sendmail::PMilter::SMFIS_TEMPFAIL;
-                return;
+                return Sendmail::PMilter::SMFIS_TEMPFAIL;
             }
 
             my $data;
@@ -373,8 +370,7 @@ sub eoh_callback
     if ( $id eq '' ) {
         # Missing a queue id, header_callback possibly skipped, reject
         MailScanner::Log::WarnLog("Postfix queue id is missing");
-        Sendmail::PMilter::SMFIS_TEMPFAIL;
-        return;
+        return Sendmail::PMilter::SMFIS_TEMPFAIL;
     }
 
     # Write header to file
@@ -383,8 +379,7 @@ sub eoh_callback
     MailScanner::Log::DebugLog("eoh_callback: incoming = " . @{$incoming}[0]);
     if ($incoming eq '') {
         MailScanner::Log::WarnLog("Unable to determine incoming queue!");
-        Sendmail::PMilter::SMFIS_TEMPFAIL;
-        return;
+        return Sendmail::PMilter::SMFIS_TEMPFAIL;
     }
     my $file = @{$incoming}[0] . '/temp-' . $id;
 
@@ -394,8 +389,7 @@ sub eoh_callback
     $ret = MailScanner::Lock::openlock($queuehandle,'>>' . $file, 'w');
     if ($ret != 1) {
         MailScanner::Log::WarnLog("Unable to to open queue temp file for writing!");
-        Sendmail::PMilter::SMFIS_TEMPFAIL;
-        return;
+        return Sendmail::PMilter::SMFIS_TEMPFAIL;
     }
 
     $queuehandle->print(${$message_ref});
@@ -484,8 +478,7 @@ sub body_callback
     MailScanner::Log::DebugLog("body_callback: incoming = " . @{$incoming}[0]);
     if ($incoming eq '') {
         MailScanner::Log::WarnLog("Unable to determine incoming queue!");
-        Sendmail::PMilter::SMFIS_TEMPFAIL;
-        return;
+        return Sendmail::PMilter::SMFIS_TEMPFAIL;
     }
     my $file = @{$incoming}[0] . '/temp-' . ${$message_ref};
 
@@ -495,8 +488,7 @@ sub body_callback
     $ret = MailScanner::Lock::openlock($queuehandle,'>>' . $file, 'w');
     if ($ret != 1) {
         MailScanner::Log::WarnLog("Unable to to open queue temp file for writing!");
-        Sendmail::PMilter::SMFIS_TEMPFAIL;
-        return;
+        return Sendmail::PMilter::SMFIS_TEMPFAIL;
     }
     $queuehandle->print($body_chunk);
 
@@ -520,8 +512,7 @@ sub eom_callback
     MailScanner::Log::DebugLog("eom_callback: incoming = " . @{$incoming}[0]);
     if ($incoming eq '') {
         MailScanner::Log::WarnLog("Unable to determine incoming queue!");
-        Sendmail::PMilter::SMFIS_TEMPFAIL;
-        return;
+        return Sendmail::PMilter::SMFIS_TEMPFAIL;
     }
     
     my $file = @{$incoming}[0] . '/temp-' . ${$message_ref};
@@ -548,8 +539,7 @@ sub close_callback
     MailScanner::Log::DebugLog("eom_callback: incoming = " . @{$incoming}[0]);
     if ($incoming eq '') {
         MailScanner::Log::WarnLog("Unable to determine incoming queue!");
-        Sendmail::PMilter::SMFIS_TEMPFAIL;
-        return;
+        return Sendmail::PMilter::SMFIS_TEMPFAIL;
     }
     my $file = @{$incoming}[0] . '/temp-' . ${$message_ref};
 
