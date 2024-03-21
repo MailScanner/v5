@@ -1,3 +1,9 @@
+03/10/2024 Changes in    v5.5.1-5
+==================================
+- Remove case insenstive duplicate options
+- Add values to return statements in msmilter
+- Fix regex for bad helo check in msmilter
+
 12/29/2023 Changes in    v5.5.1-4
 ==================================
 - Fix Exim code block
