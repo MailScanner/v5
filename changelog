@@ -1,6 +1,10 @@
+06/09/2024 Changes in    v5.5.2-1
+==================================
+- Remove references to SORBS
+
 03/10/2024 Changes in    v5.5.1-5
 ==================================
-- Remove case insenstive duplicate options
+- Remove case insensitive duplicate options
 - Add values to return statements in msmilter
 - Fix regex for bad helo check in msmilter
 
