@@ -60,15 +60,6 @@ ms_cron_sa=1
 #
 ms_cron_ps=1
 
-# Update ScamNailer bad emails
-#
-# You must have ScamNailer setup before enabling this. http://www.scamnailer.info
-# This is disabled by default.
-#
-# This is executed during the DAILY cron option.  0 = off, 1 = on
-#
-ms_cron_sn=0
-
 # MailScanner Process Check
 #
 # Check to see if MailScanner is running. If not, start it if the process

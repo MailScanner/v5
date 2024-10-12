@@ -158,7 +158,6 @@ install common/usr/sbin/ms-msg-alert                       ${RPM_BUILD_ROOT}/usr
 install common/usr/sbin/ms-peek                            ${RPM_BUILD_ROOT}/usr/sbin/ms-peek
 install common/usr/sbin/ms-perl-check                      ${RPM_BUILD_ROOT}/usr/sbin/ms-perl-check
 install common/usr/sbin/ms-sa-cache                        ${RPM_BUILD_ROOT}/usr/sbin/ms-sa-cache
-install common/usr/sbin/ms-update-bad-emails               ${RPM_BUILD_ROOT}/usr/sbin/ms-update-bad-emails
 install common/usr/sbin/ms-update-phishing                 ${RPM_BUILD_ROOT}/usr/sbin/ms-update-phishing
 install common/usr/sbin/ms-update-sa                       ${RPM_BUILD_ROOT}/usr/sbin/ms-update-sa
 install common/usr/sbin/ms-update-vs                       ${RPM_BUILD_ROOT}/usr/sbin/ms-update-vs
@@ -611,7 +610,6 @@ exit 0
 %attr(755,root,root) /usr/sbin/ms-peek
 %attr(755,root,root) /usr/sbin/ms-perl-check
 %attr(755,root,root) /usr/sbin/ms-sa-cache
-%attr(755,root,root) /usr/sbin/ms-update-bad-emails
 %attr(755,root,root) /usr/sbin/ms-update-phishing
 %attr(755,root,root) /usr/sbin/ms-update-sa
 %attr(755,root,root) /usr/sbin/ms-update-vs
@@ -1206,6 +1204,9 @@ exit 0
 %config(noreplace) /usr/share/MailScanner/reports/ca/stored.virus.message.txt
 
 %changelog
+* Sat Oct 12 2024 Shawn Iverson <shawniverson@efa-project.org>
+- Remove SnamNailer
+
 * Thu Mar 02 2023 Shawn Iverson <shawniverson@efa-project.org>
 - Remove msmilter.service on remove
 
