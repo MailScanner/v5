@@ -1280,7 +1280,7 @@ exit 0
 
 %changelog
 * Sat Oct 12 2024 Shawn Iverson <shawniverson@efa-project.org>
-- Remove SnamNailer
+- Remove ScamNailer
 
 * Thu Mar 02 2023 Shawn Iverson <shawniverson@efa-project.org>
 - Remove msmilter.service on remove
