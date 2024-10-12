@@ -1,6 +1,7 @@
 10/12/2024 Changes in    v5.5.3-1
 ==================================
 - Check for invalid chars in recipient address (msmilter) - Thanks to alexskynet
+- Remove ScamNailer - Thanks to fictitiousexistence
 
 06/09/2024 Changes in    v5.5.2-1
 ==================================

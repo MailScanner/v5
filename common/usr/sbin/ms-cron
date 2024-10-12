@@ -23,7 +23,6 @@ ms_cron_msg_alert=0
 ms_cron_sa=0
 ms_cron_av=0
 ms_cron_ps=0
-ms_cron_sn=0
 q_days=0
 
 # if no arguments are passed
@@ -97,14 +96,6 @@ if [ $ACTION = DAILY ]; then
 		/usr/sbin/ms-update-phishing >/dev/null
 	fi
 	
-	# update ScamNailer phishing emails
-	if [ $ms_cron_sn = 1 ]; then
-		if [ ! -d /var/cache/ScamNailer ]; then
-			mkdir -p /var/cache/ScamNailer
-		fi
-		/usr/sbin/ms-update-bad-emails
-	fi
-
 	exit 0
 fi
 
