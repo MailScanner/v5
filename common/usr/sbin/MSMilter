@@ -1,7 +1,7 @@
 #!/usr/bin/perl -U -I /usr/share/MailScanner/perl
 
 # (c) 2019-2020 MailScanner Project <https://www.mailscanner.info>
-#          Version 1.7
+#          Version 1.8
 #
 #    This program is free software; you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -248,7 +248,13 @@ sub envrcpt_callback
         ${$message_ref} .= "\tby " . hostname . ' (MailScanner Milter) with SMTP id ';
     }
 
+    # Check and remove invalid characters from rcptto
     my $rcptto = $args[0];
+    $rcptto =~ s/^<//;
+    $rcptto =~ s/>$//;
+    $rcptto =~ s/<.*?>//g;
+    $rcptto = "<$rcptto>";
+    
     my $esmtpnotify = '';
     # Capture the ESMTP options for pass through MailScanner engine
     # RFC 3461
