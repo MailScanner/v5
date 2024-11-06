@@ -1,3 +1,7 @@
+11/06/2024 Changes in    v5.5.3-2
+==================================
+- Add ms-update-phishing version 0.3.1 - Courtesy of Mailborder
+
 11/06/2024 Changes in    v5.5.3-1
 ==================================
 - Check for invalid chars in recipient address (msmilter) - Thanks to alexskynet
