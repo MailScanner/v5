@@ -25,8 +25,8 @@
 #
 #CONFIGDIR='/opt/MailScanner/etc';
 CONFIGDIR='/etc/MailScanner';
-BADURL='http://phishing.mailscanner.info/phishing.bad.sites.conf.gz';
-SAFEURL='http://phishing.mailscanner.info/phishing.safe.sites.conf.gz';
+BADURL='https://phishing.mailscanner.info/phishing.bad.sites.conf.gz';
+SAFEURL='https://phishing.mailscanner.info/phishing.safe.sites.conf.gz';
 MSSTARTSCRIPT='/etc/init.d/mailscanner';
 MSSERVICENAME='mailscanner.service';
 PIDFile=`ms-peek 'PID file' $CONFIGDIR/MailScanner.conf`
