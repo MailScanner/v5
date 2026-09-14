@@ -399,7 +399,8 @@ if (/exim/i) {
     print STDERR "Unable to obtain version of Exim. Please check the path to Exim Command in MailScanner.conf";
     exit 1;
   }
-  if ($ver >= 4.97) {
+  my ($vmaj, $vmin) = $ver =~ /^(\d+)\.(\d+)/;
+  if (defined $vmaj && ($vmaj > 4 || ($vmaj == 4 && $vmin >= 97))) {
     MailScanner::Config::SetValue('eximlongids',1);
   } else {
     MailScanner::Config::SetValue('eximlongids',0);
