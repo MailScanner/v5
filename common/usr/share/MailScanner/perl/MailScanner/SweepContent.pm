@@ -519,7 +519,7 @@ sub SearchHTMLBody {
       # Find the script tag start
       # $scriptfound = 1 if /\<script/i;
       $script_check = 1 if /\<script/i;
-      $scriptfound = 1 if $script_check && !/application\/ld\+json/i;
+      $scriptfound = 1 if $script_check && !/\btype="application\/(?:[a-z-]+\+json|json\+[a-z-]+)"/i;
 
       # Find the img tag start
       $webbugfound = 1 if /\<img/i;
