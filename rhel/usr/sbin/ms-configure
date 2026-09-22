@@ -601,6 +601,8 @@ if [ -z "${arg_installCPAN+x}" ]; then
         # user does not want to use CPAN
         CPANOPTION=0
     fi
+else
+    CPANOPTION=${arg_installCPAN}
 fi
 
 # ask about setting permissive mode for SeLinux
